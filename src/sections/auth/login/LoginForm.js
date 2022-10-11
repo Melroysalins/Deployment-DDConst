@@ -10,11 +10,30 @@ import { LoadingButton } from '@mui/lab';
 // components
 import Iconify from '../../../components/Iconify';
 import { FormProvider, RHFTextField, RHFCheckbox } from '../../../components/hook-form';
-
+import { supabase } from '../../../supabaseClient'
 // ----------------------------------------------------------------------
 
 export default function LoginForm() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false)
+  const [email, setEmail] = useState('')
+  const handleLogin = async (e) => {
+    e.preventDefault()
+
+    try {
+      setLoading(true)
+      const { error } = await supabase.auth.signIn({
+        email: 'example@email.com',
+        password: 'example-password',
+      })
+      if (error) throw error
+      alert('Check your email for the login link!')
+    } catch (error) {
+      alert(error.error_description || error.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -40,7 +59,20 @@ export default function LoginForm() {
   } = methods;
 
   const onSubmit = async () => {
-    navigate('/dashboard', { replace: true });
+    try {
+      setLoading(true)
+      const { error } = await supabase.auth.signInWithPassword({
+        email: 'example@email.com',
+        password: 'example-password',
+      })
+      if (error) throw error
+      alert('Check your email for the login link!')
+    } catch (error) {
+      alert(error.error_description || error.message)
+    } finally {
+      setLoading(false)
+    }
+    // navigate('/dashboard', { replace: true });
   };
 
   return (
