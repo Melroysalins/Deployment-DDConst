@@ -22,6 +22,5 @@ export default async function getHolidays(timeMin, timeMax) {
       };
     })
     .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-  console.log(formattedResponse);
-  return formattedResponse ? formattedResponse : [];
+  return formattedResponse || [];
 }
