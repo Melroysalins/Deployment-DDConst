@@ -1,20 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 // material
-import { styled } from '@mui/material/styles';
+import { styled, useTheme } from '@mui/material/styles';
+import { useMediaQuery } from '@mui/material';
 //
 import DashboardNavbar from './DashboardNavbar';
 import DashboardSidebar from './DashboardSidebar';
+import { DRAWER_WIDTH, APP_BAR_MOBILE, APP_BAR_DESKTOP } from 'constant';
 
 // ----------------------------------------------------------------------
-
-const APP_BAR_MOBILE = 64;
-const APP_BAR_DESKTOP = 92;
 
 const RootStyle = styled('div')({
   display: 'flex',
   minHeight: '100%',
-  overflow: 'hidden'
+  overflow: 'hidden',
 });
 
 const MainStyle = styled('div')(({ theme }) => ({
@@ -22,23 +21,38 @@ const MainStyle = styled('div')(({ theme }) => ({
   overflow: 'auto',
   minHeight: '100%',
   paddingTop: APP_BAR_MOBILE + 24,
-  paddingBottom: theme.spacing(10),
+  width: '100%',
+  padding: '20px',
+  borderRadius: `20px`,
   [theme.breakpoints.up('lg')]: {
     paddingTop: APP_BAR_DESKTOP + 24,
     paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(2)
-  }
+    paddingRight: theme.spacing(2),
+    paddingBottom: theme.spacing(2),
+  },
 }));
 
 // ----------------------------------------------------------------------
 
 export default function DashboardLayout() {
-  const [open, setOpen] = useState(false);
+  const theme = useTheme();
+  const [open, setOpen] = useState(true);
+  const matchDownMd = useMediaQuery(theme.breakpoints.down('lg'));
 
+  const handleLeftDrawerToggle = () => {
+    console.log('yes');
+    setOpen(!open);
+  };
+
+  useEffect(() => {
+    setOpen(!matchDownMd);
+    return () => {};
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [matchDownMd]);
   return (
     <RootStyle>
-      <DashboardNavbar onOpenSidebar={() => setOpen(true)} />
-      <DashboardSidebar isOpenSidebar={open} onCloseSidebar={() => setOpen(false)} />
+      <DashboardNavbar leftDrawerOpened={open} onOpenSidebar={handleLeftDrawerToggle} />
+      <DashboardSidebar leftDrawerOpened={open} onCloseSidebar={handleLeftDrawerToggle} />
       <MainStyle>
         <Outlet />
       </MainStyle>

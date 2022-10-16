@@ -4,17 +4,15 @@
     "browser": true,
     "node": true
   },
-  "extends": [
-    "airbnb",
-    "plugin:jsx-a11y/recommended",
-    "plugin:react-hooks/recommended",
-    "prettier"
-  ],
-  "plugins": [
-    "react",
-    "react-hooks",
-    "prettier"
-  ],
+  "extends": ["airbnb", "plugin:jsx-a11y/recommended", "plugin:react-hooks/recommended", "prettier"],
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "moduleDirectory": ["node_modules", "src/"]
+      }
+    }
+  },
+  "plugins": ["react", "react-hooks", "prettier"],
   "parser": "@babel/eslint-parser",
   "parserOptions": {
     "ecmaVersion": 8,
@@ -25,6 +23,7 @@
     }
   },
   "rules": {
+    "import/order": 0,
     "no-new": 0,
     "no-shadow": 0,
     "no-console": 0,
@@ -58,6 +57,8 @@
     "react/no-unstable-nested-components": 0,
     "react/function-component-definition": 0,
     "react/jsx-no-constructed-context-values": 0,
+    "react/jsx-no-bind": 0,
+    "react/jsx-boolean-value": 0,
     "no-unused-vars": [
       1,
       {

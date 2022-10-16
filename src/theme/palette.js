@@ -38,11 +38,11 @@ const PRIMARY = {
 };
 
 const SECONDARY = {
-  lighter: '#D6E4FF',
-  light: '#84A9FF',
-  main: '#3366FF',
-  dark: '#1939B7',
-  darker: '#091A7A',
+  lighter: '#CEC8FF',
+  light: '#9F99D2',
+  main: '#716DA3',
+  dark: '#464476',
+  darker: '#1C1F4C',
   contrastText: '#fff',
 };
 
@@ -84,6 +84,7 @@ const ERROR = {
 
 const GRADIENTS = {
   primary: createGradient(PRIMARY.light, PRIMARY.main),
+  secondary: createGradient(SECONDARY.light, SECONDARY.main),
   info: createGradient(INFO.light, INFO.main),
   success: createGradient(SUCCESS.light, SUCCESS.main),
   warning: createGradient(WARNING.light, WARNING.main),
@@ -110,8 +111,8 @@ const palette = {
   gradients: GRADIENTS,
   chart: CHART_COLORS,
   divider: GREY[500_24],
-  text: { primary: GREY[800], secondary: GREY[600], disabled: GREY[500] },
-  background: { paper: '#fff', default: GREY[100], neutral: GREY[200] },
+  text: { primary: GREY[800], secondary: GREY[600], default: GREY[0], disabled: GREY[500] },
+  background: { paper: '#fff', default: GREY[100], secondary: SECONDARY.darker, neutral: GREY[200] },
   action: {
     active: GREY[600],
     hover: GREY[500_8],

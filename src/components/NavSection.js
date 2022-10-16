@@ -34,7 +34,7 @@ NavItem.propTypes = {
   active: PropTypes.func,
 };
 
-function NavItem({ item, active }) {
+function NavItem({ item, active, leftDrawerOpened }) {
   const theme = useTheme();
 
   const isActiveRoot = active(item.path);
@@ -48,7 +48,7 @@ function NavItem({ item, active }) {
   };
 
   const activeRootStyle = {
-    color: 'primary.main',
+    color: 'secondary.contrastText',
     fontWeight: 'fontWeightMedium',
     bgcolor: alpha(theme.palette.primary.main, theme.palette.action.selectedOpacity),
   };
@@ -129,8 +129,12 @@ function NavItem({ item, active }) {
       }}
     >
       <ListItemIconStyle>{icon && icon}</ListItemIconStyle>
-      <ListItemText disableTypography primary={title} />
-      {info && info}
+      {leftDrawerOpened && (
+        <>
+          <ListItemText disableTypography primary={title} />
+          {info && info}
+        </>
+      )}
     </ListItemStyle>
   );
 }
@@ -139,7 +143,7 @@ NavSection.propTypes = {
   navConfig: PropTypes.array,
 };
 
-export default function NavSection({ navConfig, ...other }) {
+export default function NavSection({ navConfig, leftDrawerOpened, ...other }) {
   const { pathname } = useLocation();
 
   const match = (path) => (path ? !!matchPath({ path, end: false }, pathname) : false);
@@ -148,7 +152,7 @@ export default function NavSection({ navConfig, ...other }) {
     <Box {...other}>
       <List disablePadding sx={{ p: 1 }}>
         {navConfig.map((item) => (
-          <NavItem key={item.title} item={item} active={match} />
+          <NavItem leftDrawerOpened={leftDrawerOpened} key={item.title} item={item} active={match} />
         ))}
       </List>
     </Box>

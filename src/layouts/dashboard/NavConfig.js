@@ -12,6 +12,11 @@ const navConfig = [
     icon: getIcon('eva:pie-chart-2-fill'),
   },
   {
+    title: 'workforce planning',
+    path: '/dashboard/workforce-planning',
+    icon: getIcon('icon-park-solid:plan'),
+  },
+  {
     title: 'user',
     path: '/dashboard/user',
     icon: getIcon('eva:people-fill'),
