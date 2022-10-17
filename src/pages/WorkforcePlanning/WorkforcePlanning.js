@@ -32,6 +32,7 @@ const viewSettings = {
   timeline: {
     type: 'month',
     size: 2,
+    eventList: true,
   },
 };
 const responsivePopup = {
@@ -296,7 +297,7 @@ function App() {
         data={myEvents}
         invalid={invalid}
         displayTimezone="local"
-        dataTimezone="local"
+        dataTimezone="iso"
         timezonePlugin={momentTimezone}
         onPageLoading={onPageLoading}
         renderResource={renderMyResource}
