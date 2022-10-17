@@ -388,7 +388,7 @@ function App() {
             timezonePlugin={momentTimezone}
             readOnly={isEdit}
             select="range"
-            controls={['datetime']}
+            controls={['date']}
             touchUi={true}
             startInput={start}
             endInput={end}
