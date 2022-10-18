@@ -83,7 +83,6 @@ function App() {
     (async function () {
       setLoader(true);
       getEmployees().then((data) => {
-        console.log(data);
         const resource = data.map((item) => item.id);
         setInvalid((prev) => {
           return [
@@ -118,10 +117,12 @@ function App() {
   const saveEvent = React.useCallback(() => {
     if (handleValidation()) {
       setLoader(true);
+      const startDate = moment(popupEventDate[0]).format('YYYY-MM-DD');
+      const endDate = moment(popupEventDate[1]).format('YYYY-MM-DD');
       const newEvent = {
         title: popupEventTitle,
-        start: popupEventDate[0].toISOString(),
-        end: popupEventDate[1].toISOString(),
+        start: startDate,
+        end: endDate,
         site_id: popupEventSite,
         employee_id: checkedResources,
       };
@@ -150,8 +151,10 @@ function App() {
 
   const loadPopupForm = React.useCallback((event) => {
     try {
-      const startDate = new Date(event.start);
-      const endDate = new Date(event.end);
+      let startDate = new Date(event.start);
+      let endDate = new Date(event.end);
+      startDate = moment(startDate).format('YYYY-MM-DD');
+      endDate = moment(endDate).format('YYYY-MM-DD');
       setTitle(event.title);
       setSite(event.location);
       setColor(event.color);
@@ -189,6 +192,7 @@ function App() {
   const onEventClick = React.useCallback(
     (args) => {
       setEdit(true);
+
       setTempEvent({ ...args.event });
       // fill popup form with event data
       loadPopupForm(args.event);
@@ -283,8 +287,8 @@ function App() {
   }, []);
 
   async function onPageLoading(event, inst) {
-    const start = new Date(event.firstDay).toISOString();
-    const end = new Date(event.lastDay).toISOString();
+    const start = new Date(event.firstDay);
+    const end = new Date(event.lastDay);
     const data = await getHolidays(start, end);
     if (data) setHolidays((prev) => [...defaultHolidays, ...data]);
   }
@@ -297,8 +301,7 @@ function App() {
         data={myEvents}
         invalid={invalid}
         displayTimezone="local"
-        dataTimezone="iso"
-        timezonePlugin={momentTimezone}
+        dataTimezone="local"
         onPageLoading={onPageLoading}
         renderResource={renderMyResource}
         resources={myResources}
@@ -386,7 +389,6 @@ function App() {
           <Input ref={startRef} label="Starts" />
           <Input ref={endRef} label="Ends" />
           <Datepicker
-            timezonePlugin={momentTimezone}
             readOnly={isEdit}
             select="range"
             controls={['date']}
