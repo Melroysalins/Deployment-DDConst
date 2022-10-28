@@ -17,6 +17,11 @@ const navConfig = [
     icon: getIcon('icon-park-solid:plan'),
   },
   {
+  title: 'Travel Expenses',
+  path: '/dashboard/travel-expenses',
+  icon: getIcon('zondicons:travel-taxi-cab'),
+},
+  {
     title: 'user',
     path: '/dashboard/user',
     icon: getIcon('eva:people-fill'),

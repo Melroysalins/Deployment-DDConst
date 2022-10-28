@@ -11,6 +11,7 @@ import Register from './pages/Register';
 import Products from './pages/Products';
 import DashboardApp from './pages/DashboardApp';
 import WorkforcePlanning from './pages/WorkforcePlanning/WorkforcePlanning';
+import TravelExpenses from './pages/TravelExpenses/TravelExpenses';
 
 // ----------------------------------------------------------------------
 
@@ -22,6 +23,7 @@ export default function Router() {
       children: [
         { path: 'app', element: <DashboardApp /> },
         { path: 'workforce-planning', element: <WorkforcePlanning /> },
+        { path: 'travel-expenses', element: <TravelExpenses /> },
         { path: 'user', element: <User /> },
         { path: 'products', element: <Products /> },
         { path: 'blog', element: <Blog /> },
