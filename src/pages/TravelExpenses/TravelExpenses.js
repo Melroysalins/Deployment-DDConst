@@ -53,6 +53,7 @@ function App() {
   const [myEvents, setMyEvents] = React.useState([]);
   const [tempEvent, setTempEvent] = React.useState(null);
   const [isOpen, setOpen] = React.useState(false);
+  const [addNewTravelOtEvent, setaddNewTravelOtEvent] = React.useState(false);
   const [isEdit, setEdit] = React.useState(false);
   const [anchor, setAnchor] = React.useState(null);
   const [start, startRef] = React.useState(null);
@@ -97,6 +98,8 @@ function App() {
         setMyResources(data);
       });
       getAllEvents().then((data) => setMyEvents(data));
+      // console.log(getAllEvents());
+      // setMyEvents(getAllEvents())
       getAllProjects().then((data) => {
         setLoader(false);
         setProjectSites(data);
@@ -208,10 +211,15 @@ function App() {
       setTempEvent(args.event);
       // fill popup form with event data
       console.log(args.event)
-      loadPopupForm(args.event);
+      if(args.event.resource !== 'day'){
+        loadPopupForm(args.event);
+        setOpen(true);
+      }  else {
+        loadPopupForm(args.event);
+        setaddNewTravelOtEvent(true);
+      }
       setAnchor(args.target);
       // open the popup
-      setOpen(true);
     },
     [loadPopupForm]
   );
@@ -274,6 +282,7 @@ function App() {
       setMyEvents([...myEvents]);
     }
     setOpen(false);
+    setaddNewTravelOtEvent(false);
   }, [isEdit, myEvents]);
 
   const onCloseNewProject = React.useCallback(() => {
@@ -359,6 +368,67 @@ function App() {
         anchor={anchor}
         buttons={popupButtons}
         isOpen={isOpen}
+        onClose={onClose}
+        responsive={responsivePopup}
+      >
+        <div className="mbsc-form-group">
+          <Select
+            readOnly={isEdit}
+            onChange={(e) => {
+              setTitle(e.valueText);
+              setSite(e.value);
+            }}
+            value={popupEventSite}
+            data={projectSites}
+            touchUi={false}
+            label="Project Site"
+            labelStyle="floating"
+            error={projectError}
+            errorMessage={'Please select a project'}
+          />
+          <Button
+            onClick={() => {
+              setAddNewProject(true);
+            }}
+            startIcon="plus"
+          >
+            Add new Project
+          </Button>
+        </div>
+        <div className="mbsc-form-group">
+          <Input ref={startRef} label="Starts" />
+          <Input ref={endRef} label="Ends" />
+          <Datepicker
+            readOnly={isEdit}
+            select="range"
+            controls={['date']}
+            touchUi={true}
+            startInput={start}
+            endInput={end}
+            showRangeLabels={false}
+            onChange={dateChange}
+            value={popupEventDate}
+          />
+        </div>
+
+        <div className="mbsc-form-group">
+          {isEdit && (
+            <div className="mbsc-button-group">
+              <Button className="mbsc-button-block" color="danger" variant="outline" onClick={onDeleteClick}>
+                Delete event
+              </Button>
+            </div>
+          )}
+        </div>
+      </Popup>
+      <Popup
+        display="bottom"
+        fullScreen={true}
+        contentPadding={false}
+        headerText={headerText}
+        anchor={anchor}
+        buttons={popupButtons}
+        isOpen={addNewTravelOtEvent}
         onClose={onClose}
         responsive={responsivePopup}
       >
