@@ -17,6 +17,11 @@ const navConfig = [
     icon: getIcon('icon-park-solid:plan'),
   },
   {
+    title: 'project travel expense',
+    path: '/dashboard/travel-expense',
+    icon: getIcon('icon-park-solid:plan'),
+  },
+  {
     title: 'user',
     path: '/dashboard/user',
     icon: getIcon('eva:people-fill'),
