@@ -32,6 +32,7 @@ const ListItemIconStyle = styled(ListItemIcon)({
 NavItem.propTypes = {
   item: PropTypes.object,
   active: PropTypes.func,
+  leftDrawerOpened: PropTypes.bool,
 };
 
 function NavItem({ item, active, leftDrawerOpened }) {
@@ -141,6 +142,7 @@ function NavItem({ item, active, leftDrawerOpened }) {
 
 NavSection.propTypes = {
   navConfig: PropTypes.array,
+  leftDrawerOpened: PropTypes.bool,
 };
 
 export default function NavSection({ navConfig, leftDrawerOpened, ...other }) {

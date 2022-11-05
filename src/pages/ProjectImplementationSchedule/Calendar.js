@@ -20,6 +20,9 @@ import './calendar.scss';
 import { Loader, getHolidays } from 'reusables';
 
 import { getEmployees, getAllEvents, getAllProjects, createNewProject, createNewEvent, deleteEvent } from './api';
+import data from './data.json';
+
+console.log(data);
 
 setOptions({
   theme: 'ios',
@@ -30,7 +33,7 @@ momentTimezone.moment = moment;
 const viewSettings = {
   timeline: {
     type: 'month',
-    size: 2,
+    size: 1,
     eventList: true,
   },
 };
@@ -49,7 +52,7 @@ const defaultHolidays = [
 ];
 
 function App() {
-  const [myEvents, setMyEvents] = React.useState([]);
+  const [myEvents, setMyEvents] = React.useState(data.events);
   const [tempEvent, setTempEvent] = React.useState(null);
   const [isOpen, setOpen] = React.useState(false);
   const [isEdit, setEdit] = React.useState(false);
@@ -60,9 +63,9 @@ function App() {
   const [popupEventSite, setSite] = React.useState('');
   const [popupEventColor, setColor] = React.useState('');
   const [popupEventDate, setDate] = React.useState([]);
-  const [mySelectedDate, setSelectedDate] = React.useState(new Date());
+  const [mySelectedDate, setSelectedDate] = React.useState(data.events[0].start);
   const [checkedResources, setCheckedResources] = React.useState([]);
-  const [myResources, setMyResources] = React.useState([]);
+  const [myResources, setMyResources] = React.useState(data.resources);
   const [invalid, setInvalid] = React.useState([
     {
       recurring: {
@@ -80,26 +83,28 @@ function App() {
 
   React.useEffect(() => {
     (async function () {
-      setLoader(true);
-      getEmployees().then((data) => {
-        const resource = data.map((item) => item.id);
-        setInvalid((prev) => {
-          return [
-            {
-              recurring: {
-                repeat: 'daily',
-              },
-              resource,
-            },
-          ];
-        });
-        setMyResources(data);
-      });
-      getAllEvents().then((data) => setMyEvents(data));
-      getAllProjects().then((data) => {
-        setLoader(false);
-        setProjectSites(data);
-      });
+      // setLoader(true);
+      // getEmployees().then((data) => {
+      //   const resource = data.map((item) => item.id);
+      //   setInvalid((prev) => {
+      //     return [
+      //       {
+      //         recurring: {
+      //           repeat: 'daily',
+      //         },
+      //         resource,
+      //       },
+      //     ];
+      //   });
+      //   setMyResources(data);
+      // });
+      // getAllEvents().then((data) => {
+      //   setMyEvents(data);
+      // });
+      // getAllProjects().then((data) => {
+      //   setLoader(false);
+      //   setProjectSites(data);
+      // });
     })();
     return () => {};
   }, []);
@@ -140,10 +145,29 @@ function App() {
   }, [isEdit, myEvents, popupEventDate, popupEventColor, popupEventTitle, popupEventSite, tempEvent, checkedResources]);
 
   const renderMyResource = (resource) => {
-    const parent = resource.children;
     return (
-      <div className={parent ? 'md-shift-resource' : ''} style={{ color: parent ? '#1dab2f' : '' }}>
-        {resource.name}
+      <div>
+        {resource.name && `Work: ${resource.name}`}
+        <br />
+        {resource.team && `Team: ${resource.team}`}
+      </div>
+    );
+  };
+  const renderScheduleEvent = (event) => {
+    let bg = event.color;
+    let color = '#fff';
+    let border = null;
+    if (event.original.completed != null) {
+      bg = '#fff';
+      color = event.color;
+      console.log(bg, color);
+      border = `2.5px solid ${event.color}`;
+      // if (event.original.completed) border = '2px solid red';
+      // else border = '2px solid black';
+    }
+    return (
+      <div className="timeline-event" style={{ background: bg, color, border }}>
+        {event.title}
       </div>
     );
   };
@@ -303,6 +327,7 @@ function App() {
         dataTimezone="local"
         onPageLoading={onPageLoading}
         renderResource={renderMyResource}
+        renderScheduleEvent={renderScheduleEvent}
         resources={myResources}
         clickToCreate="double"
         dragToCreate={true}

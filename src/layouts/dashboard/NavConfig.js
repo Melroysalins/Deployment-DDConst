@@ -22,6 +22,11 @@ const navConfig = [
     icon: getIcon('icon-park-solid:plan'),
   },
   {
+    title: 'project implementation schedule',
+    path: '/dashboard/project-schedule',
+    icon: getIcon('icon-park-solid:plan'),
+  },
+  {
     title: 'user',
     path: '/dashboard/user',
     icon: getIcon('eva:people-fill'),

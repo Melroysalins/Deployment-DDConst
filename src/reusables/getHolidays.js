@@ -1,6 +1,6 @@
 const BASE_CALENDAR_URL = 'https://www.googleapis.com/calendar/v3/calendars';
-const BASE_CALENDAR_ID_FOR_PUBLIC_HOLIDAY = 'holiday@group.v.calendar.google.com';
-const API_KEY = 'AIzaSyBNlYH01_9Hc5S1J9vuFmu2nUqBZJNAXxs';
+const BASE_CALENDAR_ID_FOR_PUBLIC_HOLIDAY = process.env.REACT_APP_BASE_CALENDAR_ID_FOR_PUBLIC_HOLIDAY;
+const API_KEY = process.env.REACT_APP_GOOGLE_API_KEY;
 const CALENDAR_REGION = 'en.south_korea';
 
 export default async function getHolidays(timeMin, timeMax) {
