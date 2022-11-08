@@ -1,0 +1,64 @@
+{
+  "projects": [
+    {
+      "title": "Iljin Electric _ 345kV Samcheok thermal power plant mass-produced collective energy facility n Electric _ 345kV Samcheok thermal power plant mass-produced collective energy facilit",
+      "location": "Sinyeongsan",
+      "rateOfCompletion": 50,
+      "contractCode": 43993,
+      "contractValue": 169000000,
+      "start": "2022-10-23",
+      "end": "2022-11-01",
+      "color": "#8D99FF"
+    },
+    {
+      "title": "Transmission line 154kV power cable installation work",
+      "location": "Cheongju",
+      "rateOfCompletion": 71,
+      "contractCode": 43993,
+      "contractValue": 169000000,
+      "start": "2022-10-23",
+      "end": "2022-11-01",
+      "color": "#FFA58D"
+    },
+    {
+      "title": "154kV Godeok 2-Pyeongtaek, Dongpyeongtaek withdrawal maintenance work",
+      "location": "United Kingdom",
+      "rateOfCompletion": 52,
+      "contractCode": 43993,
+      "contractValue": 169000000,
+      "start": "2022-10-23",
+      "end": "2022-11-01",
+      "color": "#98D2C3"
+    },
+    {
+      "title": "Yangsan collective energy facility transmission line 154kV power cable installation work",
+      "location": "East Seoul",
+      "rateOfCompletion": 64,
+      "contractCode": 43993,
+      "contractValue": 169000000,
+      "start": "2022-10-23",
+      "end": "2022-11-01",
+      "color": "#8CCC67"
+    },
+    {
+      "title": "Iljin Electric _ 345KV Samcheok Thermal Power Plant / Iljin Powertech Co., Ltd. 154kV Dong Seoul #2 ~ Wirye Underground T/L Construction",
+      "location": "Gochang",
+      "rateOfCompletion": 32,
+      "contractCode": 43993,
+      "contractValue": 169000000,
+      "start": "2022-10-23",
+      "end": "2022-11-01",
+      "color": "#C9AB81"
+    },
+    {
+      "title": "Iljin Electric _ 345KV Samcheok Thermal Power Plant",
+      "location": "Dangjin",
+      "rateOfCompletion": 12,
+      "contractCode": 43993,
+      "contractValue": 169000000,
+      "start": "2022-10-23",
+      "end": "2022-11-01",
+      "color": "#FCD200"
+    }
+  ]
+}

@@ -10,6 +10,7 @@ import NotFound from './pages/Page404';
 import Register from './pages/Register';
 import Products from './pages/Products';
 import DashboardApp from './pages/DashboardApp';
+import Dashboard from './pages/Dashboard/Dashboard';
 import WorkforcePlanning from './pages/WorkforcePlanning/WorkforcePlanning';
 
 // ----------------------------------------------------------------------
@@ -20,7 +21,7 @@ export default function Router() {
       path: '/dashboard',
       element: <DashboardLayout />,
       children: [
-        { path: 'app', element: <DashboardApp /> },
+        { path: 'app', element: <Dashboard /> },
         { path: 'workforce-planning', element: <WorkforcePlanning /> },
         { path: 'user', element: <User /> },
         { path: 'products', element: <Products /> },
