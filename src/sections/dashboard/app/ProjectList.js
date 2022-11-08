@@ -5,37 +5,6 @@ import { Box, Card, Typography, CardHeader, Grid, CardContent } from '@mui/mater
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 import data from 'pages/Dashboard/data.json';
 
-const BorderLinearProgress = styled(LinearProgress, {
-  shouldForwardProp: (prop) => prop !== '_color',
-})(({ theme, _color }) => ({
-  height: 28,
-  borderRadius: 8,
-  [`&.${linearProgressClasses.colorPrimary}`]: {
-    backgroundColor: theme.palette.grey[theme.palette.mode === 'light' ? 300 : 800],
-  },
-  [`& .${linearProgressClasses.bar}`]: {
-    borderRadius: 8,
-    backgroundColor: _color,
-  },
-}));
-
-console.log(data);
-
-const Header = styled(CardHeader)(({ theme, ownerState }) => {
-  return {
-    '& .MuiCardHeader-title': {
-      ...theme.typography.subtitle2,
-      fontWeight: 700,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      display: '-webkit-box',
-      '-webkitLineClamp': '3',
-      '-webkitBoxOrient': 'vertical',
-      height: '4rem',
-    },
-  };
-});
-
 ProjectList.propTypes = {
   title: PropTypes.string,
   subheader: PropTypes.string,
@@ -57,6 +26,35 @@ export default function ProjectList() {
 }
 
 // ----------------------------------------------------------------------
+
+const BorderLinearProgress = styled(LinearProgress, {
+  shouldForwardProp: (prop) => prop !== '_color',
+})(({ theme, _color }) => ({
+  height: 28,
+  borderRadius: 8,
+  [`&.${linearProgressClasses.colorPrimary}`]: {
+    backgroundColor: theme.palette.grey[theme.palette.mode === 'light' ? 300 : 800],
+  },
+  [`& .${linearProgressClasses.bar}`]: {
+    borderRadius: 8,
+    backgroundColor: _color,
+  },
+}));
+
+const Header = styled(CardHeader)(({ theme }) => {
+  return {
+    '& .MuiCardHeader-title': {
+      ...theme.typography.subtitle2,
+      fontWeight: 700,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      display: '-webkit-box',
+      '-webkitLineClamp': '3',
+      '-webkitBoxOrient': 'vertical',
+      height: '4rem',
+    },
+  };
+});
 
 ProjectItem.propTypes = {
   news: PropTypes.shape({
