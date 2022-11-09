@@ -3,6 +3,7 @@ import { supabase } from '../../supabaseClient';
 
 const API_URL = process.env.REACT_APP_API_URL;
 // const API_URL_2 = 'https://excellent-dev-o5dtk.cloud.serverless.com';
+
 const API_URL_2 = 'https://happy-binary-ixun0.cloud.serverless.com';
 
 export const getEmployees = async () => {
