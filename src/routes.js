@@ -9,7 +9,7 @@ import Login from './pages/Login';
 import NotFound from './pages/Page404';
 import Register from './pages/Register';
 import Products from './pages/Products';
-import { Projects as ProjectList, CreateNewProject } from './pages/Dashboard';
+import { Projects as ProjectList, CreateNewProject, ProjectDetails } from './pages/Dashboard';
 import ProjectLayout from './pages/Dashboard/ProjectLayout';
 import WorkforcePlanning from './pages/WorkforcePlanning/WorkforcePlanning';
 import ProjectImplementationSchedule from './pages/ProjectImplementationSchedule';
@@ -29,7 +29,7 @@ export default function Router() {
             { path: '', element: <ProjectList /> },
 
             { path: 'add', element: <CreateNewProject /> },
-            { path: ':id', element: <ProjectList /> },
+            { path: ':id', element: <ProjectDetails /> },
           ],
         },
 
