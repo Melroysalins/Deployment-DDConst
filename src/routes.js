@@ -26,10 +26,9 @@ export default function Router() {
           path: 'projects',
           element: <ProjectLayout />,
           children: [
-            { path: '', element: <Navigate to="list" /> },
+            { path: '', element: <ProjectList /> },
 
             { path: 'add', element: <CreateNewProject /> },
-            { path: 'list', element: <ProjectList /> },
             { path: ':id', element: <ProjectList /> },
           ],
         },

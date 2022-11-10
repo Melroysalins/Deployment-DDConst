@@ -16,7 +16,7 @@ import { supabase } from 'lib/api';
 
 // ----------------------------------------------------------------------
 const validationSchema = Yup.object().shape({
-  projectTitle: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
+  title: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
   contractCode: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
   contractValue: Yup.number().required('Required').nullable(),
   start: Yup.date().required('Required').nullable(),
@@ -24,7 +24,7 @@ const validationSchema = Yup.object().shape({
 });
 
 const initialValues = {
-  projectTitle: null,
+  title: null,
   contractCode: null,
   contractValue: null,
   start: null,
@@ -51,14 +51,6 @@ export default function CreateNewProject() {
     },
   });
 
-  React.useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    const { data: projects, error } = await supabase.from('projects').select('*');
-    console.log(projects, error);
-  };
   const handleClose = (event, reason) => {
     setToast(null);
   };
@@ -91,12 +83,12 @@ export default function CreateNewProject() {
               <Grid container spacing={3}>
                 <Grid item xs={12} md={12} lg={6}>
                   <TextField
-                    error={errors.projectTitle && touched.projectTitle}
-                    helperText={errors.projectTitle && touched.projectTitle ? errors.projectTitle : null}
+                    error={errors.title && touched.title}
+                    helperText={errors.title && touched.title ? errors.title : null}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    name="projectTitle"
-                    value={values.projectTitle}
+                    name="title"
+                    value={values.title}
                     fullWidth
                     id="outlined-textarea"
                     label="Project title"
@@ -136,8 +128,6 @@ export default function CreateNewProject() {
                   <LocalizationProvider dateAdapter={AdapterMoment}>
                     <DatePicker
                       inputFormat="YYYY-MM-DD"
-                      error={errors.start && touched.start}
-                      helperText={errors.start && touched.start ? errors.start : null}
                       onChange={(newValue) => {
                         const date = moment(newValue).format('YYYY-MM-DD');
                         setFieldValue('start', date);
@@ -149,7 +139,13 @@ export default function CreateNewProject() {
                       id="outlined-textarea"
                       label="Start"
                       placeholder=""
-                      renderInput={(params) => <TextField {...params} />}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          error={errors.start && touched.start}
+                          helperText={errors.start && touched.start ? errors.start : null}
+                        />
+                      )}
                     />
                   </LocalizationProvider>
                 </Grid>
@@ -157,8 +153,6 @@ export default function CreateNewProject() {
                   <LocalizationProvider dateAdapter={AdapterMoment}>
                     <DatePicker
                       inputFormat="YYYY-MM-DD"
-                      error={errors.end && touched.end}
-                      helperText={errors.end && touched.end ? errors.end : null}
                       onChange={(newValue) => {
                         const date = moment(newValue).format('YYYY-MM-DD');
                         setFieldValue('end', date);
@@ -170,7 +164,13 @@ export default function CreateNewProject() {
                       id="outlined-textarea"
                       label="End"
                       placeholder=""
-                      renderInput={(params) => <TextField {...params} />}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          error={errors.end && touched.end}
+                          helperText={errors.end && touched.end ? errors.end : null}
+                        />
+                      )}
                     />
                   </LocalizationProvider>
                 </Grid>

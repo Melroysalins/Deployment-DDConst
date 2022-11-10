@@ -99,7 +99,7 @@ function CustomizedMenus({ option }) {
           </Link>
         </MenuItem>
         <MenuItem selected={option === 'projectsList'} onClick={handleClose} disableRipple>
-          <Link underline="hover" key="12" color="inherit" href="/dashboard/projects/list">
+          <Link underline="hover" key="12" color="inherit" href="/dashboard/projects">
             Projects list
           </Link>
         </MenuItem>

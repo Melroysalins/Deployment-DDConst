@@ -14,7 +14,7 @@ export default function Projects() {
   const paths = location.pathname.split('/').filter((path) => path);
   let selected = paths[paths.length - 1];
   switch (selected) {
-    case 'list':
+    case 'projects':
       selected = 'projectsList';
       break;
     case 'add':
@@ -29,7 +29,7 @@ export default function Projects() {
     projectsList: (
       <Button
         variant="outlined"
-        href="/dashboard/add-new-project"
+        href="/dashboard/projects/add"
         startIcon={<Iconify icon={'fluent:add-16-filled'} sx={{ width: 16, height: 16, ml: 1 }} />}
         sx={{
           color: theme.palette.text.default,
