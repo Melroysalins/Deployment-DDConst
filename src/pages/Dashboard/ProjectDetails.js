@@ -15,8 +15,8 @@ export default function Projects() {
     <Page title="Dashboard">
       <Container maxWidth="xl">
         <Card>
-          <CardHeader title="PRoject detail page" />
-          <CardContent></CardContent>
+          <CardHeader title="Project detail page" />
+          <CardContent>cards</CardContent>
         </Card>
       </Container>
     </Page>
