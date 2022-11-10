@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
 // material
-import { styled, useTheme } from '@mui/material/styles';
-import { Box, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { Box } from '@mui/material';
 
 import Calendar from './Calendar';
 

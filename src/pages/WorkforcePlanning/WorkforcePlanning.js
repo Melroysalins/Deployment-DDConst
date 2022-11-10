@@ -1,19 +1,6 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import '@mobiscroll/react/dist/css/mobiscroll.min.css';
-import { Box, List, Collapse, ListItemText, ListItemIcon, ListItemButton } from '@mui/material';
-import {
-  Eventcalendar,
-  setOptions,
-  Popup,
-  Button,
-  Input,
-  Textarea,
-  Checkbox,
-  Datepicker,
-  snackbar,
-  Select,
-  momentTimezone,
-} from '@mobiscroll/react';
+import { Eventcalendar, setOptions, Popup, Button, Input, Datepicker, Select, momentTimezone } from '@mobiscroll/react';
 import moment from 'moment-timezone';
 import './calendar.scss';
 
@@ -83,16 +70,14 @@ function App() {
       setLoader(true);
       getEmployees().then((data) => {
         const resource = data.map((item) => item.id);
-        setInvalid((prev) => {
-          return [
-            {
-              recurring: {
-                repeat: 'daily',
-              },
-              resource,
+        setInvalid([
+          {
+            recurring: {
+              repeat: 'daily',
             },
-          ];
-        });
+            resource,
+          },
+        ]);
         setMyResources(data);
       });
       getAllEvents().then((data) => setMyEvents(data));
@@ -264,7 +249,7 @@ function App() {
         cssClass: 'mbsc-popup-button-primary',
       },
     ];
-  }, [saveEvent, newProjectDetails]);
+  }, [saveNewProject]);
 
   const onClose = React.useCallback(() => {
     if (!isEdit) {
@@ -278,18 +263,18 @@ function App() {
     setAddNewProject(false);
   }, []);
 
-  const extendDefaultEvent = React.useCallback((args) => {
+  const extendDefaultEvent = React.useCallback(() => {
     return {
       title: 'Work order',
       location: '',
     };
   }, []);
 
-  async function onPageLoading(event, inst) {
+  async function onPageLoading(event) {
     const start = new Date(event.firstDay);
     const end = new Date(event.lastDay);
     const data = await getHolidays(start, end);
-    if (data) setHolidays((prev) => [...defaultHolidays, ...data]);
+    if (data) setHolidays([...defaultHolidays, ...data]);
   }
 
   return (

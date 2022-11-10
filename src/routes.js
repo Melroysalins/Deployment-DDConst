@@ -9,8 +9,8 @@ import Login from './pages/Login';
 import NotFound from './pages/Page404';
 import Register from './pages/Register';
 import Products from './pages/Products';
-import DashboardApp from './pages/DashboardApp';
-import Dashboard from './pages/Dashboard/Dashboard';
+import { Projects as ProjectList, CreateNewProject } from './pages/Dashboard';
+import ProjectLayout from './pages/Dashboard/ProjectLayout';
 import WorkforcePlanning from './pages/WorkforcePlanning/WorkforcePlanning';
 import ProjectImplementationSchedule from './pages/ProjectImplementationSchedule';
 
@@ -22,7 +22,18 @@ export default function Router() {
       path: '/dashboard',
       element: <DashboardLayout />,
       children: [
-        { path: 'app', element: <Dashboard /> },
+        {
+          path: 'projects',
+          element: <ProjectLayout />,
+          children: [
+            { path: '', element: <Navigate to="list" /> },
+
+            { path: 'add', element: <CreateNewProject /> },
+            { path: 'list', element: <ProjectList /> },
+            { path: ':id', element: <ProjectList /> },
+          ],
+        },
+
         { path: 'workforce-planning', element: <WorkforcePlanning /> },
         { path: 'project-schedule', element: <ProjectImplementationSchedule /> },
         { path: 'user', element: <User /> },
@@ -42,7 +53,7 @@ export default function Router() {
       path: '/',
       element: <LogoOnlyLayout />,
       children: [
-        { path: '/', element: <Navigate to="/dashboard/app" /> },
+        { path: '/', element: <Navigate to="/dashboard/projects" /> },
         { path: '404', element: <NotFound /> },
         { path: '*', element: <Navigate to="/404" /> },
       ],

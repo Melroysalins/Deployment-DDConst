@@ -10,7 +10,7 @@ export default async function getHolidays(timeMin, timeMax) {
   );
   res = await res.json();
   const formattedResponse = res.items
-    ?.map(({ summary, start, end }) => {
+    ?.map(({ start, end }) => {
       const _start = new Date(start.date);
       _start.setHours(0, 0, 0, 0);
       const _end = new Date(end.date);

@@ -5,12 +5,6 @@ import { Box, Card, Typography, CardHeader, Grid, CardContent } from '@mui/mater
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 import data from 'pages/Dashboard/data.json';
 
-ProjectList.propTypes = {
-  title: PropTypes.string,
-  subheader: PropTypes.string,
-  list: PropTypes.array.isRequired,
-};
-
 export default function ProjectList() {
   return (
     <>
@@ -57,11 +51,16 @@ const Header = styled(CardHeader)(({ theme }) => {
 });
 
 ProjectItem.propTypes = {
-  news: PropTypes.shape({
-    description: PropTypes.string,
-    image: PropTypes.string,
-    postedAt: PropTypes.instanceOf(Date),
+  data: PropTypes.shape({
+    id: PropTypes.string,
+    start: PropTypes.instanceOf(Date),
+    end: PropTypes.instanceOf(Date),
     title: PropTypes.string,
+    location: PropTypes.string,
+    contractCode: PropTypes.string,
+    color: PropTypes.string,
+    contractValue: PropTypes.number,
+    rateOfCompletion: PropTypes.number,
   }),
 };
 
@@ -86,7 +85,7 @@ function ProjectItem({ data }) {
         <Box sx={{ position: 'relative' }}>
           <BorderLinearProgress _color={color} variant="determinate" value={rateOfCompletion} />
           <Typography
-            sx={{ position: 'absolute', top: '20%', left: 'calc(50% - 65px)', fontSize: '10px' }}
+            sx={{ position: 'absolute', top: '25%', left: 'calc(50% - 65px)', fontSize: '10px' }}
             variant="overline"
           >
             COMPLETED: {rateOfCompletion}%
