@@ -1,6 +1,6 @@
 // @mui
 import { useTheme } from '@mui/material/styles';
-import { Grid, Container, Card, CardHeader } from '@mui/material';
+import { Grid, Container, Card, CardHeader, CardContent } from '@mui/material';
 // components
 import Page from '../../components/Page';
 // sections
@@ -15,7 +15,8 @@ export default function Projects() {
     <Page title="Dashboard">
       <Container maxWidth="xl">
         <Card>
-          <CardHeader />
+          <CardHeader title="PRoject detail page" />
+          <CardContent></CardContent>
         </Card>
       </Container>
     </Page>
