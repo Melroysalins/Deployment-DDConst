@@ -145,7 +145,7 @@ function ProjectItem({ data }) {
               <span style={{ color: 'black' }}>Contract value:</span> {contractValue}
             </Typography>
             <Typography variant="body2">
-              <span style={{ color: 'black' }}>Project timeline:</span>
+              <span style={{ color: 'black' }}>Project timeline:</span>&nbsp;
               {start} to {end}
             </Typography>
           </Box>
