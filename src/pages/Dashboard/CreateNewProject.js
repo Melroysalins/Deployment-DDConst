@@ -12,7 +12,7 @@ import * as Yup from 'yup';
 // components
 import Page from '../../components/Page';
 // api
-import { supabase } from 'lib/api';
+import { createNewProject } from 'supabase/project';
 
 // ----------------------------------------------------------------------
 const validationSchema = Yup.object().shape({
@@ -40,8 +40,7 @@ export default function CreateNewProject() {
     validationSchema,
     onSubmit: async (values) => {
       setLoader(true);
-      const res = await supabase.from('projects').insert([values]);
-      console.log(res);
+      const res = await createNewProject(values);
       if (res.status === 201) {
         setToast({ severity: 'success', message: 'Succesfully added new project!' });
       } else {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 // @mui
 import { useTheme } from '@mui/material/styles';
 import {
@@ -19,7 +19,7 @@ import {
 // components
 import Page from '../../components/Page';
 // sections
-import { supabase } from 'lib/api';
+import { getProjectDetails } from 'supabase/project';
 import Iconify from 'components/Iconify';
 
 // ----------------------------------------------------------------------
@@ -33,7 +33,7 @@ export default function Projects() {
 
   const fetchData = async (id) => {
     setLoading(true);
-    const res = await supabase.from('projects').select('*').eq('id', id).single();
+    const res = await getProjectDetails(id);
     if (res.status === 404) setToast(true);
     setData(res.data);
     setLoading(false);
@@ -106,6 +106,10 @@ EventCard.propTypes = {
 };
 
 function EventCard({ event, key }) {
+  const navigate = useNavigate();
+  const redirectCard = () => {
+    navigate(event.redirect);
+  };
   return (
     <>
       <Box
@@ -116,9 +120,11 @@ function EventCard({ event, key }) {
           display: 'flex',
           flexDirection: 'column',
           borderRadius: 2,
+          cursor: 'pointer',
         }}
         align="center"
         p={2}
+        onClick={redirectCard}
       >
         {event?.icon}
         <Typography m={1} align="center" variant="h6">
@@ -163,30 +169,36 @@ const events = [
     icon: <Iconify width={40} height={40} color="#8D99FF" icon="ph:users-light" />,
     title: 'Daily Workforce Planning',
     description: 'Installation team, Connection Team 1, Connection Team 2',
+    redirect: '/dashboard/workforce-planning',
   },
   {
     icon: <Iconify width={40} height={40} color="#FFA58D" icon="heroicons-outline:calendar" />,
     title: 'Weekly Process Planning',
     description: '24/02/2022 - 02/03/2022 - 45.78%',
+    redirect: '#',
   },
   {
     icon: <Iconify width={40} height={40} color="#8D99FF" icon="heroicons:truck" />,
     title: 'Travel Expenses / Overtime',
     description: '3 day shifts, 54 night shifts, 5 Overtime, 3 Nighttime, 4 Move on rest day',
+    redirect: '#',
   },
   {
     icon: <Iconify width={40} height={40} color="#8CCC67" icon="ant-design:money-collect-outlined" />,
     title: 'Contract Execution Budget',
     description: '169,000,000 (Operating profit: 1,435,293 (0.8%))',
+    redirect: '#',
   },
   {
     icon: <Iconify width={40} height={40} color="#7FBCFE" icon="fluent:clipboard-bullet-list-ltr-16-regular" />,
     title: 'Implementation Schedule',
     description: ' 15/06/2022 - 14/08/2022',
+    redirect: '/dashboard/project-schedule',
   },
   {
     icon: <Iconify width={40} height={40} color="#FF62B5" icon="heroicons:chart-bar" />,
     title: 'Profit & Loss Reports',
     description: 'Pellentesque in ipsum id orci porta dapibus',
+    redirect: '#',
   },
 ];

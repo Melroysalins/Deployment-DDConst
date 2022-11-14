@@ -7,6 +7,7 @@ import './calendar.scss';
 import { Loader, getHolidays } from 'reusables';
 
 import { getEmployees, getAllEvents, getAllProjects, createNewProject, createNewEvent, deleteEvent } from './api';
+import Page from '../../components/Page';
 
 setOptions({
   theme: 'ios',
@@ -279,122 +280,124 @@ function App() {
 
   return (
     <>
-      <Loader open={loader} setOpen={setLoader} />
-      <Eventcalendar
-        view={viewSettings}
-        data={myEvents}
-        invalid={invalid}
-        displayTimezone="local"
-        dataTimezone="local"
-        onPageLoading={onPageLoading}
-        renderResource={renderMyResource}
-        resources={myResources}
-        clickToCreate="double"
-        dragToCreate={true}
-        dragTimeStep={30}
-        selectedDate={mySelectedDate}
-        onSelectedDateChange={onSelectedDateChange}
-        onEventClick={onEventClick}
-        onEventCreated={onEventCreated}
-        onEventDeleted={onEventDeleted}
-        extendDefaultEvent={extendDefaultEvent}
-        colors={holidays}
-      />
-      <Popup
-        display="bottom"
-        fullScreen={false}
-        contentPadding={false}
-        headerText={'Add New Project'}
-        buttons={popupButtonsNewProject}
-        isOpen={addNewProject}
-        onClose={onCloseNewProject}
-        responsive={responsivePopup}
-      >
-        <div className="mbsc-form-group">
-          <Input
-            value={newProjectDetails?.location}
-            onChange={(e) => {
-              setNewProjectDetails((prev) => {
-                return { ...prev, location: e.target.value };
-              });
-            }}
-            label="Site name"
-          />
-          Color:{' '}
-          <input
-            value={newProjectDetails?.color}
-            onChange={(e) => {
-              setNewProjectDetails((prev) => {
-                return { ...prev, color: e.target.value };
-              });
-            }}
-            type="color"
-            name=""
-            id=""
-          />
-        </div>
-      </Popup>
-      <Popup
-        display="bottom"
-        fullScreen={true}
-        contentPadding={false}
-        headerText={headerText}
-        anchor={anchor}
-        buttons={popupButtons}
-        isOpen={isOpen}
-        onClose={onClose}
-        responsive={responsivePopup}
-      >
-        <div className="mbsc-form-group">
-          <Select
-            readOnly={isEdit}
-            onChange={(e) => {
-              setTitle(e.valueText);
-              setSite(e.value);
-            }}
-            value={popupEventSite}
-            data={projectSites}
-            touchUi={false}
-            label="Project Site"
-            labelStyle="floating"
-            error={projectError}
-            errorMessage={'Please select a project'}
-          />
-          <Button
-            onClick={() => {
-              setAddNewProject(true);
-            }}
-            startIcon="plus"
-          >
-            Add new Project
-          </Button>
-        </div>
-        <div className="mbsc-form-group">
-          <Input ref={startRef} label="Starts" />
-          <Input ref={endRef} label="Ends" />
-          <Datepicker
-            readOnly={isEdit}
-            select="range"
-            controls={['date']}
-            touchUi={true}
-            startInput={start}
-            endInput={end}
-            showRangeLabels={false}
-            onChange={dateChange}
-            value={popupEventDate}
-          />
-        </div>
+      <Page title="WP">
+        <Loader open={loader} setOpen={setLoader} />
+        <Eventcalendar
+          view={viewSettings}
+          data={myEvents}
+          invalid={invalid}
+          displayTimezone="local"
+          dataTimezone="local"
+          onPageLoading={onPageLoading}
+          renderResource={renderMyResource}
+          resources={myResources}
+          clickToCreate="double"
+          dragToCreate={true}
+          dragTimeStep={30}
+          selectedDate={mySelectedDate}
+          onSelectedDateChange={onSelectedDateChange}
+          onEventClick={onEventClick}
+          onEventCreated={onEventCreated}
+          onEventDeleted={onEventDeleted}
+          extendDefaultEvent={extendDefaultEvent}
+          colors={holidays}
+        />
+        <Popup
+          display="bottom"
+          fullScreen={false}
+          contentPadding={false}
+          headerText={'Add New Project'}
+          buttons={popupButtonsNewProject}
+          isOpen={addNewProject}
+          onClose={onCloseNewProject}
+          responsive={responsivePopup}
+        >
+          <div className="mbsc-form-group">
+            <Input
+              value={newProjectDetails?.location}
+              onChange={(e) => {
+                setNewProjectDetails((prev) => {
+                  return { ...prev, location: e.target.value };
+                });
+              }}
+              label="Site name"
+            />
+            Color:{' '}
+            <input
+              value={newProjectDetails?.color}
+              onChange={(e) => {
+                setNewProjectDetails((prev) => {
+                  return { ...prev, color: e.target.value };
+                });
+              }}
+              type="color"
+              name=""
+              id=""
+            />
+          </div>
+        </Popup>
+        <Popup
+          display="bottom"
+          fullScreen={true}
+          contentPadding={false}
+          headerText={headerText}
+          anchor={anchor}
+          buttons={popupButtons}
+          isOpen={isOpen}
+          onClose={onClose}
+          responsive={responsivePopup}
+        >
+          <div className="mbsc-form-group">
+            <Select
+              readOnly={isEdit}
+              onChange={(e) => {
+                setTitle(e.valueText);
+                setSite(e.value);
+              }}
+              value={popupEventSite}
+              data={projectSites}
+              touchUi={false}
+              label="Project Site"
+              labelStyle="floating"
+              error={projectError}
+              errorMessage={'Please select a project'}
+            />
+            <Button
+              onClick={() => {
+                setAddNewProject(true);
+              }}
+              startIcon="plus"
+            >
+              Add new Project
+            </Button>
+          </div>
+          <div className="mbsc-form-group">
+            <Input ref={startRef} label="Starts" />
+            <Input ref={endRef} label="Ends" />
+            <Datepicker
+              readOnly={isEdit}
+              select="range"
+              controls={['date']}
+              touchUi={true}
+              startInput={start}
+              endInput={end}
+              showRangeLabels={false}
+              onChange={dateChange}
+              value={popupEventDate}
+            />
+          </div>
 
-        <div className="mbsc-form-group">
-          {isEdit && (
-            <div className="mbsc-button-group">
-              <Button className="mbsc-button-block" color="danger" variant="outline" onClick={onDeleteClick}>
-                Delete event
-              </Button>
-            </div>
-          )}
-        </div>
-      </Popup>
+          <div className="mbsc-form-group">
+            {isEdit && (
+              <div className="mbsc-button-group">
+                <Button className="mbsc-button-block" color="danger" variant="outline" onClick={onDeleteClick}>
+                  Delete event
+                </Button>
+              </div>
+            )}
+          </div>
+        </Popup>
+      </Page>
     </>
   );
 }

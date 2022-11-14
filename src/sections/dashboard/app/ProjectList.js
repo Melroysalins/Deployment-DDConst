@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import { styled } from '@mui/material/styles';
 import { Box, Card, Typography, CardHeader, Grid, CardContent, Snackbar, Alert } from '@mui/material';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
-import { supabase } from 'lib/api';
+import { listAllProjects } from 'supabase/project';
 
 export default function ProjectList() {
   const [loader, setLoader] = React.useState(false);
@@ -17,8 +17,7 @@ export default function ProjectList() {
 
   const fetchData = async () => {
     try {
-      const res = await supabase.from('projects').select('*');
-      console.log(res);
+      const res = await listAllProjects();
       if (res.status === 404) {
         setToast({ severity: 'danger', message: 'Something went wrong!' });
       } else if (Array.isArray(res.data)) {
