@@ -6,8 +6,8 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 const API_URL_2 = 'https://happy-binary-ixun0.cloud.serverless.com';
 
-export const getEmployees = async () => {
-  return axios
+export const getEmployees = async () =>
+  axios
     .get('/employee/all', {
       url: '/employee/all122',
       baseURL: API_URL_2,
@@ -54,7 +54,7 @@ export const getEmployees = async () => {
       console.log(err);
       return [];
     });
-};
+
 export const getAllEvents = async () => {
   const { data, error } = await supabase
     .from('event')
@@ -63,71 +63,52 @@ export const getAllEvents = async () => {
     return 0;
   }
   return data;
-
-  // return axios
-  //     .get('/events/all', { url: '/events/all', baseURL: API_URL, headers: { 'Access-Control-Allow-Origin': '*' } })
-  //     .then((res) => res.data)
-  //     .catch((err) => {
-  //         console.log(err);
-  //         return [];
-  //     });
 };
-export const getAllProjects = async () => {
-  return axios
+
+export const getAllProjects = async () =>
+  axios
     .get('/sites/all', { url: '/sites/all', baseURL: API_URL, headers: { 'Access-Control-Allow-Origin': '*' } })
     .then((res) => {
       let data = res.data;
-      data = data.map((item) => {
-        return { text: item.location, value: item.id };
-      });
+      data = data.map((item) => ({ text: item.location, value: item.id }));
       return data;
     })
     .catch((err) => {
       console.log(err);
       return [];
     });
-};
-export const createNewProject = async (data) => {
-  return axios
+
+export const createNewProject = async (data) =>
+  axios
     .post('/sites/add', data, { url: '/sites/add', baseURL: API_URL, headers: { 'Access-Control-Allow-Origin': '*' } })
-    .then((res) => {
-      console.log(res);
-      return res;
-    })
+    .then((res) => res)
     .catch((err) => {
       console.log(err);
       return [];
     });
-};
-export const createNewEvent = async (data) => {
-  return axios
+
+export const createNewEvent = async (data) =>
+  axios
     .post('/events/add', data, {
       url: '/events/add',
       baseURL: API_URL,
       headers: { 'Access-Control-Allow-Origin': '*' },
     })
-    .then((res) => {
-      console.log(res);
-      return res;
-    })
+    .then((res) => res)
     .catch((err) => {
       console.log(err);
       return [];
     });
-};
-export const deleteEvent = async (id) => {
-  return axios
+
+export const deleteEvent = async (id) =>
+  axios
     .delete(`/events/delete/${id}`, {
       url: `/events/delete/${id}`,
       baseURL: API_URL,
       headers: { 'Access-Control-Allow-Origin': '*' },
     })
-    .then((res) => {
-      console.log(res);
-      return res;
-    })
+    .then((res) => res)
     .catch((err) => {
       console.log(err);
       return [];
     });
-};
