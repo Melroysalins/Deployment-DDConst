@@ -21,15 +21,15 @@ export const getEmployees = async () => {
         {
           id: '1665117388',
           created_at: '2022-10-07T04:36:53.21846+00:00',
-          name: 'Iljin Power Tech',
+          name: '154kV Jinju-Hadong Underground T/L Construction Work (Iljin Electric)',
           children: [
             {
               id: '1665117632',
               name: 'Employee_LJH',
-              children: [
-                { id: 'day', name: 'day' },
-                { id: 'night', name: 'night' },
-              ],
+              // children: [
+              //   { id: 'day', name: 'day' },
+              //   { id: 'night', name: 'night' },
+              // ],
               collapsed: true,
             },
             {
@@ -56,12 +56,60 @@ export const getEmployees = async () => {
     });
 };
 export const getAllEvents = async () => {
-  const { data, error } = await supabase
+  const { data1, error } = await supabase
     .from('event')
     .select('id,start,end,title,location:site_id(location,color),resource:employee_id()');
   if (error) {
     return 0;
   }
+  const data = [
+    {
+        "id": 1665117632,
+        "start": "2022-10-23",
+        "end": "2022-11-24",
+        "title": "31 Lodging days",
+        "resource": "1665117632",
+        "location": {
+            "location": "move",
+            "color": "#FFA58D"
+        }
+    },
+    {
+        "id": 1665117632,
+        "start": "2022-10-29",
+        "end": "2022-11-30",
+        "title": "30 Meals",
+        "resource": "1665117632",
+        "location": {
+            "location": "move",
+            "color": "#FFA58D"
+        }
+    },
+    {
+      "id": 1665117632,
+      "start": "2022-10-23",
+      "end": "2022-11-24",
+      "title": "31 Lodging days",
+      "resource": "1665117678",
+      "location": {
+          "location": "move",
+          "color": "#FFA58D"
+      }
+  },
+  {
+      "id": 1665117632,
+      "start": "2022-10-29",
+      "end": "2022-11-30",
+      "title": "30 Meals",
+      "resource": "1665117678",
+      "location": {
+          "location": "move",
+          "color": "#FFA58D"
+      }
+  },
+    
+]
+  console.log(data);
   return data;
 
   // return axios
