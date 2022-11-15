@@ -210,11 +210,11 @@ function App() {
       setEdit(false);
       setTempEvent(args.event);
       // fill popup form with event data
-      console.log(args.event)
-      if(args.event.resource !== 'day'){
+      console.log(args.event);
+      if (args.event.resource !== 'day') {
         loadPopupForm(args.event);
         setOpen(true);
-      }  else {
+      } else {
         loadPopupForm(args.event);
         setaddNewTravelOtEvent(true);
       }

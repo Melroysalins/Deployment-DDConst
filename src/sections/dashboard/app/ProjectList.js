@@ -6,9 +6,10 @@ import { styled } from '@mui/material/styles';
 import { Box, Card, Typography, CardHeader, Grid, CardContent, Snackbar, Alert } from '@mui/material';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 import { listAllProjects } from 'supabase/project';
+import Skeleton from './ProjectSkelation';
 
 export default function ProjectList() {
-  const [loader, setLoader] = React.useState(false);
+  const [loader, setLoader] = React.useState(true);
   const [data, setData] = React.useState([]);
   const [toast, setToast] = React.useState(null);
   React.useEffect(() => {
@@ -16,6 +17,7 @@ export default function ProjectList() {
   }, []);
 
   const fetchData = async () => {
+    setLoader(true);
     try {
       const res = await listAllProjects();
       if (res.status === 404) {
@@ -26,6 +28,7 @@ export default function ProjectList() {
     } catch (err) {
       setToast({ severity: 'danger', message: 'Something went wrong!' });
     }
+    setLoader(false);
   };
 
   const handleClose = () => {
@@ -45,6 +48,7 @@ export default function ProjectList() {
         </Alert>
       </Snackbar>
       <Grid container spacing={3}>
+        {loader && <Skeleton />}
         {data.map((project) => (
           <Grid item xs={12} sm={6} md={3}>
             <ProjectItem data={project} />
@@ -71,20 +75,18 @@ const BorderLinearProgress = styled(LinearProgress, {
   },
 }));
 
-const Header = styled(CardHeader)(({ theme }) => {
-  return {
-    '& .MuiCardHeader-title': {
-      ...theme.typography.subtitle2,
-      fontWeight: 700,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      display: '-webkit-box',
-      '-webkitLineClamp': '3',
-      '-webkitBoxOrient': 'vertical',
-      height: '4rem',
-    },
-  };
-});
+const Header = styled(CardHeader)(({ theme }) => ({
+  '& .MuiCardHeader-title': {
+    ...theme.typography.subtitle2,
+    fontWeight: 700,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    display: '-webkit-box',
+    '-webkitLineClamp': '3',
+    '-webkitBoxOrient': 'vertical',
+    height: '4rem',
+  },
+}));
 
 ProjectItem.propTypes = {
   data: PropTypes.shape({

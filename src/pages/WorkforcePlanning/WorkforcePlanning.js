@@ -238,8 +238,8 @@ function App() {
     onCloseNewProject();
   };
 
-  const popupButtonsNewProject = React.useMemo(() => {
-    return [
+  const popupButtonsNewProject = React.useMemo(
+    () => [
       'cancel',
       {
         handler: () => {
@@ -249,8 +249,9 @@ function App() {
         text: 'Add',
         cssClass: 'mbsc-popup-button-primary',
       },
-    ];
-  }, [saveNewProject]);
+    ],
+    [saveNewProject]
+  );
 
   const onClose = React.useCallback(() => {
     if (!isEdit) {
@@ -264,12 +265,13 @@ function App() {
     setAddNewProject(false);
   }, []);
 
-  const extendDefaultEvent = React.useCallback(() => {
-    return {
+  const extendDefaultEvent = React.useCallback(
+    () => ({
       title: 'Work order',
       location: '',
-    };
-  }, []);
+    }),
+    []
+  );
 
   async function onPageLoading(event) {
     const start = new Date(event.firstDay);
@@ -315,21 +317,13 @@ function App() {
           <div className="mbsc-form-group">
             <Input
               value={newProjectDetails?.location}
-              onChange={(e) => {
-                setNewProjectDetails((prev) => {
-                  return { ...prev, location: e.target.value };
-                });
-              }}
+              onChange={(e) => setNewProjectDetails((prev) => ({ ...prev, location: e.target.value }))}
               label="Site name"
             />
             Color:{' '}
             <input
               value={newProjectDetails?.color}
-              onChange={(e) => {
-                setNewProjectDetails((prev) => {
-                  return { ...prev, color: e.target.value };
-                });
-              }}
+              onChange={(e) => setNewProjectDetails((prev) => ({ ...prev, color: e.target.value }))}
               type="color"
               name=""
               id=""
@@ -362,14 +356,6 @@ function App() {
               error={projectError}
               errorMessage={'Please select a project'}
             />
-            <Button
-              onClick={() => {
-                setAddNewProject(true);
-              }}
-              startIcon="plus"
-            >
-              Add new Project
-            </Button>
           </div>
           <div className="mbsc-form-group">
             <Input ref={startRef} label="Starts" />
