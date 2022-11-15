@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useParams, useNavigate } from 'react-router-dom';
 // @mui
-import { useTheme } from '@mui/material/styles';
 import {
   Grid,
   Container,
@@ -25,7 +24,6 @@ import Iconify from 'components/Iconify';
 // ----------------------------------------------------------------------
 
 export default function Projects() {
-  const theme = useTheme();
   const { id } = useParams();
   const [data, setData] = useState(null);
   const [toast, setToast] = useState(false);
@@ -41,9 +39,9 @@ export default function Projects() {
 
   useEffect(() => {
     fetchData(id);
-  }, []);
+  }, [id]);
 
-  const handleClose = (event, reason) => {
+  const handleClose = () => {
     setToast(null);
   };
 
@@ -73,7 +71,7 @@ export default function Projects() {
                 <CardHeader title={data?.title} />
                 <CardContent>
                   <Typography variant="body2">Contract code: {data?.contractCode}</Typography>
-                  <Typography variant="body2">Contract value: {data?.contractCode}</Typography>
+                  <Typography variant="body2">Contract value: {data?.contractValue}</Typography>
                   <Typography variant="body2">
                     Project timeline: {data?.start} - {data?.end}
                   </Typography>
@@ -87,7 +85,7 @@ export default function Projects() {
             events.map((event, index) => (
               <>
                 <Grid item xs={12} md={6} lg={4}>
-                  <EventCard event={event} index={index} />
+                  <EventCard event={event} key={index} />
                 </Grid>
               </>
             ))
@@ -98,10 +96,12 @@ export default function Projects() {
   );
 }
 EventCard.propTypes = {
+  key: PropTypes.number,
   event: PropTypes.shape({
     icon: PropTypes.element,
     title: PropTypes.string,
     description: PropTypes.string,
+    redirect: PropTypes.string,
   }),
 };
 
@@ -139,7 +139,6 @@ function EventCard({ event, key }) {
 }
 
 function Loading() {
-  const theme = useTheme();
   return (
     <Grid item xs={12} md={6} lg={4}>
       <Stack
