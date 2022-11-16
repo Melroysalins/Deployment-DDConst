@@ -21,11 +21,39 @@ export const getEmployees = async () =>
         {
           id: '1665117388',
           created_at: '2022-10-07T04:36:53.21846+00:00',
-          name: '154kV Jinju-Hadong Underground T/L Construction Work (Iljin Electric)',
+          name: 'BQS Co., Ltd. Iljin Electric _ 345kV Samcheok thermal power plant mass-produced collective energy facility',
           children: [
             {
-              id: '1665117632',
-              name: 'Employee_LJH',
+              id: '166511763212',
+              name: 'Installation Team 1',
+              children: [
+                {
+                  id: '1665117632',
+                  name: 'C - Employee_LJH - Team Lead',
+                  // children: [
+                  //   { id: 'day', name: 'day' },
+                  //   { id: 'night', name: 'night' },
+                  // ],
+                  collapsed: true,
+                },
+                {
+                  id: '1665117678',
+                  name: 'Employee_LSH',
+                },
+                {
+                  id: '1665117756',
+                  name: 'Employee_LYJ',
+                },
+                {
+                  id: '1665117812',
+                  name: 'Employee_JHL',
+                },
+              ],
+              collapsed: false,
+            },
+            {
+              id: 'ins_1665117632',
+              name: 'Installation Team 2',
               // children: [
               //   { id: 'day', name: 'day' },
               //   { id: 'night', name: 'night' },
@@ -33,19 +61,15 @@ export const getEmployees = async () =>
               collapsed: true,
             },
             {
-              id: '1665117678',
-              name: 'Employee_LSH',
-            },
-            {
-              id: '1665117756',
-              name: 'Employee_LYJ',
-            },
-            {
-              id: '1665117812',
-              name: 'Employee_JHL',
+              id: '32',
+              name: 'Connection Team',
+              // children: [
+              //   { id: 'day', name: 'day' },
+              //   { id: 'night', name: 'night' },
+              // ],
+              collapsed: true,
             },
           ],
-          collapsed: false,
         },
       ];
       return data;
@@ -64,51 +88,48 @@ export const getAllEvents = async () => {
   }
   const data = [
     {
-        "id": 1665117632,
-        "start": "2022-10-23",
-        "end": "2022-11-24",
-        "title": "31 Lodging days",
-        "resource": "1665117632",
-        "location": {
-            "location": "move",
-            "color": "#FFA58D"
-        }
+      id: 16651176321,
+      start: '2022-10-23',
+      end: '2022-11-24',
+      title:
+        'Teams involved: Installation Team (Inhouse), Installation Team (Outstource), Connection team (Inhouse)',
+      resource: '1665117388',
+      color: '#FFFFFF',
     },
     {
-        "id": 1665117632,
-        "start": "2022-10-29",
-        "end": "2022-11-30",
-        "title": "30 Meals",
-        "resource": "1665117632",
-        "location": {
-            "location": "move",
-            "color": "#FFA58D"
-        }
+      id:1763212334343,
+      start: '2022-10-23',
+      end: '2022-11-24',
+      title:
+        'Employees: 이준호 이준호 이준호, Tasks: 6, Lodging days: 57, Meals: 64, Return loging days: 8, Return meals: 8, Moves: 8, Overtime: 1, Night time: 1, Move on rest day: 1',
+      resource: '166511763212',
+      color: '#FFFFFF',
     },
     {
-      "id": 1665117632,
-      "start": "2022-10-23",
-      "end": "2022-11-24",
-      "title": "31 Lodging days",
-      "resource": "1665117678",
-      "location": {
-          "location": "move",
-          "color": "#FFA58D"
-      }
-  },
-  {
-      "id": 1665117632,
-      "start": "2022-10-29",
-      "end": "2022-11-30",
-      "title": "30 Meals",
-      "resource": "1665117678",
-      "location": {
-          "location": "move",
-          "color": "#FFA58D"
-      }
-  },
-    
-]
+      id: 1665117632,
+      start: '2022-10-23',
+      end: '2022-11-24',
+      title: '31 Lodging days',
+      resource: '1665117632',
+      color: '#FFA58D',
+    },
+    {
+      id: 1665117632,
+      start: '2022-10-29',
+      end: '2022-11-30',
+      title: '30 Meals',
+      resource: '1665117632',
+      color: '#85CDB7',
+    },
+    {
+      id: 1665117632123,
+      start: '2022-10-29',
+      end: '2022-11-30',
+      title: 'MF1- MF3',
+      resource: '1665117632',
+      color: '#FFFFFF',
+    },
+  ];
   console.log(data);
   return data;
 };
