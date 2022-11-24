@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import '@mobiscroll/react/dist/css/mobiscroll.min.css';
 import {
   Eventcalendar,
@@ -12,7 +13,7 @@ import {
 } from '@mobiscroll/react';
 import moment from 'moment-timezone';
 import { styled } from '@mui/material/styles';
-import { Avatar, Typography, Box, Container, Stack, Button as MuiButton } from '@mui/material';
+import { Avatar, Typography, Container, Stack, Button as MuiButton } from '@mui/material';
 import Iconify from 'components/Iconify';
 import './calendar.scss';
 
@@ -84,11 +85,13 @@ const Rating = styled(Avatar, {
   };
 });
 
+const initialFilters = { te: true, specialTe: true, outsourced: false, tasks: false };
+
 function App() {
+  const [searchParams] = useSearchParams();
   const [myEvents, setMyEvents] = React.useState(data.events);
   const [tempEvent, setTempEvent] = React.useState(null);
   const [isOpen, setOpen] = React.useState(false);
-  const [addNewTravelOtEvent, setaddNewTravelOtEvent] = React.useState(false);
   const [isEdit, setEdit] = React.useState(false);
   const [anchor, setAnchor] = React.useState(null);
   const [start, startRef] = React.useState(null);
@@ -108,33 +111,35 @@ function App() {
       resource: [],
     },
   ]);
-  const [projectSites, setProjectSites] = React.useState([]);
   const [loader, setLoader] = React.useState(false);
   const [projectError, setProjectError] = React.useState(false);
   const [holidays, setHolidays] = React.useState(defaultHolidays);
+  const [filters, setFilters] = React.useState(initialFilters);
 
-  // React.useEffect(() => {
-  //   (async function () {
-  //     getEmployees().then((data) => {
-  //       const resource = data.map((item) => item.id);
-  //       setInvalid((prev) => {
-  //         return [
-  //           {
-  //             recurring: {
-  //               repeat: 'daily',
-  //             },
-  //             resource,
-  //           },
-  //         ];
-  //       });
-  //       setMyResources(data);
-  //     });
-  //     listAllEvents().then((data) => setMyEvents(data));
-  //     // console.log(listAllEvents());
-  //     // setMyEvents(listAllEvents())
-  //   })();
-  //   return () => {};
-  // }, []);
+  const handleFilters = React.useCallback(() => {
+    let _filters = searchParams.get('filters');
+    console.log(_filters);
+    _filters = _filters?.split(',').reduce((acc, cur) => ({ ...acc, [cur]: true }), {});
+    if (_filters) setFilters((prev) => ({ ...initialFilters, ..._filters }));
+  }, [searchParams]);
+
+  React.useEffect(() => {
+    handleFilters();
+    return () => {};
+  }, [searchParams]);
+
+  React.useEffect(() => {
+    if (filters.outsourced) {
+      setMyResources(data.resources);
+    } else {
+      setMyResources(() => data.resources.filter((team) => team.team_type !== 'Outsource'));
+    }
+    if (filters.tasks) {
+      setMyEvents(data.events);
+    } else {
+      setMyEvents(() => data.events.filter((event) => event.type !== 'task'));
+    }
+  }, [filters]);
 
   const handleValidation = () => {
     if (popupEventSite !== null && popupEventSite !== '') {
@@ -172,7 +177,6 @@ function App() {
   }, [isEdit, myEvents, popupEventDate, popupEventColor, popupEventTitle, popupEventSite, tempEvent, checkedResources]);
 
   const renderMyResource = (resource) => {
-    console.log(resource);
     const parent = resource.children;
     return (
       <Typography
@@ -252,13 +256,11 @@ function App() {
       setEdit(false);
       setTempEvent(args.event);
       // fill popup form with event data
-      console.log(args.event);
       if (args.event.resource !== 'day') {
         loadPopupForm(args.event);
         setOpen(true);
       } else {
         loadPopupForm(args.event);
-        setaddNewTravelOtEvent(true);
       }
       setAnchor(args.target);
       // open the popup
@@ -299,7 +301,6 @@ function App() {
       setMyEvents([...myEvents]);
     }
     setOpen(false);
-    setaddNewTravelOtEvent(false);
   }, [isEdit, myEvents]);
 
   const extendDefaultEvent = React.useCallback((args) => {
@@ -325,7 +326,6 @@ function App() {
   };
 
   const orderMyEvents = React.useCallback((event) => {
-    console.log(event);
     return event.accepted ? 1 : -1;
   }, []);
   const renderCustomDay = (args) => {
@@ -355,7 +355,7 @@ function App() {
   return (
     <Page title="Travel expenses">
       <Stack direction="row" alignItems="center" spacing={2} sx={{ position: 'absolute', top: '24px', right: '40px' }}>
-        <Filters />
+        <Filters filters={filters} />
         <MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 1, minWidth: 0 }}>
           <Iconify icon="heroicons-outline:document-text" width={20} height={20} />
         </MuiButton>
