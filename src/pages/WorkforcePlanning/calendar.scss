@@ -4,3 +4,9 @@
 .mbsc-ios.mbsc-schedule-event-background {
   opacity: 1;
 }
+.mbsc-calendar-projects .mbsc-timeline.mbsc-ltr {
+  max-height: calc(100vh - 222px);
+}
+.mbsc-eventcalendar {
+  height: auto;
+}

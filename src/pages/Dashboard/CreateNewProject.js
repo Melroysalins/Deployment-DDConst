@@ -12,7 +12,7 @@ import * as Yup from 'yup';
 // components
 import Page from '../../components/Page';
 // api
-import { createNewProject } from 'supabase/project';
+import { createNewProject } from 'supabase/projects';
 
 // ----------------------------------------------------------------------
 const validationSchema = Yup.object().shape({
@@ -35,6 +35,7 @@ export default function CreateNewProject() {
   const theme = useTheme();
   const [loader, setLoader] = React.useState(false);
   const [toast, setToast] = React.useState(null);
+
   const { handleSubmit, errors, touched, handleChange, handleBlur, values, setFieldValue } = useFormik({
     initialValues,
     validationSchema,
@@ -49,6 +50,8 @@ export default function CreateNewProject() {
       setLoader(false);
     },
   });
+
+  React.useEffect(() => {}, []);
 
   const handleClose = (event, reason) => {
     setToast(null);

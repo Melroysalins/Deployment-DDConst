@@ -6,7 +6,10 @@ import './calendar.scss';
 
 import { Loader, getHolidays } from 'reusables';
 
-import { getEmployees, getAllEvents, getAllProjects, createNewProject, createNewEvent, deleteEvent } from './api';
+import { listAllEvents, createNewEvent, deleteEvent } from 'supabase/events';
+import { listAllEmployees } from 'supabase/employees';
+import { listAllProjects } from 'supabase/projects';
+
 import Page from '../../components/Page';
 
 setOptions({
@@ -60,8 +63,6 @@ function App() {
     },
   ]);
   const [projectSites, setProjectSites] = React.useState([]);
-  const [addNewProject, setAddNewProject] = React.useState(false);
-  const [newProjectDetails, setNewProjectDetails] = React.useState({ location: '', color: '#ababab' });
   const [loader, setLoader] = React.useState(false);
   const [projectError, setProjectError] = React.useState(false);
   const [holidays, setHolidays] = React.useState(defaultHolidays);
@@ -69,7 +70,7 @@ function App() {
   React.useEffect(() => {
     (async function () {
       setLoader(true);
-      getEmployees().then((data) => {
+      listAllEmployees().then((data) => {
         const resource = data.map((item) => item.id);
         setInvalid([
           {
@@ -81,8 +82,8 @@ function App() {
         ]);
         setMyResources(data);
       });
-      getAllEvents().then((data) => setMyEvents(data));
-      getAllProjects().then((data) => {
+      listAllEvents().then((data) => setMyEvents(data));
+      listAllProjects().then((data) => {
         setLoader(false);
         setProjectSites(data);
       });
@@ -112,7 +113,7 @@ function App() {
         employee_id: checkedResources,
       };
       createNewEvent(newEvent).then((res) => {
-        getAllEvents().then((data) => {
+        listAllEvents().then((data) => {
           setLoader(false);
           setMyEvents(data);
         });
@@ -159,7 +160,7 @@ function App() {
   const onDeleteClick = React.useCallback(() => {
     setLoader(true);
     deleteEvent(tempEvent.id).then((res) => {
-      getAllEvents().then((data) => {
+      listAllEvents().then((data) => {
         setLoader(false);
         setMyEvents(data);
       });
@@ -227,32 +228,6 @@ function App() {
     ];
   }, [isEdit, saveEvent]);
 
-  const saveNewProject = () => {
-    setLoader(true);
-    createNewProject(newProjectDetails).then((res) => {
-      getAllProjects().then((data) => {
-        setProjectSites(data);
-        setLoader(false);
-      });
-    });
-    onCloseNewProject();
-  };
-
-  const popupButtonsNewProject = React.useMemo(
-    () => [
-      'cancel',
-      {
-        handler: () => {
-          saveNewProject();
-        },
-        keyCode: 'enter',
-        text: 'Add',
-        cssClass: 'mbsc-popup-button-primary',
-      },
-    ],
-    [saveNewProject]
-  );
-
   const onClose = React.useCallback(() => {
     if (!isEdit) {
       // refresh the list, if add popup was canceled, to remove the temporary event
@@ -260,10 +235,6 @@ function App() {
     }
     setOpen(false);
   }, [isEdit, myEvents]);
-
-  const onCloseNewProject = React.useCallback(() => {
-    setAddNewProject(false);
-  }, []);
 
   const extendDefaultEvent = React.useCallback(
     () => ({
@@ -304,32 +275,7 @@ function App() {
           extendDefaultEvent={extendDefaultEvent}
           colors={holidays}
         />
-        <Popup
-          display="bottom"
-          fullScreen={false}
-          contentPadding={false}
-          headerText={'Add New Project'}
-          buttons={popupButtonsNewProject}
-          isOpen={addNewProject}
-          onClose={onCloseNewProject}
-          responsive={responsivePopup}
-        >
-          <div className="mbsc-form-group">
-            <Input
-              value={newProjectDetails?.location}
-              onChange={(e) => setNewProjectDetails((prev) => ({ ...prev, location: e.target.value }))}
-              label="Site name"
-            />
-            Color:{' '}
-            <input
-              value={newProjectDetails?.color}
-              onChange={(e) => setNewProjectDetails((prev) => ({ ...prev, color: e.target.value }))}
-              type="color"
-              name=""
-              id=""
-            />
-          </div>
-        </Popup>
+
         <Popup
           display="bottom"
           fullScreen={true}

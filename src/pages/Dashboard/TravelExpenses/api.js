@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../supabaseClient';
 
 const API_URL = process.env.REACT_APP_API_URL;
 // const API_URL_2 = 'https://excellent-dev-o5dtk.cloud.serverless.com';
@@ -55,7 +55,7 @@ export const getEmployees = async () =>
       return [];
     });
 
-export const getAllEvents = async () => {
+export const listAllEvents = async () => {
   const { data1, error } = await supabase
     .from('event')
     .select('id,start,end,title,location:site_id(location,color),resource:employee_id()');
@@ -64,51 +64,50 @@ export const getAllEvents = async () => {
   }
   const data = [
     {
-        "id": 1665117632,
-        "start": "2022-10-23",
-        "end": "2022-11-24",
-        "title": "31 Lodging days",
-        "resource": "1665117632",
-        "location": {
-            "location": "move",
-            "color": "#FFA58D"
-        }
+      id: 1665117632,
+      start: '2022-10-23',
+      end: '2022-11-24',
+      title: '31 Lodging days',
+      resource: '1665117632',
+      location: {
+        location: 'move',
+        color: '#FFA58D',
+      },
     },
     {
-        "id": 1665117632,
-        "start": "2022-10-29",
-        "end": "2022-11-30",
-        "title": "30 Meals",
-        "resource": "1665117632",
-        "location": {
-            "location": "move",
-            "color": "#FFA58D"
-        }
+      id: 1665117632,
+      start: '2022-10-29',
+      end: '2022-11-30',
+      title: '30 Meals',
+      resource: '1665117632',
+      location: {
+        location: 'move',
+        color: '#FFA58D',
+      },
     },
     {
-      "id": 1665117632,
-      "start": "2022-10-23",
-      "end": "2022-11-24",
-      "title": "31 Lodging days",
-      "resource": "1665117678",
-      "location": {
-          "location": "move",
-          "color": "#FFA58D"
-      }
-  },
-  {
-      "id": 1665117632,
-      "start": "2022-10-29",
-      "end": "2022-11-30",
-      "title": "30 Meals",
-      "resource": "1665117678",
-      "location": {
-          "location": "move",
-          "color": "#FFA58D"
-      }
-  },
-    
-]
+      id: 1665117632,
+      start: '2022-10-23',
+      end: '2022-11-24',
+      title: '31 Lodging days',
+      resource: '1665117678',
+      location: {
+        location: 'move',
+        color: '#FFA58D',
+      },
+    },
+    {
+      id: 1665117632,
+      start: '2022-10-29',
+      end: '2022-11-30',
+      title: '30 Meals',
+      resource: '1665117678',
+      location: {
+        location: 'move',
+        color: '#FFA58D',
+      },
+    },
+  ];
   console.log(data);
   return data;
 };

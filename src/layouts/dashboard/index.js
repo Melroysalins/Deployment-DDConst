@@ -36,16 +36,15 @@ const MainStyle = styled('div')(({ theme }) => ({
 
 export default function DashboardLayout() {
   const theme = useTheme();
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const matchDownMd = useMediaQuery(theme.breakpoints.down('lg'));
 
   const handleLeftDrawerToggle = () => {
-    console.log('yes');
     setOpen(!open);
   };
 
   useEffect(() => {
-    setOpen(!matchDownMd);
+    setOpen(false);
     return () => {};
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matchDownMd]);

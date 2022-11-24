@@ -1,13 +1,12 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import '@mobiscroll/react/dist/css/mobiscroll.min.css';
-import { Box, List, Collapse, ListItemText, ListItemIcon, ListItemButton } from '@mui/material';
 import {
   Eventcalendar,
   setOptions,
   Popup,
   Button,
   Input,
-  Textarea,
+  formatDate,
   Checkbox,
   Datepicker,
   snackbar,
@@ -15,11 +14,15 @@ import {
   momentTimezone,
 } from '@mobiscroll/react';
 import moment from 'moment-timezone';
+import { styled } from '@mui/material/styles';
+import { Avatar, Typography, Box } from '@mui/material';
+import Drawer from './Drawer';
 import './calendar.scss';
 
 import { Loader } from 'reusables';
 
-import { getEmployees, getAllEvents, getAllProjects, createNewProject, createNewEvent, deleteEvent } from './api';
+import { listAllEvents, createNewEvent, deleteEvent } from 'supabase/events';
+import data from './data.json';
 import getHolidays from './getHolidays';
 
 setOptions({
@@ -49,8 +52,39 @@ const defaultHolidays = [
   { background: 'rgba(100, 100, 100, 0.1)', recurring: { repeat: 'weekly', weekDays: 'SA' } },
 ];
 
+const Rating = styled(Avatar, {
+  shouldForwardProp: (prop) => prop !== 'rating',
+})(({ theme, rating }) => {
+  let color = null;
+  switch (rating) {
+    case 'S':
+      color = theme.palette.chart.violet[0];
+      break;
+    case 'A':
+      color = theme.palette.chart.red[0];
+      break;
+    case 'B':
+      color = theme.palette.chart.yellow[0];
+      break;
+    case 'C':
+      color = theme.palette.chart.green[0];
+      break;
+
+    default:
+      color = theme.palette.chart.blue[0];
+      break;
+  }
+  return {
+    height: 16,
+    width: 16,
+    fontSize: 11,
+    marginLeft: 11,
+    backgroundColor: color,
+  };
+});
+
 function App() {
-  const [myEvents, setMyEvents] = React.useState([]);
+  const [myEvents, setMyEvents] = React.useState(data.events);
   const [tempEvent, setTempEvent] = React.useState(null);
   const [isOpen, setOpen] = React.useState(false);
   const [addNewTravelOtEvent, setaddNewTravelOtEvent] = React.useState(false);
@@ -64,7 +98,7 @@ function App() {
   const [popupEventDate, setDate] = React.useState([]);
   const [mySelectedDate, setSelectedDate] = React.useState(new Date());
   const [checkedResources, setCheckedResources] = React.useState([]);
-  const [myResources, setMyResources] = React.useState([]);
+  const [myResources, setMyResources] = React.useState(data.resources);
   const [invalid, setInvalid] = React.useState([
     {
       recurring: {
@@ -74,39 +108,32 @@ function App() {
     },
   ]);
   const [projectSites, setProjectSites] = React.useState([]);
-  const [addNewProject, setAddNewProject] = React.useState(false);
-  const [newProjectDetails, setNewProjectDetails] = React.useState({ location: '', color: '#ababab' });
   const [loader, setLoader] = React.useState(false);
   const [projectError, setProjectError] = React.useState(false);
   const [holidays, setHolidays] = React.useState(defaultHolidays);
 
-  React.useEffect(() => {
-    (async function () {
-      setLoader(true);
-      getEmployees().then((data) => {
-        const resource = data.map((item) => item.id);
-        setInvalid((prev) => {
-          return [
-            {
-              recurring: {
-                repeat: 'daily',
-              },
-              resource,
-            },
-          ];
-        });
-        setMyResources(data);
-      });
-      getAllEvents().then((data) => setMyEvents(data));
-      // console.log(getAllEvents());
-      // setMyEvents(getAllEvents())
-      getAllProjects().then((data) => {
-        setLoader(false);
-        setProjectSites(data);
-      });
-    })();
-    return () => {};
-  }, []);
+  // React.useEffect(() => {
+  //   (async function () {
+  //     getEmployees().then((data) => {
+  //       const resource = data.map((item) => item.id);
+  //       setInvalid((prev) => {
+  //         return [
+  //           {
+  //             recurring: {
+  //               repeat: 'daily',
+  //             },
+  //             resource,
+  //           },
+  //         ];
+  //       });
+  //       setMyResources(data);
+  //     });
+  //     listAllEvents().then((data) => setMyEvents(data));
+  //     // console.log(listAllEvents());
+  //     // setMyEvents(listAllEvents())
+  //   })();
+  //   return () => {};
+  // }, []);
 
   const handleValidation = () => {
     if (popupEventSite !== null && popupEventSite !== '') {
@@ -130,7 +157,7 @@ function App() {
         employee_id: checkedResources,
       };
       createNewEvent(newEvent).then((res) => {
-        getAllEvents().then((data) => {
+        listAllEvents().then((data) => {
           setLoader(false);
           setMyEvents(data);
         });
@@ -146,9 +173,13 @@ function App() {
   const renderMyResource = (resource) => {
     const parent = resource.children;
     return (
-      <div className={parent ? 'md-shift-resource' : ''} style={{ color: parent ? '#1dab2f' : '' }}>
-        {resource.name}
-      </div>
+      <Typography
+        variant="body2"
+        className={parent ? 'md-shift-resource' : ''}
+        sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', color: parent ? '#1dab2f' : '' }}
+      >
+        {resource.name} {!parent && <Rating rating={resource.rating}>{resource.rating}</Rating>}
+      </Typography>
     );
   };
 
@@ -177,7 +208,7 @@ function App() {
   const onDeleteClick = React.useCallback(() => {
     setLoader(true);
     deleteEvent(tempEvent.id).then((res) => {
-      getAllEvents().then((data) => {
+      listAllEvents().then((data) => {
         setLoader(false);
         setMyEvents(data);
       });
@@ -251,31 +282,6 @@ function App() {
     ];
   }, [isEdit, saveEvent]);
 
-  const saveNewProject = () => {
-    setLoader(true);
-    createNewProject(newProjectDetails).then((res) => {
-      getAllProjects().then((data) => {
-        setProjectSites(data);
-        setLoader(false);
-      });
-    });
-    onCloseNewProject();
-  };
-
-  const popupButtonsNewProject = React.useMemo(() => {
-    return [
-      'cancel',
-      {
-        handler: () => {
-          saveNewProject();
-        },
-        keyCode: 'enter',
-        text: 'Add',
-        cssClass: 'mbsc-popup-button-primary',
-      },
-    ];
-  }, [saveEvent, newProjectDetails]);
-
   const onClose = React.useCallback(() => {
     if (!isEdit) {
       // refresh the list, if add popup was canceled, to remove the temporary event
@@ -284,10 +290,6 @@ function App() {
     setOpen(false);
     setaddNewTravelOtEvent(false);
   }, [isEdit, myEvents]);
-
-  const onCloseNewProject = React.useCallback(() => {
-    setAddNewProject(false);
-  }, []);
 
   const extendDefaultEvent = React.useCallback((args) => {
     return {
@@ -303,10 +305,48 @@ function App() {
     if (data) setHolidays((prev) => [...defaultHolidays, ...data]);
   }
 
+  const renderScheduleEvent = (event) => {
+    console.log(event);
+    return (
+      <div className="timeline-event" style={{ background: color(event.original.type) }}>
+        {['overtime', 'restDayMove', 'nightTime'].includes(event.original.type) ? '' : event.title}
+      </div>
+    );
+  };
+
+  const orderMyEvents = React.useCallback((event) => {
+    return event.accepted ? 1 : -1;
+  }, []);
+  const renderCustomDay = (args) => {
+    const date = args.date;
+    let eventOccurrence = 'none';
+
+    if (args.events) {
+      const eventNr = args.events.length;
+      if (eventNr === 0) {
+        eventOccurrence = 'none';
+      } else if (eventNr === 1) {
+        eventOccurrence = 'one';
+      } else if (eventNr < 4) {
+        eventOccurrence = 'few';
+      } else {
+        eventOccurrence = 'more';
+      }
+    }
+
+    return (
+      <div>
+        <div className="md-date-header-day-name">{formatDate('DDD', date)}</div>
+        <div className="md-date-header-day-nr">{formatDate('DD', date)}</div>
+      </div>
+    );
+  };
   return (
-    <>
+    <Box>
+      <Drawer />
       <Loader open={loader} setOpen={setLoader} />
       <Eventcalendar
+        cssClass="mbsc-calendar-projects"
         view={viewSettings}
         data={myEvents}
         invalid={invalid}
@@ -314,6 +354,8 @@ function App() {
         dataTimezone="local"
         onPageLoading={onPageLoading}
         renderResource={renderMyResource}
+        renderScheduleEvent={renderScheduleEvent}
+        renderDay={renderCustomDay}
         resources={myResources}
         clickToCreate="double"
         dragToCreate={true}
@@ -324,42 +366,9 @@ function App() {
         onEventCreated={onEventCreated}
         onEventDeleted={onEventDeleted}
         extendDefaultEvent={extendDefaultEvent}
+        eventOrder={orderMyEvents}
         colors={holidays}
       />
-      <Popup
-        display="bottom"
-        fullScreen={false}
-        contentPadding={false}
-        headerText={'Add New Project'}
-        buttons={popupButtonsNewProject}
-        isOpen={addNewProject}
-        onClose={onCloseNewProject}
-        responsive={responsivePopup}
-      >
-        <div className="mbsc-form-group">
-          <Input
-            value={newProjectDetails?.location}
-            onChange={(e) => {
-              setNewProjectDetails((prev) => {
-                return { ...prev, location: e.target.value };
-              });
-            }}
-            label="Site name"
-          />
-          Color:{' '}
-          <input
-            value={newProjectDetails?.color}
-            onChange={(e) => {
-              setNewProjectDetails((prev) => {
-                return { ...prev, color: e.target.value };
-              });
-            }}
-            type="color"
-            name=""
-            id=""
-          />
-        </div>
-      </Popup>
       <Popup
         display="bottom"
         fullScreen={true}
@@ -372,30 +381,6 @@ function App() {
         responsive={responsivePopup}
       >
         <div className="mbsc-form-group">
-          <Select
-            readOnly={isEdit}
-            onChange={(e) => {
-              setTitle(e.valueText);
-              setSite(e.value);
-            }}
-            value={popupEventSite}
-            data={projectSites}
-            touchUi={false}
-            label="Project Site"
-            labelStyle="floating"
-            error={projectError}
-            errorMessage={'Please select a project'}
-          />
-          <Button
-            onClick={() => {
-              setAddNewProject(true);
-            }}
-            startIcon="plus"
-          >
-            Add new Project
-          </Button>
-        </div>
-        <div className="mbsc-form-group">
           <Input ref={startRef} label="Starts" />
           <Input ref={endRef} label="Ends" />
           <Datepicker
@@ -421,69 +406,30 @@ function App() {
           )}
         </div>
       </Popup>
-      <Popup
-        display="bottom"
-        fullScreen={true}
-        contentPadding={false}
-        headerText={headerText}
-        anchor={anchor}
-        buttons={popupButtons}
-        isOpen={addNewTravelOtEvent}
-        onClose={onClose}
-        responsive={responsivePopup}
-      >
-        <div className="mbsc-form-group">
-          <Select
-            readOnly={isEdit}
-            onChange={(e) => {
-              setTitle(e.valueText);
-              setSite(e.value);
-            }}
-            value={popupEventSite}
-            data={projectSites}
-            touchUi={false}
-            label="Project Site"
-            labelStyle="floating"
-            error={projectError}
-            errorMessage={'Please select a project'}
-          />
-          <Button
-            onClick={() => {
-              setAddNewProject(true);
-            }}
-            startIcon="plus"
-          >
-            Add new Project
-          </Button>
-        </div>
-        <div className="mbsc-form-group">
-          <Input ref={startRef} label="Starts" />
-          <Input ref={endRef} label="Ends" />
-          <Datepicker
-            readOnly={isEdit}
-            select="range"
-            controls={['date']}
-            touchUi={true}
-            startInput={start}
-            endInput={end}
-            showRangeLabels={false}
-            onChange={dateChange}
-            value={popupEventDate}
-          />
-        </div>
-
-        <div className="mbsc-form-group">
-          {isEdit && (
-            <div className="mbsc-button-group">
-              <Button className="mbsc-button-block" color="danger" variant="outline" onClick={onDeleteClick}>
-                Delete event
-              </Button>
-            </div>
-          )}
-        </div>
-      </Popup>
-    </>
+    </Box>
   );
 }
 
 export default App;
+
+const color = (type) => {
+  switch (type) {
+    case 'lodging':
+      return '#FFA58D';
+    case 'meals':
+      return '#85CDB7';
+    case 'task':
+      return '#BDB2E9';
+    case 'overtime':
+      return '#DA4C57';
+    case 'nightTime':
+      return '#8FA429';
+    case 'restDayMove':
+      return '#A3888C';
+    case 'blockedDays':
+      return '#919EAB';
+
+    default:
+      return '#919EAB';
+  }
+};

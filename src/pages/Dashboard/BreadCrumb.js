@@ -1,26 +1,65 @@
 import * as React from 'react';
 import { Breadcrumbs, Link, Stack, Menu, MenuItem, Typography } from '@mui/material';
+import { useNavigate, useLocation } from 'react-router-dom';
 import _ from 'lodash';
 import { styled, alpha } from '@mui/material/styles';
 import { KeyboardArrowDown as KeyboardArrowDownIcon } from '@mui/icons-material';
 
-export default function CustomSeparator({ selected }) {
+export default function CustomSeparator(props) {
+  const { selected } = props;
+  const history = useNavigate();
+  const { pathname } = useLocation();
   const breadcrumbs = [
     <Link underline="hover" key="1" color="inherit" href="/dashboard/projects">
       Main
     </Link>,
 
-    <CustomizedMenus option={selected} />,
+    <CustomizedMenus key={2} option={selected} />,
+    <Link underline="hover" key="4" color="inherit" href="/dashboard/projects/:id/travel-expenses">
+      Travel expenses
+    </Link>,
   ];
+  const pathnames = pathname.split('/').filter((x) => x);
+  console.log(pathnames);
+  const basePath = `/${pathnames.slice(0, 2).join('/')}`;
+  pathnames.splice(0, 2);
 
   return (
     <Stack spacing={2}>
       <Breadcrumbs separator="›" aria-label="breadcrumb">
-        {breadcrumbs}
+        {pathnames.length > 0 ? <Link onClick={() => history(basePath)}>Main</Link> : <Typography> Main </Typography>}
+        {pathnames.map((name, index) => {
+          console.log(name, index);
+          const routeTo = `${basePath}+/${pathnames.slice(0, index + 1).join('/')}`;
+          const isLast = index === pathnames.length - 1;
+          if (index === 0) return <CustomizedMenus key={2} option={name} />;
+          if (isLast)
+            return (
+              <Typography fontWeight="600" key={name}>
+                {_.startCase(name)}
+              </Typography>
+            );
+          return (
+            <Link key={name} onClick={() => history(routeTo)}>
+              {name}
+            </Link>
+          );
+        })}
       </Breadcrumbs>
     </Stack>
   );
 }
+
+const titles = (name) => {
+  switch (name) {
+    case 'add':
+      return 'Add New Project';
+    case 'list':
+      return 'Projects';
+    default:
+      return 'View Project';
+  }
+};
 
 const StyledMenu = styled((props) => (
   <Menu
@@ -80,7 +119,7 @@ function CustomizedMenus({ option }) {
         label="Accessories"
         onClick={handleClick}
       >
-        {_.startCase(option)}
+        {titles(option)}
         <KeyboardArrowDownIcon />
       </Typography>
 
@@ -93,12 +132,12 @@ function CustomizedMenus({ option }) {
         open={open}
         onClose={handleClose}
       >
-        <MenuItem selected={option === 'addNewProject'} onClick={handleClose} disableRipple>
+        <MenuItem selected={option === 'add'} onClick={handleClose} disableRipple>
           <Link underline="hover" key="11" color="inherit" href="/dashboard/projects/add">
             Add new project
           </Link>
         </MenuItem>
-        <MenuItem selected={option === 'projectsList'} onClick={handleClose} disableRipple>
+        <MenuItem selected={option === 'list'} onClick={handleClose} disableRipple>
           <Link underline="hover" key="12" color="inherit" href="/dashboard/projects">
             Projects list
           </Link>
