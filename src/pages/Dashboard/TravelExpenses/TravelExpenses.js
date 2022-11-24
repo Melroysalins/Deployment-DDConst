@@ -331,9 +331,13 @@ function App() {
           justifyContent="space-between"
           width="100%"
         >
-          <CalendarPrev className="cal-header-prev" />
+          <MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 0, minWidth: 0 }}>
+            <CalendarPrev className="cal-header-prev" />
+          </MuiButton>
           <CalendarNav className="cal-header-nav" />
-          <CalendarNext className="cal-header-next" />
+          <MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 0, minWidth: 0 }}>
+            <CalendarNext className="cal-header-next" />
+          </MuiButton>
         </Stack>
       </>
     );
