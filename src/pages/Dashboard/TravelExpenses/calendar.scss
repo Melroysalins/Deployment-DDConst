@@ -5,8 +5,10 @@
   .mbsc-timeline-events {
     top: 5px;
   }
-}
-.mbsc-calendar-projects .mbsc-timeline-resource,
-.mbsc-calendar-projects .mbsc-timeline-row {
-  min-height: 400px;
+  .cal-header-prev.mbsc-ios.mbsc-calendar-button.mbsc-button,
+  .cal-header-next.mbsc-ios.mbsc-calendar-button.mbsc-button,
+  .cal-header-nav .mbsc-ios.mbsc-calendar-button.mbsc-button {
+    color: #000;
+    font-size: small;
+  }
 }

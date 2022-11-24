@@ -10,10 +10,14 @@ import {
   formatDate,
   Datepicker,
   momentTimezone,
+  CalendarNav,
+  CalendarPrev,
+  CalendarToday,
+  CalendarNext,
 } from '@mobiscroll/react';
 import moment from 'moment-timezone';
 import { styled } from '@mui/material/styles';
-import { Avatar, Typography, Container, Stack, Button as MuiButton } from '@mui/material';
+import { Avatar, Typography, Box, Stack, Button as MuiButton } from '@mui/material';
 import Iconify from 'components/Iconify';
 import './calendar.scss';
 
@@ -316,7 +320,24 @@ function App() {
     const data = await getHolidays(start, end);
     if (data) setHolidays((prev) => [...defaultHolidays, ...data]);
   }
-
+  const renderHeader = () => {
+    return (
+      <>
+        <Stack
+          sx={{ color: 'black' }}
+          variant
+          component="subtitle1"
+          flexDirection="row"
+          justifyContent="space-between"
+          width="100%"
+        >
+          <CalendarPrev className="cal-header-prev" />
+          <CalendarNav className="cal-header-nav" />
+          <CalendarNext className="cal-header-next" />
+        </Stack>
+      </>
+    );
+  };
   const renderScheduleEvent = (event) => {
     return (
       <div className="timeline-event" style={{ background: color(event.original.type) }}>
@@ -348,7 +369,6 @@ function App() {
     return (
       <div>
         <div className="md-date-header-day-name">{formatDate('DDD', date)}</div>
-        <div className="md-date-header-day-nr">{formatDate('DD', date)}</div>
       </div>
     );
   };
@@ -372,12 +392,11 @@ function App() {
           Pending
         </MuiButton>
       </Stack>
-      <Container maxWidth="xl">
+      <Box marginLeft={3} marginRight={3} sx={{ boxShadow: (theme) => theme.customShadows.z8 }}>
         <Drawer />
         <Loader open={loader} setOpen={setLoader} />
         <Eventcalendar
           cssClass="mbsc-calendar-projects"
-          rowHeight={20}
           view={viewSettings}
           data={myEvents}
           invalid={invalid}
@@ -386,6 +405,7 @@ function App() {
           onPageLoading={onPageLoading}
           renderResource={renderMyResource}
           renderScheduleEvent={renderScheduleEvent}
+          renderHeader={renderHeader}
           renderDay={renderCustomDay}
           resources={myResources}
           clickToCreate="double"
@@ -399,6 +419,7 @@ function App() {
           extendDefaultEvent={extendDefaultEvent}
           eventOrder={orderMyEvents}
           colors={holidays}
+          dayNamesShort={['', '', '', '', '', '', '']}
         />
         <Popup
           display="bottom"
@@ -437,7 +458,7 @@ function App() {
             )}
           </div>
         </Popup>
-      </Container>
+      </Box>
     </Page>
   );
 }
