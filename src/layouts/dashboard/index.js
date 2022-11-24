@@ -24,6 +24,7 @@ const MainStyle = styled('div')(({ theme }) => ({
   width: '100%',
   padding: '20px',
   borderRadius: `20px`,
+  position: 'relative',
   [theme.breakpoints.up('lg')]: {
     paddingTop: APP_BAR_DESKTOP + 24,
     paddingLeft: theme.spacing(2),
@@ -50,7 +51,7 @@ export default function DashboardLayout() {
   }, [matchDownMd]);
   return (
     <RootStyle>
-      <DashboardNavbar leftDrawerOpened={open} onOpenSidebar={handleLeftDrawerToggle} />
+      {/* <DashboardNavbar leftDrawerOpened={open} onOpenSidebar={handleLeftDrawerToggle} /> */}
       <DashboardSidebar leftDrawerOpened={open} onCloseSidebar={handleLeftDrawerToggle} />
       <MainStyle>
         <Outlet />

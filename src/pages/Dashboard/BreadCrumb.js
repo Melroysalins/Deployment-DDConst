@@ -9,27 +9,15 @@ export default function CustomSeparator(props) {
   const { selected } = props;
   const history = useNavigate();
   const { pathname } = useLocation();
-  const breadcrumbs = [
-    <Link underline="hover" key="1" color="inherit" href="/dashboard/projects">
-      Main
-    </Link>,
-
-    <CustomizedMenus key={2} option={selected} />,
-    <Link underline="hover" key="4" color="inherit" href="/dashboard/projects/:id/travel-expenses">
-      Travel expenses
-    </Link>,
-  ];
   const pathnames = pathname.split('/').filter((x) => x);
-  console.log(pathnames);
   const basePath = `/${pathnames.slice(0, 2).join('/')}`;
   pathnames.splice(0, 2);
 
   return (
-    <Stack spacing={2}>
+    <Stack padding={1} spacing={2}>
       <Breadcrumbs separator="›" aria-label="breadcrumb">
         {pathnames.length > 0 ? <Link onClick={() => history(basePath)}>Main</Link> : <Typography> Main </Typography>}
         {pathnames.map((name, index) => {
-          console.log(name, index);
           const routeTo = `${basePath}+/${pathnames.slice(0, index + 1).join('/')}`;
           const isLast = index === pathnames.length - 1;
           if (index === 0) return <CustomizedMenus key={2} option={name} />;

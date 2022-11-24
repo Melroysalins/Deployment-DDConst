@@ -1,6 +1,12 @@
-.mbsc-timeline.mbsc-ltr {
-  max-height: calc(100vh - 159px);
+.mbsc-calendar-projects {
+  .mbsc-timeline.mbsc-ltr {
+    max-height: calc(100vh - 160px);
+  }
+  .mbsc-timeline-events {
+    top: 5px;
+  }
 }
-.mbsc-ios.mbsc-schedule-event-background {
-  opacity: 1;
+.mbsc-calendar-projects .mbsc-timeline-resource,
+.mbsc-calendar-projects .mbsc-timeline-row {
+  min-height: 400px;
 }

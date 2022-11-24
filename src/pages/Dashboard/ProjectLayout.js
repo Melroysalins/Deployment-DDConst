@@ -1,8 +1,7 @@
 import React from 'react';
 // @mui
-import { useTheme } from '@mui/material/styles';
 import { useLocation, Outlet } from 'react-router-dom';
-import { Button, Stack } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 // components
 import BreadCrumb from './BreadCrumb';
 import { StoreProvider, useStore } from './store/Store';
@@ -27,10 +26,13 @@ export default function Projects() {
 
   return (
     <StoreProvider>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" pl={3} pr={3} mb={5}>
-        <ProjectHeader />
+      <Stack justifyContent="space-between">
+        <Box pl={3} pr={3} mb={4} component="div">
+          <ProjectHeader />
+        </Box>
+
+        <Outlet isprop={true} />
       </Stack>
-      <Outlet />
     </StoreProvider>
   );
 }

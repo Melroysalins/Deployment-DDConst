@@ -10,32 +10,14 @@ import { listAllProjects } from 'supabase/projects';
 import Skeleton from './ProjectSkelation';
 import { useStore } from 'pages/Dashboard/store/Store';
 
-function AddNewProjectHeader() {
-  <Button
-    variant="outlined"
-    href="/dashboard/projects/add"
-    startIcon={<Iconify icon={'fluent:add-16-filled'} sx={{ width: 16, height: 16, ml: 1 }} />}
-    sx={{
-      color: (theme) => theme.palette.text.default,
-      border: '1px solid rgba(0, 0, 0, 0.1)',
-      boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
-      borderRadius: '8px',
-    }}
-  >
-    Add New Project
-  </Button>;
-}
-
-export default function ProjectList() {
+export default function ProjectList(props) {
+  console.log(props);
   const [loader, setLoader] = React.useState(true);
   const [data, setData] = React.useState([]);
   const [toast, setToast] = React.useState(null);
 
-  const { setActionFunction } = useStore();
-
   React.useEffect(() => {
     console.log('console.log(actionFunction)');
-    setActionFunction(() => <AddNewProjectHeader />);
     fetchData();
   }, []);
 
@@ -60,6 +42,22 @@ export default function ProjectList() {
 
   return (
     <>
+      <Box sx={{ position: 'absolute', top: '24px', right: '40px' }}>
+        <Button
+          variant="outlined"
+          href="/dashboard/projects/add"
+          startIcon={<Iconify icon={'fluent:add-16-filled'} sx={{ width: 16, height: 16, ml: 1 }} />}
+          sx={{
+            color: (theme) => theme.palette.text.default,
+            border: '1px solid rgba(0, 0, 0, 0.1)',
+            boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
+            borderRadius: '8px',
+          }}
+        >
+          Add New Project
+        </Button>
+      </Box>
+
       <Snackbar
         open={toast}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
@@ -136,7 +134,6 @@ function ProjectItem({ data }) {
 
   return (
     <>
-      {' '}
       <Card key={id} onClick={changeView}>
         <Header
           sx={{

@@ -7,19 +7,19 @@ import {
   Button,
   Input,
   formatDate,
-  Checkbox,
   Datepicker,
-  snackbar,
-  Select,
   momentTimezone,
 } from '@mobiscroll/react';
 import moment from 'moment-timezone';
 import { styled } from '@mui/material/styles';
-import { Avatar, Typography, Box } from '@mui/material';
-import Drawer from './Drawer';
+import { Avatar, Typography, Box, Container, Stack, Button as MuiButton } from '@mui/material';
+import Iconify from 'components/Iconify';
 import './calendar.scss';
 
+import Page from 'components/Page';
 import { Loader } from 'reusables';
+import Filters from './Filters';
+import Drawer from './Drawer';
 
 import { listAllEvents, createNewEvent, deleteEvent } from 'supabase/events';
 import data from './data.json';
@@ -36,6 +36,7 @@ const viewSettings = {
     type: 'month',
     size: 2,
     eventList: true,
+    rowHeight: 'equal',
   },
 };
 const responsivePopup = {
@@ -71,12 +72,12 @@ const Rating = styled(Avatar, {
       break;
 
     default:
-      color = theme.palette.chart.blue[0];
+      color = theme.palette.grey[500];
       break;
   }
   return {
-    height: 16,
-    width: 16,
+    height: 20,
+    width: 20,
     fontSize: 11,
     marginLeft: 11,
     backgroundColor: color,
@@ -171,14 +172,24 @@ function App() {
   }, [isEdit, myEvents, popupEventDate, popupEventColor, popupEventTitle, popupEventSite, tempEvent, checkedResources]);
 
   const renderMyResource = (resource) => {
+    console.log(resource);
     const parent = resource.children;
     return (
       <Typography
         variant="body2"
-        className={parent ? 'md-shift-resource' : ''}
         sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', color: parent ? '#1dab2f' : '' }}
       >
-        {resource.name} {!parent && <Rating rating={resource.rating}>{resource.rating}</Rating>}
+        {resource.name}
+        {!parent && <Rating rating={resource.rating}>{resource.rating}</Rating>}{' '}
+        {resource.team_type && (
+          <Rating rating={resource.rating}>
+            {resource.team_type === 'InHome' ? (
+              <Iconify icon="material-symbols:home-outline-rounded" width={15} height={15} />
+            ) : (
+              <Iconify icon="material-symbols:handshake-outline" width={15} height={15} />
+            )}
+          </Rating>
+        )}
       </Typography>
     );
   };
@@ -306,7 +317,6 @@ function App() {
   }
 
   const renderScheduleEvent = (event) => {
-    console.log(event);
     return (
       <div className="timeline-event" style={{ background: color(event.original.type) }}>
         {['overtime', 'restDayMove', 'nightTime'].includes(event.original.type) ? '' : event.title}
@@ -315,6 +325,7 @@ function App() {
   };
 
   const orderMyEvents = React.useCallback((event) => {
+    console.log(event);
     return event.accepted ? 1 : -1;
   }, []);
   const renderCustomDay = (args) => {
@@ -342,71 +353,92 @@ function App() {
     );
   };
   return (
-    <Box>
-      <Drawer />
-      <Loader open={loader} setOpen={setLoader} />
-      <Eventcalendar
-        cssClass="mbsc-calendar-projects"
-        view={viewSettings}
-        data={myEvents}
-        invalid={invalid}
-        displayTimezone="local"
-        dataTimezone="local"
-        onPageLoading={onPageLoading}
-        renderResource={renderMyResource}
-        renderScheduleEvent={renderScheduleEvent}
-        renderDay={renderCustomDay}
-        resources={myResources}
-        clickToCreate="double"
-        dragToCreate={true}
-        dragTimeStep={30}
-        selectedDate={mySelectedDate}
-        onSelectedDateChange={onSelectedDateChange}
-        onEventClick={onEventClick}
-        onEventCreated={onEventCreated}
-        onEventDeleted={onEventDeleted}
-        extendDefaultEvent={extendDefaultEvent}
-        eventOrder={orderMyEvents}
-        colors={holidays}
-      />
-      <Popup
-        display="bottom"
-        fullScreen={true}
-        contentPadding={false}
-        headerText={headerText}
-        anchor={anchor}
-        buttons={popupButtons}
-        isOpen={isOpen}
-        onClose={onClose}
-        responsive={responsivePopup}
-      >
-        <div className="mbsc-form-group">
-          <Input ref={startRef} label="Starts" />
-          <Input ref={endRef} label="Ends" />
-          <Datepicker
-            readOnly={isEdit}
-            select="range"
-            controls={['date']}
-            touchUi={true}
-            startInput={start}
-            endInput={end}
-            showRangeLabels={false}
-            onChange={dateChange}
-            value={popupEventDate}
-          />
-        </div>
+    <Page title="Travel expenses">
+      <Stack direction="row" alignItems="center" spacing={2} sx={{ position: 'absolute', top: '24px', right: '40px' }}>
+        <Filters />
+        <MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 1, minWidth: 0 }}>
+          <Iconify icon="heroicons-outline:document-text" width={20} height={20} />
+        </MuiButton>
+        <MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 1, minWidth: 0 }}>
+          <Iconify icon="material-symbols:download-rounded" width={20} height={20} />
+        </MuiButton>
+        <MuiButton
+          startIcon={<Iconify icon="tabler:checkbox" width={20} height={20} />}
+          size="small"
+          variant="outlined"
+          color="inherit"
+          sx={{ padding: '8px 24px', minWidth: 0 }}
+        >
+          Pending
+        </MuiButton>
+      </Stack>
+      <Container maxWidth="xl">
+        <Drawer />
+        <Loader open={loader} setOpen={setLoader} />
+        <Eventcalendar
+          cssClass="mbsc-calendar-projects"
+          rowHeight={20}
+          view={viewSettings}
+          data={myEvents}
+          invalid={invalid}
+          displayTimezone="local"
+          dataTimezone="local"
+          onPageLoading={onPageLoading}
+          renderResource={renderMyResource}
+          renderScheduleEvent={renderScheduleEvent}
+          renderDay={renderCustomDay}
+          resources={myResources}
+          clickToCreate="double"
+          dragToCreate={true}
+          dragTimeStep={30}
+          selectedDate={mySelectedDate}
+          onSelectedDateChange={onSelectedDateChange}
+          onEventClick={onEventClick}
+          onEventCreated={onEventCreated}
+          onEventDeleted={onEventDeleted}
+          extendDefaultEvent={extendDefaultEvent}
+          eventOrder={orderMyEvents}
+          colors={holidays}
+        />
+        <Popup
+          display="bottom"
+          fullScreen={true}
+          contentPadding={false}
+          headerText={headerText}
+          anchor={anchor}
+          buttons={popupButtons}
+          isOpen={isOpen}
+          onClose={onClose}
+          responsive={responsivePopup}
+        >
+          <div className="mbsc-form-group">
+            <Input ref={startRef} label="Starts" />
+            <Input ref={endRef} label="Ends" />
+            <Datepicker
+              readOnly={isEdit}
+              select="range"
+              controls={['date']}
+              touchUi={true}
+              startInput={start}
+              endInput={end}
+              showRangeLabels={false}
+              onChange={dateChange}
+              value={popupEventDate}
+            />
+          </div>
 
-        <div className="mbsc-form-group">
-          {isEdit && (
-            <div className="mbsc-button-group">
-              <Button className="mbsc-button-block" color="danger" variant="outline" onClick={onDeleteClick}>
-                Delete event
-              </Button>
-            </div>
-          )}
-        </div>
-      </Popup>
-    </Box>
+          <div className="mbsc-form-group">
+            {isEdit && (
+              <div className="mbsc-button-group">
+                <Button className="mbsc-button-block" color="danger" variant="outline" onClick={onDeleteClick}>
+                  Delete event
+                </Button>
+              </div>
+            )}
+          </div>
+        </Popup>
+      </Container>
+    </Page>
   );
 }
 
