@@ -1,5 +1,5 @@
 import React from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import '@mobiscroll/react/dist/css/mobiscroll.min.css';
 import {
   Eventcalendar,
@@ -18,13 +18,13 @@ import {
 import moment from 'moment-timezone';
 import { styled } from '@mui/material/styles';
 import { Avatar, Typography, Box, Stack, Button as MuiButton } from '@mui/material';
-import Iconify from 'components/Iconify';
-import './calendar.scss';
 
 import Page from 'components/Page';
+import Iconify from 'components/Iconify';
 import { Loader } from 'reusables';
 import Filters from './Filters';
 import Drawer from './Drawer';
+import './calendar.scss';
 
 import { listAllEvents, createNewEvent, deleteEvent } from 'supabase/events';
 import data from './data.json';
@@ -39,9 +39,8 @@ momentTimezone.moment = moment;
 const viewSettings = {
   timeline: {
     type: 'month',
-    size: 2,
+    size: 1,
     eventList: true,
-    rowHeight: 'equal',
   },
 };
 const responsivePopup = {
@@ -89,10 +88,13 @@ const Rating = styled(Avatar, {
   };
 });
 
-const initialFilters = { te: true, specialTe: true, outsourced: false, tasks: false };
+const initialFilters = { te: false, specialTe: false, outsourced: false, tasks: false };
 
 function App() {
   const [searchParams] = useSearchParams();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+
   const [myEvents, setMyEvents] = React.useState(data.events);
   const [tempEvent, setTempEvent] = React.useState(null);
   const [isOpen, setOpen] = React.useState(false);
@@ -122,9 +124,13 @@ function App() {
 
   const handleFilters = React.useCallback(() => {
     let _filters = searchParams.get('filters');
-    console.log(_filters);
     _filters = _filters?.split(',').reduce((acc, cur) => ({ ...acc, [cur]: true }), {});
     if (_filters) setFilters((prev) => ({ ...initialFilters, ..._filters }));
+    else
+      navigate({
+        pathname,
+        search: `?filters=te,specialTe,outsourced,tasks`,
+      });
   }, [searchParams]);
 
   React.useEffect(() => {
@@ -133,17 +139,74 @@ function App() {
   }, [searchParams]);
 
   React.useEffect(() => {
-    if (filters.outsourced) {
-      setMyResources(data.resources);
-    } else {
-      setMyResources(() => data.resources.filter((team) => team.team_type !== 'Outsource'));
+    let updatedResources = data.resources;
+    let updatedEvents = data.events;
+    if (!filters.outsourced) {
+      updatedResources = data.resources.map((project) => ({
+        ...project,
+        children: project.children.filter((team) => team.team_type !== 'Outsource'),
+      }));
     }
-    if (filters.tasks) {
-      setMyEvents(data.events);
-    } else {
-      setMyEvents(() => data.events.filter((event) => event.type !== 'task'));
+    if (!filters.tasks) {
+      updatedEvents = data.events.filter((event) => event.subType !== 'task');
     }
+    if (!filters.te) {
+      updatedEvents = data.events.filter((event) => event.type !== 'travel');
+    }
+    if (!filters.specialTe) {
+      updatedEvents = data.events.filter((event) => event.type !== 'special');
+    }
+    const res = updateCalendarData(updatedResources, updatedEvents);
+    setMyResources(res.resources);
+    setMyEvents(res.events);
   }, [filters]);
+
+  React.useEffect(() => {
+    const res = updateCalendarData(data.resources, data.events);
+    setMyResources(res.resources);
+    setMyEvents(res.events);
+  }, []);
+
+  const travelExpensesForEmployee = React.useCallback(
+    (employee_id) => [
+      {
+        id: `${employee_id}-lodging`,
+        type: 'lodging',
+      },
+      {
+        id: `${employee_id}-meals`,
+        type: 'meals',
+      },
+      {
+        id: `${employee_id}-task`,
+        type: 'task',
+      },
+    ],
+    []
+  );
+
+  const updateCalendarData = React.useCallback(
+    (resources, events) => {
+      const updatedResources = resources.map((resource) => ({
+        ...resource,
+        children: resource.children.map((project) => ({
+          ...project,
+          children: project.children.map((employee) => ({
+            ...employee,
+            children: travelExpensesForEmployee(employee.id),
+            collapsed: false,
+          })),
+        })),
+      }));
+      const updatedEvents = events.map((event) =>
+        event.type === 'travel' || event.subType === 'task'
+          ? { ...event, resource: `${event.resource}-${event.subType}` }
+          : event
+      );
+      return { resources: updatedResources, events: updatedEvents };
+    },
+    [myResources, myEvents]
+  );
 
   const handleValidation = () => {
     if (popupEventSite !== null && popupEventSite !== '') {
@@ -185,11 +248,55 @@ function App() {
     return (
       <Typography
         variant="body2"
-        sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', color: parent ? '#1dab2f' : '' }}
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          ...(resource.depth === 3 && { justifyContent: 'flex-end' }),
+        }}
       >
         {resource.name}
-        {!parent && <Rating rating={resource.rating}>{resource.rating}</Rating>}{' '}
-        {resource.team_type && (
+        {symbolsForResource(resource)}
+      </Typography>
+    );
+  };
+
+  const renderScheduleEvent = (event) => {
+    const bgColor = color(event.original.subType);
+    console.log(event);
+    const startDate = moment(event.startDate);
+    const endDate = moment(event.endDate);
+    const diff = endDate.diff(startDate, 'days');
+
+    return (
+      <Box
+        component="div"
+        className="timeline-event"
+        sx={{
+          background: bgColor,
+          color: bgColor === '#fff' ? '#000 !important' : '#fff !important',
+          boxShadow: (theme) => theme.customShadows.z8,
+        }}
+      >
+        {event.original.type === 'travel' && `${diff} days`}
+        {event.original.type !== 'travel' && event.original.subType !== 'special' && event.title}
+      </Box>
+    );
+  };
+
+  const symbolsForResource = React.useCallback((resource) => {
+    switch (resource.depth) {
+      case 0:
+        return (
+          <>
+            <Stack direction="column">
+              <Typography variant="caption">{resource.branchTitle}</Typography>
+              <Typography variant="subtitle2">{resource.projectTitle}</Typography>
+            </Stack>
+          </>
+        );
+      case 1:
+        return (
           <Rating rating={resource.rating}>
             {resource.team_type === 'InHome' ? (
               <Iconify icon="material-symbols:home-outline-rounded" width={15} height={15} />
@@ -197,10 +304,21 @@ function App() {
               <Iconify icon="material-symbols:handshake-outline" width={15} height={15} />
             )}
           </Rating>
-        )}
-      </Typography>
-    );
-  };
+        );
+      case 2:
+        return <Rating rating={resource.rating}>{resource.rating}</Rating>;
+      case 3:
+        if (resource.type === 'lodging') {
+          return <Iconify icon="icon-park-outline:double-bed" width={15} height={15} />;
+        }
+        if (resource.type === 'meals') {
+          return <Iconify icon="bxs:bowl-rice" width={15} height={15} />;
+        }
+        return <Iconify icon="mdi:calendar-task-outline" width={15} height={15} />;
+      default:
+        break;
+    }
+  }, []);
 
   const loadPopupForm = React.useCallback((event) => {
     try {
@@ -342,40 +460,7 @@ function App() {
       </>
     );
   };
-  const renderScheduleEvent = (event) => {
-    return (
-      <div className="timeline-event" style={{ background: color(event.original.type) }}>
-        {['overtime', 'restDayMove', 'nightTime'].includes(event.original.type) ? '' : event.title}
-      </div>
-    );
-  };
 
-  const orderMyEvents = React.useCallback((event) => {
-    return event.accepted ? 1 : -1;
-  }, []);
-  const renderCustomDay = (args) => {
-    const date = args.date;
-    let eventOccurrence = 'none';
-
-    if (args.events) {
-      const eventNr = args.events.length;
-      if (eventNr === 0) {
-        eventOccurrence = 'none';
-      } else if (eventNr === 1) {
-        eventOccurrence = 'one';
-      } else if (eventNr < 4) {
-        eventOccurrence = 'few';
-      } else {
-        eventOccurrence = 'more';
-      }
-    }
-
-    return (
-      <div>
-        <div className="md-date-header-day-name">{formatDate('DDD', date)}</div>
-      </div>
-    );
-  };
   return (
     <Page title="Travel expenses">
       <Stack direction="row" alignItems="center" spacing={2} sx={{ position: 'absolute', top: '24px', right: '40px' }}>
@@ -410,7 +495,6 @@ function App() {
           renderResource={renderMyResource}
           renderScheduleEvent={renderScheduleEvent}
           renderHeader={renderHeader}
-          renderDay={renderCustomDay}
           resources={myResources}
           clickToCreate="double"
           dragToCreate={true}
@@ -421,9 +505,8 @@ function App() {
           onEventCreated={onEventCreated}
           onEventDeleted={onEventDeleted}
           extendDefaultEvent={extendDefaultEvent}
-          eventOrder={orderMyEvents}
           colors={holidays}
-          dayNamesShort={['', '', '', '', '', '', '']}
+          dayNamesMin={['S', 'M', 'T', 'W', 'T', 'F', 'S']}
         />
         <Popup
           display="bottom"
@@ -487,6 +570,6 @@ const color = (type) => {
       return '#919EAB';
 
     default:
-      return '#919EAB';
+      return '#fff';
   }
 };

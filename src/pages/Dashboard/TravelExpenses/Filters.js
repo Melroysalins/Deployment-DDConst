@@ -32,7 +32,6 @@ export default function Filters({ filters }) {
       const filterTostring = Object.keys(updatedFilter)
         .filter((item) => updatedFilter[item])
         .join(',');
-      console.log(filterTostring);
       if (filterTostring.length > 0) {
         navigate({
           pathname,
