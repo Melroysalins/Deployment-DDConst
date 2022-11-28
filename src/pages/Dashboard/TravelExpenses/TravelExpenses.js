@@ -39,7 +39,7 @@ momentTimezone.moment = moment;
 const viewSettings = {
   timeline: {
     type: 'month',
-    size: 1,
+    size: 2,
     eventList: true,
   },
 };
@@ -142,10 +142,7 @@ function App() {
     let updatedResources = data.resources;
     let updatedEvents = data.events;
     if (!filters.outsourced) {
-      updatedResources = data.resources.map((project) => ({
-        ...project,
-        children: project.children.filter((team) => team.team_type !== 'Outsource'),
-      }));
+      updatedResources = data.resources.filter((team) => team.team_type !== 'Outsource');
     }
     if (!filters.tasks) {
       updatedEvents = data.events.filter((event) => event.subType !== 'task');
@@ -187,15 +184,12 @@ function App() {
 
   const updateCalendarData = React.useCallback(
     (resources, events) => {
-      const updatedResources = resources.map((resource) => ({
-        ...resource,
-        children: resource.children.map((project) => ({
-          ...project,
-          children: project.children.map((employee) => ({
-            ...employee,
-            children: travelExpensesForEmployee(employee.id),
-            collapsed: false,
-          })),
+      const updatedResources = resources.map((project) => ({
+        ...project,
+        children: project.children.map((employee) => ({
+          ...employee,
+          children: travelExpensesForEmployee(employee.id),
+          collapsed: false,
         })),
       }));
       const updatedEvents = events.map((event) =>
@@ -252,7 +246,7 @@ function App() {
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
-          ...(resource.depth === 3 && { justifyContent: 'flex-end' }),
+          ...(resource.depth === 2 && { justifyContent: 'flex-end' }),
         }}
       >
         {resource.name}
@@ -288,15 +282,6 @@ function App() {
     switch (resource.depth) {
       case 0:
         return (
-          <>
-            <Stack direction="column">
-              <Typography variant="caption">{resource.branchTitle}</Typography>
-              <Typography variant="subtitle2">{resource.projectTitle}</Typography>
-            </Stack>
-          </>
-        );
-      case 1:
-        return (
           <Rating rating={resource.rating}>
             {resource.team_type === 'InHome' ? (
               <Iconify icon="material-symbols:home-outline-rounded" width={15} height={15} />
@@ -305,9 +290,25 @@ function App() {
             )}
           </Rating>
         );
-      case 2:
+      case 1:
+        // if (resource.teamLead)
+        //   return (
+        //     <Typography
+        //       variant="overline"
+        //       sx={{
+        //         background: '#FF6B00',
+        //         boxShadow: (theme) => theme.customShadows.z8,
+        //         borderRadius: '4px',
+        //         padding: '0px 4px',
+        //         color: '#fff',
+        //         fontSize: '12px',
+        //       }}
+        //     >
+        //       Team lead
+        //     </Typography>
+        //   );
         return <Rating rating={resource.rating}>{resource.rating}</Rating>;
-      case 3:
+      case 2:
         if (resource.type === 'lodging') {
           return <Iconify icon="icon-park-outline:double-bed" width={15} height={15} />;
         }
@@ -319,6 +320,15 @@ function App() {
         break;
     }
   }, []);
+
+  const renderCustomHeader = () => {
+    return (
+      <div style={{ width: '400px' }} className="md-resource-header-template-title">
+        <div className="md-resource-header-template-name">Room</div>
+        <div className="md-resource-header-template-seats">Capacity</div>
+      </div>
+    );
+  };
 
   const loadPopupForm = React.useCallback((event) => {
     try {
@@ -495,6 +505,7 @@ function App() {
           renderResource={renderMyResource}
           renderScheduleEvent={renderScheduleEvent}
           renderHeader={renderHeader}
+          renderResourceHeader={renderCustomHeader}
           resources={myResources}
           clickToCreate="double"
           dragToCreate={true}
