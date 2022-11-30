@@ -17,7 +17,7 @@ import {
 } from '@mobiscroll/react';
 import moment from 'moment-timezone';
 import { styled } from '@mui/material/styles';
-import { Avatar, Typography, Box, Stack, Button as MuiButton } from '@mui/material';
+import { Avatar, Typography, Box, Stack, Button as MuiButton, Tooltip } from '@mui/material';
 
 import Page from 'components/Page';
 import Iconify from 'components/Iconify';
@@ -29,6 +29,7 @@ import './calendar.scss';
 import { listAllEvents, createNewEvent, deleteEvent } from 'supabase/events';
 import data from './data.json';
 import getHolidays from './getHolidays';
+import { Rotate90DegreesCcw } from '@mui/icons-material';
 
 setOptions({
   theme: 'ios',
@@ -88,6 +89,19 @@ const Rating = styled(Avatar, {
   };
 });
 
+const TotalsButton = styled(MuiButton)(({ theme }) => ({
+  transform: 'rotate(90deg)',
+  position: 'absolute',
+  top: '29px',
+  right: '-70px',
+  padding: '8px 30px',
+  borderRadius: '8px 8px 0px 0px',
+  background: '#FFA58D',
+  color: '#fff',
+  boxShadow: theme.customShadows.z8,
+  zIndex: 1,
+}));
+
 const initialFilters = { te: false, specialTe: false, outsourced: false, tasks: false };
 
 function App() {
@@ -142,7 +156,10 @@ function App() {
     let updatedResources = data.resources;
     let updatedEvents = data.events;
     if (!filters.outsourced) {
-      updatedResources = data.resources.filter((team) => team.team_type !== 'Outsource');
+      updatedResources = data.resources.map((project) => ({
+        ...project,
+        children: project.children.filter((team) => team.team_type !== 'Outsource'),
+      }));
     }
     if (!filters.tasks) {
       updatedEvents = data.events.filter((event) => event.subType !== 'task');
@@ -184,12 +201,15 @@ function App() {
 
   const updateCalendarData = React.useCallback(
     (resources, events) => {
-      const updatedResources = resources.map((project) => ({
-        ...project,
-        children: project.children.map((employee) => ({
-          ...employee,
-          children: travelExpensesForEmployee(employee.id),
-          collapsed: false,
+      const updatedResources = resources.map((resource) => ({
+        ...resource,
+        children: resource.children.map((project) => ({
+          ...project,
+          children: project.children.map((employee) => ({
+            ...employee,
+            children: travelExpensesForEmployee(employee.id),
+            collapsed: false,
+          })),
         })),
       }));
       const updatedEvents = events.map((event) =>
@@ -238,7 +258,6 @@ function App() {
   }, [isEdit, myEvents, popupEventDate, popupEventColor, popupEventTitle, popupEventSite, tempEvent, checkedResources]);
 
   const renderMyResource = (resource) => {
-    const parent = resource.children;
     return (
       <Typography
         variant="body2"
@@ -246,7 +265,7 @@ function App() {
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
-          ...(resource.depth === 2 && { justifyContent: 'flex-end' }),
+          ...(resource.depth === 3 && { justifyContent: 'flex-end' }),
         }}
       >
         {resource.name}
@@ -282,6 +301,15 @@ function App() {
     switch (resource.depth) {
       case 0:
         return (
+          <>
+            <Stack direction="column">
+              <Typography variant="caption">{resource.branchTitle}</Typography>
+              <Typography variant="subtitle2">{resource.projectTitle}</Typography>
+            </Stack>
+          </>
+        );
+      case 1:
+        return (
           <Rating rating={resource.rating}>
             {resource.team_type === 'InHome' ? (
               <Iconify icon="material-symbols:home-outline-rounded" width={15} height={15} />
@@ -290,7 +318,7 @@ function App() {
             )}
           </Rating>
         );
-      case 1:
+      case 2:
         // if (resource.teamLead)
         //   return (
         //     <Typography
@@ -308,7 +336,7 @@ function App() {
         //     </Typography>
         //   );
         return <Rating rating={resource.rating}>{resource.rating}</Rating>;
-      case 2:
+      case 3:
         if (resource.type === 'lodging') {
           return <Iconify icon="icon-park-outline:double-bed" width={15} height={15} />;
         }
@@ -451,14 +479,7 @@ function App() {
   const renderHeader = () => {
     return (
       <>
-        <Stack
-          sx={{ color: 'black' }}
-          variant
-          component="subtitle1"
-          flexDirection="row"
-          justifyContent="space-between"
-          width="100%"
-        >
+        <Stack sx={{ color: 'black' }} flexDirection="row" justifyContent="space-between" width="100%">
           <MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 0, minWidth: 0 }}>
             <CalendarPrev className="cal-header-prev" />
           </MuiButton>
@@ -468,6 +489,35 @@ function App() {
           </MuiButton>
         </Stack>
       </>
+    );
+  };
+
+  const renderCustomDay = (args) => {
+    const date = args.date;
+    let eventOccurrence = 'none';
+
+    if (args.events) {
+      const eventNr = args.events.length;
+      if (eventNr === 0) {
+        eventOccurrence = 'none';
+      } else if (eventNr === 1) {
+        eventOccurrence = 'one';
+      } else if (eventNr < 4) {
+        eventOccurrence = 'few';
+      } else {
+        eventOccurrence = 'more';
+      }
+    }
+
+    return (
+      <Stack p="10px" justifyContent="center" alignItems="center" className="">
+        <Typography variant="body2" className="">
+          {formatDate('DD', date)}
+        </Typography>
+        <Typography variant="caption" className="">
+          {formatDate('DDD', date).substring(0, 1)}
+        </Typography>
+      </Stack>
     );
   };
 
@@ -482,7 +532,7 @@ function App() {
           <Iconify icon="material-symbols:download-rounded" width={20} height={20} />
         </MuiButton>
         <MuiButton
-          startIcon={<Iconify icon="tabler:checkbox" width={20} height={20} />}
+          startIcon={<Iconify icon="ph:hourglass-simple-bold" width={20} height={20} />}
           size="small"
           variant="outlined"
           color="inherit"
@@ -491,11 +541,14 @@ function App() {
           Pending
         </MuiButton>
       </Stack>
-      <Box marginLeft={3} marginRight={3} sx={{ boxShadow: (theme) => theme.customShadows.z8 }}>
+      <Box position="relative" marginLeft={3} marginRight={6} sx={{ boxShadow: (theme) => theme.customShadows.z8 }}>
         <Drawer />
+        <TotalsButton size="small" variant="contained" color="inherit">
+          Totals
+        </TotalsButton>
         <Loader open={loader} setOpen={setLoader} />
         <Eventcalendar
-          cssClass="mbsc-calendar-projects"
+          cssClass="mbsc-calendar-projects md-timeline-height"
           view={viewSettings}
           data={myEvents}
           invalid={invalid}
@@ -516,6 +569,7 @@ function App() {
           onEventCreated={onEventCreated}
           onEventDeleted={onEventDeleted}
           extendDefaultEvent={extendDefaultEvent}
+          renderDay={renderCustomDay}
           colors={holidays}
           dayNamesMin={['S', 'M', 'T', 'W', 'T', 'F', 'S']}
         />
