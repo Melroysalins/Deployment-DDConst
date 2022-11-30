@@ -1,0 +1,39 @@
+.mbsc-calendar-projects {
+  .mbsc-timeline.mbsc-ltr {
+    max-height: calc(100vh - 160px);
+  }
+  .mbsc-timeline-events {
+    top: 5px;
+  }
+  .cal-header-prev.mbsc-ios.mbsc-calendar-button.mbsc-button,
+  .cal-header-next.mbsc-ios.mbsc-calendar-button.mbsc-button,
+  .cal-header-nav .mbsc-ios.mbsc-calendar-button.mbsc-button {
+    color: #000;
+    font-size: small;
+  }
+}
+.md-timeline-height {
+  .mbsc-timeline-resource,
+  .mbsc-timeline-row {
+    min-height: 70px !important;
+  }
+  .mbsc-timeline-day,
+  .mbsc-timeline-column,
+  .mbsc-timeline-header-column,
+  .mbsc-timeline-color {
+    width: 40px;
+  }
+  .mbsc-timeline-resource-col,
+  .mbsc-timeline-resource-empty {
+    width: 300px;
+  }
+
+  .mbsc-timeline-header {
+    .mbsc-timeline-resource-col {
+      border-bottom: 2px solid transparent;
+    }
+    .mbsc-timeline-header-bg {
+      border-bottom: 2px solid #a8c12c;
+    }
+  }
+}

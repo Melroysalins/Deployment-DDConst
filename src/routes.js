@@ -12,7 +12,7 @@ import Products from './pages/Products';
 import { Projects as ProjectList, CreateNewProject, ProjectDetails } from './pages/Dashboard';
 import ProjectLayout from './pages/Dashboard/ProjectLayout';
 import WorkforcePlanning from './pages/WorkforcePlanning/WorkforcePlanning';
-import TravelExpenses from './pages/TravelExpenses/TravelExpenses';
+import TravelExpenses from './pages/Dashboard/TravelExpenses/TravelExpenses';
 import ProjectImplementationSchedule from './pages/ProjectImplementationSchedule';
 
 // ----------------------------------------------------------------------
@@ -27,7 +27,9 @@ export default function Router() {
           path: 'projects',
           element: <ProjectLayout />,
           children: [
-            { path: '', element: <ProjectList /> },
+            { path: '', element: <Navigate to="list" /> },
+            { path: 'list', element: <ProjectList /> },
+            { path: ':id/travel-expenses', element: <TravelExpenses /> },
 
             { path: 'add', element: <CreateNewProject /> },
             { path: ':id', element: <ProjectDetails /> },
@@ -35,7 +37,6 @@ export default function Router() {
         },
 
         { path: 'workforce-planning', element: <WorkforcePlanning /> },
-        { path: 'travel-expenses', element: <TravelExpenses /> },
         { path: 'project-schedule', element: <ProjectImplementationSchedule /> },
         { path: 'user', element: <User /> },
         { path: 'products', element: <Products /> },

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../supabaseClient';
 
 const API_URL = process.env.REACT_APP_API_URL;
 // const API_URL_2 = 'https://excellent-dev-o5dtk.cloud.serverless.com';
@@ -79,7 +79,7 @@ export const getEmployees = async () =>
       return [];
     });
 
-export const getAllEvents = async () => {
+export const listAllEvents = async () => {
   const { data1, error } = await supabase
     .from('event')
     .select('id,start,end,title,location:site_id(location,color),resource:employee_id()');
@@ -88,30 +88,15 @@ export const getAllEvents = async () => {
   }
   const data = [
     {
-      id: 16651176321,
-      start: '2022-10-23',
-      end: '2022-11-24',
-      title:
-        'Teams involved: Installation Team (Inhouse), Installation Team (Outstource), Connection team (Inhouse)',
-      resource: '1665117388',
-      color: '#FFFFFF',
-    },
-    {
-      id:1763212334343,
-      start: '2022-10-23',
-      end: '2022-11-24',
-      title:
-        'Employees: 이준호 이준호 이준호, Tasks: 6, Lodging days: 57, Meals: 64, Return loging days: 8, Return meals: 8, Moves: 8, Overtime: 1, Night time: 1, Move on rest day: 1',
-      resource: '166511763212',
-      color: '#FFFFFF',
-    },
-    {
       id: 1665117632,
       start: '2022-10-23',
       end: '2022-11-24',
       title: '31 Lodging days',
       resource: '1665117632',
-      color: '#FFA58D',
+      location: {
+        location: 'move',
+        color: '#FFA58D',
+      },
     },
     {
       id: 1665117632,
@@ -119,15 +104,32 @@ export const getAllEvents = async () => {
       end: '2022-11-30',
       title: '30 Meals',
       resource: '1665117632',
-      color: '#85CDB7',
+      location: {
+        location: 'move',
+        color: '#FFA58D',
+      },
     },
     {
-      id: 1665117632123,
+      id: 1665117632,
+      start: '2022-10-23',
+      end: '2022-11-24',
+      title: '31 Lodging days',
+      resource: '1665117678',
+      location: {
+        location: 'move',
+        color: '#FFA58D',
+      },
+    },
+    {
+      id: 1665117632,
       start: '2022-10-29',
       end: '2022-11-30',
-      title: 'MF1- MF3',
-      resource: '1665117632',
-      color: '#FFFFFF',
+      title: '30 Meals',
+      resource: '1665117678',
+      location: {
+        location: 'move',
+        color: '#FFA58D',
+      },
     },
   ];
   console.log(data);

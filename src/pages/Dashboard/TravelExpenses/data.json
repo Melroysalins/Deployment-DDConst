@@ -1,0 +1,107 @@
+{
+  "events": [
+    {
+      "id": 1666155675,
+      "start": "2022-12-01",
+      "end": "2022-12-30",
+      "title": "Lodging",
+      "resource": "1665117678",
+      "subType": "lodging",
+      "type": "travel",
+      "status": "approved"
+    },
+    {
+      "id": 1666155681,
+      "start": "2022-12-01",
+      "end": "2022-12-30",
+      "title": "Meals",
+      "resource": "1665117678",
+      "subType": "meals",
+      "type": "travel",
+      "status": "approved"
+    },
+    {
+      "id": 1666155682,
+      "start": "2022-12-01",
+      "end": "2022-12-30",
+      "title": "연결",
+      "resource": "1665117678",
+      "subType": "task",
+      "status": "approved"
+    },
+    {
+      "id": 1666155683,
+      "start": "2022-12-01",
+      "end": "2022-12-02",
+      "resource": "1665117678",
+      "subType": "overtime",
+      "type": "special",
+      "status": "approved"
+    },
+    {
+      "id": 1666155684,
+      "start": "2022-12-04",
+      "end": "2022-12-05",
+      "resource": "1665117678",
+      "subType": "nightTime",
+      "type": "special",
+      "status": "approved"
+    },
+    {
+      "id": 1666155685,
+      "start": "2022-12-06",
+      "end": "2022-12-07",
+      "resource": "1665117678",
+      "subType": "restDayMove",
+      "type": "special",
+      "status": "approved"
+    },
+    {
+      "id": 1666155686,
+      "start": "2022-12-01",
+      "end": "2022-12-30",
+      "title": "Employees: 이준호 이준호 이준호, Tasks: 6, Lodging days: 57, Meals: 64, Return loging days: 8, Return meals: 8, Moves: 8, Overtime: 1, Night time: 1, Move on rest day: 1",
+      "resource": "1665117679",
+      "subType": "plan",
+      "status": "approved"
+    }
+  ],
+  "resources": [
+    {
+      "id": 3242354,
+      "projectTitle": "민수 위탁 154kV 고덕2-평택,동평택 인출정비공사 (일진)",
+      "branchTitle": "BQS Co., Ltd.",
+      "children": [
+        {
+          "id": "1665117679",
+          "created_at": "2022-10-07T04:37:36.062981+00:00",
+          "name": "설치팀2",
+          "team_type": "InHome",
+          "children": [
+            {
+              "id": "1665117678",
+              "created_at": "2022-10-07T04:37:36.062981+00:00",
+              "name": "이준호",
+              "rating": "A"
+            }
+          ]
+        },
+        {
+          "id": "166511767",
+          "created_at": "2022-10-07T04:37:36.062981+00:00",
+          "name": "설치팀2",
+          "team_type": "Outsource",
+          "collapsed": true,
+          "children": [
+            {
+              "id": "166511767338",
+              "created_at": "2022-10-07T04:37:36.062981+00:00",
+              "name": "이준호",
+              "rating": "A"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

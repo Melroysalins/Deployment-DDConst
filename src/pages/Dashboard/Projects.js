@@ -11,11 +11,7 @@ export default function Projects() {
   return (
     <Page title="Dashboard">
       <Container maxWidth="xl">
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <ProjectList />
-          </Grid>
-        </Grid>
+        <ProjectList />
       </Container>
     </Page>
   );

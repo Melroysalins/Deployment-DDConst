@@ -18,7 +18,7 @@ import {
 // components
 import Page from '../../components/Page';
 // sections
-import { getProjectDetails } from 'supabase/project';
+import { getProjectDetails } from 'supabase/projects';
 import Iconify from 'components/Iconify';
 
 // ----------------------------------------------------------------------
@@ -180,7 +180,7 @@ const events = [
     icon: <Iconify width={40} height={40} color="#8D99FF" icon="heroicons:truck" />,
     title: 'Travel Expenses / Overtime',
     description: '3 day shifts, 54 night shifts, 5 Overtime, 3 Nighttime, 4 Move on rest day',
-    redirect: '#',
+    redirect: 'travel-expenses?filters=te,specialTe,outsourced,tasks',
   },
   {
     icon: <Iconify width={40} height={40} color="#8CCC67" icon="ant-design:money-collect-outlined" />,
