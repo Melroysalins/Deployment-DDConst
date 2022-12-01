@@ -112,7 +112,13 @@ const palette = {
   chart: CHART_COLORS,
   divider: GREY[500_24],
   text: { primary: GREY[800], secondary: GREY[600], default: '#8D99FF', disabled: GREY[500] },
-  background: { paper: '#fff', default: GREY[100], secondary: SECONDARY.darker, neutral: GREY[200] },
+  background: {
+    paper: '#fff',
+    default: GREY[100],
+    secondary: SECONDARY.darker,
+    neutral: GREY[200],
+    slash: 'repeating-linear-gradient( -45deg, transparent, transparent 5px, #fff 5px, #fff 10px )',
+  },
   action: {
     active: GREY[600],
     hover: GREY[500_8],

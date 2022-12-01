@@ -135,7 +135,9 @@ function App() {
   const [projectError, setProjectError] = React.useState(false);
   const [holidays, setHolidays] = React.useState(defaultHolidays);
   const [filters, setFilters] = React.useState(initialFilters);
+  const [open, setOpenActions] = React.useState(false);
 
+  const handleToggle = () => setOpenActions((prev) => !prev);
   const handleFilters = React.useCallback(() => {
     let _filters = searchParams.get('filters');
     _filters = _filters?.split(',').reduce((acc, cur) => ({ ...acc, [cur]: true }), {});
@@ -281,19 +283,164 @@ function App() {
     const endDate = moment(event.endDate);
     const diff = endDate.diff(startDate, 'days');
 
+    if (event.original.type === 'travel') {
+      return (
+        <>
+          <Stack
+            component="div"
+            justifyContent="flex-between"
+            className="timeline-event"
+            sx={{
+              background: bgColor,
+              color: bgColor === '#fff' ? '#000 !important' : '#fff !important',
+              boxShadow: (theme) => theme.customShadows.z8,
+              justifyContent: 'flex-between',
+              alignItems: 'initial !important',
+              padding: '0 !important',
+            }}
+          >
+            <Box
+              component="div"
+              justifyContent="center"
+              alignItems="center"
+              display="flex"
+              sx={{
+                width: '30%',
+                ...(event.original.subType !== 'lodging' && {
+                  padding: '6px',
+                }),
+              }}
+            >
+              {event.original.subType === 'lodging' && (
+                <Box
+                  component="div"
+                  justifyContent="center"
+                  alignItems="center"
+                  display="flex"
+                  sx={{
+                    borderRight: '2px dotted #fff',
+                    width: '10%',
+                    padding: '6px',
+                  }}
+                >
+                  <Iconify icon="bi:truck" width={15} height={15} />
+                </Box>
+              )}
+              <Typography variant="outlined" justifyContent="center" alignItems="center" display="flex" flex="1 1 auto">
+                7하숙
+              </Typography>
+            </Box>
+
+            <Typography
+              variant="outlined"
+              justifyContent="center"
+              alignItems="center"
+              display="flex"
+              sx={{
+                width: '15%',
+                background: (theme) => theme.palette.background.slash,
+              }}
+            >
+              <MuiButton
+                size="small"
+                variant="contained"
+                color="inherit"
+                sx={{ padding: '2px 4px', minWidth: 0, color: bgColor, fontSize: '10px' }}
+              >
+                -5하숙
+              </MuiButton>
+            </Typography>
+            <Typography
+              variant="outlined"
+              justifyContent="center"
+              alignItems="center"
+              display="flex"
+              sx={{
+                width: '42.5%',
+              }}
+            >
+              18하숙
+            </Typography>
+            <Typography
+              variant="outlined"
+              justifyContent="center"
+              alignItems="center"
+              display="flex"
+              sx={{
+                width: '20%',
+                background: (theme) => theme.palette.background.paper,
+                borderRadius: '0 8px 8px 0px',
+                border: `2px solid ${bgColor}`,
+                color: bgColor,
+              }}
+            >
+              7하숙
+            </Typography>
+          </Stack>
+        </>
+      );
+    }
+    if (event.original.subType === 'task') {
+      return (
+        <>
+          <Stack
+            component="div"
+            justifyContent="flex-between"
+            className="timeline-event"
+            sx={{
+              background: bgColor,
+              color: bgColor === '#fff' ? '#000 !important' : '#fff !important',
+              boxShadow: (theme) => theme.customShadows.z8,
+              justifyContent: 'flex-between',
+              alignItems: 'initial !important',
+              padding: '0 !important',
+            }}
+          >
+            <Typography
+              variant="outlined"
+              justifyContent="center"
+              alignItems="center"
+              display="flex"
+              sx={{
+                width: '70%',
+                padding: '6px',
+              }}
+            >
+              7하숙
+            </Typography>
+            <Typography
+              variant="outlined"
+              justifyContent="center"
+              alignItems="center"
+              display="flex"
+              sx={{
+                width: '30%',
+                background: (theme) => theme.palette.background.paper,
+                borderRadius: '0 8px 8px 0px',
+                border: `2px solid ${bgColor}`,
+                color: bgColor,
+              }}
+            >
+              7하숙
+            </Typography>
+          </Stack>
+        </>
+      );
+    }
     return (
-      <Box
-        component="div"
-        className="timeline-event"
-        sx={{
-          background: bgColor,
-          color: bgColor === '#fff' ? '#000 !important' : '#fff !important',
-          boxShadow: (theme) => theme.customShadows.z8,
-        }}
-      >
-        {event.original.type === 'travel' && `${diff} days`}
-        {event.original.type !== 'travel' && event.original.subType !== 'special' && event.title}
-      </Box>
+      <>
+        <Box
+          component="div"
+          className="timeline-event"
+          sx={{
+            background: bgColor,
+            color: bgColor === '#fff' ? '#000 !important' : '#fff !important',
+            boxShadow: (theme) => theme.customShadows.z8,
+          }}
+        >
+          {event.title}
+        </Box>
+      </>
     );
   };
 
@@ -351,10 +498,38 @@ function App() {
 
   const renderCustomHeader = () => {
     return (
-      <div style={{ width: '400px' }} className="md-resource-header-template-title">
-        <div className="md-resource-header-template-name">Room</div>
-        <div className="md-resource-header-template-seats">Capacity</div>
-      </div>
+      <Stack width="100%" flexDirection="row" justifyContent="space-between">
+        <Typography textAlign="center" variant="subtitle2">
+          Project
+        </Typography>
+        <Stack flexDirection="row">
+          {open && (
+            <>
+              <MuiButton sx={{ minWidth: 0 }} size="small" color="inherit">
+                <Iconify icon="tabler:crane" width={20} height={20} />
+              </MuiButton>
+              <Tooltip title="Add travel expenses" arrow>
+                <MuiButton sx={{ minWidth: 0 }} size="small" color="inherit">
+                  <Iconify icon="lucide:calendar-check" width={20} height={20} />
+                </MuiButton>
+              </Tooltip>
+              <Tooltip title="Add special travel expenses" arrow>
+                <MuiButton sx={{ minWidth: 0 }} size="small" color="inherit">
+                  <Iconify icon="tabler:plane-tilt" width={20} height={20} />
+                </MuiButton>
+              </Tooltip>
+              <Tooltip title="Add overtime" arrow>
+                <MuiButton sx={{ minWidth: 0 }} size="small" color="inherit">
+                  <Iconify icon="mdi:auto-pay" width={20} height={20} />
+                </MuiButton>
+              </Tooltip>
+            </>
+          )}
+          <MuiButton onClick={handleToggle} sx={{ minWidth: 0 }} size="small" color="inherit">
+            <Iconify icon={`ic:baseline-${open ? 'minus' : 'plus'}`} width={20} height={20} />
+          </MuiButton>
+        </Stack>
+      </Stack>
     );
   };
 
