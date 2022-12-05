@@ -39,9 +39,6 @@ export default function Projects() {
 
 function ProjectHeader({ selected }) {
   const { actionFunction } = useStore();
-  React.useEffect(() => {
-    console.log(typeof actionFunction);
-  });
   return (
     <>
       <BreadCrumb selected={selected} />

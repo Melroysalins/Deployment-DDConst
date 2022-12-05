@@ -12,7 +12,7 @@ import Products from './pages/Products';
 import { Projects as ProjectList, CreateNewProject, ProjectDetails } from './pages/Dashboard';
 import ProjectLayout from './pages/Dashboard/ProjectLayout';
 import WorkforcePlanning from './pages/WorkforcePlanning/WorkforcePlanning';
-import TravelExpenses from './pages/Dashboard/TravelExpenses/TravelExpenses';
+import TravelExpenses from './pages/Dashboard/TravelExpenses/TELayout';
 import ProjectImplementationSchedule from './pages/ProjectImplementationSchedule';
 
 // ----------------------------------------------------------------------

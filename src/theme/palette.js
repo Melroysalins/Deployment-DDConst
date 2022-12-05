@@ -99,6 +99,31 @@ const CHART_COLORS = {
   red: ['#FF6C40', '#FF8F6D', '#FFBD98', '#FFF2D4'],
 };
 
+const COLORS = [
+  '#8D99FF',
+  '#FFA58D',
+  '#98D2C3',
+  '#6AC79B',
+  '#8CCC67',
+  '#C9AB81',
+  '#BDB2E9',
+  '#7FBCFE',
+  '#FF6B00',
+  '#FE9F00',
+  '#FF62B5',
+  '#17E2B2',
+  '#FCD200',
+  '#A3888C',
+  '#DA4C57',
+  '#8FA429',
+  '#8FA429',
+  '#596570',
+  '#596570',
+  '#1C1F4C',
+  '#8D8FA4',
+  '#FFFFFF',
+];
+
 const palette = {
   common: { black: '#000', white: '#fff' },
   primary: { ...PRIMARY },
@@ -112,6 +137,7 @@ const palette = {
   chart: CHART_COLORS,
   divider: GREY[500_24],
   text: { primary: GREY[800], secondary: GREY[600], default: '#8D99FF', disabled: GREY[500] },
+  colors: COLORS,
   background: {
     paper: '#fff',
     default: GREY[100],
