@@ -40,7 +40,7 @@ const PRIMARY = {
 const SECONDARY = {
   lighter: '#CEC8FF',
   light: '#9F99D2',
-  main: '#716DA3',
+  main: '#8D99FF',
   dark: '#464476',
   darker: '#1C1F4C',
   contrastText: '#fff',
@@ -94,10 +94,35 @@ const GRADIENTS = {
 const CHART_COLORS = {
   violet: ['#826AF9', '#9E86FF', '#D0AEFF', '#F7D2FF'],
   blue: ['#2D99FF', '#83CFFF', '#A5F3FF', '#CCFAFF'],
-  green: ['#2CD9C5', '#60F1C8', '#A4F7CC', '#C0F2DC'],
+  green: ['#4ad66d', '#6ede8a', '#92e6a7', '#b7efc5'],
   yellow: ['#FFE700', '#FFEF5A', '#FFF7AE', '#FFF3D6'],
   red: ['#FF6C40', '#FF8F6D', '#FFBD98', '#FFF2D4'],
 };
+
+const COLORS = [
+  '#8D99FF',
+  '#FFA58D',
+  '#98D2C3',
+  '#6AC79B',
+  '#8CCC67',
+  '#C9AB81',
+  '#BDB2E9',
+  '#7FBCFE',
+  '#FF6B00',
+  '#FE9F00',
+  '#FF62B5',
+  '#17E2B2',
+  '#FCD200',
+  '#A3888C',
+  '#DA4C57',
+  '#8FA429',
+  '#8FA429',
+  '#596570',
+  '#596570',
+  '#1C1F4C',
+  '#8D8FA4',
+  '#FFFFFF',
+];
 
 const palette = {
   common: { black: '#000', white: '#fff' },
@@ -112,7 +137,14 @@ const palette = {
   chart: CHART_COLORS,
   divider: GREY[500_24],
   text: { primary: GREY[800], secondary: GREY[600], default: '#8D99FF', disabled: GREY[500] },
-  background: { paper: '#fff', default: GREY[100], secondary: SECONDARY.darker, neutral: GREY[200] },
+  colors: COLORS,
+  background: {
+    paper: '#fff',
+    default: GREY[100],
+    secondary: SECONDARY.darker,
+    neutral: GREY[200],
+    slash: 'repeating-linear-gradient( -45deg, transparent, transparent 5px, #fff 5px, #fff 10px )',
+  },
   action: {
     active: GREY[600],
     hover: GREY[500_8],

@@ -3,16 +3,21 @@ import { useNavigate } from 'react-router-dom';
 // @mui
 import PropTypes from 'prop-types';
 import { styled } from '@mui/material/styles';
-import { Box, Card, Typography, CardHeader, Grid, CardContent, Snackbar, Alert } from '@mui/material';
+import { Box, Card, Typography, CardHeader, Grid, Button, CardContent, Snackbar, Alert } from '@mui/material';
+import Iconify from 'components/Iconify';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
-import { listAllProjects } from 'supabase/project';
+import { listAllProjects } from 'supabase/projects';
 import Skeleton from './ProjectSkelation';
+import { useStore } from 'pages/Dashboard/store/Store';
 
-export default function ProjectList() {
+export default function ProjectList(props) {
+  console.log(props);
   const [loader, setLoader] = React.useState(true);
   const [data, setData] = React.useState([]);
   const [toast, setToast] = React.useState(null);
+
   React.useEffect(() => {
+    console.log('console.log(actionFunction)');
     fetchData();
   }, []);
 
@@ -37,6 +42,22 @@ export default function ProjectList() {
 
   return (
     <>
+      <Box sx={{ position: 'absolute', top: '24px', right: '40px' }}>
+        <Button
+          variant="outlined"
+          href="/dashboard/projects/add"
+          startIcon={<Iconify icon={'fluent:add-16-filled'} sx={{ width: 16, height: 16, ml: 1 }} />}
+          sx={{
+            color: (theme) => theme.palette.text.default,
+            border: '1px solid rgba(0, 0, 0, 0.1)',
+            boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
+            borderRadius: '8px',
+          }}
+        >
+          Add New Project
+        </Button>
+      </Box>
+
       <Snackbar
         open={toast}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
@@ -49,8 +70,8 @@ export default function ProjectList() {
       </Snackbar>
       <Grid container spacing={3}>
         {loader && <Skeleton />}
-        {data.map((project) => (
-          <Grid item xs={12} sm={6} md={3}>
+        {data.map((project, index) => (
+          <Grid key={index} item xs={12} sm={6} md={3}>
             <ProjectItem data={project} />
           </Grid>
         ))}
@@ -82,17 +103,17 @@ const Header = styled(CardHeader)(({ theme }) => ({
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     display: '-webkit-box',
-    '-webkitLineClamp': '3',
-    '-webkitBoxOrient': 'vertical',
+    WebkitLineClamp: '3',
+    WebkitBoxOrient: 'vertical',
     height: '4rem',
   },
 }));
 
 ProjectItem.propTypes = {
   data: PropTypes.shape({
-    id: PropTypes.string,
-    start: PropTypes.instanceOf(Date),
-    end: PropTypes.instanceOf(Date),
+    id: PropTypes.number,
+    start: PropTypes.string,
+    end: PropTypes.string,
     title: PropTypes.string,
     location: PropTypes.string,
     contractCode: PropTypes.string,
@@ -108,12 +129,11 @@ function ProjectItem({ data }) {
   const { title, location, contractCode, contractValue, start, end, rateOfCompletion, color, id } = data;
 
   const changeView = React.useCallback(() => {
-    navigate(String(id));
+    navigate(`/dashboard/projects/${id}`);
   }, [id]);
 
   return (
     <>
-      {' '}
       <Card key={id} onClick={changeView}>
         <Header
           sx={{

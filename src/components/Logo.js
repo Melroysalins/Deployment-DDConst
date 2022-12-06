@@ -9,9 +9,10 @@ import { Box } from '@mui/material';
 Logo.propTypes = {
   disabledLink: PropTypes.bool,
   sx: PropTypes.object,
+  handleClick: PropTypes.func,
 };
 
-export default function Logo({ disabledLink = false, sx }) {
+export default function Logo({ disabledLink = false, sx, handleClick }) {
   const theme = useTheme();
 
   const PRIMARY_LIGHT = theme.palette.primary.light;
@@ -60,7 +61,7 @@ export default function Logo({ disabledLink = false, sx }) {
   );
 
   if (disabledLink) {
-    return <>{logo}</>;
+    return <Box onClick={handleClick}>{logo}</Box>;
   }
 
   return <RouterLink to="/">{logo}</RouterLink>;

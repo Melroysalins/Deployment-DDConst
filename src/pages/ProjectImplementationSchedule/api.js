@@ -8,7 +8,7 @@ export const getEmployees = async () =>
     .then((res) => res.data.map((item) => ({ ...item, collapsed: false })))
     .catch((err) => []);
 
-export const getAllEvents = async () =>
+export const listAllEvents = async () =>
   axios
     .get('/events/all', { url: '/events/all', baseURL: API_URL, headers: { 'Access-Control-Allow-Origin': '*' } })
     .then((res) => res.data)

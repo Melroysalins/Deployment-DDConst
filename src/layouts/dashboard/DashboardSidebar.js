@@ -69,7 +69,7 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
       }}
     >
       <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
-        <Logo />
+        <Logo disabledLink handleClick={onCloseSidebar} />
       </Box>
 
       <NavSection leftDrawerOpened={leftDrawerOpened} navConfig={navConfig} />
