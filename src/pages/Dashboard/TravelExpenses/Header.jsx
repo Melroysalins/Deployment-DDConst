@@ -2,6 +2,7 @@ import React from 'react';
 import { Avatar, Typography, Box, Stack, Button as MuiButton, Tooltip } from '@mui/material';
 import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import Iconify from 'components/Iconify';
+import {Logs} from 'components'
 
 // components
 import Filters from './Filters';
@@ -56,10 +57,12 @@ const Header = () => {
   // dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
   // }, [filters]);
 
+   const [isDrawerOpen, setisDrawerOpen] = React.useState(false);
+
   return (
     <Stack direction="row" alignItems="center" spacing={2} sx={{ position: 'absolute', top: '24px', right: '40px' }}>
       <Filters filters={filters} />
-      <MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 1, minWidth: 0 }}>
+      <MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 1, minWidth: 0 }} onClick={()=> setisDrawerOpen(true)}>
         <Iconify icon="heroicons-outline:document-text" width={20} height={20} />
       </MuiButton>
       <MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 1, minWidth: 0 }}>
@@ -74,6 +77,8 @@ const Header = () => {
       >
         Pending
       </MuiButton>
+
+       <Logs open={isDrawerOpen} setopen={setisDrawerOpen}/>
     </Stack>
   );
 };

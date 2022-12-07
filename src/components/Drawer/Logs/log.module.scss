@@ -1,0 +1,35 @@
+@import '../../../scss/variables';
+
+.headerContent{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logMessage{
+    max-width: 400px;
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    .imgContainer{
+        padding-top: 5px;
+        width: 3em;
+        min-width: 3em;
+        height: auto;
+        img{
+            border-radius: 100px;
+        }
+    }
+    .msgContainer{
+        font-size: 14px;
+        span{
+            svg {
+                position: relative;
+                top: 5px;
+                right: 3px;
+                z-index: -1;
+            }
+            color: $Violet;
+        }
+    }
+}
