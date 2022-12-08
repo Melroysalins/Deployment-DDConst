@@ -31,6 +31,7 @@ import Drawer from './Drawer';
 import { listAllEvents, createNewEvent, deleteEvent } from 'supabase/events';
 import data from './data.json';
 import getHolidays from './getHolidays';
+import { getTeResources } from 'supabase/travelExpenses';
 
 setOptions({
   theme: 'ios',
@@ -150,11 +151,22 @@ export default function Timeline() {
   const handleToggle = () => setOpenActions((prev) => !prev);
 
   // for handling calendar data to create one more layer with expenses of meals, lodging, task
-  React.useEffect(() => {
-    const res = updateCalendarData(data.resources, data.events);
+  const fetchData = async (id) => {
+    // setLoading(true);
+    // const res = await getProjectDetails(id);
+    const resources = await getTeResources();
+    console.log(resources );
+    const res = updateCalendarData(resources, data.events);
     console.log(res);
     dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
     dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
+  };
+  React.useEffect(() =>  {
+    fetchData();
+    // const res = updateCalendarData(data.resources, data.events);
+    // console.log(res);
+    // dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
+    // dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
   }, []);
 
   const travelExpensesForEmployee = React.useCallback(
