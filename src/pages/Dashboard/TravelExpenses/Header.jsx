@@ -61,7 +61,8 @@ const Header = () => {
 
   return (
     <Stack direction="row" alignItems="center" spacing={2} sx={{ position: 'absolute', top: '24px', right: '40px' }}>
-      <Filters filters={filters} />
+      {/* Not responsive */}
+      {/* <Filters filters={filters} /> */}
       <MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 1, minWidth: 0 }} onClick={()=> setisDrawerOpen(true)}>
         <Iconify icon="heroicons-outline:document-text" width={20} height={20} />
       </MuiButton>

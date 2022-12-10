@@ -1,4 +1,7 @@
 import Drawer from './Drawer';
 import Logs from './Drawer/Logs';
+import Filters from './Filters';
+import Select from './CustomSelect';
+import DatePicker from './DatePicker';
 
-export { Drawer, Logs };
+export { Drawer, Logs, Filters, Select, DatePicker };

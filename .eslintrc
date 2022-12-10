@@ -61,6 +61,8 @@
     "camelcase": 0,
     "react/jsx-no-bind": 0,
     "react/jsx-boolean-value": 0,
+    "default-param-last": 0,
+    "no-debugger": "warn",
     "no-unused-vars": [
       1,
       {

@@ -6,6 +6,8 @@ import ThemeProvider from './theme';
 import ScrollToTop from './components/ScrollToTop';
 import { BaseOptionChartStyle } from './components/chart/BaseOptionChart';
 
+import { Provider } from 'react-redux';
+import configureStore from './redux/store';
 // ----------------------------------------------------------------------
 
 export default function App() {
@@ -13,7 +15,9 @@ export default function App() {
     <ThemeProvider>
       <ScrollToTop />
       <BaseOptionChartStyle />
-      <Router />
+      <Provider store={configureStore()}>
+        <Router />
+      </Provider>
     </ThemeProvider>
   );
 }

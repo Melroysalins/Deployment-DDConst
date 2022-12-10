@@ -10,6 +10,8 @@ import Header from './Header';
 import { Loader } from 'reusables';
 import Drawer from './Drawer';
 import Timeline from './Timeline';
+import { Filters } from 'components';
+import { useSelector } from 'react-redux';
 
 const TotalsButton = styled(MuiButton)(({ theme }) => ({
   transform: 'rotate(90deg)',
@@ -26,19 +28,23 @@ const TotalsButton = styled(MuiButton)(({ theme }) => ({
 
 function App() {
   const [loader, setLoader] = React.useState(false);
-
+  const { isfilterOpen } = useSelector((s) => s.filter);
   return (
     <>
       <Header />
 
-      <Box position="relative" marginLeft={3} marginRight={6} sx={{ boxShadow: (theme) => theme.customShadows.z8 }}>
-        <Drawer />
-        <TotalsButton size="small" variant="contained" color="inherit">
-          Totals
-        </TotalsButton>
-        <Loader open={loader} setOpen={setLoader} />
-        <Timeline />
-      </Box>
+      {isfilterOpen ? (
+        <Filters />
+      ) : (
+        <Box position="relative" marginLeft={3} marginRight={6} sx={{ boxShadow: (theme) => theme.customShadows.z8 }}>
+          <Drawer />
+          <TotalsButton size="small" variant="contained" color="inherit">
+            Totals
+          </TotalsButton>
+          <Loader open={loader} setOpen={setLoader} />
+          <Timeline />
+        </Box>
+      )}
     </>
   );
 }
