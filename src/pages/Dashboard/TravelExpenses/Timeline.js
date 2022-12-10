@@ -28,7 +28,7 @@ import Popup from 'components/Popups/Popup';
 import Iconify from 'components/Iconify';
 import { Loader } from 'reusables';
 import Drawer from './Drawer';
-import { listAllEvents, createNewEvent, deleteEvent } from 'supabase/events';
+import { listAllEvents, subscribeEvent, deleteEvent } from 'supabase/events';
 import data from './data.json';
 import getHolidays from './getHolidays';
 import { getTeResources } from 'supabase/travelExpenses';
@@ -93,8 +93,8 @@ export default function Timeline() {
   const [start, startRef] = React.useState(null);
   const [end, endRef] = React.useState(null);
   const [popupData, setPopupData] = React.useState(null);
-  const [popupEventTitle, setTitle] = React.useState('');
-  const [popupEventSite, setSite] = React.useState('');
+  const [data, setData] = React.useState(null);
+  const [employees, setEmployees] = React.useState([]);
   const [popupEventColor, setColor] = React.useState('');
   const [popupEventDate, setDate] = React.useState([]);
   const [mySelectedDate, setSelectedDate] = React.useState(new Date());
@@ -150,24 +150,87 @@ export default function Timeline() {
 
   const handleToggle = () => setOpenActions((prev) => !prev);
 
+  const updateCalendarData = React.useCallback((resources, events) => {
+    console.log(resources, events);
+    const teamEvents = [];
+    let employees = [];
+
+    const updatedResources = resources.map((project) => ({
+      ...project,
+      id: String(project.id),
+      children: project.children.map((team) => {
+        const teamEmployees = [];
+        const updatedEmployees = team.children.map((employee) => {
+          teamEmployees.push({ id: String(employee.id), name: employee.name });
+          return {
+            ...employee,
+            id: String(employee.id),
+            children: travelExpensesForEmployee(employee.id),
+            collapsed: true,
+          };
+        });
+        teamEvents.push({
+          title: `EMPLOYEES: ${teamEmployees.map((x) => x.name).join(', ')}`,
+          resource: String(team.id),
+          start: team.start,
+          end: team.end,
+        });
+        employees = [...employees, ...teamEmployees];
+        console.log(employees, teamEmployees);
+        return {
+          ...team,
+          children: updatedEmployees,
+        };
+      }),
+    }));
+
+    setEmployees(employees);
+
+    const updatedEvents = events.map((event) =>
+      event.type === 'te' || event.sub_type === 'task'
+        ? { ...event, resource: `${event.employee}-${event.sub_type}` }
+        : { ...event, resource: event.employee }
+    );
+    return { resources: updatedResources, events: [...updatedEvents, ...teamEvents] };
+  }, []);
+
   // for handling calendar data to create one more layer with expenses of meals, lodging, task
-  const fetchData = async (id) => {
+  const fetchData = async () => {
     // setLoading(true);
     // const res = await getProjectDetails(id);
     const resources = await getTeResources();
-    console.log(resources );
-    const res = updateCalendarData(resources, data.events);
+    const events = await listAllEvents();
+    console.log(resources, events);
+    const res = updateCalendarData(resources, events);
     console.log(res);
     dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
     dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
   };
-  React.useEffect(() =>  {
+
+  const fetchEvents = async () => {
+    const events = await listAllEvents();
+    const res = updateCalendarData(state.resources, events);
+    dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
+  };
+
+  React.useEffect(() => {
     fetchData();
+  }, []);
+
+  React.useEffect(() => {
+    let subscription;
+    (async function () {
+      subscription = await subscribeEvent(fetchEvents);
+    })();
+
+    return async () => {
+      await subscription.unsubscribe();
+    };
     // const res = updateCalendarData(data.resources, data.events);
     // console.log(res);
     // dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
     // dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
-  }, []);
+  }, [state.resources]);
 
   const travelExpensesForEmployee = React.useCallback(
     (employee_id) => [
@@ -187,27 +250,6 @@ export default function Timeline() {
     []
   );
 
-  const updateCalendarData = React.useCallback((resources, events) => {
-    console.log(resources, events);
-    const updatedResources = resources.map((resource) => ({
-      ...resource,
-      children: resource.children.map((project) => ({
-        ...project,
-        children: project.children.map((employee) => ({
-          ...employee,
-          children: travelExpensesForEmployee(employee.id),
-          collapsed: false,
-        })),
-      })),
-    }));
-    const updatedEvents = events.map((event) =>
-      event.type === 'travel' || event.subType === 'task'
-        ? { ...event, resource: `${event.resource}-${event.subType}` }
-        : event
-    );
-    return { resources: updatedResources, events: updatedEvents };
-  }, []);
-
   const renderMyResource = (resource) => {
     return (
       <Box
@@ -225,12 +267,13 @@ export default function Timeline() {
   };
 
   const renderScheduleEvent = (event) => {
-    const bgColor = color(event.original.subType);
+    console.log(event);
+    const bgColor = color(event.original.sub_type);
     const startDate = moment(event.startDate);
     const endDate = moment(event.endDate);
     const diff = endDate.diff(startDate, 'days');
 
-    if (event.original.type === 'travel') {
+    if (event.original.type === 'te') {
       return (
         <>
           <Stack
@@ -253,12 +296,12 @@ export default function Timeline() {
               display="flex"
               sx={{
                 width: '30%',
-                ...(event.original.subType !== 'lodging' && {
+                ...(event.original.sub_type !== 'lodging' && {
                   padding: '6px',
                 }),
               }}
             >
-              {event.original.subType === 'lodging' && (
+              {event.original.sub_type === 'lodging' && (
                 <Box
                   component="div"
                   justifyContent="center"
@@ -326,7 +369,7 @@ export default function Timeline() {
         </>
       );
     }
-    if (event.original.subType === 'task') {
+    if (event.original.sub_type === 'task') {
       return (
         <>
           <Stack
@@ -493,13 +536,15 @@ export default function Timeline() {
       let endDate = new Date(event.end);
       startDate = moment(startDate).format('YYYY-MM-DD');
       endDate = moment(endDate).format('YYYY-MM-DD');
+      const resource = event.resource.split('-');
+      console.log(event);
       const data = {
-        start: event.start,
-        end: event.end,
-        resource: event.resource,
-        project: 123,
-        expense_type: event.subType,
+        start: startDate,
+        end: endDate,
+        employee: resource[0],
+        sub_type: resource[1] ?? null,
       };
+      console.log(data);
       setPopupData(data);
     } catch (error) {
       console.log(error);
@@ -520,12 +565,12 @@ export default function Timeline() {
       // fill popup form with event data
       loadPopupForm(args.event);
       const expense_type = args.event.resource.split('-');
-      console.log(args.event, expense_type);
+      console.log(args, expense_type);
       if (expense_type.length > 1 && (expense_type[1] === 'lodging' || expense_type[1] === 'meals')) {
         handlePopupTypeChange('te');
         handleOpenViewPopup(args.domEvent.target);
       } else if (args.event.type === 'special') {
-        handlePopupTypeChange('specialTe');
+        handlePopupTypeChange('ste');
         handleOpenViewPopup(args.domEvent.target);
       } else {
         // setAnchor(args.target);
@@ -539,7 +584,7 @@ export default function Timeline() {
       setEdit(false);
       setTempEvent(args.event);
       console.log(args.event);
-      const expense_type = args.event.resource.split('-');
+      const expense_type = args.event.resource?.split('-');
       if (expense_type.length > 1 && expense_type[1] !== 'task') {
         handlePopupTypeChange('te');
         handleOpenPopup(args.target);
@@ -621,9 +666,23 @@ export default function Timeline() {
 
   return (
     <>
-      {popupType && <AddFormPopup type={popupType} handleClose={handleClosePopup} anchor={openPopup} />}
       {popupType && (
-        <ViewEventPopup data={popupData} type={popupType} handleClose={handleCloseViewPopup} anchor={viewPopup} />
+        <AddFormPopup
+          data={popupData}
+          employees={employees}
+          type={popupType}
+          handleClose={handleClosePopup}
+          anchor={openPopup}
+        />
+      )}
+      {popupType && (
+        <ViewEventPopup
+          employees={employees}
+          data={popupData}
+          type={popupType}
+          handleClose={handleCloseViewPopup}
+          anchor={viewPopup}
+        />
       )}
 
       <Loader open={loader} setOpen={setLoader} />
@@ -657,7 +716,7 @@ export default function Timeline() {
         <Stack flexDirection="row" justifyContent="space-between" sx={{ p: 1 }}>
           <MuiButton
             onClick={() => {
-              handlePopupTypeChange('specialTe');
+              handlePopupTypeChange('ste');
               handleOpenPopup(anchor);
             }}
             startIcon={<Iconify icon="tabler:plane-tilt" width={15} height={15} />}

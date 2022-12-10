@@ -46,12 +46,13 @@ function a11yProps(index) {
 ViewEventPopup.propTypes = {
   handleClose: PropTypes.func.isRequired,
   anchor: PropTypes.any,
-  type: PropTypes.oneOf(['specialTe', 'te', null]).isRequired,
+  type: PropTypes.oneOf(['ste', 'te', null]).isRequired,
   data: PropTypes.object.isRequired,
+  employees: PropTypes.array.isRequired,
 };
 
 const forms = {
-  specialTe: {
+  ste: {
     title: 'View Special Travel Expenses',
     component: AddSpecialTravelExpensesForm,
     variant: 'inherit',
@@ -63,7 +64,7 @@ const forms = {
   },
 };
 
-export default function ViewEventPopup({ handleClose, anchor, type, data }) {
+export default function ViewEventPopup({ handleClose, anchor, type, data, employees }) {
   const theme = useTheme();
   const ref = React.useRef();
   const [value, setValue] = React.useState(0);
@@ -80,7 +81,7 @@ export default function ViewEventPopup({ handleClose, anchor, type, data }) {
       <PopupForm
         title={forms[type].title}
         variant={forms[type].variant}
-        handleSubmit={ref?.current?.handleSubmit}
+        handleSubmit={handleClose}
         handleClose={handleClose}
         anchor={anchor}
       >
@@ -97,7 +98,7 @@ export default function ViewEventPopup({ handleClose, anchor, type, data }) {
           </Tabs>
         </Box>
         <TabPanel value={value} index={0}>
-          <Form data={data} ref={ref} />
+          <Form employees={employees} data={data} ref={ref} />
         </TabPanel>
         <TabPanel value={value} index={1}>
           <Logs />

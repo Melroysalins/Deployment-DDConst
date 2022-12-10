@@ -1,23 +1,19 @@
 // @mui
 import React, { forwardRef, useImperativeHandle } from 'react';
-import PropTypes from 'prop-types';
-import { useTheme } from '@mui/material/styles';
 import {
   Grid,
   FormControl,
+  Backdrop,
   InputLabel,
   Select,
   MenuItem,
+  CircularProgress,
   Box,
   TextField,
   FormHelperText,
-  Typography,
-  Button,
   Snackbar,
   Alert,
 } from '@mui/material';
-import CircularProgress from '@mui/material/CircularProgress';
-import PopupForm from 'components/Popups/PopupForm';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -26,28 +22,26 @@ import moment from 'moment-timezone';
 import * as Yup from 'yup';
 // components
 // api
-import { createNewProject } from 'supabase/projects';
+import { createNewEvent } from 'supabase/events';
 
 // ----------------------------------------------------------------------
 const validationSchema = Yup.object().shape({
-  project_id: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
-  employee_id: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
-  expense_type: Yup.string().required('Required').nullable(),
+  employee: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
+  sub_type: Yup.string().required('Required').nullable(),
   start: Yup.date().required('Required').nullable(),
   end: Yup.date().required('Required').nullable(),
 });
 
 const initialValues = {
-  project_id: null,
-  employee_id: null,
-  expense_type: null,
+  employee: null,
+  sub_type: null,
   start: null,
   end: null,
+  type: 'te',
 };
 
 const AddTravelExpensesForm = forwardRef((props, ref) => {
-  const { data } = props;
-  const theme = useTheme();
+  const { data, employees, handleClose } = props;
   const [loader, setLoader] = React.useState(false);
   const [toast, setToast] = React.useState(null);
 
@@ -56,18 +50,19 @@ const AddTravelExpensesForm = forwardRef((props, ref) => {
     validationSchema,
     onSubmit: async (values) => {
       setLoader(true);
-      const res = await createNewProject(values);
+      const res = await createNewEvent(values);
       if (res.status === 201) {
-        setToast({ severity: 'success', message: 'Succesfully added new project!' });
+        setToast({ severity: 'success', message: 'Succesfully added new event!' });
+        handleClose();
       } else {
-        setToast({ severity: 'error', message: 'Failed to added new project!' });
+        setToast({ severity: 'error', message: 'Failed to added new event!' });
       }
       setLoader(false);
     },
   });
 
   useImperativeHandle(ref, () => ({
-    handleSubmit() {
+    onSubmit() {
       handleSubmit();
     },
   }));
@@ -77,11 +72,14 @@ const AddTravelExpensesForm = forwardRef((props, ref) => {
   };
 
   React.useEffect(() => {
-    if (data) setValues({ ...values, data });
+    if (data) setValues({ ...values, ...data });
   }, [data]);
 
   return (
     <>
+      <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loader}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <Snackbar
         open={toast}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
@@ -120,17 +118,20 @@ const AddTravelExpensesForm = forwardRef((props, ref) => {
               <Select
                 labelId="demo-simple-select-helper-label"
                 id="demo-simple-select-helper"
-                value={values.employee_id}
+                value={values.employee}
                 label="Employee"
                 onChange={handleChange}
                 onBlur={handleBlur}
-                name="employee_id"
+                name="employee"
                 fullWidth
               >
-                <MenuItem value={2344}>EMployee_LGS</MenuItem>
+                {employees.map((employee) => (
+                  <MenuItem value={employee.id}>{employee.name}</MenuItem>
+                ))}
               </Select>
-              <FormHelperText error={errors.employee_id && touched.employee_id}>
-                {touched.employee_id ? errors.employee_id : null}
+
+              <FormHelperText error={errors.employee && touched.employee}>
+                {touched.employee ? errors.employee : null}
               </FormHelperText>
             </FormControl>
           </Grid>
@@ -140,18 +141,18 @@ const AddTravelExpensesForm = forwardRef((props, ref) => {
               <Select
                 labelId="demo-simple-select-helper-label"
                 id="demo-simple-select-helper"
-                value={values.expense_type}
+                value={values.sub_type}
                 label="Expense Type"
                 onChange={handleChange}
                 onBlur={handleBlur}
-                name="expense_type"
+                name="sub_type"
                 fullWidth
               >
                 <MenuItem value="meals">Meals</MenuItem>
                 <MenuItem value="lodging">Lodging</MenuItem>
               </Select>
-              <FormHelperText error={errors.expense_type && touched.expense_type}>
-                {touched.expense_type ? errors.expense_type : null}
+              <FormHelperText error={errors.sub_type && touched.sub_type}>
+                {touched.sub_type ? errors.sub_type : null}
               </FormHelperText>
             </FormControl>
           </Grid>

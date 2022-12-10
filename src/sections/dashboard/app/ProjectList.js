@@ -116,17 +116,17 @@ ProjectItem.propTypes = {
     end: PropTypes.string,
     title: PropTypes.string,
     location: PropTypes.string,
-    contractCode: PropTypes.string,
+    contract_code: PropTypes.string,
     color: PropTypes.string,
-    contractValue: PropTypes.number,
-    rateOfCompletion: PropTypes.number,
+    contract_value: PropTypes.number,
+    rate_of_completion: PropTypes.number,
   }),
 };
 
 function ProjectItem({ data }) {
   console.log(data);
   const navigate = useNavigate();
-  const { title, location, contractCode, contractValue, start, end, rateOfCompletion, color, id } = data;
+  const { title, location, contract_code, contract_value, start, end, rate_of_completion, color, id } = data;
 
   const changeView = React.useCallback(() => {
     navigate(`/dashboard/projects/${id}`);
@@ -148,22 +148,22 @@ function ProjectItem({ data }) {
         />
         <CardContent>
           <Box sx={{ position: 'relative' }}>
-            <BorderLinearProgress _color={color} variant="determinate" value={rateOfCompletion} />
+            <BorderLinearProgress _color={color} variant="determinate" value={rate_of_completion} />
             <Typography
               sx={{ position: 'absolute', top: '25%', left: 'calc(50% - 65px)', fontSize: '10px' }}
               variant="overline"
             >
-              COMPLETED: {rateOfCompletion}%
+              COMPLETED: {rate_of_completion}%
             </Typography>
           </Box>
 
           <Box sx={{ p: '10px 0', color: '#596570' }}>
             <Typography variant="body2">
               {' '}
-              <span style={{ color: 'black' }}>Contract code:</span> {contractCode}
+              <span style={{ color: 'black' }}>Contract code:</span> {contract_code}
             </Typography>
             <Typography variant="body2">
-              <span style={{ color: 'black' }}>Contract value:</span> {contractValue}
+              <span style={{ color: 'black' }}>Contract value:</span> {contract_value}
             </Typography>
             <Typography variant="body2">
               <span style={{ color: 'black' }}>Project timeline:</span>&nbsp;

@@ -6,7 +6,7 @@ import Iconify from 'components/Iconify';
 // components
 import Filters from './Filters';
 
-const initialFilters = { te: true, specialTe: true, outsourced: true, tasks: true };
+const initialFilters = { te: true, ste: true, outsourced: true, tasks: true };
 
 const Header = () => {
   const [searchParams] = useSearchParams();
@@ -22,7 +22,7 @@ const Header = () => {
     else
       navigate({
         pathname,
-        search: `?filters=te,specialTe,outsourced,tasks`,
+        search: `?filters=te,ste,outsourced,tasks`,
       });
   }, [searchParams]);
 
@@ -43,12 +43,12 @@ const Header = () => {
   //   }));
   // }
   // if (!filters.tasks) {
-  //   updatedEvents = state.events.filter((event) => event.subType !== 'task');
+  //   updatedEvents = state.events.filter((event) => event.sub_type !== 'task');
   // }
   // if (!filters.te) {
   //   updatedEvents = state.events.filter((event) => event.type !== 'travel');
   // }
-  // if (!filters.specialTe) {
+  // if (!filters.ste) {
   //   updatedEvents = state.events.filter((event) => event.type !== 'special');
   // }
   // const res = updateCalendarData(updatedResources, updatedEvents);

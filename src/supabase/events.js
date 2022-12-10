@@ -5,8 +5,11 @@ export const getProjectDetails = async (id) => {
   return res;
 };
 export const listAllEvents = async () => {
-  const res = await supabase.from('events').select('*');
-  return res;
+  const { data: events, error } = await supabase.from('events').select('*');
+  if (error) {
+    return [];
+  }
+  return events;
 };
 export const createNewEvent = async (data) => {
   const res = await supabase.from('events').insert([data]);
@@ -16,4 +19,15 @@ export const createNewEvent = async (data) => {
 export const deleteEvent = async (id) => {
   const res = await supabase.from('events').delete().eq('id', id);
   return res;
+};
+
+export const subscribeEvent = async (handleUpdate) => {
+  const events = supabase
+    .channel('custom-all-channel')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, (payload) => {
+      console.log('Change received!', payload);
+      handleUpdate();
+    })
+    .subscribe();
+  return events;
 };

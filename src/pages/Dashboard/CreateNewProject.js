@@ -17,16 +17,16 @@ import { createNewProject } from 'supabase/projects';
 // ----------------------------------------------------------------------
 const validationSchema = Yup.object().shape({
   title: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
-  contractCode: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
-  contractValue: Yup.number().required('Required').nullable(),
+  contract_code: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
+  contract_value: Yup.number().required('Required').nullable(),
   start: Yup.date().required('Required').nullable(),
   end: Yup.date().required('Required').nullable(),
 });
 
 const initialValues = {
   title: null,
-  contractCode: null,
-  contractValue: null,
+  contract_code: null,
+  contract_value: null,
   start: null,
   end: null,
 };
@@ -100,12 +100,12 @@ export default function CreateNewProject() {
                 </Grid>
                 <Grid item xs={12} md={12} lg={3}>
                   <TextField
-                    error={errors.contractCode && touched.contractCode}
-                    helperText={errors.contractCode && touched.contractCode ? errors.contractCode : null}
+                    error={errors.contract_code && touched.contract_code}
+                    helperText={errors.contract_code && touched.contract_code ? errors.contract_code : null}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    name="contractCode"
-                    value={values.contractCode}
+                    name="contract_code"
+                    value={values.contract_code}
                     fullWidth
                     id="outlined-textarea"
                     label="Contract Code"
@@ -114,12 +114,12 @@ export default function CreateNewProject() {
                 </Grid>
                 <Grid item xs={12} md={12} lg={3}>
                   <TextField
-                    error={errors.contractValue && touched.contractValue}
-                    helperText={errors.contractValue && touched.contractValue ? errors.contractValue : null}
+                    error={errors.contract_value && touched.contract_value}
+                    helperText={errors.contract_value && touched.contract_value ? errors.contract_value : null}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    name="contractValue"
-                    value={values.contractValue}
+                    name="contract_value"
+                    value={values.contract_value}
                     fullWidth
                     id="outlined-textarea"
                     label="Contract Value"
