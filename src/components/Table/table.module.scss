@@ -1,0 +1,38 @@
+@import '../../scss/variables';
+
+.tableRow{
+     .imgContainer{
+        width: 2.5em;
+        min-width: 2.5em;
+        height: auto;
+        img{
+            border-radius: 100px;
+        }
+    }
+    
+    .rightIcon{
+        background: $bgDarkLight;
+        border-radius: 30px;
+        color: $white;
+        padding: 4px;
+        width: 25px;
+        height: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .rightIconText{
+        background: $redOrange;
+        border-radius: 10px;
+        color: $white;
+        padding: 2px 5px;
+        font-size: 10px;
+    }
+
+    .toggleIcon{
+        svg{
+            width: 0.8em;
+            height: "auto";
+        }
+    }
+}

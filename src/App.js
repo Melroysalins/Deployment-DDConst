@@ -8,6 +8,7 @@ import { BaseOptionChartStyle } from './components/chart/BaseOptionChart';
 
 import { Provider } from 'react-redux';
 import configureStore from './redux/store';
+import './scss/mui.scss';
 // ----------------------------------------------------------------------
 
 export default function App() {

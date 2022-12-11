@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '@mobiscroll/react/dist/css/mobiscroll.min.css';
 import { styled } from '@mui/material/styles';
 import { Avatar, Typography, Box, Button as MuiButton } from '@mui/material';
@@ -12,6 +12,7 @@ import Drawer from './Drawer';
 import Timeline from './Timeline';
 import { Filters } from 'components';
 import { useSelector } from 'react-redux';
+import TotalExpense from './TotalExpense';
 
 const TotalsButton = styled(MuiButton)(({ theme }) => ({
   transform: 'rotate(90deg)',
@@ -27,8 +28,10 @@ const TotalsButton = styled(MuiButton)(({ theme }) => ({
 }));
 
 function App() {
-  const [loader, setLoader] = React.useState(false);
+  const [loader, setLoader] = useState(false);
   const { isfilterOpen } = useSelector((s) => s.filter);
+  const [showTotal, setshowTotal] = useState(false);
+
   return (
     <>
       <Header />
@@ -38,11 +41,11 @@ function App() {
       ) : (
         <Box position="relative" marginLeft={3} marginRight={6} sx={{ boxShadow: (theme) => theme.customShadows.z8 }}>
           <Drawer />
-          <TotalsButton size="small" variant="contained" color="inherit">
-            Totals
+          <TotalsButton size="small" variant="contained" color="inherit" onClick={() => setshowTotal(!showTotal)}>
+            {showTotal ? 'Timeline' : 'Totals'}
           </TotalsButton>
           <Loader open={loader} setOpen={setLoader} />
-          <Timeline />
+          {showTotal ? <TotalExpense /> : <Timeline />}
         </Box>
       )}
     </>

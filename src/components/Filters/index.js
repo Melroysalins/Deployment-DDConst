@@ -79,7 +79,7 @@ export default function Filters({ showDetail = true }) {
       <FilterContent
         name={'projects'}
         value={projects}
-        icon={'ph:projector-screen-fill'}
+        icon={'tabler:crane'}
         label={'Projects'}
         handleChange={handleChange}
         showDetail={showDetail}
