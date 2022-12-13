@@ -11,8 +11,8 @@ import { Loader } from 'reusables';
 import Drawer from './Drawer';
 import Timeline from './Timeline';
 import { Filters } from 'components';
-import { useSelector } from 'react-redux';
 import TotalExpense from './TotalExpense';
+import useMain from 'pages/context/context';
 
 const TotalsButton = styled(MuiButton)(({ theme }) => ({
   transform: 'rotate(90deg)',
@@ -29,7 +29,9 @@ const TotalsButton = styled(MuiButton)(({ theme }) => ({
 
 function App() {
   const [loader, setLoader] = useState(false);
-  const { isfilterOpen } = useSelector((s) => s.filter);
+  const { state, dispatch } = useMain();
+  const { isfilterOpen } = state.filters || {};
+  console.log(isfilterOpen, '<--isfilterOpen');
   const [showTotal, setshowTotal] = useState(false);
 
   return (
