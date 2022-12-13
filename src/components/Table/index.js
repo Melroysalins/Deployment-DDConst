@@ -62,21 +62,26 @@ function Row({ row }) {
   return (
     <>
       <CreateRow row={row} open={open} setOpen={setOpen} />
-      {open && detail.map((e) => <CreateRow row={e} isChild={true} />)}
+      {open &&
+        detail.map((e) => (
+          <React.Fragment key={e.name}>
+            <CreateRow row={e} isChild={true} />
+          </React.Fragment>
+        ))}
     </>
   );
 }
 
-export default function CollapsibleTable({ mainCol, headerCol, rows, startRow }) {
+export default function CollapsibleTable({ mainCol, headerCol, rows, startRow, className = '' }) {
   return (
-    <TableContainer component={Paper} className="cutomTable">
+    <TableContainer component={Paper} className={`cutomTable ${className}`}>
       <Table aria-label="collapsible table">
         <TableHead>
           {isNotEmpty(mainCol) && (
             <TableRow>
               <TableCell />
               {mainCol.map((e, index) => (
-                <TableCell key={index} colSpan={e.col}>
+                <TableCell key={index} colSpan={e.col} className={style.seperation}>
                   {e.name}
                 </TableCell>
               ))}
