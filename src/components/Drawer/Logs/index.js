@@ -1,13 +1,14 @@
 import { Drawer, Filters } from 'components';
 import Iconify from 'components/Iconify';
+import useMain from 'pages/context/context';
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { isNotEmpty } from 'utils/helper';
 import style from './log.module.scss';
 import Message from './Message';
 
 export default function Logs({ open, setopen }) {
-  const { companies, projects, employees, time } = useSelector((s) => s.filter);
+  const { state, dispatch } = useMain();
+  const { companies, projects, employees, time } = state.filters || {};
   const showFilter = isNotEmpty(companies) || isNotEmpty(projects) || isNotEmpty(employees) || isNotEmpty(time);
 
   return (

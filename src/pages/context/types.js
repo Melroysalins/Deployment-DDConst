@@ -1,7 +1,5 @@
-const FILTER = {
+export const MainActionType = {
   CHANGE_FILTER: 'CHANGE_FILTER',
   UPDATE_FILTER_VALUES: 'UPDATE_FILTER_VALUES',
   CLEAR_FILTERS: 'CLEAR_FILTERS',
 };
-
-export { FILTER };

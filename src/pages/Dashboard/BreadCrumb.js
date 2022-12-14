@@ -5,12 +5,13 @@ import _ from 'lodash';
 import { styled, alpha } from '@mui/material/styles';
 import { KeyboardArrowDown as KeyboardArrowDownIcon } from '@mui/icons-material';
 import Iconify from 'components/Iconify';
-import { useDispatch, useSelector } from 'react-redux';
-import { FILTER } from 'redux/actions';
+import useMain from 'pages/context/context';
+import { MainActionType } from 'pages/context/types';
 
 export default function CustomSeparator(props) {
-  const dispatch = useDispatch();
-  const { isfilterOpen } = useSelector((s) => s.filter);
+  const { state, dispatch } = useMain();
+  const { isfilterOpen } = state.filters || {};
+
   const { selected } = props;
   const history = useNavigate();
   const { pathname } = useLocation();
@@ -19,7 +20,7 @@ export default function CustomSeparator(props) {
   pathnames.splice(0, 2);
 
   const openFilter = () => {
-    dispatch(FILTER.changeFilter(!isfilterOpen));
+    dispatch({ type: MainActionType.CHANGE_FILTER, bool: !isfilterOpen });
   };
 
   return (

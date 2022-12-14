@@ -1,5 +1,24 @@
+@import 'variables';
+
 .cutomTable{
     .MuiTableCell-root {
         text-align: center !important;
+    }
+   tr{
+        th{
+            &:first-child{
+                border: 1.2px solid $greyBorder;
+            }
+        }
+        
+    }
+
+    &.totalExpense{
+        td:nth-child(6) , td:nth-child(12) {
+            color: $redOrange;
+        }
+        td:nth-child(7), th:nth-child(7) {
+             border-right: 1.2px solid $greyBorder;
+        }
     }
 }

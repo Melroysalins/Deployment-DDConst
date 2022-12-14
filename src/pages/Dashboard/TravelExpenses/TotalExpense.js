@@ -63,5 +63,5 @@ const rows = [
 ];
 
 export default function CollapsibleTable() {
-  return <Table mainCol={mainCol} headerCol={headerCol} rows={rows} startRow={<Project />} />;
+  return <Table mainCol={mainCol} headerCol={headerCol} rows={rows} startRow={<Project />} className="totalExpense" />;
 }

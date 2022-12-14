@@ -2,28 +2,29 @@ import { Typography } from '@mui/material';
 import { Stack } from '@mui/system';
 import React from 'react';
 import style from './filter.module.scss';
-import { useDispatch, useSelector } from 'react-redux';
-import filter from 'redux/actions/filter';
 import { getSelectValue, isEmpty } from 'utils/helper';
 import Iconify from 'components/Iconify';
 import FilterContent from './FilterContent';
 import { Select, DatePicker } from 'components';
+import useMain from 'pages/context/context';
+import { MainActionType } from 'pages/context/types';
 
 export default function Filters({ showDetail = true }) {
-  const dispatch = useDispatch();
-  const { companies, projects, employees, time } = useSelector((s) => s.filter);
+  const { state, dispatch } = useMain();
+  const { companies, projects, employees, time } = state.filters || {};
 
   const handleChange = ({ target: { value } }, name) => {
-    dispatch(filter.updateFilterValues(name, getSelectValue(value)));
+    const _value = getSelectValue(value);
+    dispatch({ type: MainActionType.UPDATE_FILTER_VALUES, payload: { name, value: _value } });
   };
 
   const clearFilter = (name) => {
-    dispatch(filter.updateFilterValues(name, []));
+    dispatch({ type: MainActionType.UPDATE_FILTER_VALUES, payload: { name, value: [] } });
   };
 
   const handleUpdateFilter = (name, value, index) => {
     const _rm = value.filter((e) => e !== index);
-    dispatch(filter.updateFilterValues(name, _rm));
+    dispatch({ type: MainActionType.UPDATE_FILTER_VALUES, payload: { name, value: _rm } });
   };
 
   const HeaderFilterCount = (name, value, color) => {
