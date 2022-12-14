@@ -1,11 +1,17 @@
 import * as React from 'react';
-import { Breadcrumbs, Link, Stack, Menu, MenuItem, Typography } from '@mui/material';
+import { Breadcrumbs, Link, Stack, Menu, MenuItem, Typography, Button as MuiButton } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import _ from 'lodash';
 import { styled, alpha } from '@mui/material/styles';
 import { KeyboardArrowDown as KeyboardArrowDownIcon } from '@mui/icons-material';
+import Iconify from 'components/Iconify';
+import useMain from 'pages/context/context';
+import { MainActionType } from 'pages/context/types';
 
 export default function CustomSeparator(props) {
+  const { state, dispatch } = useMain();
+  const { isfilterOpen } = state.filters || {};
+
   const { selected } = props;
   const history = useNavigate();
   const { pathname } = useLocation();
@@ -13,9 +19,22 @@ export default function CustomSeparator(props) {
   const basePath = `/${pathnames.slice(0, 2).join('/')}`;
   pathnames.splice(0, 2);
 
+  const openFilter = () => {
+    dispatch({ type: MainActionType.CHANGE_FILTER, bool: !isfilterOpen });
+  };
+
   return (
     <Stack padding={1} spacing={2}>
       <Breadcrumbs separator="›" aria-label="breadcrumb">
+        <MuiButton
+          size="small"
+          variant="contained"
+          color={`${isfilterOpen ? 'secondary' : 'inherit'}`}
+          sx={{ padding: 1, minWidth: 0, width: 35 }}
+          onClick={openFilter}
+        >
+          <Iconify icon="heroicons-funnel" width={20} height={20} />
+        </MuiButton>
         {pathnames.length > 0 ? <Link onClick={() => history(basePath)}>Main</Link> : <Typography> Main </Typography>}
         {pathnames.map((name, index) => {
           const routeTo = `${basePath}+/${pathnames.slice(0, index + 1).join('/')}`;

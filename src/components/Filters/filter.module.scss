@@ -1,0 +1,42 @@
+@import '../../scss/variables';
+
+.container{
+    background: $white;
+    padding: 10px 50px;
+    width: 100%;
+}
+
+.headerCount{
+    padding: 7px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 14px;
+    span{
+        padding-left: 5px;
+        svg{
+            position: relative;
+            top: 3px;
+            cursor: pointer;
+        }
+    }
+}
+
+.rightContent{
+    padding: 7px;
+    color: $textMedium;
+    font-weight: 400;
+    font-size: 14px;
+    background: $bgLight;
+    height: fit-content;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    span {
+        padding-left: 5px;
+        svg {
+            position: relative;
+            top: 3px;
+            cursor: pointer;
+            color: $textDark;
+        }
+    }
+}

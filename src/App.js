@@ -6,6 +6,8 @@ import ThemeProvider from './theme';
 import ScrollToTop from './components/ScrollToTop';
 import { BaseOptionChartStyle } from './components/chart/BaseOptionChart';
 
+import './scss/mui.scss';
+import { MainProvider } from 'pages/context/context';
 // ----------------------------------------------------------------------
 
 export default function App() {
@@ -13,7 +15,9 @@ export default function App() {
     <ThemeProvider>
       <ScrollToTop />
       <BaseOptionChartStyle />
-      <Router />
+      <MainProvider>
+        <Router />
+      </MainProvider>
     </ThemeProvider>
   );
 }

@@ -5,6 +5,7 @@ import { Box, Stack } from '@mui/material';
 // components
 import BreadCrumb from './BreadCrumb';
 import { StoreProvider, useStore } from './store/Store';
+import { MainProvider } from 'pages/context/context';
 
 // ----------------------------------------------------------------------
 
