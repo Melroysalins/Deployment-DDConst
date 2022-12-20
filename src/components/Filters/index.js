@@ -1,17 +1,44 @@
 import { Typography } from '@mui/material';
 import { Stack } from '@mui/system';
-import React from 'react';
+import React, { useEffect } from 'react';
 import style from './filter.module.scss';
-import { getSelectValue, isEmpty } from 'utils/helper';
+import { getSelectValue, isEmpty, isNotEmpty } from 'utils/helper';
 import Iconify from 'components/Iconify';
 import FilterContent from './FilterContent';
 import { Select, DatePicker } from 'components';
 import useMain from 'pages/context/context';
 import { MainActionType } from 'pages/context/types';
+import moment from 'moment';
 
 export default function Filters({ showDetail = true }) {
   const { state, dispatch } = useMain();
-  const { companies, projects, employees, time } = state.filters || {};
+  const { companies, projects, employees, time, dateRange } = state.filters || {};
+  const [valueRange, setvalueRange] = React.useState([null, null]);
+
+  useEffect(() => {
+    if (!!showDetail && time) {
+      if (dateRange && dateRange[0] && dateRange[1]) {
+        setvalueRange([dateRange[0], dateRange[1]]);
+      } else {
+        setvalueRange([moment().startOf('month'), moment().endOf('month')]);
+      }
+    }
+  }, [time, showDetail]);
+
+  useEffect(() => {
+    if (valueRange[0] && valueRange[1]) {
+      dispatch({
+        type: MainActionType.UPDATE_FILTER_VALUES,
+        payload: {
+          name: 'dateRange',
+          value: [
+            valueRange[0]?.$d ? moment(valueRange[0].$d) : valueRange[0],
+            valueRange[1]?.$d ? moment(valueRange[1].$d) : valueRange[1],
+          ],
+        },
+      });
+    }
+  }, [valueRange]);
 
   const handleChange = ({ target: { value } }, name) => {
     const _value = getSelectValue(value);
@@ -39,7 +66,7 @@ export default function Filters({ showDetail = true }) {
     );
   };
 
-  const dummyDate = ['This month', 'This year', 'Today'];
+  const dummyDate = ['This month'];
 
   return (
     <div className={style.container}>
@@ -64,7 +91,7 @@ export default function Filters({ showDetail = true }) {
           data={dummyDate}
           multiple={false}
         />
-        {!!showDetail && time && <DatePicker />}
+        {!!showDetail && time && <DatePicker setvalueRange={setvalueRange} valueRange={valueRange} />}
       </Stack>
 
       <FilterContent

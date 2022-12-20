@@ -52,7 +52,7 @@ const defaultHolidays = [
   { background: 'rgba(100, 100, 100, 0.1)', recurring: { repeat: 'weekly', weekDays: 'SA' } },
 ];
 
-const Rating = styled(Avatar, {
+export const Rating = styled(Avatar, {
   shouldForwardProp: (prop) => prop !== 'rating',
 })(({ theme, rating }) => {
   let color = null;

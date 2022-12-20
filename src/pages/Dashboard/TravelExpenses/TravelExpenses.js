@@ -29,10 +29,9 @@ const TotalsButton = styled(MuiButton)(({ theme }) => ({
 
 function App() {
   const [loader, setLoader] = useState(false);
-  const { state, dispatch } = useMain();
+  const { state } = useMain();
   const { isfilterOpen } = state.filters || {};
-  console.log(isfilterOpen, '<--isfilterOpen');
-  const [showTotal, setshowTotal] = useState(false);
+  const [showTotal, setshowTotal] = useState(true);
 
   return (
     <>
