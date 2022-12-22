@@ -13,12 +13,23 @@
         
     }
 
-    &.totalExpense{
+    //TravelExpense
+    &.travelExpense{
+        tbody{
+            tr:first-child{
+             background: $headerGrey;
+            }
+        }
         td:nth-child(6) , td:nth-child(12) {
             color: $redOrange;
         }
         td:nth-child(7), th:nth-child(7) {
              border-right: 1.2px solid $greyBorder;
+        }
+
+        td:nth-child(7), td:nth-child(13) {
+           font-weight: 600;
+           color: $textDark;
         }
     }
 }

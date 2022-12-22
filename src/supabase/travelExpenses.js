@@ -78,19 +78,26 @@ export const getTeTotals = async (dateRange) => {
         team_type: team.type,
         start: team.start,
         end: team.end,
-        values: createDataRow(totals.filter((e) => e.team === team.id)), // && e.project === project.id
+        values: createDataRow(totals.filter((e) => e.team === team.id)),
 
         children: employees.map((emp) =>
           createDataRow(
-            totals.filter((e) => e.employee === emp.id && e.team === team.id), // && e.project === project.id
+            totals.filter((e) => e.employee === emp.id && e.team === team.id),
             emp
           )
         ),
       };
     }),
   }));
-  // console.log(inspect(returnData, true, 5));
   return returnData;
+};
+
+const ExpenseConstant = {
+  lodging: 45000,
+  meals: 30000,
+  overtime: 100000,
+  restDayMove: 50000,
+  nightTime: 50000,
 };
 
 const createDataRow = (data, obj) => {
@@ -100,20 +107,20 @@ const createDataRow = (data, obj) => {
     switch (e.event_sub_type) {
       case 'lodging':
         rowAdd(0, values, e);
-        values[2] = values[0] * 45000;
+        values[2] = values[0] * ExpenseConstant.lodging;
         break;
       case 'meals':
         rowAdd(1, values, e);
-        values[3] = values[1] * 30000;
+        values[3] = values[1] * ExpenseConstant.meals;
         break;
       case 'overtime':
         rowAdd(6, values, e);
-        values[8] = values[6] * 100000;
+        values[8] = values[6] * ExpenseConstant.overtime;
         break;
       case 'restDayMove':
       case 'nightTime':
         rowAdd(7, values, e);
-        values[9] = values[7] * 50000;
+        values[9] = values[7] * ExpenseConstant.restDayMove;
         break;
       default:
         break;
@@ -121,15 +128,15 @@ const createDataRow = (data, obj) => {
     return '';
   });
   if (values[9] || values[8]) {
-    values[11] = values[9] + values[8];
+    values[11] = (values[9] === '-' ? 0 : values[9]) + (values[8] === '-' ? 0 : values[8]) || '-';
   }
   if (values[2] || values[3]) {
-    values[5] = values[2] + values[3];
+    values[5] = (values[2] === '-' ? 0 : values[2]) + (values[3] === '-' ? 0 : values[3]) || '-';
   }
 
   return obj ? { ...obj, values } : values;
 };
 
 const rowAdd = (row, values, e) => {
-  values[row] = e.no_of_days + (values[row] || 0);
+  values[row] = e.no_of_days + (values[row] === '-' ? 0 : values[row]);
 };

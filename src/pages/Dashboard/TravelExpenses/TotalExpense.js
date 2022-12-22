@@ -74,7 +74,7 @@ export default function CollapsibleTable() {
       headerCol={headerCol}
       rows={rows}
       startRow={<Project />}
-      className="totalExpense"
+      className="travelExpense"
       rowLength={12}
     />
   );

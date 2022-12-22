@@ -9,7 +9,7 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { dummyArrayEmpty, isNotEmpty } from 'utils/helper';
+import { dummyArrayEmpty, formatNumber, isNotEmpty } from 'utils/helper';
 import { Stack } from '@mui/system';
 import Iconify from 'components/Iconify';
 import style from './table.module.scss';
@@ -50,7 +50,9 @@ const CreateRow = ({ row, open, setOpen, isChild = false, rowLength }) => {
       </TableCell>
 
       {createVal?.map((e, index) => (
-        <TableCell key={index}>{e}</TableCell>
+        <TableCell className={style[isChild]} key={index}>
+          {formatNumber(e)}
+        </TableCell>
       ))}
     </TableRow>
   );
