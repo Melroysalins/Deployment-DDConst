@@ -1,6 +1,9 @@
 import { Table } from 'components';
+import moment from 'moment';
+import useMain from 'pages/context/context';
 import * as React from 'react';
-import { dummyArrayNumber } from 'utils/helper';
+import { useState, useEffect } from 'react';
+import { getTeTotals } from 'supabase/travelExpenses';
 import Project from './Project';
 
 const headerCol = [
@@ -17,51 +20,62 @@ const headerCol = [
   'Processing cost (₩)',
   'Overtime exps. totals (₩)',
 ];
+
+const _month = moment().format('MMM, YYYY');
 const mainCol = [
-  { name: 'Travel expences totals (April, 2022)', col: 6 },
-  { name: 'Overtime expences totals (April, 2022)', col: 6 },
+  { name: `Travel expences totals  ${_month}`, col: 6 },
+  { name: `Overtime expences totals  ${_month}`, col: 6 },
 ];
 
-const rows = [
-  { name: '민수 위탁 154kV 고덕2-평택,동평택 인출정비공사 (일진)', hasDetail: false, values: dummyArrayNumber(12) },
-  {
-    name: '설치팀1',
-    hasDetail: true,
-    rightIcon: 'fluent-mdl2:home',
-    leftImg: '',
-    values: dummyArrayNumber(12),
-    detail: [
-      {
-        name: 'Employee_LGS',
-        rightIconText: 'Team Lead',
-        leftImg: `/static/mock-images/avatars/avatar_4.jpg`,
-        values: dummyArrayNumber(12),
-      },
-      {
-        name: '이준호',
-        rightIconText: 'C',
-        leftImg: `/static/mock-images/avatars/avatar_6.jpg`,
-        values: dummyArrayNumber(12),
-      },
-    ],
-  },
-  {
-    name: 'Transmission line 154kV power cable installation work',
-    hasDetail: true,
-    values: dummyArrayNumber(12),
-    detail: [
-      { name: 'Random value 1', values: dummyArrayNumber(12) },
-      { name: '이준호 2', values: dummyArrayNumber(12) },
-    ],
-  },
-  {
-    name: '154kV Godeok 2-Pyeongtaek, Dongpyeongtaek withdrawal maintenance work',
-    rightIcon: 'material-symbols:handshake-outline',
-    leftImg: '',
-    values: dummyArrayNumber(12),
-  },
-];
+const createRow = (resources) => {
+  const updatedResources = resources.map((project) => ({
+    ...project,
+    id: String(project.id),
+    name: project.projectTitle,
+    children: project.children.map((team) => {
+      const teamEmployees = [];
+      team.rightIcon =
+        team.team_type === 'InHome' ? 'material-symbols:home-outline-rounded' : 'material-symbols:handshake-outline';
+      const updatedEmployees = team.children.map((employee) => {
+        teamEmployees.push({ id: String(employee.id), name: employee.name });
+        return {
+          ...employee,
+          id: String(employee.id),
+          collapsed: true,
+          rightIcon: 'material-symbols:person-outline-rounded',
+        };
+      });
+      return {
+        ...team,
+        children: updatedEmployees,
+      };
+    }),
+  }));
+  return updatedResources;
+};
 
 export default function CollapsibleTable() {
-  return <Table mainCol={mainCol} headerCol={headerCol} rows={rows} startRow={<Project />} className="totalExpense" />;
+  const { state } = useMain();
+  const { dateRange } = state.filters || {};
+
+  const [rows, setrows] = useState([]);
+  const fetchTotals = async () => {
+    const resources = await getTeTotals(dateRange);
+    setrows(createRow(resources));
+  };
+
+  useEffect(() => {
+    fetchTotals();
+  }, []);
+
+  return (
+    <Table
+      mainCol={mainCol}
+      headerCol={headerCol}
+      rows={rows}
+      startRow={<Project />}
+      className="travelExpense"
+      rowLength={12}
+    />
+  );
 }
