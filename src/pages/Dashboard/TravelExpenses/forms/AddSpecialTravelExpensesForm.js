@@ -116,7 +116,9 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
           </Grid>
           <Grid item xs={12}>
             <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-helper-label">Employee</InputLabel>
+              <InputLabel shrink id="demo-simple-select-helper-label">
+                Employee
+              </InputLabel>
               <Select
                 labelId="demo-simple-select-helper-label"
                 id="demo-simple-select-helper"
@@ -138,7 +140,9 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
           </Grid>
           <Grid item xs={12}>
             <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-helper-label">Expense Type</InputLabel>
+              <InputLabel shrink id="demo-simple-select-helper-label">
+                Expense Type
+              </InputLabel>
               <Select
                 labelId="demo-simple-select-helper-label"
                 id="demo-simple-select-helper"
