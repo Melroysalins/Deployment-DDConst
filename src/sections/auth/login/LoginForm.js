@@ -66,13 +66,13 @@ export default function LoginForm() {
         password: 'example-password',
       })
       if (error) throw error
-      alert('Check your email for the login link!')
+      // alert('Check your email for the login link!')
+      navigate('/dashboard/projects/list', { replace: true });
     } catch (error) {
       alert(error.error_description || error.message)
     } finally {
       setLoading(false)
     }
-    // navigate('/dashboard', { replace: true });
   };
 
   return (

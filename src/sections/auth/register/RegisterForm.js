@@ -10,6 +10,7 @@ import { LoadingButton } from '@mui/lab';
 // components
 import Iconify from '../../../components/Iconify';
 import { FormProvider, RHFTextField } from '../../../components/hook-form';
+import { supabase } from '../../../supabaseClient'
 
 // ----------------------------------------------------------------------
 
@@ -43,6 +44,10 @@ export default function RegisterForm() {
   } = methods;
 
   const onSubmit = async () => {
+    const { error } = await supabase.auth.signUp({
+      email: 'example2@email.com',
+      password: 'example-password',
+    })
     navigate('/dashboard', { replace: true });
   };
 
