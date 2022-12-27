@@ -440,19 +440,20 @@ export default function Timeline() {
 
   const loadPopupForm = React.useCallback((event) => {
     try {
+      console.log(event);
       let startDate = new Date(event.start);
       let endDate = new Date(event.end);
       startDate = moment(startDate).format('YYYY-MM-DD');
       endDate = moment(endDate).format('YYYY-MM-DD');
-      const resource = event.resource.split('-');
-      console.log(event);
+      const resource = String(event?.resource)?.split('-');
       const data = {
         start: startDate,
         end: endDate,
         employee: resource[0],
-        sub_type: resource[1] ?? null,
+        sub_type: event.sub_type,
+        id: event.id,
+        status: event.status,
       };
-      console.log(data);
       setPopupData(data);
     } catch (error) {
       console.log(error);
@@ -467,21 +468,24 @@ export default function Timeline() {
 
   const onEventClick = React.useCallback(
     (args) => {
-      setEdit(true);
-
-      setTempEvent({ ...args.event });
-      // fill popup form with event data
-      loadPopupForm(args.event);
-      const expense_type = args.event.resource.split('-');
-      console.log(args, expense_type);
-      if (expense_type.length > 1 && (expense_type[1] === 'lodging' || expense_type[1] === 'meals')) {
-        handlePopupTypeChange('te');
-        handleOpenViewPopup(args.domEvent.target);
-      } else if (args.event.type === 'special') {
-        handlePopupTypeChange('ste');
-        handleOpenViewPopup(args.domEvent.target);
-      } else {
-        // setAnchor(args.target);
+      try {
+        setEdit(true);
+        setTempEvent({ ...args.event });
+        // fill popup form with event data
+        loadPopupForm(args.event);
+        const expense_type = String(args?.event?.resource)?.split('-');
+        console.log(args);
+        if (
+          (expense_type.length > 1 && (expense_type[1] === 'lodging' || expense_type[1] === 'meals')) ||
+          args.event.type === 'ste'
+        ) {
+          handlePopupTypeChange(args.event.type);
+          handleOpenViewPopup(args.domEvent.target);
+        } else {
+          // setAnchor(args.target);
+        }
+      } catch (e) {
+        console.log(e);
       }
     },
     [loadPopupForm]
@@ -491,7 +495,6 @@ export default function Timeline() {
     (args) => {
       setEdit(false);
       setTempEvent(args.event);
-      console.log(args);
       const expense_type = args.event.resource?.split('-');
       if (expense_type.length > 1 && expense_type[1] !== 'task') {
         handlePopupTypeChange('te');
