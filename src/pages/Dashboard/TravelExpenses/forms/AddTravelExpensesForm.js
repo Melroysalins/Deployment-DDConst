@@ -22,7 +22,7 @@ import moment from 'moment-timezone';
 import * as Yup from 'yup';
 // components
 // api
-import { createNewEvent } from 'supabase/events';
+import { createNewEvent, editEvent } from 'supabase/events';
 
 // ----------------------------------------------------------------------
 const validationSchema = Yup.object().shape({
@@ -38,24 +38,44 @@ const initialValues = {
   start: null,
   end: null,
   type: 'te',
+  status: 'Planned',
 };
 
 const AddTravelExpensesForm = forwardRef((props, ref) => {
-  const { data, employees, handleClose } = props;
+  const { data, employees, handleClose, edit = false } = props;
+  console.log(edit);
   const [loader, setLoader] = React.useState(false);
   const [toast, setToast] = React.useState(null);
 
   const { handleSubmit, errors, touched, handleChange, handleBlur, values, setFieldValue, setValues } = useFormik({
     initialValues,
+    initialTouched: { employee: true, sub_type: true },
     validationSchema,
     onSubmit: async (values) => {
       setLoader(true);
-      const res = await createNewEvent(values);
-      if (res.status === 201) {
-        setToast({ severity: 'success', message: 'Succesfully added new event!' });
-        handleClose();
-      } else {
-        setToast({ severity: 'error', message: 'Failed to added new event!' });
+      try {
+        let res;
+        const id = values.id;
+        delete values.id;
+        if (edit) {
+          res = await editEvent(values, id);
+          if (res.status >= 200 && res.status < 300) {
+            setToast({ severity: 'success', message: 'Succesfully edited event!' });
+            handleClose();
+          } else {
+            setToast({ severity: 'error', message: 'Failed to edit event!' });
+          }
+        } else {
+          res = await createNewEvent(values);
+          if (res.status >= 200 && res.status < 300) {
+            setToast({ severity: 'success', message: 'Succesfully added new event!' });
+            handleClose();
+          } else {
+            setToast({ severity: 'error', message: 'Failed to added new event!' });
+          }
+        }
+      } catch (err) {
+        console.log(err);
       }
       setLoader(false);
     },
@@ -90,7 +110,7 @@ const AddTravelExpensesForm = forwardRef((props, ref) => {
           {toast?.message}
         </Alert>
       </Snackbar>
-      <Box onSubmit={handleSubmit} component="form" noValidate autoComplete="off" p={3}>
+      <Box onSubmit={handleSubmit} component="form" noValidate autoComplete="off" p={2}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <FormControl fullWidth>
@@ -114,7 +134,9 @@ const AddTravelExpensesForm = forwardRef((props, ref) => {
           </Grid>
           <Grid item xs={12}>
             <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-helper-label">Employee</InputLabel>
+              <InputLabel shrink id="demo-simple-select-helper-label">
+                Employee
+              </InputLabel>
               <Select
                 labelId="demo-simple-select-helper-label"
                 id="demo-simple-select-helper"
@@ -126,7 +148,9 @@ const AddTravelExpensesForm = forwardRef((props, ref) => {
                 fullWidth
               >
                 {employees.map((employee) => (
-                  <MenuItem value={employee.id}>{employee.name}</MenuItem>
+                  <MenuItem key={employee.id} value={employee.id}>
+                    {employee.name}
+                  </MenuItem>
                 ))}
               </Select>
 
@@ -137,7 +161,9 @@ const AddTravelExpensesForm = forwardRef((props, ref) => {
           </Grid>
           <Grid item xs={12}>
             <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-helper-label">Expense Type</InputLabel>
+              <InputLabel shrink id="demo-simple-select-helper-label">
+                Expense Type
+              </InputLabel>
               <Select
                 labelId="demo-simple-select-helper-label"
                 id="demo-simple-select-helper"
@@ -153,6 +179,30 @@ const AddTravelExpensesForm = forwardRef((props, ref) => {
               </Select>
               <FormHelperText error={errors.sub_type && touched.sub_type}>
                 {touched.sub_type ? errors.sub_type : null}
+              </FormHelperText>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12}>
+            <FormControl fullWidth>
+              <InputLabel shrink id="demo-simple-select-helper-label">
+                Status
+              </InputLabel>
+              <Select
+                labelId="demo-simple-select-helper-label"
+                id="demo-simple-select-helper"
+                value={values.status}
+                label="Status"
+                onChange={handleChange}
+                onBlur={handleBlur}
+                name="status"
+                fullWidth
+              >
+                <MenuItem value="Planned">Planned</MenuItem>
+                <MenuItem value="Approved">Approved</MenuItem>
+                <MenuItem value="Rejected">Rejected</MenuItem>
+              </Select>
+              <FormHelperText error={errors.status && touched.status}>
+                {touched.status ? errors.status : null}
               </FormHelperText>
             </FormControl>
           </Grid>

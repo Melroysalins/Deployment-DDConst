@@ -24,7 +24,7 @@ import moment from 'moment-timezone';
 import * as Yup from 'yup';
 // components
 // api
-import { createNewEvent } from 'supabase/events';
+import { createNewEvent, editEvent } from 'supabase/events';
 
 // ----------------------------------------------------------------------
 const validationSchema = Yup.object().shape({
@@ -41,8 +41,7 @@ const initialValues = {
 };
 
 const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
-  const { data = {}, employees, handleClose } = props;
-  console.log(data);
+  const { data = {}, employees, handleClose, edit = false } = props;
   const theme = useTheme();
   const [loader, setLoader] = React.useState(false);
   const [toast, setToast] = React.useState(null);
@@ -52,12 +51,29 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
     validationSchema,
     onSubmit: async (values) => {
       setLoader(true);
-      const res = await createNewEvent(values);
-      if (res.status === 201) {
-        setToast({ severity: 'success', message: 'Succesfully added new event!' });
-        handleClose();
-      } else {
-        setToast({ severity: 'error', message: 'Failed to added new event!' });
+      try {
+        let res;
+        const id = values.id;
+        delete values.id;
+        if (edit) {
+          res = await editEvent(values, id);
+          if (res.status >= 200 && res.status < 300) {
+            setToast({ severity: 'success', message: 'Succesfully edited event!' });
+            handleClose();
+          } else {
+            setToast({ severity: 'error', message: 'Failed to edit event!' });
+          }
+        } else {
+          res = await createNewEvent(values);
+          if (res.status >= 200 && res.status < 300) {
+            setToast({ severity: 'success', message: 'Succesfully added new event!' });
+            handleClose();
+          } else {
+            setToast({ severity: 'error', message: 'Failed to added new event!' });
+          }
+        }
+      } catch (err) {
+        console.log(err);
       }
       setLoader(false);
     },
@@ -116,7 +132,9 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
           </Grid>
           <Grid item xs={12}>
             <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-helper-label">Employee</InputLabel>
+              <InputLabel shrink id="demo-simple-select-helper-label">
+                Employee
+              </InputLabel>
               <Select
                 labelId="demo-simple-select-helper-label"
                 id="demo-simple-select-helper"
@@ -138,7 +156,9 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
           </Grid>
           <Grid item xs={12}>
             <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-helper-label">Expense Type</InputLabel>
+              <InputLabel shrink id="demo-simple-select-helper-label">
+                Expense Type
+              </InputLabel>
               <Select
                 labelId="demo-simple-select-helper-label"
                 id="demo-simple-select-helper"

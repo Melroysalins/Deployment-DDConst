@@ -16,6 +16,11 @@ export const createNewEvent = async (data) => {
   return res;
 };
 
+export const editEvent = async (values, id) => {
+  const res = await supabase.from('events').update(values).eq('id', id);
+  return res;
+};
+
 export const deleteEvent = async (id) => {
   const res = await supabase.from('events').delete().eq('id', id);
   return res;

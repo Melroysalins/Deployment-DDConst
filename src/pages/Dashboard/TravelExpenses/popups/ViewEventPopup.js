@@ -76,15 +76,13 @@ export default function ViewEventPopup({ handleClose, anchor, type, data, employ
   React.useEffect(() => {}, []);
   const Form = forms[type].component;
 
+  const handleSubmit = () => {
+    ref?.current?.onSubmit();
+  };
+
   return (
     <>
-      <PopupForm
-        title={forms[type].title}
-        variant={forms[type].variant}
-        handleSubmit={handleClose}
-        handleClose={handleClose}
-        anchor={anchor}
-      >
+      <PopupForm variant={forms[type].variant} handleSubmit={handleSubmit} handleClose={handleClose} anchor={anchor}>
         <Box sx={{ width: '100%' }}>
           <Tabs
             variant="fullWidth"
@@ -98,7 +96,7 @@ export default function ViewEventPopup({ handleClose, anchor, type, data, employ
           </Tabs>
         </Box>
         <TabPanel value={value} index={0}>
-          <Form employees={employees} data={data} ref={ref} />
+          <Form edit handleClose={handleClose} employees={employees} data={data} ref={ref} />
         </TabPanel>
         <TabPanel value={value} index={1}>
           <Logs />
