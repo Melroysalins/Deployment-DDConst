@@ -6,7 +6,8 @@ export const getTeResources = async () => {
   const { data: projects, error } = await supabase
     .from('projects_teams_employees')
     .select('*')
-    .not('teams', 'is', null);
+    .not('teams', 'is', null)
+    .eq('id', '10');
   const { data: teamEmployees, error: error2 } = await supabase
     .from('teams_employees')
     .select('*')
@@ -40,8 +41,9 @@ export const getTeTotals = async (dateRange) => {
   const { data: projects, error } = await supabase
     .from('projects_teams_employees')
     .select('*')
-    // .eq('id', 9)
-    .not('teams', 'is', null);
+    .not('teams', 'is', null)
+    .eq('id', '10');
+    
   const { data: teamEmployees, error: error2 } = await supabase
     .from('teams_employees')
     .select('*')

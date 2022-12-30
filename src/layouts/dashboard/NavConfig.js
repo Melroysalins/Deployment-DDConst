@@ -11,41 +11,41 @@ const navConfig = [
     path: '/dashboard/projects',
     icon: getIcon('eva:pie-chart-2-fill'),
   },
+//   {
+//     title: 'workforce planning',
+//     path: '/dashboard/workforce-planning',
+//     icon: getIcon('icon-park-solid:plan'),
+//   },
+//   {
+//     title: 'project travel expense',
+//     path: '/dashboard/travel-expense',
+//     icon: getIcon('icon-park-solid:plan'),
+//   },
+//   {
+//     title: 'project implementation schedule',
+//     path: '/dashboard/project-schedule',
+//     icon: getIcon('icon-park-solid:plan'),
+//   },
+//   {
+//   title: 'Travel Expenses',
+//   path: '/dashboard/travel-expenses',
+//   icon: getIcon('zondicons:travel-taxi-cab'),
+// },
   {
-    title: 'workforce planning',
-    path: '/dashboard/workforce-planning',
-    icon: getIcon('icon-park-solid:plan'),
+    title: 'Hr/Admin',
+    path: 'https://app.appsmith.com/app/hr-dashboard/employees-637b15e73d59b3216e3291c6?branch=master',
+    icon: getIcon('clarity:administrator-solid'),
   },
-  {
-    title: 'project travel expense',
-    path: '/dashboard/travel-expense',
-    icon: getIcon('icon-park-solid:plan'),
-  },
-  {
-    title: 'project implementation schedule',
-    path: '/dashboard/project-schedule',
-    icon: getIcon('icon-park-solid:plan'),
-  },
-  {
-  title: 'Travel Expenses',
-  path: '/dashboard/travel-expenses',
-  icon: getIcon('zondicons:travel-taxi-cab'),
-},
-  {
-    title: 'user',
-    path: '/dashboard/user',
-    icon: getIcon('eva:people-fill'),
-  },
-  {
-    title: 'product',
-    path: '/dashboard/products',
-    icon: getIcon('eva:shopping-bag-fill'),
-  },
-  {
-    title: 'blog',
-    path: '/dashboard/blog',
-    icon: getIcon('eva:file-text-fill'),
-  },
+  // {
+  //   title: 'product',
+  //   path: '/dashboard/products',
+  //   icon: getIcon('eva:shopping-bag-fill'),
+  // },
+  // {
+  //   title: 'blog',
+  //   path: '/dashboard/blog',
+  //   icon: getIcon('eva:file-text-fill'),
+  // },
   {
     title: 'login',
     path: '/login',
@@ -56,11 +56,11 @@ const navConfig = [
     path: '/register',
     icon: getIcon('eva:person-add-fill'),
   },
-  {
-    title: 'Not found',
-    path: '/404',
-    icon: getIcon('eva:alert-triangle-fill'),
-  },
+  // {
+  //   title: 'Not found',
+  //   path: '/404',
+  //   icon: getIcon('eva:alert-triangle-fill'),
+  // },
 ];
 
 export default navConfig;

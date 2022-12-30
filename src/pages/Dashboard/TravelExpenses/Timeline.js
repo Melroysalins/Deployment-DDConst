@@ -120,7 +120,6 @@ export default function Timeline() {
 
   const onClose = React.useCallback(() => {
     if (!isEdit) {
-      console.log(state.events);
       // refresh the list, if add popup was canceled, to remove the temporary event
       dispatch({ type: TEActionType.UPDATE_EVENTS, payload: [...state.events] });
     }
@@ -151,7 +150,6 @@ export default function Timeline() {
   const handleToggle = () => setOpenActions((prev) => !prev);
 
   const updateCalendarData = React.useCallback((resources, events) => {
-    console.log(resources, events);
     const teamEvents = [];
     let employees = [];
 
@@ -176,7 +174,6 @@ export default function Timeline() {
           end: team.end,
         });
         employees = [...employees, ...teamEmployees];
-        console.log(employees, teamEmployees);
         return {
           ...team,
           children: updatedEmployees,
@@ -200,9 +197,7 @@ export default function Timeline() {
     // const res = await getProjectDetails(id);
     const resources = await getTeResources();
     const events = await listAllEvents();
-    console.log(resources, events);
     const res = updateCalendarData(resources, events);
-    console.log(res);
     dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
     dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
   };
@@ -227,7 +222,6 @@ export default function Timeline() {
       await subscription.unsubscribe();
     };
     // const res = updateCalendarData(data.resources, data.events);
-    // console.log(res);
     // dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
     // dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
   }, [state.resources]);
@@ -265,15 +259,40 @@ export default function Timeline() {
       </Box>
     );
   };
+  const styles = (keyword, bgColor) => {
+    switch (keyword) {
+      case 'Planned':
+        return {
+          background: (theme) => theme.palette.background.paper,
+          borderRadius: '8px',
+          border: `2px solid ${bgColor}`,
+          width: '100%',
+          color: `${bgColor} !important`,
+        };
+
+      case 'Rejected':
+        return {
+          background: `repeating-linear-gradient( -45deg, ${bgColor}, ${bgColor} 5px, #fff 5px, #fff 10px )`,
+          minWidth: 0,
+          fontSize: '10px',
+          color: `${bgColor} !important`,
+        };
+
+      case 'Approved':
+        return {};
+
+      default:
+        break;
+    }
+  };
 
   const renderScheduleEvent = (event) => {
-    console.log(event);
     const bgColor = color(event.original.sub_type);
     const startDate = moment(event.startDate);
     const endDate = moment(event.endDate);
     const diff = endDate.diff(startDate, 'days');
 
-    if (event.original.type === 'te') {
+    if (event.original.type === 'te' || event.original.type === 'task') {
       return (
         <>
           <Stack
@@ -287,135 +306,24 @@ export default function Timeline() {
               justifyContent: 'flex-between',
               alignItems: 'initial !important',
               padding: '0 !important',
+              ...styles(event.original.status, bgColor),
             }}
           >
-            <Box
-              component="div"
-              justifyContent="center"
-              alignItems="center"
-              display="flex"
-              sx={{
-                width: '30%',
-                ...(event.original.sub_type !== 'lodging' && {
-                  padding: '6px',
-                }),
-              }}
-            >
-              {event.original.sub_type === 'lodging' && (
-                <Box
-                  component="div"
-                  justifyContent="center"
-                  alignItems="center"
-                  display="flex"
-                  sx={{
-                    borderRight: '2px dotted #fff',
-                    width: '10%',
-                    padding: '6px',
-                  }}
-                >
-                  <Iconify icon="bi:truck" width={15} height={15} />
-                </Box>
-              )}
-              <Typography variant="outlined" justifyContent="center" alignItems="center" display="flex" flex="1 1 auto">
-                7하숙
-              </Typography>
-            </Box>
-
-            <Stack
-              justifyContent="center"
-              alignItems="center"
-              display="flex"
-              sx={{
-                width: '15%',
-                background: (theme) => theme.palette.background.slash,
-              }}
-            >
-              <MuiButton
-                size="small"
-                variant="contained"
-                color="inherit"
-                sx={{ padding: '2px 4px', minWidth: 0, color: bgColor, fontSize: '10px' }}
+            {event.original.status === 'Rejected' ? (
+              <Typography
+                variant="caption"
+                sx={{ background: (theme) => theme.palette.background.paper, lineHeight: 'inherit' }}
               >
-                -5하숙
-              </MuiButton>
-            </Stack>
-            <Typography
-              variant="outlined"
-              justifyContent="center"
-              alignItems="center"
-              display="flex"
-              sx={{
-                width: '42.5%',
-              }}
-            >
-              18하숙
-            </Typography>
-            <Typography
-              variant="outlined"
-              justifyContent="center"
-              alignItems="center"
-              display="flex"
-              sx={{
-                width: '20%',
-                background: (theme) => theme.palette.background.paper,
-                borderRadius: '0 8px 8px 0px',
-                border: `2px solid ${bgColor}`,
-                color: bgColor,
-              }}
-            >
-              7하숙
-            </Typography>
+                5하숙
+              </Typography>
+            ) : (
+              '5하숙'
+            )}
           </Stack>
         </>
       );
     }
-    if (event.original.sub_type === 'task') {
-      return (
-        <>
-          <Stack
-            component="div"
-            justifyContent="flex-between"
-            className="timeline-event"
-            sx={{
-              background: bgColor,
-              color: bgColor === '#fff' ? '#000 !important' : '#fff !important',
-              boxShadow: (theme) => theme.customShadows.z8,
-              justifyContent: 'flex-between',
-              alignItems: 'initial !important',
-              padding: '0 !important',
-            }}
-          >
-            <Typography
-              variant="outlined"
-              justifyContent="center"
-              alignItems="center"
-              display="flex"
-              sx={{
-                width: '70%',
-                padding: '6px',
-              }}
-            >
-              7하숙
-            </Typography>
-            <Typography
-              variant="outlined"
-              justifyContent="center"
-              alignItems="center"
-              display="flex"
-              sx={{
-                width: '30%',
-                background: (theme) => theme.palette.background.paper,
-                borderRadius: '0 8px 8px 0px',
-                border: `2px solid ${bgColor}`,
-                color: bgColor,
-              }}
-            >
-              7하숙
-            </Typography>
-          </Stack>
-        </>
-      );
-    }
+
     return (
       <>
         <Box
@@ -532,19 +440,20 @@ export default function Timeline() {
 
   const loadPopupForm = React.useCallback((event) => {
     try {
+      console.log(event);
       let startDate = new Date(event.start);
       let endDate = new Date(event.end);
       startDate = moment(startDate).format('YYYY-MM-DD');
       endDate = moment(endDate).format('YYYY-MM-DD');
-      const resource = event.resource.split('-');
-      console.log(event);
+      const resource = String(event?.resource)?.split('-');
       const data = {
         start: startDate,
         end: endDate,
         employee: resource[0],
-        sub_type: resource[1] ?? null,
+        sub_type: event.sub_type,
+        id: event.id,
+        status: event.status,
       };
-      console.log(data);
       setPopupData(data);
     } catch (error) {
       console.log(error);
@@ -559,21 +468,24 @@ export default function Timeline() {
 
   const onEventClick = React.useCallback(
     (args) => {
-      setEdit(true);
-
-      setTempEvent({ ...args.event });
-      // fill popup form with event data
-      loadPopupForm(args.event);
-      const expense_type = args.event.resource.split('-');
-      console.log(args, expense_type);
-      if (expense_type.length > 1 && (expense_type[1] === 'lodging' || expense_type[1] === 'meals')) {
-        handlePopupTypeChange('te');
-        handleOpenViewPopup(args.domEvent.target);
-      } else if (args.event.type === 'special') {
-        handlePopupTypeChange('ste');
-        handleOpenViewPopup(args.domEvent.target);
-      } else {
-        // setAnchor(args.target);
+      try {
+        setEdit(true);
+        setTempEvent({ ...args.event });
+        // fill popup form with event data
+        loadPopupForm(args.event);
+        const expense_type = String(args?.event?.resource)?.split('-');
+        console.log(args);
+        if (
+          (expense_type.length > 1 && (expense_type[1] === 'lodging' || expense_type[1] === 'meals')) ||
+          args.event.type === 'ste'
+        ) {
+          handlePopupTypeChange(args.event.type);
+          handleOpenViewPopup(args.domEvent.target);
+        } else {
+          // setAnchor(args.target);
+        }
+      } catch (e) {
+        console.log(e);
       }
     },
     [loadPopupForm]
@@ -583,7 +495,6 @@ export default function Timeline() {
     (args) => {
       setEdit(false);
       setTempEvent(args.event);
-      console.log(args.event);
       const expense_type = args.event.resource?.split('-');
       if (expense_type.length > 1 && expense_type[1] !== 'task') {
         handlePopupTypeChange('te');

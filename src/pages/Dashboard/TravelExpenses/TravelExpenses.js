@@ -31,7 +31,7 @@ function App() {
   const [loader, setLoader] = useState(false);
   const { state } = useMain();
   const { isfilterOpen } = state.filters || {};
-  const [showTotal, setshowTotal] = useState(true);
+  const [showTotal, setshowTotal] = useState(false);
 
   return (
     <>
