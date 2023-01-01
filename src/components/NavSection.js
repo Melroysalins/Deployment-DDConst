@@ -6,6 +6,7 @@ import { alpha, useTheme, styled } from '@mui/material/styles';
 import { Box, List, Collapse, ListItemText, ListItemIcon, ListItemButton } from '@mui/material';
 //
 import Iconify from './Iconify';
+import { supabase } from '../supabaseClient';
 
 // ----------------------------------------------------------------------
 
@@ -43,6 +44,11 @@ function NavItem({ item, active, leftDrawerOpened }) {
   const { title, path, icon, info, children } = item;
 
   const [open, setOpen] = useState(isActiveRoot);
+
+  const handlesignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  };
 
   const handleOpen = () => {
     setOpen((prev) => !prev);
@@ -121,10 +127,12 @@ function NavItem({ item, active, leftDrawerOpened }) {
     );
   }
 
+  const isLogout = title === 'logout';
   return (
     <ListItemStyle
-      component={RouterLink}
-      to={path}
+      onClick={() => isLogout && handlesignOut()}
+      component={!isLogout && RouterLink}
+      to={!isLogout && path}
       sx={{
         ...(isActiveRoot && activeRootStyle),
       }}
