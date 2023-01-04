@@ -214,18 +214,15 @@ export default function Timeline() {
   }, []);
 
   React.useEffect(() => {
-    let subscription;
-    (async function () {
-      subscription = await subscribeEvent(fetchEvents);
-    })();
+    if (state.beep) {
+      fetchEvents();
+      dispatch({ type: TEActionType.BEEP, payload: false });
+    }
 
-    return async () => {
-      await subscription.unsubscribe();
-    };
     // const res = updateCalendarData(data.resources, data.events);
     // dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
     // dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
-  }, [state.resources]);
+  }, [state.beep]);
 
   const travelExpensesForEmployee = React.useCallback(
     (employee_id) => [
@@ -267,7 +264,6 @@ export default function Timeline() {
           background: (theme) => theme.palette.background.paper,
           borderRadius: '8px',
           border: `2px solid ${bgColor}`,
-          width: '100%',
           color: `${bgColor} !important`,
         };
 
@@ -280,7 +276,10 @@ export default function Timeline() {
         };
 
       case 'Approved':
-        return {};
+        return {
+          borderRadius: '8px',
+          border: `2px solid ${bgColor}`,
+        };
 
       default:
         break;
@@ -315,10 +314,10 @@ export default function Timeline() {
                 variant="caption"
                 sx={{ background: (theme) => theme.palette.background.paper, lineHeight: 'inherit' }}
               >
-                5하숙
+                {diff}하숙
               </Typography>
             ) : (
-              '5하숙'
+              <>{diff}하숙</>
             )}
           </Stack>
         </>
@@ -451,7 +450,7 @@ export default function Timeline() {
         start: startDate,
         end: endDate,
         employee: resource[0],
-        sub_type: event.sub_type,
+        sub_type: resource[1] ?? null,
         id: event.id,
         status: event.status,
       };

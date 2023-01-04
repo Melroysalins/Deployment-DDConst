@@ -23,6 +23,8 @@ import * as Yup from 'yup';
 // components
 // api
 import { createNewEvent, editEvent } from 'supabase/events';
+import useTE from '../context/context';
+import { TEActionType } from '../context/types';
 
 // ----------------------------------------------------------------------
 const validationSchema = Yup.object().shape({
@@ -43,7 +45,8 @@ const initialValues = {
 
 const AddTravelExpensesForm = forwardRef((props, ref) => {
   const { data, employees, handleClose, edit = false } = props;
-  console.log(edit);
+  const { state, dispatch } = useTE();
+
   const [loader, setLoader] = React.useState(false);
   const [toast, setToast] = React.useState(null);
 
@@ -61,6 +64,7 @@ const AddTravelExpensesForm = forwardRef((props, ref) => {
           res = await editEvent(values, id);
           if (res.status >= 200 && res.status < 300) {
             setToast({ severity: 'success', message: 'Succesfully edited event!' });
+            dispatch({ type: TEActionType.BEEP, payload: true });
             handleClose();
           } else {
             setToast({ severity: 'error', message: 'Failed to edit event!' });
@@ -69,6 +73,7 @@ const AddTravelExpensesForm = forwardRef((props, ref) => {
           res = await createNewEvent(values);
           if (res.status >= 200 && res.status < 300) {
             setToast({ severity: 'success', message: 'Succesfully added new event!' });
+            dispatch({ type: TEActionType.BEEP, payload: true });
             handleClose();
           } else {
             setToast({ severity: 'error', message: 'Failed to added new event!' });
