@@ -14,6 +14,7 @@ import ProjectLayout from './pages/Dashboard/ProjectLayout';
 import WorkforcePlanning from './pages/WorkforcePlanning/WorkforcePlanning';
 import TravelExpenses from './pages/Dashboard/TravelExpenses/TELayout';
 import ProjectImplementationSchedule from './pages/ProjectImplementationSchedule';
+import HrAdmin from 'pages/HrAdmin';
 
 // ----------------------------------------------------------------------
 
@@ -41,6 +42,7 @@ export default function Router() {
         { path: 'user', element: <User /> },
         { path: 'products', element: <Products /> },
         { path: 'blog', element: <Blog /> },
+        { path: 'hr-admin', element: <HrAdmin /> },
       ],
     },
     {

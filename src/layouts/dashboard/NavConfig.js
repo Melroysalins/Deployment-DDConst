@@ -33,7 +33,7 @@ const navConfig = [
 // },
   {
     title: 'Hr/Admin',
-    path: 'https://app.appsmith.com/app/hr-dashboard/employees-637b15e73d59b3216e3291c6?branch=master',
+    path: '/dashboard/hr-admin',
     icon: getIcon('clarity:administrator-solid'),
   },
   // {
@@ -46,16 +46,16 @@ const navConfig = [
   //   path: '/dashboard/blog',
   //   icon: getIcon('eva:file-text-fill'),
   // },
-  {
-    title: 'login',
-    path: '/login',
-    icon: getIcon('eva:lock-fill'),
-  },
-  {
-    title: 'register',
-    path: '/register',
-    icon: getIcon('eva:person-add-fill'),
-  },
+  // {
+  //   title: 'login',
+  //   path: '/login',
+  //   icon: getIcon('eva:lock-fill'),
+  // },
+  // {
+  //   title: 'register',
+  //   path: '/register',
+  //   icon: getIcon('eva:person-add-fill'),
+  // },
   // {
   //   title: 'Not found',
   //   path: '/404',
