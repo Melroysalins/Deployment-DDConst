@@ -15,14 +15,16 @@ import WorkforcePlanning from './pages/WorkforcePlanning/WorkforcePlanning';
 import TravelExpenses from './pages/Dashboard/TravelExpenses/TELayout';
 import ProjectImplementationSchedule from './pages/ProjectImplementationSchedule';
 import HrAdmin from 'pages/HrAdmin';
+import useMain from 'pages/context/context';
 
 // ----------------------------------------------------------------------
 
 export default function Router() {
+  const { user } = useMain();
   return useRoutes([
     {
       path: '/dashboard',
-      element: <DashboardLayout />,
+      element: user ? <DashboardLayout /> : <Navigate to="/login" />,
       children: [
         {
           path: 'projects',

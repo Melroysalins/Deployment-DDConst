@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer } from 'react';
 import mainReducer from './reducer';
+import useAuthentication from 'hooks/useAuthentication';
 
 export const initStateFilters = {
   isfilterOpen: false,
@@ -18,14 +19,19 @@ MainContext.displayName = 'MainContext';
 
 export const MainProvider = ({ children }) => {
   const [state, dispatch] = useReducer(mainReducer, initial_state);
+  const { getSession, user, userLoading } = useAuthentication();
+
   return (
     <MainContext.Provider
       value={{
         state,
         dispatch,
+        getSession,
+        user,
+        userLoading,
       }}
     >
-      {children}
+      {userLoading ? <></> : children}
     </MainContext.Provider>
   );
 };

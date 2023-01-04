@@ -15,6 +15,7 @@ import NavSection from '../../components/NavSection';
 //
 import navConfig from './NavConfig';
 import { DRAWER_WIDTH, DRAWER_WIDTH_COLLAPSED } from 'constant';
+import useMain from 'pages/context/context';
 
 // ----------------------------------------------------------------------
 
@@ -49,6 +50,7 @@ DashboardSidebar.propTypes = {
 };
 
 export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
+  const { user } = useMain();
   const { pathname } = useLocation();
   const theme = useTheme();
   const isDesktop = useResponsive('up', 'lg');
@@ -81,7 +83,7 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
             <Avatar src={account.photoURL} alt="photoURL" />
             <Box sx={{ ml: 2 }}>
               <Typography variant="subtitle2" sx={{ color: 'text.default' }}>
-                {account.displayName}
+                {user.email}
               </Typography>
               <Typography variant="body2" sx={{ color: 'text.default' }}>
                 {account.role}

@@ -11,26 +11,26 @@ const navConfig = [
     path: '/dashboard/projects',
     icon: getIcon('eva:pie-chart-2-fill'),
   },
-//   {
-//     title: 'workforce planning',
-//     path: '/dashboard/workforce-planning',
-//     icon: getIcon('icon-park-solid:plan'),
-//   },
-//   {
-//     title: 'project travel expense',
-//     path: '/dashboard/travel-expense',
-//     icon: getIcon('icon-park-solid:plan'),
-//   },
-//   {
-//     title: 'project implementation schedule',
-//     path: '/dashboard/project-schedule',
-//     icon: getIcon('icon-park-solid:plan'),
-//   },
-//   {
-//   title: 'Travel Expenses',
-//   path: '/dashboard/travel-expenses',
-//   icon: getIcon('zondicons:travel-taxi-cab'),
-// },
+  //   {
+  //     title: 'workforce planning',
+  //     path: '/dashboard/workforce-planning',
+  //     icon: getIcon('icon-park-solid:plan'),
+  //   },
+  //   {
+  //     title: 'project travel expense',
+  //     path: '/dashboard/travel-expense',
+  //     icon: getIcon('icon-park-solid:plan'),
+  //   },
+  //   {
+  //     title: 'project implementation schedule',
+  //     path: '/dashboard/project-schedule',
+  //     icon: getIcon('icon-park-solid:plan'),
+  //   },
+  //   {
+  //   title: 'Travel Expenses',
+  //   path: '/dashboard/travel-expenses',
+  //   icon: getIcon('zondicons:travel-taxi-cab'),
+  // },
   {
     title: 'Hr/Admin',
     path: '/dashboard/hr-admin',
@@ -46,16 +46,21 @@ const navConfig = [
   //   path: '/dashboard/blog',
   //   icon: getIcon('eva:file-text-fill'),
   // },
-  // {
-  //   title: 'login',
-  //   path: '/login',
-  //   icon: getIcon('eva:lock-fill'),
-  // },
-  // {
-  //   title: 'register',
-  //   path: '/register',
-  //   icon: getIcon('eva:person-add-fill'),
-  // },
+  {
+    title: 'login',
+    path: '/login',
+    icon: getIcon('eva:lock-fill'),
+  },
+  {
+    title: 'register',
+    path: '/register',
+    icon: getIcon('eva:person-add-fill'),
+  },
+  {
+    title: 'logout',
+    path: '/logout',
+    icon: getIcon('material-symbols:logout'),
+  },
   // {
   //   title: 'Not found',
   //   path: '/404',
