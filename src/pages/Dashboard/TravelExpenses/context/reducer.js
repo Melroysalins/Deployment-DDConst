@@ -14,6 +14,11 @@ const teReducer = (state, action) => {
         ...state,
         resources: action.payload,
       };
+    case TEActionType.BEEP:
+      return {
+        ...state,
+        beep: action.payload,
+      };
     default:
       return state;
   }
