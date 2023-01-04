@@ -158,15 +158,16 @@ export default function Timeline() {
       id: String(project.id),
       children: project.children.map((team) => {
         const teamEmployees = [];
-        const updatedEmployees = team.children.map((employee) => {
-          teamEmployees.push({ id: String(employee.id), name: employee.name });
-          return {
-            ...employee,
-            id: String(employee.id),
-            children: travelExpensesForEmployee(employee.id),
-            collapsed: true,
-          };
-        });
+        const updatedEmployees =
+          team?.children?.map((employee) => {
+            teamEmployees.push({ id: String(employee.id), name: employee.name });
+            return {
+              ...employee,
+              id: String(employee.id),
+              children: travelExpensesForEmployee(employee.id),
+              collapsed: true,
+            };
+          }) ?? [];
         teamEvents.push({
           title: `EMPLOYEES: ${teamEmployees.map((x) => x.name).join(', ')}`,
           resource: String(team.id),
