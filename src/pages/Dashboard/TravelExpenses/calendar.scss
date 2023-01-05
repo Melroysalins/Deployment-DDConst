@@ -13,6 +13,9 @@
   }
 }
 .md-timeline-height {
+  .mbsc-timeline-resource {
+    overflow: auto;
+  }
   .mbsc-timeline-day,
   .mbsc-timeline-column,
   .mbsc-timeline-header-column,

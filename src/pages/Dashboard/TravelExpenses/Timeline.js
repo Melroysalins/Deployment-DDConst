@@ -1,6 +1,8 @@
 import React from 'react';
 import useTE from './context/context';
 import { TEActionType } from './context/types';
+import { useParams } from 'react-router-dom';
+
 import '@mobiscroll/react/dist/css/mobiscroll.min.css';
 import {
   Eventcalendar,
@@ -85,6 +87,7 @@ export const Rating = styled(Avatar, {
 
 export default function Timeline() {
   const { state, dispatch } = useTE();
+  const { id } = useParams();
 
   const [tempEvent, setTempEvent] = React.useState(null);
   const [isOpen, setOpen] = React.useState(false);
@@ -196,7 +199,7 @@ export default function Timeline() {
   const fetchData = async () => {
     // setLoading(true);
     // const res = await getProjectDetails(id);
-    const resources = await getTeResources();
+    const resources = await getTeResources(id);
     const events = await listAllEvents();
     const res = updateCalendarData(resources, events);
     dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
