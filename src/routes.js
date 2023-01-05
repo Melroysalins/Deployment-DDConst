@@ -30,7 +30,6 @@ export default function Router() {
           path: 'projects',
           element: <ProjectLayout />,
           children: [
-            { path: '', element: <Navigate to="list" /> },
             { path: 'list', element: <ProjectList /> },
             { path: ':id/travel-expenses', element: <TravelExpenses /> },
 
@@ -59,7 +58,7 @@ export default function Router() {
       path: '/',
       element: <LogoOnlyLayout />,
       children: [
-        { path: '/', element: <Navigate to="/dashboard/projects" /> },
+        { path: '/', element: <Navigate to="/dashboard/projects/list" /> },
         { path: '404', element: <NotFound /> },
         { path: '*', element: <Navigate to="/404" /> },
       ],
