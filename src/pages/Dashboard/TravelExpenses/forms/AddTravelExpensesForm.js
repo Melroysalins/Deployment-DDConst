@@ -29,6 +29,7 @@ import { TEActionType } from '../context/types';
 // ----------------------------------------------------------------------
 const validationSchema = Yup.object().shape({
   employee: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
+  status: Yup.string().required('Required').nullable(),
   sub_type: Yup.string().required('Required').nullable(),
   start: Yup.date().required('Required').nullable(),
   end: Yup.date().required('Required').nullable(),
@@ -117,26 +118,6 @@ const AddTravelExpensesForm = forwardRef((props, ref) => {
       </Snackbar>
       <Box onSubmit={handleSubmit} component="form" noValidate autoComplete="off" p={2}>
         <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-helper-label">Project</InputLabel>
-              <Select
-                labelId="demo-simple-select-helper-label"
-                id="demo-simple-select-helper"
-                value={values.project_id}
-                label="Project"
-                onChange={handleChange}
-                onBlur={handleBlur}
-                name="project_id"
-                fullWidth
-              >
-                <MenuItem value={12434}>Iljin Electric _ 345KV Samcheok Thermal Power Plant</MenuItem>
-              </Select>
-              <FormHelperText error={errors.project_id && touched.project_id}>
-                {errors.project_id && touched.project_id ? errors.project_id : null}
-              </FormHelperText>
-            </FormControl>
-          </Grid>
           <Grid item xs={12}>
             <FormControl fullWidth>
               <InputLabel shrink id="demo-simple-select-helper-label">

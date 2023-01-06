@@ -187,11 +187,15 @@ export default function Timeline() {
 
     setEmployees(employees);
 
-    const updatedEvents = events.map((event) =>
-      event.type === 'te' || event.sub_type === 'task'
-        ? { ...event, resource: `${event.employee}-${event.sub_type}` }
-        : { ...event, resource: event.employee }
-    );
+    const updatedEvents = events.map((event) => {
+      const start = moment(event.start);
+      const end = moment(event.end);
+      end.set('hour', 23);
+      end.set('minute', 59);
+      return event.type === 'te' || event.sub_type === 'task'
+        ? { ...event, start, end, resource: `${event.employee}-${event.sub_type}` }
+        : { ...event, start, end, resource: event.employee };
+    });
     return { resources: updatedResources, events: [...updatedEvents, ...teamEvents] };
   }, []);
 
@@ -293,7 +297,7 @@ export default function Timeline() {
     const bgColor = color(event.original.sub_type);
     const startDate = moment(event.startDate);
     const endDate = moment(event.endDate);
-    const diff = endDate.diff(startDate, 'days');
+    const diff = endDate.diff(startDate, 'days') + 1;
 
     if (event.original.type === 'te' || event.original.type === 'task') {
       return (
@@ -443,7 +447,6 @@ export default function Timeline() {
 
   const loadPopupForm = React.useCallback((event) => {
     try {
-      console.log(event);
       let startDate = new Date(event.start);
       let endDate = new Date(event.end);
       startDate = moment(startDate).format('YYYY-MM-DD');
@@ -452,7 +455,7 @@ export default function Timeline() {
       const data = {
         start: startDate,
         end: endDate,
-        employee: resource[0],
+        employee: resource.length === 1 ? null : resource[0],
         sub_type: resource[1] ?? null,
         id: event.id,
         status: event.status,
@@ -477,7 +480,6 @@ export default function Timeline() {
         // fill popup form with event data
         loadPopupForm(args.event);
         const expense_type = String(args?.event?.resource)?.split('-');
-        console.log(args);
         if (
           (expense_type.length > 1 && (expense_type[1] === 'lodging' || expense_type[1] === 'meals')) ||
           args.event.type === 'ste'
@@ -605,8 +607,6 @@ export default function Timeline() {
         view={viewSettings}
         data={state.events}
         invalid={invalid}
-        displayTimezone="local"
-        dataTimezone="local"
         onPageLoading={onPageLoading}
         renderResource={renderMyResource}
         renderScheduleEvent={renderScheduleEvent}
@@ -618,6 +618,7 @@ export default function Timeline() {
         dragTimeStep={30}
         selectedDate={mySelectedDate}
         onSelectedDateChange={onSelectedDateChange}
+        showEventTooltip={false}
         onEventClick={onEventClick}
         onEventCreated={onEventCreated}
         onEventDeleted={onEventDeleted}

@@ -116,26 +116,6 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-helper-label">Project</InputLabel>
-              <Select
-                labelId="demo-simple-select-helper-label"
-                id="demo-simple-select-helper"
-                value={values.project_id}
-                label="Project"
-                onChange={handleChange}
-                onBlur={handleBlur}
-                name="project_id"
-                fullWidth
-              >
-                <MenuItem value={12434}>Iljin Electric _ 345KV Samcheok Thermal Power Plant</MenuItem>
-              </Select>
-              <FormHelperText error={errors.project_id && touched.project_id}>
-                {errors.project_id && touched.project_id ? errors.project_id : null}
-              </FormHelperText>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12}>
-            <FormControl fullWidth>
               <InputLabel shrink id="demo-simple-select-helper-label">
                 Employee
               </InputLabel>

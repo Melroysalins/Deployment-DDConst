@@ -25,7 +25,7 @@ export default function PopupForm(props) {
         open={Boolean(anchor)}
         anchorEl={anchor}
         onClose={handleClose}
-        sx={{ width: 360, p: 0, mt: 1.5, ml: 0.75 }}
+        sx={{ width: 400, p: 0, mt: 1.5, ml: 0.75 }}
       >
         {title ? (
           <Box
