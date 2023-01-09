@@ -40,7 +40,7 @@ export default function AddFormPopup({ handleClose, anchor, type, employees, dat
     <>
       <PopupForm
         title={forms[type].title}
-        variant="secondary"
+        variant="primary"
         handleSubmit={handleSubmit}
         handleClose={handleClose}
         anchor={anchor}
