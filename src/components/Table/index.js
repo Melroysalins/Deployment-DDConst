@@ -9,13 +9,14 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { isNotEmpty } from 'utils/helper';
+import { dummyArrayEmpty, formatNumber, isNotEmpty } from 'utils/helper';
 import { Stack } from '@mui/system';
 import Iconify from 'components/Iconify';
 import style from './table.module.scss';
 
-const CreateRow = ({ row, open, setOpen, isChild = false }) => {
-  const { name, rightIcon, rightIconText, hasDetail, values, leftImg } = row;
+const CreateRow = ({ row, open, setOpen, isChild = false, rowLength }) => {
+  const { name, rightIcon, rightIconText, values, leftImg } = row;
+  const createVal = isNotEmpty(values) ? values : dummyArrayEmpty(rowLength);
   return (
     <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
       <TableCell component="th" scope="row" className={style.tableRow}>
@@ -27,10 +28,10 @@ const CreateRow = ({ row, open, setOpen, isChild = false }) => {
               </div>
             )}
 
-            {!isChild ? <b>{name}</b> : <span>{name}</span>}
+            {!isChild ? <b>{name}</b> : <span className={style[isChild]}>{name}</span>}
             {!!rightIcon && (
               <div className={style.rightIcon}>
-                <Iconify icon={rightIcon} width={16} height={16} />
+                <Iconify icon={rightIcon} width={15} height={15} />
               </div>
             )}
 
@@ -40,7 +41,7 @@ const CreateRow = ({ row, open, setOpen, isChild = false }) => {
               </div>
             )}
           </Stack>
-          {hasDetail && (
+          {isNotEmpty(row.children) && (
             <IconButton className={style.toggleIcon} onClick={() => setOpen(!open)}>
               {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
             </IconButton>
@@ -48,31 +49,32 @@ const CreateRow = ({ row, open, setOpen, isChild = false }) => {
         </Stack>
       </TableCell>
 
-      {values?.map((e, index) => (
-        <TableCell key={index}>{e}</TableCell>
+      {createVal?.map((e, index) => (
+        <TableCell className={style[isChild]} key={index}>
+          {formatNumber(e)}
+        </TableCell>
       ))}
     </TableRow>
   );
 };
 
-function Row({ row }) {
-  const [open, setOpen] = React.useState(false);
-  const { detail } = row;
-
+function Row({ row, isChild, rowLength }) {
+  const [open, setOpen] = React.useState(true);
+  const { children } = row;
   return (
     <>
-      <CreateRow row={row} open={open} setOpen={setOpen} />
+      <CreateRow row={row} open={open} setOpen={setOpen} isChild={isChild} rowLength={rowLength} />
       {open &&
-        detail.map((e) => (
+        children?.map((e) => (
           <React.Fragment key={e.name}>
-            <CreateRow row={e} isChild={true} />
+            <Row row={e} isChild={isNotEmpty(e?.children) ? 'depth-1' : 'depth-2'} rowLength={rowLength} />
           </React.Fragment>
         ))}
     </>
   );
 }
 
-export default function CollapsibleTable({ mainCol, headerCol, rows, startRow, className = '' }) {
+export default function CollapsibleTable({ mainCol, headerCol, rows, startRow, className = '', rowLength }) {
   return (
     <TableContainer component={Paper} className={`cutomTable ${className}`}>
       <Table aria-label="collapsible table">
@@ -97,7 +99,7 @@ export default function CollapsibleTable({ mainCol, headerCol, rows, startRow, c
 
         <TableBody>
           {rows.map((row) => (
-            <Row key={row.name} row={row} />
+            <Row key={row.name} row={row} rowLength={rowLength} />
           ))}
         </TableBody>
       </Table>

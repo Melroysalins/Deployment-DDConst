@@ -1,6 +1,8 @@
 import React from 'react';
 import useTE from './context/context';
 import { TEActionType } from './context/types';
+import { useParams } from 'react-router-dom';
+
 import '@mobiscroll/react/dist/css/mobiscroll.min.css';
 import {
   Eventcalendar,
@@ -28,9 +30,10 @@ import Popup from 'components/Popups/Popup';
 import Iconify from 'components/Iconify';
 import { Loader } from 'reusables';
 import Drawer from './Drawer';
-import { listAllEvents, createNewEvent, deleteEvent } from 'supabase/events';
+import { listAllEvents, subscribeEvent, deleteEvent } from 'supabase/events';
 import data from './data.json';
 import getHolidays from './getHolidays';
+import { getTeResources } from 'supabase/travelExpenses';
 
 setOptions({
   theme: 'ios',
@@ -51,7 +54,7 @@ const defaultHolidays = [
   { background: 'rgba(100, 100, 100, 0.1)', recurring: { repeat: 'weekly', weekDays: 'SA' } },
 ];
 
-const Rating = styled(Avatar, {
+export const Rating = styled(Avatar, {
   shouldForwardProp: (prop) => prop !== 'rating',
 })(({ theme, rating }) => {
   let color = null;
@@ -84,6 +87,7 @@ const Rating = styled(Avatar, {
 
 export default function Timeline() {
   const { state, dispatch } = useTE();
+  const { id } = useParams();
 
   const [tempEvent, setTempEvent] = React.useState(null);
   const [isOpen, setOpen] = React.useState(false);
@@ -92,8 +96,8 @@ export default function Timeline() {
   const [start, startRef] = React.useState(null);
   const [end, endRef] = React.useState(null);
   const [popupData, setPopupData] = React.useState(null);
-  const [popupEventTitle, setTitle] = React.useState('');
-  const [popupEventSite, setSite] = React.useState('');
+  const [data, setData] = React.useState(null);
+  const [employees, setEmployees] = React.useState([]);
   const [popupEventColor, setColor] = React.useState('');
   const [popupEventDate, setDate] = React.useState([]);
   const [mySelectedDate, setSelectedDate] = React.useState(new Date());
@@ -119,7 +123,6 @@ export default function Timeline() {
 
   const onClose = React.useCallback(() => {
     if (!isEdit) {
-      console.log(state.events);
       // refresh the list, if add popup was canceled, to remove the temporary event
       dispatch({ type: TEActionType.UPDATE_EVENTS, payload: [...state.events] });
     }
@@ -149,13 +152,84 @@ export default function Timeline() {
 
   const handleToggle = () => setOpenActions((prev) => !prev);
 
+  const updateCalendarData = React.useCallback((resources, events) => {
+    const teamEvents = [];
+    let employees = [];
+
+    const updatedResources = resources.map((project) => ({
+      ...project,
+      id: String(project.id),
+      children: project.children.map((team) => {
+        const teamEmployees = [];
+        const updatedEmployees =
+          team?.children?.map((employee) => {
+            teamEmployees.push({ id: String(employee.id), name: employee.name });
+            return {
+              ...employee,
+              id: String(employee.id),
+              children: travelExpensesForEmployee(employee.id),
+              collapsed: true,
+            };
+          }) ?? [];
+        teamEvents.push({
+          title: `EMPLOYEES: ${teamEmployees.map((x) => x.name).join(', ')}`,
+          resource: String(team.id),
+          start: team.start,
+          end: team.end,
+        });
+        employees = [...employees, ...teamEmployees];
+        return {
+          ...team,
+          children: updatedEmployees,
+        };
+      }),
+    }));
+
+    setEmployees(employees);
+
+    const updatedEvents = events.map((event) => {
+      const start = moment(event.start);
+      const end = moment(event.end);
+      end.set('hour', 23);
+      end.set('minute', 59);
+      return event.type === 'te' || event.sub_type === 'task'
+        ? { ...event, start, end, resource: `${event.employee}-${event.sub_type}` }
+        : { ...event, start, end, resource: event.employee };
+    });
+    return { resources: updatedResources, events: [...updatedEvents, ...teamEvents] };
+  }, []);
+
   // for handling calendar data to create one more layer with expenses of meals, lodging, task
-  React.useEffect(() => {
-    const res = updateCalendarData(data.resources, data.events);
-    console.log(res);
+  const fetchData = async () => {
+    // setLoading(true);
+    // const res = await getProjectDetails(id);
+    const resources = await getTeResources(id);
+    const events = await listAllEvents();
+    const res = updateCalendarData(resources, events);
     dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
     dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
+  };
+
+  const fetchEvents = async () => {
+    const events = await listAllEvents();
+    const res = updateCalendarData(state.resources, events);
+    dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
+  };
+
+  React.useEffect(() => {
+    fetchData();
   }, []);
+
+  React.useEffect(() => {
+    if (state.beep) {
+      fetchEvents();
+      dispatch({ type: TEActionType.BEEP, payload: false });
+    }
+
+    // const res = updateCalendarData(data.resources, data.events);
+    // dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
+    // dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
+  }, [state.beep]);
 
   const travelExpensesForEmployee = React.useCallback(
     (employee_id) => [
@@ -175,27 +249,6 @@ export default function Timeline() {
     []
   );
 
-  const updateCalendarData = React.useCallback((resources, events) => {
-    console.log(resources, events);
-    const updatedResources = resources.map((resource) => ({
-      ...resource,
-      children: resource.children.map((project) => ({
-        ...project,
-        children: project.children.map((employee) => ({
-          ...employee,
-          children: travelExpensesForEmployee(employee.id),
-          collapsed: false,
-        })),
-      })),
-    }));
-    const updatedEvents = events.map((event) =>
-      event.type === 'travel' || event.subType === 'task'
-        ? { ...event, resource: `${event.resource}-${event.subType}` }
-        : event
-    );
-    return { resources: updatedResources, events: updatedEvents };
-  }, []);
-
   const renderMyResource = (resource) => {
     return (
       <Box
@@ -211,14 +264,42 @@ export default function Timeline() {
       </Box>
     );
   };
+  const styles = (keyword, bgColor) => {
+    switch (keyword) {
+      case 'Planned':
+        return {
+          background: (theme) => theme.palette.background.paper,
+          borderRadius: '8px',
+          border: `2px solid ${bgColor}`,
+          color: `${bgColor} !important`,
+        };
+
+      case 'Rejected':
+        return {
+          background: `repeating-linear-gradient( -45deg, ${bgColor}, ${bgColor} 5px, #fff 5px, #fff 10px )`,
+          minWidth: 0,
+          fontSize: '10px',
+          color: `${bgColor} !important`,
+        };
+
+      case 'Approved':
+        return {
+          borderRadius: '8px',
+          border: `2px solid ${bgColor}`,
+        };
+
+      default:
+        break;
+    }
+  };
 
   const renderScheduleEvent = (event) => {
-    const bgColor = color(event.original.subType);
+    const bgColor = color(event.original.sub_type);
     const startDate = moment(event.startDate);
     const endDate = moment(event.endDate);
-    const diff = endDate.diff(startDate, 'days');
+    const diff = endDate.diff(startDate, 'days') + 1;
 
-    if (event.original.type === 'travel') {
+    if (event.original.type === 'te' || event.original.type === 'task') {
       return (
         <>
           <Stack
@@ -232,135 +313,24 @@ export default function Timeline() {
               justifyContent: 'flex-between',
               alignItems: 'initial !important',
               padding: '0 !important',
+              ...styles(event.original.status, bgColor),
             }}
           >
-            <Box
-              component="div"
-              justifyContent="center"
-              alignItems="center"
-              display="flex"
-              sx={{
-                width: '30%',
-                ...(event.original.subType !== 'lodging' && {
-                  padding: '6px',
-                }),
-              }}
-            >
-              {event.original.subType === 'lodging' && (
-                <Box
-                  component="div"
-                  justifyContent="center"
-                  alignItems="center"
-                  display="flex"
-                  sx={{
-                    borderRight: '2px dotted #fff',
-                    width: '10%',
-                    padding: '6px',
-                  }}
-                >
-                  <Iconify icon="bi:truck" width={15} height={15} />
-                </Box>
-              )}
-              <Typography variant="outlined" justifyContent="center" alignItems="center" display="flex" flex="1 1 auto">
-                7하숙
-              </Typography>
-            </Box>
-
-            <Stack
-              justifyContent="center"
-              alignItems="center"
-              display="flex"
-              sx={{
-                width: '15%',
-                background: (theme) => theme.palette.background.slash,
-              }}
-            >
-              <MuiButton
-                size="small"
-                variant="contained"
-                color="inherit"
-                sx={{ padding: '2px 4px', minWidth: 0, color: bgColor, fontSize: '10px' }}
+            {event.original.status === 'Rejected' ? (
+              <Typography
+                variant="caption"
+                sx={{ background: (theme) => theme.palette.background.paper, lineHeight: 'inherit' }}
               >
-                -5하숙
-              </MuiButton>
-            </Stack>
-            <Typography
-              variant="outlined"
-              justifyContent="center"
-              alignItems="center"
-              display="flex"
-              sx={{
-                width: '42.5%',
-              }}
-            >
-              18하숙
-            </Typography>
-            <Typography
-              variant="outlined"
-              justifyContent="center"
-              alignItems="center"
-              display="flex"
-              sx={{
-                width: '20%',
-                background: (theme) => theme.palette.background.paper,
-                borderRadius: '0 8px 8px 0px',
-                border: `2px solid ${bgColor}`,
-                color: bgColor,
-              }}
-            >
-              7하숙
-            </Typography>
+                {diff}하숙
+              </Typography>
+            ) : (
+              <>{diff}하숙</>
+            )}
           </Stack>
         </>
       );
     }
-    if (event.original.subType === 'task') {
-      return (
-        <>
-          <Stack
-            component="div"
-            justifyContent="flex-between"
-            className="timeline-event"
-            sx={{
-              background: bgColor,
-              color: bgColor === '#fff' ? '#000 !important' : '#fff !important',
-              boxShadow: (theme) => theme.customShadows.z8,
-              justifyContent: 'flex-between',
-              alignItems: 'initial !important',
-              padding: '0 !important',
-            }}
-          >
-            <Typography
-              variant="outlined"
-              justifyContent="center"
-              alignItems="center"
-              display="flex"
-              sx={{
-                width: '70%',
-                padding: '6px',
-              }}
-            >
-              7하숙
-            </Typography>
-            <Typography
-              variant="outlined"
-              justifyContent="center"
-              alignItems="center"
-              display="flex"
-              sx={{
-                width: '30%',
-                background: (theme) => theme.palette.background.paper,
-                borderRadius: '0 8px 8px 0px',
-                border: `2px solid ${bgColor}`,
-                color: bgColor,
-              }}
-            >
-              7하숙
-            </Typography>
-          </Stack>
-        </>
-      );
-    }
+
     return (
       <>
         <Box
@@ -481,12 +451,14 @@ export default function Timeline() {
       let endDate = new Date(event.end);
       startDate = moment(startDate).format('YYYY-MM-DD');
       endDate = moment(endDate).format('YYYY-MM-DD');
+      const resource = String(event?.resource)?.split('-');
       const data = {
-        start: event.start,
-        end: event.end,
-        resource: event.resource,
-        project: 123,
-        expense_type: event.subType,
+        start: startDate,
+        end: endDate,
+        employee: resource.length === 1 ? null : resource[0],
+        sub_type: resource[1] ?? null,
+        id: event.id,
+        status: event.status,
       };
       setPopupData(data);
     } catch (error) {
@@ -502,21 +474,23 @@ export default function Timeline() {
 
   const onEventClick = React.useCallback(
     (args) => {
-      setEdit(true);
-
-      setTempEvent({ ...args.event });
-      // fill popup form with event data
-      loadPopupForm(args.event);
-      const expense_type = args.event.resource.split('-');
-      console.log(args.event, expense_type);
-      if (expense_type.length > 1 && (expense_type[1] === 'lodging' || expense_type[1] === 'meals')) {
-        handlePopupTypeChange('te');
-        handleOpenViewPopup(args.domEvent.target);
-      } else if (args.event.type === 'special') {
-        handlePopupTypeChange('specialTe');
-        handleOpenViewPopup(args.domEvent.target);
-      } else {
-        // setAnchor(args.target);
+      try {
+        setEdit(true);
+        setTempEvent({ ...args.event });
+        // fill popup form with event data
+        loadPopupForm(args.event);
+        const expense_type = String(args?.event?.resource)?.split('-');
+        if (
+          (expense_type.length > 1 && (expense_type[1] === 'lodging' || expense_type[1] === 'meals')) ||
+          args.event.type === 'ste'
+        ) {
+          handlePopupTypeChange(args.event.type);
+          handleOpenViewPopup(args.domEvent.target);
+        } else {
+          // setAnchor(args.target);
+        }
+      } catch (e) {
+        console.log(e);
       }
     },
     [loadPopupForm]
@@ -526,8 +500,7 @@ export default function Timeline() {
     (args) => {
       setEdit(false);
       setTempEvent(args.event);
-      console.log(args.event);
-      const expense_type = args.event.resource.split('-');
+      const expense_type = args.event.resource?.split('-');
       if (expense_type.length > 1 && expense_type[1] !== 'task') {
         handlePopupTypeChange('te');
         handleOpenPopup(args.target);
@@ -609,9 +582,23 @@ export default function Timeline() {
 
   return (
     <>
-      {popupType && <AddFormPopup type={popupType} handleClose={handleClosePopup} anchor={openPopup} />}
       {popupType && (
-        <ViewEventPopup data={popupData} type={popupType} handleClose={handleCloseViewPopup} anchor={viewPopup} />
+        <AddFormPopup
+          data={popupData}
+          employees={employees}
+          type={popupType}
+          handleClose={handleClosePopup}
+          anchor={openPopup}
+        />
+      )}
+      {popupType && (
+        <ViewEventPopup
+          employees={employees}
+          data={popupData}
+          type={popupType}
+          handleClose={handleCloseViewPopup}
+          anchor={viewPopup}
+        />
       )}
 
       <Loader open={loader} setOpen={setLoader} />
@@ -620,8 +607,6 @@ export default function Timeline() {
         view={viewSettings}
         data={state.events}
         invalid={invalid}
-        displayTimezone="local"
-        dataTimezone="local"
         onPageLoading={onPageLoading}
         renderResource={renderMyResource}
         renderScheduleEvent={renderScheduleEvent}
@@ -633,6 +618,7 @@ export default function Timeline() {
         dragTimeStep={30}
         selectedDate={mySelectedDate}
         onSelectedDateChange={onSelectedDateChange}
+        showEventTooltip={false}
         onEventClick={onEventClick}
         onEventCreated={onEventCreated}
         onEventDeleted={onEventDeleted}
@@ -645,7 +631,7 @@ export default function Timeline() {
         <Stack flexDirection="row" justifyContent="space-between" sx={{ p: 1 }}>
           <MuiButton
             onClick={() => {
-              handlePopupTypeChange('specialTe');
+              handlePopupTypeChange('ste');
               handleOpenPopup(anchor);
             }}
             startIcon={<Iconify icon="tabler:plane-tilt" width={15} height={15} />}

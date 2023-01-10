@@ -10,12 +10,14 @@ import { LoadingButton } from '@mui/lab';
 // components
 import Iconify from '../../../components/Iconify';
 import { FormProvider, RHFTextField } from '../../../components/hook-form';
+import { supabase } from '../../../supabaseClient';
+import useAlert from 'hooks/useAlert';
 
 // ----------------------------------------------------------------------
 
 export default function RegisterForm() {
   const navigate = useNavigate();
-
+  const { ShowAlert, setmessage } = useAlert();
   const [showPassword, setShowPassword] = useState(false);
 
   const RegisterSchema = Yup.object().shape({
@@ -42,8 +44,13 @@ export default function RegisterForm() {
     formState: { isSubmitting },
   } = methods;
 
-  const onSubmit = async () => {
-    navigate('/dashboard', { replace: true });
+  const onSubmit = async (e) => {
+    try {
+      const { error } = await supabase.auth.signUp(e);
+      if (error) throw error;
+    } catch (error) {
+      setmessage(error.error_description || error.message);
+    }
   };
 
   return (
@@ -70,6 +77,8 @@ export default function RegisterForm() {
             ),
           }}
         />
+
+        <ShowAlert />
 
         <LoadingButton fullWidth size="large" type="submit" variant="contained" loading={isSubmitting}>
           Register

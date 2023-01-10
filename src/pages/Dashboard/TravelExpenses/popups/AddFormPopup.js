@@ -10,12 +10,13 @@ import { AddTravelExpensesForm, AddSpecialTravelExpensesForm } from '../forms';
 
 AddFormPopup.propTypes = {
   handleClose: PropTypes.func.isRequired,
+  employees: PropTypes.array.isRequired,
   anchor: PropTypes.any,
-  type: PropTypes.oneOf(['specialTe', 'te', null]).isRequired,
+  type: PropTypes.oneOf(['ste', 'te', null]).isRequired,
 };
 
 const forms = {
-  specialTe: {
+  ste: {
     title: 'Add Special Travel Expenses',
     component: AddSpecialTravelExpensesForm,
   },
@@ -25,22 +26,26 @@ const forms = {
   },
 };
 
-export default function AddFormPopup({ handleClose, anchor, type }) {
+export default function AddFormPopup({ handleClose, anchor, type, employees, data }) {
   const ref = React.useRef();
 
   React.useEffect(() => {}, []);
   const Form = forms[type].component;
 
+  const handleSubmit = () => {
+    ref?.current?.onSubmit();
+  };
+
   return (
     <>
       <PopupForm
         title={forms[type].title}
-        variant="secondary"
-        handleSubmit={ref?.current?.handleSubmit}
+        variant="primary"
+        handleSubmit={handleSubmit}
         handleClose={handleClose}
         anchor={anchor}
       >
-        <Form ref={ref} />
+        <Form handleClose={handleClose} employees={employees} ref={ref} data={data} />
       </PopupForm>
     </>
   );

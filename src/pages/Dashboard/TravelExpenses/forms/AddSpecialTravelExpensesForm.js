@@ -11,13 +11,11 @@ import {
   Box,
   TextField,
   FormHelperText,
-  Typography,
-  Button,
   Snackbar,
   Alert,
+  Backdrop,
+  CircularProgress,
 } from '@mui/material';
-import CircularProgress from '@mui/material/CircularProgress';
-import PopupForm from 'components/Popups/PopupForm';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -26,25 +24,26 @@ import moment from 'moment-timezone';
 import * as Yup from 'yup';
 // components
 // api
-import { createNewProject } from 'supabase/projects';
-
+import { createNewEvent, editEvent } from 'supabase/events';
+import useTE from '../context/context';
+import { TEActionType } from '../context/types';
 // ----------------------------------------------------------------------
 const validationSchema = Yup.object().shape({
-  project_id: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
-  resource: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
-  expense_type: Yup.string().required('Required').nullable(),
+  employee: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
+  sub_type: Yup.string().required('Required').nullable(),
   start: Yup.date().required('Required').nullable(),
 });
 
 const initialValues = {
-  project_id: null,
-  resource: null,
-  expense_type: null,
+  employee: null,
+  sub_type: null,
+  type: 'ste',
   start: null,
 };
 
 const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
-  const { data } = props;
+  const { data = {}, employees, handleClose, edit = false } = props;
+  const { state, dispatch } = useTE();
   const theme = useTheme();
   const [loader, setLoader] = React.useState(false);
   const [toast, setToast] = React.useState(null);
@@ -54,18 +53,38 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
     validationSchema,
     onSubmit: async (values) => {
       setLoader(true);
-      const res = await createNewProject(values);
-      if (res.status === 201) {
-        setToast({ severity: 'success', message: 'Succesfully added new project!' });
-      } else {
-        setToast({ severity: 'error', message: 'Failed to added new project!' });
+      try {
+        let res;
+        const id = values.id;
+        delete values.id;
+        if (edit) {
+          res = await editEvent(values, id);
+          if (res.status >= 200 && res.status < 300) {
+            setToast({ severity: 'success', message: 'Succesfully edited event!' });
+            dispatch({ type: TEActionType.BEEP, payload: true });
+            handleClose();
+          } else {
+            setToast({ severity: 'error', message: 'Failed to edit event!' });
+          }
+        } else {
+          res = await createNewEvent(values);
+          if (res.status >= 200 && res.status < 300) {
+            setToast({ severity: 'success', message: 'Succesfully added new event!' });
+            dispatch({ type: TEActionType.BEEP, payload: true });
+            handleClose();
+          } else {
+            setToast({ severity: 'error', message: 'Failed to added new event!' });
+          }
+        }
+      } catch (err) {
+        console.log(err);
       }
       setLoader(false);
     },
   });
 
   useImperativeHandle(ref, () => ({
-    handleSubmit() {
+    onSubmit() {
       handleSubmit();
     },
   }));
@@ -75,11 +94,14 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
   };
 
   React.useEffect(() => {
-    if (data) setValues({ ...values, data });
+    if (data) setValues({ ...values, ...data });
   }, [data]);
 
   return (
     <>
+      <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loader}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <Snackbar
         open={toast}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
@@ -94,63 +116,49 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-helper-label">Project</InputLabel>
+              <InputLabel shrink id="demo-simple-select-helper-label">
+                Employee
+              </InputLabel>
               <Select
                 labelId="demo-simple-select-helper-label"
                 id="demo-simple-select-helper"
-                value={values.project_id}
-                label="Project"
-                onChange={handleChange}
-                onBlur={handleBlur}
-                name="project_id"
-                fullWidth
-              >
-                <MenuItem value={12434}>Iljin Electric _ 345KV Samcheok Thermal Power Plant</MenuItem>
-              </Select>
-              <FormHelperText error={errors.project_id && touched.project_id}>
-                {errors.project_id && touched.project_id ? errors.project_id : null}
-              </FormHelperText>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-helper-label">Employee</InputLabel>
-              <Select
-                labelId="demo-simple-select-helper-label"
-                id="demo-simple-select-helper"
-                value={values.resource}
+                value={values.employee}
                 label="Employee"
                 onChange={handleChange}
                 onBlur={handleBlur}
-                name="resource"
+                name="employee"
                 fullWidth
               >
-                <MenuItem value={2344}>EMployee_LGS</MenuItem>
+                {employees.map((employee) => (
+                  <MenuItem value={employee.id}>{employee.name}</MenuItem>
+                ))}
               </Select>
-              <FormHelperText error={errors.resource && touched.resource}>
-                {touched.resource ? errors.resource : null}
+              <FormHelperText error={errors.employee && touched.employee}>
+                {touched.employee ? errors.employee : null}
               </FormHelperText>
             </FormControl>
           </Grid>
           <Grid item xs={12}>
             <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-helper-label">Expense Type</InputLabel>
+              <InputLabel shrink id="demo-simple-select-helper-label">
+                Expense Type
+              </InputLabel>
               <Select
                 labelId="demo-simple-select-helper-label"
                 id="demo-simple-select-helper"
-                value={values.expense_type}
+                value={values.sub_type}
                 label="Expense Type"
                 onChange={handleChange}
                 onBlur={handleBlur}
-                name="expense_type"
+                name="sub_type"
                 fullWidth
               >
                 <MenuItem value="overtime">Overtime</MenuItem>
                 <MenuItem value="nightTime">Night-time</MenuItem>
                 <MenuItem value="restDayMove">Rest Day move</MenuItem>
               </Select>
-              <FormHelperText error={errors.expense_type && touched.expense_type}>
-                {touched.expense_type ? errors.expense_type : null}
+              <FormHelperText error={errors.sub_type && touched.sub_type}>
+                {touched.sub_type ? errors.sub_type : null}
               </FormHelperText>
             </FormControl>
           </Grid>

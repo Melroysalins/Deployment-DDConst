@@ -70,8 +70,8 @@ export default function Projects() {
               <Card>
                 <CardHeader title={data?.title} />
                 <CardContent>
-                  <Typography variant="body2">Contract code: {data?.contractCode}</Typography>
-                  <Typography variant="body2">Contract value: {data?.contractValue}</Typography>
+                  <Typography variant="body2">Contract code: {data?.contract_code}</Typography>
+                  <Typography variant="body2">Contract value: {data?.contract_value}</Typography>
                   <Typography variant="body2">
                     Project timeline: {data?.start} - {data?.end}
                   </Typography>
@@ -180,7 +180,7 @@ const events = [
     icon: <Iconify width={40} height={40} color="#8D99FF" icon="heroicons:truck" />,
     title: 'Travel Expenses / Overtime',
     description: '3 day shifts, 54 night shifts, 5 Overtime, 3 Nighttime, 4 Move on rest day',
-    redirect: 'travel-expenses?filters=te,specialTe,outsourced,tasks',
+    redirect: 'travel-expenses?filters=te,ste,outsourced,tasks',
   },
   {
     icon: <Iconify width={40} height={40} color="#8CCC67" icon="ant-design:money-collect-outlined" />,

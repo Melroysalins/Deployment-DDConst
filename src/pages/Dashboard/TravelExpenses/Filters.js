@@ -54,7 +54,7 @@ export default function Filters({ filters }) {
       />
       <FormControlLabel
         componentsProps={{ typography: { variant: 'body2' } }}
-        control={<StyledCheckbox name="specialTe" checked={filters.specialTe} onChange={handleChange} size="small" />}
+        control={<StyledCheckbox name="ste" checked={filters.ste} onChange={handleChange} size="small" />}
         label="Special travel expenses"
       />
       <FormControlLabel

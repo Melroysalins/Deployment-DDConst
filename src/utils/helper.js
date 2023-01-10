@@ -8,5 +8,6 @@ export const isEmpty = (value) =>
 
 export const dummyArray = (name, count = 10) => [...Array(count).keys()].map((e) => `${name} ${e}`);
 
-export const dummyArrayNumber = (count = 10, min = 10000) =>
-  [...Array(count).keys()].map(() => Math.floor(Math.random() * 1000) + min);
+export const dummyArrayEmpty = (count = 10) => [...Array(count).keys()].map(() => '-');
+
+export const formatNumber = (num) => num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');

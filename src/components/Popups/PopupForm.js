@@ -25,13 +25,26 @@ export default function PopupForm(props) {
         open={Boolean(anchor)}
         anchorEl={anchor}
         onClose={handleClose}
-        sx={{ width: 360, p: 0, mt: 1.5, ml: 0.75 }}
+        sx={{ width: 400, p: 0, mt: 1.5, ml: 0.75 }}
       >
-        <Box
-          sx={{ display: 'flex', alignItems: 'center', py: 2, px: 2.5, background: (theme) => color(variant, theme) }}
-        >
-          <Typography variant="subtitle1">{title}</Typography>
-        </Box>
+        {title ? (
+          <Box
+            sx={{ display: 'flex', alignItems: 'center', py: 2, px: 2.5, background: (theme) => color(variant, theme) }}
+          >
+            <Typography variant="subtitle1">{title}</Typography>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              py: 0.75,
+              px: 2.5,
+              background: (theme) => color(variant, theme),
+            }}
+          />
+        )}
+
         {props.children}
 
         <Divider sx={{ borderStyle: 'dashed' }} />
