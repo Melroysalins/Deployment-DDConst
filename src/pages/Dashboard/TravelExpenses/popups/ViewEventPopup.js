@@ -1,13 +1,18 @@
 // @mui
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Tabs, Tab, Box } from '@mui/material';
+import { Tabs, Tab, Box, Button } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 
 // components
 import PopupForm from 'components/Popups/PopupForm';
+import Iconify from 'components/Iconify';
 import { AddTravelExpensesForm, AddSpecialTravelExpensesForm } from '../forms';
 import Logs from './Logs';
+import useTE from '../context/context';
+import { TEActionType } from '../context/types';
+
+import { deleteEvent } from 'supabase/events';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -55,7 +60,7 @@ const forms = {
   ste: {
     title: 'View Special Travel Expenses',
     component: AddSpecialTravelExpensesForm,
-    variant: 'inherit',
+    variant: 'primary',
   },
   te: {
     title: 'View Travel Expenses',
@@ -66,6 +71,9 @@ const forms = {
 
 export default function ViewEventPopup({ handleClose, anchor, type, data, employees }) {
   const theme = useTheme();
+  const { state, dispatch } = useTE();
+  const [toast, setToast] = React.useState(null);
+
   const ref = React.useRef();
   const [value, setValue] = React.useState(0);
 
@@ -79,6 +87,23 @@ export default function ViewEventPopup({ handleClose, anchor, type, data, employ
   const handleSubmit = () => {
     ref?.current?.onSubmit();
   };
+
+  const handleDeleteEvent = async () => {
+    try {
+      const res = await deleteEvent(data.id);
+      if (res.status >= 200 && res.status < 300) {
+        setToast({ severity: 'success', message: 'Succesfully deleted event!' });
+        dispatch({ type: TEActionType.BEEP, payload: true });
+        handleClose();
+      } else {
+        setToast({ severity: 'error', message: 'Failed to delete event!' });
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  console.log(data);
 
   return (
     <>
@@ -97,6 +122,16 @@ export default function ViewEventPopup({ handleClose, anchor, type, data, employ
         </Box>
         <TabPanel value={value} index={0}>
           <Form edit handleClose={handleClose} employees={employees} data={data} ref={ref} />
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              sx={{ color: (theme) => theme.palette.colors[8] }}
+              startIcon={<Iconify icon="material-symbols:delete-outline" width={15} height={15} />}
+              size="small"
+              onClick={handleDeleteEvent}
+            >
+              Delete
+            </Button>
+          </div>
         </TabPanel>
         <TabPanel value={value} index={1}>
           <Logs />

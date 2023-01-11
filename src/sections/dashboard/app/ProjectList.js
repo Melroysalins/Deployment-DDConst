@@ -11,14 +11,13 @@ import Skeleton from './ProjectSkelation';
 import { useStore } from 'pages/Dashboard/store/Store';
 
 export default function ProjectList(props) {
-  console.log(props);
   const [loader, setLoader] = React.useState(true);
   const [data, setData] = React.useState([]);
   const [toast, setToast] = React.useState(null);
 
   React.useEffect(() => {
-    console.log('console.log(actionFunction)');
     fetchData();
+    return () => null;
   }, []);
 
   const fetchData = async () => {
@@ -124,7 +123,6 @@ ProjectItem.propTypes = {
 };
 
 function ProjectItem({ data }) {
-  console.log(data);
   const navigate = useNavigate();
   const { title, location, contract_code, contract_value, start, end, rate_of_completion, color, id } = data;
 

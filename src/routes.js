@@ -14,6 +14,7 @@ import ProjectLayout from './pages/Dashboard/ProjectLayout';
 import WorkforcePlanning from './pages/WorkforcePlanning/WorkforcePlanning';
 import TravelExpenses from './pages/Dashboard/TravelExpenses/TELayout';
 import ProjectImplementationSchedule from './pages/ProjectImplementationSchedule';
+import HrAdmin from 'pages/HrAdmin';
 import useMain from 'pages/context/context';
 
 // ----------------------------------------------------------------------
@@ -29,7 +30,6 @@ export default function Router() {
           path: 'projects',
           element: <ProjectLayout />,
           children: [
-            { path: '', element: <Navigate to="list" /> },
             { path: 'list', element: <ProjectList /> },
             { path: ':id/travel-expenses', element: <TravelExpenses /> },
 
@@ -43,6 +43,7 @@ export default function Router() {
         { path: 'user', element: <User /> },
         { path: 'products', element: <Products /> },
         { path: 'blog', element: <Blog /> },
+        { path: 'hr-admin', element: <HrAdmin /> },
       ],
     },
     {
@@ -57,7 +58,7 @@ export default function Router() {
       path: '/',
       element: <LogoOnlyLayout />,
       children: [
-        { path: '/', element: <Navigate to="/dashboard/projects" /> },
+        { path: '/', element: <Navigate to="/dashboard/projects/list" /> },
         { path: '404', element: <NotFound /> },
         { path: '*', element: <Navigate to="/404" /> },
       ],

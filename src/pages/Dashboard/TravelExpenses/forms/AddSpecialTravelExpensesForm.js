@@ -25,7 +25,8 @@ import * as Yup from 'yup';
 // components
 // api
 import { createNewEvent, editEvent } from 'supabase/events';
-
+import useTE from '../context/context';
+import { TEActionType } from '../context/types';
 // ----------------------------------------------------------------------
 const validationSchema = Yup.object().shape({
   employee: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
@@ -42,6 +43,7 @@ const initialValues = {
 
 const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
   const { data = {}, employees, handleClose, edit = false } = props;
+  const { state, dispatch } = useTE();
   const theme = useTheme();
   const [loader, setLoader] = React.useState(false);
   const [toast, setToast] = React.useState(null);
@@ -59,6 +61,7 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
           res = await editEvent(values, id);
           if (res.status >= 200 && res.status < 300) {
             setToast({ severity: 'success', message: 'Succesfully edited event!' });
+            dispatch({ type: TEActionType.BEEP, payload: true });
             handleClose();
           } else {
             setToast({ severity: 'error', message: 'Failed to edit event!' });
@@ -67,6 +70,7 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
           res = await createNewEvent(values);
           if (res.status >= 200 && res.status < 300) {
             setToast({ severity: 'success', message: 'Succesfully added new event!' });
+            dispatch({ type: TEActionType.BEEP, payload: true });
             handleClose();
           } else {
             setToast({ severity: 'error', message: 'Failed to added new event!' });
@@ -110,26 +114,6 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
       </Snackbar>
       <Box onSubmit={handleSubmit} component="form" noValidate autoComplete="off" p={3}>
         <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <FormControl fullWidth>
-              <InputLabel id="demo-simple-select-helper-label">Project</InputLabel>
-              <Select
-                labelId="demo-simple-select-helper-label"
-                id="demo-simple-select-helper"
-                value={values.project_id}
-                label="Project"
-                onChange={handleChange}
-                onBlur={handleBlur}
-                name="project_id"
-                fullWidth
-              >
-                <MenuItem value={12434}>Iljin Electric _ 345KV Samcheok Thermal Power Plant</MenuItem>
-              </Select>
-              <FormHelperText error={errors.project_id && touched.project_id}>
-                {errors.project_id && touched.project_id ? errors.project_id : null}
-              </FormHelperText>
-            </FormControl>
-          </Grid>
           <Grid item xs={12}>
             <FormControl fullWidth>
               <InputLabel shrink id="demo-simple-select-helper-label">

@@ -1,6 +1,8 @@
 import React from 'react';
 import useTE from './context/context';
 import { TEActionType } from './context/types';
+import { useParams } from 'react-router-dom';
+
 import '@mobiscroll/react/dist/css/mobiscroll.min.css';
 import {
   Eventcalendar,
@@ -85,6 +87,7 @@ export const Rating = styled(Avatar, {
 
 export default function Timeline() {
   const { state, dispatch } = useTE();
+  const { id } = useParams();
 
   const [tempEvent, setTempEvent] = React.useState(null);
   const [isOpen, setOpen] = React.useState(false);
@@ -158,15 +161,16 @@ export default function Timeline() {
       id: String(project.id),
       children: project.children.map((team) => {
         const teamEmployees = [];
-        const updatedEmployees = team.children.map((employee) => {
-          teamEmployees.push({ id: String(employee.id), name: employee.name });
-          return {
-            ...employee,
-            id: String(employee.id),
-            children: travelExpensesForEmployee(employee.id),
-            collapsed: true,
-          };
-        });
+        const updatedEmployees =
+          team?.children?.map((employee) => {
+            teamEmployees.push({ id: String(employee.id), name: employee.name });
+            return {
+              ...employee,
+              id: String(employee.id),
+              children: travelExpensesForEmployee(employee.id),
+              collapsed: true,
+            };
+          }) ?? [];
         teamEvents.push({
           title: `EMPLOYEES: ${teamEmployees.map((x) => x.name).join(', ')}`,
           resource: String(team.id),
@@ -183,11 +187,15 @@ export default function Timeline() {
 
     setEmployees(employees);
 
-    const updatedEvents = events.map((event) =>
-      event.type === 'te' || event.sub_type === 'task'
-        ? { ...event, resource: `${event.employee}-${event.sub_type}` }
-        : { ...event, resource: event.employee }
-    );
+    const updatedEvents = events.map((event) => {
+      const start = moment(event.start);
+      const end = moment(event.end);
+      end.set('hour', 23);
+      end.set('minute', 59);
+      return event.type === 'te' || event.sub_type === 'task'
+        ? { ...event, start, end, resource: `${event.employee}-${event.sub_type}` }
+        : { ...event, start, end, resource: event.employee };
+    });
     return { resources: updatedResources, events: [...updatedEvents, ...teamEvents] };
   }, []);
 
@@ -195,7 +203,7 @@ export default function Timeline() {
   const fetchData = async () => {
     // setLoading(true);
     // const res = await getProjectDetails(id);
-    const resources = await getTeResources();
+    const resources = await getTeResources(id);
     const events = await listAllEvents();
     const res = updateCalendarData(resources, events);
     dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
@@ -213,18 +221,15 @@ export default function Timeline() {
   }, []);
 
   React.useEffect(() => {
-    let subscription;
-    (async function () {
-      subscription = await subscribeEvent(fetchEvents);
-    })();
+    if (state.beep) {
+      fetchEvents();
+      dispatch({ type: TEActionType.BEEP, payload: false });
+    }
 
-    return async () => {
-      await subscription.unsubscribe();
-    };
     // const res = updateCalendarData(data.resources, data.events);
     // dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
     // dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
-  }, [state.resources]);
+  }, [state.beep]);
 
   const travelExpensesForEmployee = React.useCallback(
     (employee_id) => [
@@ -266,7 +271,6 @@ export default function Timeline() {
           background: (theme) => theme.palette.background.paper,
           borderRadius: '8px',
           border: `2px solid ${bgColor}`,
-          width: '100%',
           color: `${bgColor} !important`,
         };
 
@@ -279,7 +283,10 @@ export default function Timeline() {
         };
 
       case 'Approved':
-        return {};
+        return {
+          borderRadius: '8px',
+          border: `2px solid ${bgColor}`,
+        };
 
       default:
         break;
@@ -290,7 +297,7 @@ export default function Timeline() {
     const bgColor = color(event.original.sub_type);
     const startDate = moment(event.startDate);
     const endDate = moment(event.endDate);
-    const diff = endDate.diff(startDate, 'days');
+    const diff = endDate.diff(startDate, 'days') + 1;
 
     if (event.original.type === 'te' || event.original.type === 'task') {
       return (
@@ -314,10 +321,10 @@ export default function Timeline() {
                 variant="caption"
                 sx={{ background: (theme) => theme.palette.background.paper, lineHeight: 'inherit' }}
               >
-                5하숙
+                {diff}하숙
               </Typography>
             ) : (
-              '5하숙'
+              <>{diff}하숙</>
             )}
           </Stack>
         </>
@@ -440,7 +447,6 @@ export default function Timeline() {
 
   const loadPopupForm = React.useCallback((event) => {
     try {
-      console.log(event);
       let startDate = new Date(event.start);
       let endDate = new Date(event.end);
       startDate = moment(startDate).format('YYYY-MM-DD');
@@ -449,8 +455,8 @@ export default function Timeline() {
       const data = {
         start: startDate,
         end: endDate,
-        employee: resource[0],
-        sub_type: event.sub_type,
+        employee: resource.length === 1 ? null : resource[0],
+        sub_type: resource[1] ?? null,
         id: event.id,
         status: event.status,
       };
@@ -474,7 +480,6 @@ export default function Timeline() {
         // fill popup form with event data
         loadPopupForm(args.event);
         const expense_type = String(args?.event?.resource)?.split('-');
-        console.log(args);
         if (
           (expense_type.length > 1 && (expense_type[1] === 'lodging' || expense_type[1] === 'meals')) ||
           args.event.type === 'ste'
@@ -602,8 +607,6 @@ export default function Timeline() {
         view={viewSettings}
         data={state.events}
         invalid={invalid}
-        displayTimezone="local"
-        dataTimezone="local"
         onPageLoading={onPageLoading}
         renderResource={renderMyResource}
         renderScheduleEvent={renderScheduleEvent}
@@ -615,6 +618,7 @@ export default function Timeline() {
         dragTimeStep={30}
         selectedDate={mySelectedDate}
         onSelectedDateChange={onSelectedDateChange}
+        showEventTooltip={false}
         onEventClick={onEventClick}
         onEventCreated={onEventCreated}
         onEventDeleted={onEventDeleted}

@@ -2,12 +2,12 @@ import { supabase } from 'lib/api';
 import moment from 'moment';
 import { dummyArrayEmpty } from 'utils/helper';
 
-export const getTeResources = async () => {
+export const getTeResources = async (id) => {
   const { data: projects, error } = await supabase
     .from('projects_teams_employees')
     .select('*')
     .not('teams', 'is', null)
-    .eq('id', '10');
+    .eq('id', id);
   const { data: teamEmployees, error: error2 } = await supabase
     .from('teams_employees')
     .select('*')
@@ -43,7 +43,7 @@ export const getTeTotals = async (dateRange) => {
     .select('*')
     .not('teams', 'is', null)
     .eq('id', '10');
-    
+
   const { data: teamEmployees, error: error2 } = await supabase
     .from('teams_employees')
     .select('*')
