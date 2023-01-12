@@ -43,8 +43,9 @@ export default function LoginForm() {
 
   const onSubmit = async (e) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword(e);
+      const { data, error } = await supabase.auth.signInWithPassword(e);
       if (error) throw error;
+      else if (data.session && data.user) navigate('/dashboard/projects/list', { replace: true });
     } catch (error) {
       setmessage(error.error_description || error.message);
     }
