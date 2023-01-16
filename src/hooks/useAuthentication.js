@@ -35,19 +35,19 @@ export default function useAuthentication() {
     return () => null;
   }, []);
 
-  useEffect(() => {
-    console.log(event);
-    switch (event) {
-      case 'SIGNED_IN':
-        navigate('/dashboard/projects/list', { replace: true });
-        break;
-      case 'SIGNED_OUT':
-        navigate('/login', { replace: true });
-        break;
-      default:
-    }
-    return () => null;
-  }, [event]);
+  // useEffect(() => {
+  //   console.log(event);
+  //   switch (event) {
+  //     case 'SIGNED_IN':
+  //       navigate('/dashboard/projects/list', { replace: true });
+  //       break;
+  //     case 'SIGNED_OUT':
+  //       navigate('/login', { replace: true });
+  //       break;
+  //     default:
+  //   }
+  //   return () => null;
+  // }, [event]);
 
   return {
     getSession,
