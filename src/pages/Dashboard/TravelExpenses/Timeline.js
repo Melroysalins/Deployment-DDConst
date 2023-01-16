@@ -1,40 +1,34 @@
-import React from 'react';
-import useTE from './context/context';
-import { TEActionType } from './context/types';
-import { useParams } from 'react-router-dom';
-
-import '@mobiscroll/react/dist/css/mobiscroll.min.css';
-import {
-  Eventcalendar,
-  setOptions,
-  Button,
-  Input,
-  formatDate,
-  Datepicker,
-  momentTimezone,
-  CalendarNav,
-  CalendarPrev,
-  CalendarToday,
-  CalendarNext,
-} from '@mobiscroll/react';
-import moment from 'moment-timezone';
-import { styled } from '@mui/material/styles';
-import { Avatar, Typography, Box, Stack, Button as MuiButton, Tooltip } from '@mui/material';
-
 import './calendar.scss';
+import '@mobiscroll/react/dist/css/mobiscroll.min.css';
 
-// components
-import AddFormPopup from './popups/AddFormPopup';
-import ViewEventPopup from './popups/ViewEventPopup';
-import Popup from 'components/Popups/Popup';
+import {
+  CalendarNav,
+  CalendarNext,
+  CalendarPrev,
+  Eventcalendar,
+  formatDate,
+  momentTimezone,
+  setOptions,
+} from '@mobiscroll/react';
+import { Avatar, Box, Button as MuiButton, Stack, Tooltip, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import Iconify from 'components/Iconify';
+import Popup from 'components/Popups/Popup';
+import moment from 'moment-timezone';
+import React from 'react';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Loader } from 'reusables';
-import Drawer from './Drawer';
-import { listAllEvents, subscribeEvent, deleteEvent } from 'supabase/events';
-import data from './data.json';
-import getHolidays from './getHolidays';
+import { deleteEvent, listAllEvents } from 'supabase/events';
 import { getTeResources } from 'supabase/travelExpenses';
 
+import useTE from './context/context';
+import { TEActionType } from './context/types';
+import data from './data.json';
+import getHolidays from './getHolidays';
+import AddFormPopup from './popups/AddFormPopup';
+import ViewEventPopup from './popups/ViewEventPopup';
+
+// components
 setOptions({
   theme: 'ios',
   themeVariant: 'light',
@@ -48,6 +42,8 @@ const viewSettings = {
     eventList: true,
   },
 };
+
+const initialFilters = { te: true, ste: true };
 
 const defaultHolidays = [
   { background: 'rgba(100, 100, 100, 0.1)', recurring: { repeat: 'weekly', weekDays: 'SU' } },
@@ -90,19 +86,12 @@ export default function Timeline() {
   const { id } = useParams();
 
   const [tempEvent, setTempEvent] = React.useState(null);
-  const [isOpen, setOpen] = React.useState(false);
   const [isEdit, setEdit] = React.useState(false);
   const [anchor, setAnchor] = React.useState(null);
-  const [start, startRef] = React.useState(null);
-  const [end, endRef] = React.useState(null);
   const [popupData, setPopupData] = React.useState(null);
-  const [data, setData] = React.useState(null);
   const [employees, setEmployees] = React.useState([]);
-  const [popupEventColor, setColor] = React.useState('');
-  const [popupEventDate, setDate] = React.useState([]);
   const [mySelectedDate, setSelectedDate] = React.useState(new Date());
-  const [checkedResources, setCheckedResources] = React.useState([]);
-  const [invalid, setInvalid] = React.useState([
+  const [invalid] = React.useState([
     {
       recurring: {
         repeat: 'daily',
@@ -111,15 +100,37 @@ export default function Timeline() {
     },
   ]);
   const [loader, setLoader] = React.useState(false);
-  const [projectError, setProjectError] = React.useState(false);
   const [holidays, setHolidays] = React.useState(defaultHolidays);
   const [open, setOpenActions] = React.useState(false);
 
   const [openPopup, setOpenPopup] = React.useState(null);
   const [popupType, setPopupType] = React.useState(null);
   const [viewPopup, setViewPopup] = React.useState(null);
+  const [filters, setFilters] = React.useState(initialFilters);
 
   const handlePopupTypeChange = React.useCallback((title) => setPopupType(title), []);
+
+  const [searchParams] = useSearchParams();
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+
+  const handleFilters = React.useCallback(() => {
+    let _filters = searchParams.get('filters');
+    _filters = _filters?.split(',').reduce((acc, cur) => ({ ...acc, [cur]: true }), {});
+    if (_filters) setFilters((prev) => ({ ..._filters }));
+    else
+      navigate({
+        pathname,
+        search: `?filters=te,ste`,
+      });
+    console.log({ ..._filters });
+  }, [searchParams]);
+
+  // // for checking filter parameters
+  React.useEffect(() => {
+    handleFilters();
+    return () => {};
+  }, [searchParams]);
 
   const onClose = React.useCallback(() => {
     if (!isEdit) {
@@ -127,7 +138,7 @@ export default function Timeline() {
       dispatch({ type: TEActionType.UPDATE_EVENTS, payload: [...state.events] });
     }
     setAnchor(null);
-  }, [isEdit, state.events, state.resources]);
+  }, [dispatch, isEdit, state.events]);
 
   const handleOpenViewPopup = React.useCallback(
     (anchor) => {
@@ -200,29 +211,29 @@ export default function Timeline() {
   }, []);
 
   // for handling calendar data to create one more layer with expenses of meals, lodging, task
-  const fetchData = async () => {
+  const fetchData = async (filters) => {
     // setLoading(true);
     // const res = await getProjectDetails(id);
     const resources = await getTeResources(id);
-    const events = await listAllEvents();
+    const events = await listAllEvents(filters);
     const res = updateCalendarData(resources, events);
     dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
     dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
   };
 
-  const fetchEvents = async () => {
-    const events = await listAllEvents();
+  const fetchEvents = async (filters) => {
+    const events = await listAllEvents(filters);
     const res = updateCalendarData(state.resources, events);
     dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
   };
 
   React.useEffect(() => {
-    fetchData();
+    fetchData(filters);
   }, []);
 
   React.useEffect(() => {
     if (state.beep) {
-      fetchEvents();
+      fetchEvents(filters);
       dispatch({ type: TEActionType.BEEP, payload: false });
     }
 
@@ -230,6 +241,10 @@ export default function Timeline() {
     // dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources });
     // dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events });
   }, [state.beep]);
+
+  React.useEffect(() => {
+    fetchEvents(filters);
+  }, [filters]);
 
   const travelExpensesForEmployee = React.useCallback(
     (employee_id) => [
@@ -249,21 +264,19 @@ export default function Timeline() {
     []
   );
 
-  const renderMyResource = (resource) => {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          ...(resource.depth === 3 && { justifyContent: 'flex-end' }),
-        }}
-      >
-        {resource.name}
-        {symbolsForResource(resource)}
-      </Box>
-    );
-  };
+  const renderMyResource = (resource) => (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        ...(resource.depth === 3 && { justifyContent: 'flex-end' }),
+      }}
+    >
+      {resource.name}
+      {symbolsForResource(resource)}
+    </Box>
+  );
   const styles = (keyword, bgColor) => {
     switch (keyword) {
       case 'Planned':
@@ -340,6 +353,7 @@ export default function Timeline() {
             background: bgColor,
             color: bgColor === '#fff' ? '#000 !important' : '#fff !important',
             boxShadow: (theme) => theme.customShadows.z8,
+            ...styles(event.original.status, bgColor),
           }}
         >
           {event.title}
@@ -408,42 +422,40 @@ export default function Timeline() {
     }
   }, []);
 
-  const renderCustomHeader = () => {
-    return (
-      <Stack width="100%" flexDirection="row" justifyContent="space-between">
-        <Typography textAlign="center" variant="subtitle2">
-          Project
-        </Typography>
-        <Stack flexDirection="row">
-          {open && (
-            <>
+  const renderCustomHeader = () => (
+    <Stack width="100%" flexDirection="row" justifyContent="space-between">
+      <Typography textAlign="center" variant="subtitle2">
+        Project
+      </Typography>
+      <Stack flexDirection="row">
+        {open && (
+          <>
+            <MuiButton sx={{ minWidth: 0 }} size="small" color="inherit">
+              <Iconify icon="tabler:crane" width={20} height={20} />
+            </MuiButton>
+            <Tooltip title="Add travel expenses" arrow>
               <MuiButton sx={{ minWidth: 0 }} size="small" color="inherit">
-                <Iconify icon="tabler:crane" width={20} height={20} />
+                <Iconify icon="lucide:calendar-check" width={20} height={20} />
               </MuiButton>
-              <Tooltip title="Add travel expenses" arrow>
-                <MuiButton sx={{ minWidth: 0 }} size="small" color="inherit">
-                  <Iconify icon="lucide:calendar-check" width={20} height={20} />
-                </MuiButton>
-              </Tooltip>
-              <Tooltip title="Add special travel expenses" arrow>
-                <MuiButton sx={{ minWidth: 0 }} size="small" color="inherit">
-                  <Iconify icon="tabler:plane-tilt" width={20} height={20} />
-                </MuiButton>
-              </Tooltip>
-              <Tooltip title="Add overtime" arrow>
-                <MuiButton sx={{ minWidth: 0 }} size="small" color="inherit">
-                  <Iconify icon="mdi:auto-pay" width={20} height={20} />
-                </MuiButton>
-              </Tooltip>
-            </>
-          )}
-          <MuiButton onClick={handleToggle} sx={{ minWidth: 0 }} size="small" color="inherit">
-            <Iconify icon={`ic:baseline-${open ? 'minus' : 'plus'}`} width={20} height={20} />
-          </MuiButton>
-        </Stack>
+            </Tooltip>
+            <Tooltip title="Add special travel expenses" arrow>
+              <MuiButton sx={{ minWidth: 0 }} size="small" color="inherit">
+                <Iconify icon="tabler:plane-tilt" width={20} height={20} />
+              </MuiButton>
+            </Tooltip>
+            <Tooltip title="Add overtime" arrow>
+              <MuiButton sx={{ minWidth: 0 }} size="small" color="inherit">
+                <Iconify icon="mdi:auto-pay" width={20} height={20} />
+              </MuiButton>
+            </Tooltip>
+          </>
+        )}
+        <MuiButton onClick={handleToggle} sx={{ minWidth: 0 }} size="small" color="inherit">
+          <Iconify icon={`ic:baseline-${open ? 'minus' : 'plus'}`} width={20} height={20} />
+        </MuiButton>
       </Stack>
-    );
-  };
+    </Stack>
+  );
 
   const loadPopupForm = React.useCallback((event) => {
     try {
@@ -452,13 +464,14 @@ export default function Timeline() {
       startDate = moment(startDate).format('YYYY-MM-DD');
       endDate = moment(endDate).format('YYYY-MM-DD');
       const resource = String(event?.resource)?.split('-');
+      const { sub_type, id, status } = event;
       const data = {
         start: startDate,
         end: endDate,
-        employee: resource.length === 1 ? null : resource[0],
-        sub_type: resource[1] ?? null,
-        id: event.id,
-        status: event.status,
+        employee: resource.length === 1 && String(event?.resource)?.split('|').length === 2 ? null : resource[0],
+        sub_type,
+        id,
+        status,
       };
       setPopupData(data);
     } catch (error) {
@@ -522,34 +535,33 @@ export default function Timeline() {
     [deleteEvent]
   );
 
-  const extendDefaultEvent = React.useCallback((args) => {
-    return {
+  const extendDefaultEvent = React.useCallback(
+    () => ({
       title: 'Add Expenses',
       location: '',
-    };
-  }, []);
+    }),
+    []
+  );
 
   async function onPageLoading(event, inst) {
     const start = new Date(event.firstDay);
     const end = new Date(event.lastDay);
     const data = await getHolidays(start, end);
-    if (data) setHolidays((prev) => [...defaultHolidays, ...data]);
+    if (data) setHolidays(() => [...defaultHolidays, ...data]);
   }
-  const renderHeader = () => {
-    return (
-      <>
-        <Stack sx={{ color: 'black' }} flexDirection="row" justifyContent="space-between" width="100%">
-          <MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 0, minWidth: 0 }}>
-            <CalendarPrev className="cal-header-prev" />
-          </MuiButton>
-          <CalendarNav className="cal-header-nav" />
-          <MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 0, minWidth: 0 }}>
-            <CalendarNext className="cal-header-next" />
-          </MuiButton>
-        </Stack>
-      </>
-    );
-  };
+  const renderHeader = () => (
+    <>
+      <Stack sx={{ color: 'black' }} flexDirection="row" justifyContent="space-between" width="100%">
+        <MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 0, minWidth: 0 }}>
+          <CalendarPrev className="cal-header-prev" />
+        </MuiButton>
+        <CalendarNav className="cal-header-nav" />
+        <MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 0, minWidth: 0 }}>
+          <CalendarNext className="cal-header-next" />
+        </MuiButton>
+      </Stack>
+    </>
+  );
 
   const renderCustomDay = (args) => {
     const date = args.date;

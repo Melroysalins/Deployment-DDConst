@@ -1,37 +1,40 @@
 // @mui
-import React, { forwardRef, useImperativeHandle } from 'react';
-import PropTypes from 'prop-types';
-import { useTheme } from '@mui/material/styles';
 import {
-  Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Box,
-  TextField,
-  FormHelperText,
-  Snackbar,
   Alert,
   Backdrop,
+  Box,
   CircularProgress,
+  FormControl,
+  FormHelperText,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  Snackbar,
+  TextField,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { useFormik } from 'formik';
 import moment from 'moment-timezone';
-import * as Yup from 'yup';
-// components
-// api
+import React, { forwardRef, useImperativeHandle } from 'react';
 import { createNewEvent, editEvent } from 'supabase/events';
+import * as Yup from 'yup';
+
 import useTE from '../context/context';
 import { TEActionType } from '../context/types';
+
+// components
+// api
 // ----------------------------------------------------------------------
 const validationSchema = Yup.object().shape({
   employee: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
   sub_type: Yup.string().required('Required').nullable(),
   start: Yup.date().required('Required').nullable(),
+  end: Yup.date().required('Required').nullable(),
+  status: Yup.string().required('Required').nullable(),
 });
 
 const initialValues = {
@@ -39,14 +42,16 @@ const initialValues = {
   sub_type: null,
   type: 'ste',
   start: null,
+  status: 'Planned',
 };
 
 const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
   const { data = {}, employees, handleClose, edit = false } = props;
-  const { state, dispatch } = useTE();
-  const theme = useTheme();
+  const { dispatch } = useTE();
   const [loader, setLoader] = React.useState(false);
   const [toast, setToast] = React.useState(null);
+
+  console.log(data);
 
   const { handleSubmit, errors, touched, handleChange, handleBlur, values, setFieldValue, setValues } = useFormik({
     initialValues,
@@ -55,7 +60,7 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
       setLoader(true);
       try {
         let res;
-        const id = values.id;
+        const { id } = values;
         delete values.id;
         if (edit) {
           res = await editEvent(values, id);
@@ -130,7 +135,9 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
                 fullWidth
               >
                 {employees.map((employee) => (
-                  <MenuItem value={employee.id}>{employee.name}</MenuItem>
+                  <MenuItem key={employee.id} value={employee.id}>
+                    {employee.name}
+                  </MenuItem>
                 ))}
               </Select>
               <FormHelperText error={errors.employee && touched.employee}>
@@ -163,6 +170,30 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
             </FormControl>
           </Grid>
           <Grid item xs={12}>
+            <FormControl fullWidth>
+              <InputLabel shrink id="demo-simple-select-helper-label">
+                Status
+              </InputLabel>
+              <Select
+                labelId="demo-simple-select-helper-label"
+                id="demo-simple-select-helper"
+                value={values.status}
+                label="Status"
+                onChange={handleChange}
+                onBlur={handleBlur}
+                name="status"
+                fullWidth
+              >
+                <MenuItem value="Planned">Planned</MenuItem>
+                <MenuItem value="Approved">Approved</MenuItem>
+                <MenuItem value="Rejected">Rejected</MenuItem>
+              </Select>
+              <FormHelperText error={errors.status && touched.status}>
+                {touched.status ? errors.status : null}
+              </FormHelperText>
+            </FormControl>
+          </Grid>
+          <Grid item xs={6}>
             <LocalizationProvider dateAdapter={AdapterMoment}>
               <DatePicker
                 inputFormat="YYYY-MM-DD"
@@ -183,6 +214,32 @@ const AddSpecialTravelExpensesForm = forwardRef((props, ref) => {
                     fullWidth
                     error={errors.start && touched.start}
                     helperText={touched.start ? errors.start : null}
+                  />
+                )}
+              />
+            </LocalizationProvider>
+          </Grid>
+          <Grid item xs={6}>
+            <LocalizationProvider dateAdapter={AdapterMoment}>
+              <DatePicker
+                inputFormat="YYYY-MM-DD"
+                onChange={(newValue) => {
+                  const end = moment(newValue).format('YYYY-MM-DD');
+                  setFieldValue('end', end);
+                }}
+                onBlur={handleBlur}
+                value={values.end}
+                name="end"
+                fullWidth
+                id="outlined-textarea"
+                label="end"
+                placeholder=""
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    fullWidth
+                    error={errors.end && touched.end}
+                    helperText={touched.end ? errors.end : null}
                   />
                 )}
               />
