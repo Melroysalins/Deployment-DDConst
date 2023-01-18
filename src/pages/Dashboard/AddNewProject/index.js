@@ -1,7 +1,13 @@
 import '@mobiscroll/react/dist/css/mobiscroll.min.css'
 
+import { styled } from '@mui/material/styles'
 import { Datepicker } from '@mobiscroll/react'
-import { Accordion, AccordionDetails, AccordionSummary, Stack } from '@mui/material'
+import {
+	Accordion as MuiAccordion,
+	AccordionDetails as MuiAccordionDetails,
+	AccordionSummary as MuiAccordionSummary,
+	Stack,
+} from '@mui/material'
 import Iconify from 'components/Iconify'
 import React from 'react'
 
@@ -12,6 +18,36 @@ import Tasks from './Tasks/Tasks'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
 import 'ag-theme-ddconst.scss'
+
+const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({}))
+
+const Accordion = styled((props) => <MuiAccordion disableGutters elevation={0} square {...props} />)(({ theme }) => ({
+	background: 'transparent',
+	border: '1px solid rgba(0, 0, 0, 0.1)',
+	overflow: 'hidden',
+	borderRadius: '8px',
+	'&:not(:last-child)': {
+		borderBottom: 0,
+	},
+	'&:before': {
+		display: 'none',
+	},
+}))
+
+const AccordionSummary = styled((props) => (
+	<MuiAccordionSummary
+		expandIcon={<Iconify icon="material-symbols:arrow-forward-ios-rounded" width={15} height={15} />}
+		{...props}
+	/>
+))(({ theme }) => ({
+	backgroundColor: theme.palette.background.paper,
+
+	borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+	'& .Mui-expanded': {
+		borderTopLeftRadius: '8px',
+		borderTopRightRadius: '8px',
+	},
+}))
 
 const AddNewProject = () => (
 	<div>
@@ -41,7 +77,7 @@ const AddNewProject = () => (
 				</Stack>
 			</AccordionSummary>
 			<AccordionDetails>
-				<Datepicker controls={['calendar']} select="range" touchUi={true} />
+				{/* <Datepicker controls={['calendar']} select="range" touchUi={true} /> */}
 				<Tasks />
 			</AccordionDetails>
 		</Accordion>

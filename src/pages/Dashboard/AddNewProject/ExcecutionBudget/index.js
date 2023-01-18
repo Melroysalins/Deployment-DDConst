@@ -1,15 +1,13 @@
 /* eslint-disable react/prop-types */
-
-// import 'ag-grid-enterprise'
-
-import { Box, Button, Grid, Stack, Typography } from '@mui/material'
+import { Button, Grid, Stack, Typography } from '@mui/material'
 import { AgGridReact } from 'ag-grid-react'
 import Iconify from 'components/Iconify'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 
-import NumericEditor from './numberEditor'
 import DoublingEditor from './DoublingEditor'
-import Totals from './totals'
+import NumericEditor from './numberEditor'
+
+// import 'ag-grid-enterprise'
 
 // eslint-disable-next-line
 export default function ExecutionBudget() {
@@ -361,7 +359,7 @@ const ExecutionBudgetTableTemplate = ({ initialValues, _columnDefs, initialData,
 		[]
 	)
 
-	const handleClick = (event) => {
+	const handleClick = () => {
 		setRowData((prev) => [
 			...prev,
 			{
@@ -378,8 +376,7 @@ const ExecutionBudgetTableTemplate = ({ initialValues, _columnDefs, initialData,
 			colDef: { field },
 		} = event
 		const newItem = { ...data }
-		newItem[field] = event.newValue
-		// rowImmutableStore = rowImmutableStore.map((oldItem) => (oldItem.id == newItem.id ? newItem : oldItem))
+		newItem[field] = newValue
 		setRowData((prev) => prev.map((oldItem) => (oldItem.id === newItem.id ? newItem : oldItem)))
 	}
 

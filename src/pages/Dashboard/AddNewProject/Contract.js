@@ -236,6 +236,7 @@ export default function CreateNewProject() {
 													renderInput={(params) => (
 														<TextField
 															{...params}
+															fullWidth
 															error={errors.start && touched.start}
 															helperText={errors.start && touched.start ? errors.start : null}
 														/>
@@ -262,6 +263,7 @@ export default function CreateNewProject() {
 														<TextField
 															{...params}
 															error={errors.end && touched.end}
+															fullWidth
 															helperText={errors.end && touched.end ? errors.end : null}
 														/>
 													)}

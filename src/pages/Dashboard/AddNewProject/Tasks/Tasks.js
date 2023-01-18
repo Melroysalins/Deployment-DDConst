@@ -2,30 +2,149 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
+import { styled } from '@mui/material/styles'
 
-import { Button, MenuItem, Select } from '@mui/material'
+import {
+	Accordion as MuiAccordion,
+	AccordionDetails as MuiAccordionDetails,
+	AccordionSummary as MuiAccordionSummary,
+	Box,
+	Button,
+	MenuItem,
+	Select,
+	Stack,
+	Typography,
+	CircularProgress,
+} from '@mui/material'
 import { AgGridReact } from 'ag-grid-react'
 import Iconify from 'components/Iconify'
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
-import ReactDOM from 'react-dom'
+import PropTypes from 'prop-types'
 
 const initialValues = {
 	title: '',
-	team: 'team',
-	task_period: 'task_period',
-	notes: 'Lorem ipsum dolor sit amet, consectetur',
+	team: '',
+	task_period: '',
+	notes: '',
 }
 
+const Accordion = styled((props) => <MuiAccordion disableGutters elevation={0} square {...props} />)(({ theme }) => ({
+	borderRadius: '8px',
+	boxShadow: theme.customShadows.z1,
+	background: 'transparent',
+	'&:not(:last-child)': {
+		borderBottom: 0,
+	},
+	'&:before': {
+		display: 'none',
+	},
+}))
+
+const AccordionSummary = styled((props) => (
+	<MuiAccordionSummary
+		expandIcon={<Iconify icon="material-symbols:arrow-forward-ios-rounded" width={15} height={15} />}
+		{...props}
+	/>
+))(({ theme }) => ({
+	backgroundColor: theme.palette.background.paper,
+	borderLeft: `4px solid ${theme.palette.text.default}`,
+	borderRadius: '8px',
+	flexDirection: 'row-reverse',
+	'& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
+		transform: 'rotate(90deg)',
+	},
+	'&.Mui-expanded': {
+		backgroundColor: 'transparent',
+		borderLeft: 'none',
+		borderRadius: '8px',
+	},
+	'& .MuiAccordionSummary-content': {
+		marginLeft: theme.spacing(1),
+	},
+}))
+
+const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
+	padding: theme.spacing(2),
+}))
+
 const Tasks = () => {
+	const [metalFitting, setMetalFitting] = useState([])
+	const [installation, setInstallation] = useState([])
+	const [connection, setConnection] = useState([])
+	const [completionTest, setCompletionTest] = useState([])
+	const [loader, setLoader] = useState(false)
+
+	return (
+		<>
+			<Stack gap={2}>
+				<Accordion>
+					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+							Metal Fittings Installation
+						</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Task rowData={metalFitting} setRowData={setMetalFitting} />
+					</AccordionDetails>
+				</Accordion>
+				<Accordion>
+					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+							Installation
+						</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Task rowData={installation} setRowData={setInstallation} />
+					</AccordionDetails>
+				</Accordion>
+				<Accordion>
+					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+							Connection
+						</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Task rowData={connection} setRowData={setConnection} />
+					</AccordionDetails>
+				</Accordion>
+				<Accordion>
+					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+							Completion Test (AC)
+						</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Task rowData={completionTest} setRowData={setCompletionTest} />
+					</AccordionDetails>
+				</Accordion>
+				<Button fullWidth={false} variant="contained" color="secondary" type="submit" disabled={loader}>
+					{loader ? <CircularProgress size={17} fontSize="inherit" /> : 'Submit'}
+				</Button>
+			</Stack>
+		</>
+	)
+}
+
+const Task = ({ rowData, setRowData }) => {
 	const gridRef = useRef()
 	const containerStyle = useMemo(() => ({ width: '100%', height: '100%' }), [])
 	const gridStyle = useMemo(() => ({ height: '100%', width: '100%' }), [])
+	const [selectedRows, setSelectedRows] = useState([])
 
-	const DeleteCellRenderer = (params) => {
-		console.log(params)
+	// DELETE CELL BUTTON
 
+	const DeleteCellRenderer = ({ value }) => {
 		const handleDelete = () => {
-			setRowData((prev) => prev.filter((itm) => itm.id !== params.value))
+			console.log(value)
+			if (Array.isArray(value)) {
+				setRowData((prev) => {
+					const res = prev.filter(({ id }) => !value.includes(id))
+					console.log(prev, res)
+					return res
+				})
+			} else {
+				setRowData((prev) => prev.filter((itm) => itm.id !== value))
+			}
 		}
 
 		return (
@@ -37,15 +156,14 @@ const Tasks = () => {
 		)
 	}
 
-	const [rowData, setRowData] = useState([
-		{
-			id: 2,
-			title: 'task 1',
-			team: 'Connection team 2',
-			task_period: '12/01/2002',
-			notes: 'NOTESSSS',
-		},
-	])
+	DeleteCellRenderer.propTypes = {
+		value: PropTypes.any,
+	}
+
+	useEffect(() => {
+		setSelectedRows(gridRef?.current?.api?.getSelectedRows().map(({ id }) => id) ?? [])
+	}, [rowData])
+
 	const AddButton = () => (
 		<Button color="secondary" onClick={handleClick}>
 			<Iconify icon="material-symbols:add" width={20} height={20} />
@@ -73,10 +191,12 @@ const Tasks = () => {
 			field: 'notes',
 		},
 		{
-			headerName: 'Notes',
+			headerName: '',
 			field: 'id',
 			cellRenderer: DeleteCellRenderer,
 			headerComponent: AddButton,
+			cellStyle: { display: 'flex', 'justify-content': 'flex-end' },
+			headerClass: 'header',
 			editable: false,
 			maxWidth: 100,
 		},
@@ -84,17 +204,16 @@ const Tasks = () => {
 	const defaultColDef = useMemo(
 		() => ({
 			flex: 1,
-			minWidth: 100,
 			editable: true,
 		}),
 		[]
 	)
 
-	const onGridReady = useCallback((params) => {
-		// fetch('https://www.ag-grid.com/example-assets/small-olympic-winners.json')
-		//   .then((resp) => resp.json())
-		//   .then((data) => setRowData(data));
-	}, [])
+	// const onGridReady = useCallback((params) => {
+	// 	fetch('https://www.ag-grid.com/example-assets/small-olympic-winners.json')
+	// 	  .then((resp) => resp.json())
+	// 	  .then((data) => setRowData(data));
+	// }, [])
 
 	//   const onFirstDataRendered = useCallback((params) => {
 	//     gridRef.current.api.forEachNode((node) =>
@@ -113,13 +232,13 @@ const Tasks = () => {
 	}
 
 	const onCellEditRequest = (event) => {
-		const data = event.data
-		const field = event.colDef.field
-		const newValue = event.newValue
+		const {
+			data,
+			newValue,
+			colDef: { field },
+		} = event
 		const newItem = { ...data }
-		newItem[field] = event.newValue
-		console.log(`onCellEditRequest, updating ${field} to ${newValue}`)
-		// rowImmutableStore = rowImmutableStore.map((oldItem) => (oldItem.id == newItem.id ? newItem : oldItem))
+		newItem[field] = newValue
 		setRowData((prev) => prev.map((oldItem) => (oldItem.id === newItem.id ? newItem : oldItem)))
 	}
 
@@ -127,24 +246,41 @@ const Tasks = () => {
 		<>
 			<div style={containerStyle}>
 				<div style={gridStyle} className=" ag-theme-ddconst">
-					<AgGridReact
-						ref={gridRef}
-						rowData={rowData}
-						columnDefs={columnDefs}
-						defaultColDef={defaultColDef}
-						rowSelection={'multiple'}
-						suppressRowClickSelection={true}
-						onGridReady={onGridReady}
-						domLayout="autoHeight"
-						onCellEditRequest={onCellEditRequest}
-						readOnlyEdit
-						//   onFirstDataRendered={onFirstDataRendered}
-					/>
+					<Stack gap={2}>
+						<AgGridReact
+							ref={gridRef}
+							rowData={rowData}
+							columnDefs={columnDefs}
+							defaultColDef={defaultColDef}
+							rowSelection={'multiple'}
+							suppressRowClickSelection={true}
+							domLayout="autoHeight"
+							onCellEditRequest={onCellEditRequest}
+							readOnlyEdit
+							onRowSelected={() => {
+								setSelectedRows(gridRef.current.api.getSelectedRows().map(({ id }) => id))
+							}}
+							//   onFirstDataRendered={onFirstDataRendered}
+						/>
+						<Box display="flex" justifyContent="space-between">
+							<Button onClick={handleClick}>Add Task</Button>
+							{selectedRows.length > 0 && (
+								<Box>
+									{selectedRows.length} items selected:
+									<DeleteCellRenderer value={selectedRows} />
+								</Box>
+							)}
+						</Box>
+					</Stack>
 				</div>
 			</div>
-			<Button onClick={handleClick}>Add Task</Button>
 		</>
 	)
+}
+
+Task.propTypes = {
+	rowData: PropTypes.array.isRequired,
+	setRowData: PropTypes.func.isRequired,
 }
 
 export default Tasks
@@ -190,25 +326,19 @@ const SelectCellEditor = forwardRef((props, ref) => {
 	/* Utility Methods */
 	const cancelBeforeStart = props.charPress && '1234567890'.indexOf(props.charPress) < 0
 
-	const isLeftOrRight = (event) => {
-		return ['ArrowLeft', 'ArrowRight'].indexOf(event.key) > -1
-	}
+	const isLeftOrRight = (event) => ['ArrowLeft', 'ArrowRight'].indexOf(event.key) > -1
 
-	const isCharNumeric = (charStr) => {
-		return !!/\d/.test(charStr)
-	}
+	const isCharNumeric = (charStr) => !!/\d/.test(charStr)
 
 	const isKeyPressedNumeric = (event) => {
 		const charStr = event.key
 		return isCharNumeric(charStr)
 	}
 
-	const deleteOrBackspace = (event) => {
-		return [KEY_DELETE, KEY_BACKSPACE].indexOf(event.key) > -1
-	}
+	const deleteOrBackspace = (event) => [KEY_DELETE, KEY_BACKSPACE].indexOf(event.key) > -1
 
 	const finishedEditingPressed = (event) => {
-		const key = event.key
+		const { key } = event
 		return key === KEY_ENTER || key === KEY_TAB
 	}
 
