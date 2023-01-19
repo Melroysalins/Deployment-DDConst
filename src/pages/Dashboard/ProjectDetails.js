@@ -180,7 +180,7 @@ const events = [
     icon: <Iconify width={40} height={40} color="#8D99FF" icon="heroicons:truck" />,
     title: 'Travel Expenses / Overtime',
     description: '3 day shifts, 54 night shifts, 5 Overtime, 3 Nighttime, 4 Move on rest day',
-    redirect: 'travel-expenses?filters=te,ste,outsourced,tasks',
+    redirect: 'travel-expenses?filters=te,ste',
   },
   {
     icon: <Iconify width={40} height={40} color="#8CCC67" icon="ant-design:money-collect-outlined" />,

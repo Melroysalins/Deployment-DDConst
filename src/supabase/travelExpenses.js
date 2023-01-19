@@ -37,12 +37,12 @@ export const getTeResources = async (id) => {
   return returnData;
 };
 
-export const getTeTotals = async (dateRange) => {
+export const getTeTotals = async (dateRange,projectId) => {
   const { data: projects, error } = await supabase
     .from('projects_teams_employees')
     .select('*')
     .not('teams', 'is', null)
-    .eq('id', '10');
+    .eq('id', projectId);
 
   const { data: teamEmployees, error: error2 } = await supabase
     .from('teams_employees')

@@ -46,8 +46,9 @@ export default function RegisterForm() {
 
   const onSubmit = async (e) => {
     try {
-      const { error } = await supabase.auth.signUp(e);
+      const { data, error } = await supabase.auth.signUp(e);
       if (error) throw error;
+      else if (data.session && data.user) navigate('/dashboard/projects/list', { replace: true });
     } catch (error) {
       setmessage(error.error_description || error.message);
     }

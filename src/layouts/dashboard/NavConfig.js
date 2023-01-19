@@ -61,6 +61,11 @@ const navConfig = [
     path: '/logout',
     icon: getIcon('material-symbols:logout'),
   },
+  {
+    title: 'logout',
+    path: '/logout',
+    icon: getIcon('material-symbols:logout'),
+  },
   // {
   //   title: 'Not found',
   //   path: '/404',
