@@ -1,79 +1,102 @@
-/* eslint-disable class-methods-use-this */
-export default class NumericEditor {
-	// gets called once before the renderer is used
-	init(params) {
-		// create the cell
-		this.eInput = document.createElement('input')
-		this.eInput.classList.add('numeric-input')
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
-		if (this.isCharNumeric(params.charPress)) {
-			this.eInput.value = params.charPress
-		} else if (params.value !== undefined && params.value !== null) {
-			this.eInput.value = params.value
+const KEY_BACKSPACE = 'Backspace'
+const KEY_DELETE = 'Delete'
+const KEY_ENTER = 'Enter'
+const KEY_TAB = 'Tab'
+
+export default forwardRef((props, ref) => {
+	const createInitialState = () => {
+		let startValue
+
+		if (props.eventKey === KEY_BACKSPACE || props.eventKey === KEY_DELETE) {
+			// if backspace or delete pressed, we clear the cell
+			startValue = ''
+		} else if (props.charPress) {
+			// if a letter was pressed, we start with the letter
+			startValue = props.charPress
+		} else {
+			// otherwise we start with the current value
+			startValue = props.value
 		}
 
-		this.eInput.addEventListener('keypress', (event) => {
-			if (!this.isKeyPressedNumeric(event)) {
-				this.eInput.focus()
-				if (event.preventDefault) event.preventDefault()
-			} else if (this.isKeyPressedNavigation(event)) {
-				event.stopPropagation()
-			}
+		return {
+			value: startValue,
+		}
+	}
+
+	const initialState = createInitialState()
+	const [value, setValue] = useState(initialState.value)
+	const refInput = useRef(null)
+
+	// focus on the input
+	useEffect(() => {
+		// get ref from React component
+		window.setTimeout(() => {
+			const eInput = refInput.current
+			eInput.focus()
 		})
+	}, [])
 
-		// only start edit if key pressed is a number, not a letter
-		const charPressIsNotANumber = params.charPress && '1234567890'.indexOf(params.charPress) < 0
-		this.cancelBeforeStart = !!charPressIsNotANumber
-	}
+	/* Utility Methods */
+	const cancelBeforeStart = props.charPress && '1234567890'.indexOf(props.charPress) < 0
 
-	isKeyPressedNavigation(event) {
-		return event.key === 'ArrowLeft' || event.key === 'ArrowRight'
-	}
+	const isLeftOrRight = (event) => ['ArrowLeft', 'ArrowRight'].indexOf(event.key) > -1
 
-	// gets called once when grid ready to insert the element
-	getGui() {
-		return this.eInput
-	}
+	const isCharNumeric = (charStr) => !!/\d/.test(charStr)
 
-	// focus and select can be done after the gui is attached
-	afterGuiAttached() {
-		this.eInput.focus()
-	}
-
-	// returns the new value after editing
-	isCancelBeforeStart() {
-		return this.cancelBeforeStart
-	}
-
-	// example - will reject the number if it contains the value 007
-	// - not very practical, but demonstrates the method.
-	isCancelAfterEnd() {
-		const value = this.getValue()
-		return value.indexOf('007') >= 0
-	}
-
-	// returns the new value after editing
-	getValue() {
-		return this.eInput.value
-	}
-
-	// any cleanup we need to be done here
-	destroy() {
-		// but this example is simple, no cleanup, we could  even leave this method out as it's optional
-	}
-
-	// if true, then this editor will appear in a popup
-	isPopup() {
-		// and we could leave this method out also, false is the default
-		return false
-	}
-
-	isCharNumeric(charStr) {
-		return charStr && !!/\d/.test(charStr)
-	}
-
-	isKeyPressedNumeric(event) {
+	const isKeyPressedNumeric = (event) => {
 		const charStr = event.key
-		return this.isCharNumeric(charStr)
+		return isCharNumeric(charStr)
 	}
-}
+
+	const deleteOrBackspace = (event) => [KEY_DELETE, KEY_BACKSPACE].indexOf(event.key) > -1
+
+	const finishedEditingPressed = (event) => {
+		const { key } = event
+		return key === KEY_ENTER || key === KEY_TAB
+	}
+
+	const onKeyDown = (event) => {
+		if (isLeftOrRight(event) || deleteOrBackspace(event)) {
+			event.stopPropagation()
+			return
+		}
+
+		if (!finishedEditingPressed(event) && !isKeyPressedNumeric(event)) {
+			if (event.preventDefault) event.preventDefault()
+		}
+	}
+
+	/* Component Editor Lifecycle methods */
+	useImperativeHandle(ref, () => ({
+		// the final value to send to the grid, on completion of editing
+		getValue() {
+			return value
+		},
+
+		// Gets called once before editing starts, to give editor a chance to
+		// cancel the editing before it even starts.
+		isCancelBeforeStart() {
+			return cancelBeforeStart
+		},
+
+		// Gets called once when editing is finished (eg if Enter is pressed).
+		// If you return true, then the result of the edit will be ignored.
+		isCancelAfterEnd() {
+			// will reject the number if it greater than 1,000,000
+			// not very practical, but demonstrates the method.
+			return value === ''
+		},
+	}))
+	console.log(value)
+	return (
+		<input
+			ref={refInput}
+			className={'simple-input-editor'}
+			value={value}
+			onChange={(event) => setValue(event.target.value)}
+			onKeyDown={(event) => onKeyDown(event)}
+		/>
+	)
+})
