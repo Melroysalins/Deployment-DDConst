@@ -36,7 +36,6 @@ export default function useAuthentication() {
 	}, [])
 
 	useEffect(() => {
-		console.log(event)
 		switch (event) {
 			// case 'SIGNED_IN':
 			//   navigate('/dashboard/projects/list', { replace: true });

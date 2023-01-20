@@ -23,9 +23,9 @@ import moment from 'moment-timezone'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { useQuery } from 'react-query'
-import { useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { listAllBranches } from 'supabase'
-import { createNewProject, getProjectDetails } from 'supabase/projects'
+import { createNewProject, getProjectDetails, updateProject } from 'supabase/projects'
 import * as Yup from 'yup'
 
 import Page from '../../../components/Page'
@@ -55,6 +55,7 @@ export default function CreateNewProject({ edit }) {
 	const [toast, setToast] = React.useState(null)
 
 	const { id } = useParams()
+	const navigate = useNavigate()
 
 	const { data: branches } = useQuery(['Branches'], () => listAllBranches())
 	const { data: project } = useQuery(['project'], () => getProjectDetails(id), {
@@ -108,11 +109,22 @@ export default function CreateNewProject({ edit }) {
 						validationSchema={validationSchema}
 						onSubmit={async (values) => {
 							setLoader(true)
-							const res = await createNewProject(values)
-							if (res.status === 201) {
-								setToast({ severity: 'success', message: 'Succesfully added new project!' })
+							if (edit) {
+								const res = await updateProject(values, id)
+								if (res.status >= 200 && res.status < 300) {
+									setToast({ severity: 'success', message: 'Succesfully updated project details!' })
+									navigate(`?tab=2`)
+								} else {
+									setToast({ severity: 'error', message: 'Failed to updated project details!' })
+								}
 							} else {
-								setToast({ severity: 'error', message: 'Failed to added new project!' })
+								const res = await createNewProject(values)
+								if (res.status === 201) {
+									setToast({ severity: 'success', message: 'Succesfully added new project!' })
+									navigate(`/dashboard/projects/edit/${res.data[0].id}?tab=2`)
+								} else {
+									setToast({ severity: 'error', message: 'Failed to added new project!' })
+								}
 							}
 							setLoader(false)
 						}}

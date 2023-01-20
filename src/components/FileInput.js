@@ -49,7 +49,6 @@ export default function FileInput({ label, sx, name, height = 'auto' }) {
 				hidden
 				name={name}
 				onChange={(e) => {
-					console.log(e)
 					helpers.setValue(e.currentTarget.files[0])
 				}}
 			/>

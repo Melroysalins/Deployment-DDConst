@@ -12,12 +12,10 @@ export const listAllTasks = async () => {
 
 export const listFilteredTasks = async (task_group, project) => {
 	const res = await supabase.from('project_tasks').select('*').match({ task_group, project })
-	console.log(res)
 	return res
 }
 
 export const updateTask = async (data, id) => {
-	console.log(data, id)
 	const res = await supabase.from('project_tasks').update(data).eq('id', id).select()
 	return res
 }

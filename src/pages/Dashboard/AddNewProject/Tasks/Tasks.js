@@ -3,16 +3,15 @@
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
 
-import { Datepicker, Input, momentTimezone, setOptions } from '@mobiscroll/react'
+import { momentTimezone, setOptions } from '@mobiscroll/react'
 import {
-	Accordion as MuiAccordion,
-	AccordionDetails as MuiAccordionDetails,
-	AccordionSummary as MuiAccordionSummary,
 	Alert,
 	Box,
 	Button,
-	CircularProgress,
 	MenuItem,
+	Accordion as MuiAccordion,
+	AccordionDetails as MuiAccordionDetails,
+	AccordionSummary as MuiAccordionSummary,
 	Select,
 	Snackbar,
 	Stack,
@@ -23,18 +22,11 @@ import { AgGridReact } from 'ag-grid-react'
 import Iconify from 'components/Iconify'
 import moment from 'moment-timezone'
 import PropTypes from 'prop-types'
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
-import { useMutation, useQuery } from 'react-query'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { useQuery } from 'react-query'
 import { useParams } from 'react-router'
-import { createNewTasks, deleteTask, listAllTeams, updateTask, listFilteredTasks, deleteTasks } from 'supabase'
+import { createNewTasks, deleteTask, deleteTasks, listAllTeams, listFilteredTasks, updateTask } from 'supabase'
 import TimeRangeEditor from './TimeRangeEditor'
-
-const initialValues = {
-	title: '',
-	team: '',
-	task_period: null,
-	notes: '',
-}
 
 setOptions({
 	theme: 'ios',
@@ -150,9 +142,8 @@ const Task = ({ task_group }) => {
 
 	// DELETE CELL BUTTON
 
-	const DeleteCellRenderer = ({ value }) => {
+	const DeleteCellRenderer = useCallback(({ value }) => {
 		const handleDelete = () => {
-			console.log(value)
 			if (Array.isArray(value)) {
 				deleteTasks(value).then(() => refetch())
 			} else {
@@ -167,17 +158,14 @@ const Task = ({ task_group }) => {
 				</Button>
 			</>
 		)
-	}
+	})
 
 	const TimeRangeRenderer = ({ value }) =>
 		value && value[0] && value[1]
 			? `${moment(value[0]).format('DD/MM/YYYY')} - ${moment(value[1]).format('DD/MM/YYYY')}`
 			: '-'
 
-	const TeamRenderer = ({ value }) => {
-		console.log(teams)
-		return value && teams ? teams?.data.find((team) => team.id === value)?.name : '-'
-	}
+	const TeamRenderer = ({ value }) => (value && teams ? teams?.data.find((team) => team.id === value)?.name : '-')
 
 	DeleteCellRenderer.propTypes = {
 		value: PropTypes.any,
@@ -206,8 +194,6 @@ const Task = ({ task_group }) => {
 		const initialState = createInitialState()
 		const [value, setValue] = useState(initialState.value)
 		const refInput = useRef(null)
-
-		console.log(teams)
 
 		// focus on the input
 		useEffect(() => {
@@ -238,7 +224,6 @@ const Task = ({ task_group }) => {
 		}
 
 		const onKeyDown = (event) => {
-			console.log(event)
 			if (isLeftOrRight(event) || deleteOrBackspace(event)) {
 				event.stopPropagation()
 				return
@@ -333,13 +318,13 @@ const Task = ({ task_group }) => {
 				field: 'id',
 				cellRenderer: DeleteCellRenderer,
 				headerComponent: AddButton,
-				cellStyle: { display: 'flex', 'justify-content': 'flex-end' },
+				cellStyle: { display: 'flex', justifyContent: 'flex-end' },
 				headerClass: 'header',
 				editable: false,
 				maxWidth: 100,
 			},
 		],
-		[teams]
+		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer]
 	)
 	const defaultColDef = useMemo(
 		() => ({
@@ -361,11 +346,8 @@ const Task = ({ task_group }) => {
 		} = event
 		const newItem = { ...data }
 		newItem[field] = newValue
-		console.log(event)
 		const { id } = newItem
-		if (typeof id === 'string') {
-			console.log(event)
-		} else {
+		if (typeof id !== 'string') {
 			updateTask(
 				{
 					title: newItem.title,

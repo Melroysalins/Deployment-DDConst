@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useNavigationType } from 'react-router-dom'
 // @mui
 import {
 	Grid,
@@ -35,6 +35,7 @@ export default function Projects() {
 	const [toast, setToast] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [empData, setempData] = useState(null)
+	const navigate = useNavigate()
 
 	const fetchData = async (id) => {
 		setLoading(true)
@@ -49,7 +50,6 @@ export default function Projects() {
 		if (res.status === 404) setToast(true)
 		setempData(res.data)
 	}
-	console.log(empData, '<--empData')
 
 	useEffect(() => {
 		fetchData(id)
@@ -110,6 +110,7 @@ export default function Projects() {
 					size="medium"
 					color="inherit"
 					sx={{ color: '#8D99FF', marginLeft: 1 }}
+					onClick={() => navigate(`/dashboard/projects/edit/${id}`)}
 				>
 					Edit project
 				</Button>
@@ -300,7 +301,7 @@ function ProjectInfo({ projectInfo }) {
 				{projectInfo?.map((e) => (
 					<>
 						{!!e.title && (
-							<Grid container spacing={2} style={{ alignItems: 'center', flex: 1 }} mt={1} pl={3}>
+							<Grid key={e.title} container spacing={2} style={{ alignItems: 'center', flex: 1 }} mt={1} pl={3}>
 								<Iconify sx={{ minWidth: 15 }} width={15} height={15} icon={e.icon} />
 
 								<Typography m={1} sx={{ fontSize: 12, color: 'text.secondary' }}>
@@ -352,45 +353,53 @@ function TeamMates({ empData, title }) {
 				)}
 
 				<Grid container spacing={4}>
-					{empData?.map((e) => {
-						return (
-							<Grid item xs={12} sm={6} md={5} lg={4} style={{ flexDirection: 'row', height: '100%' }} mt={1} pl={3}>
-								<Box sx={{ display: 'flex' }}>
-									<Box pt={0.3}>
-										<Avatar sx={{ bgcolor: pickColor(e?.rating), width: 18, height: 18, fontSize: 12 }}>
-											{e?.rating}
-										</Avatar>
-									</Box>
-									<Box pl={1}>
-										<Box justifyContent={'space-between'} display="flex">
-											<Typography variant="caption" color={theme.palette.text.secondary}>
-												{e.name}
+					{empData?.map((e) => (
+						<Grid
+							key={e.name}
+							item
+							xs={12}
+							sm={6}
+							md={5}
+							lg={4}
+							style={{ flexDirection: 'row', height: '100%' }}
+							mt={1}
+							pl={3}
+						>
+							<Box sx={{ display: 'flex' }}>
+								<Box pt={0.3}>
+									<Avatar sx={{ bgcolor: pickColor(e?.rating), width: 18, height: 18, fontSize: 12 }}>
+										{e?.rating}
+									</Avatar>
+								</Box>
+								<Box pl={1}>
+									<Box justifyContent={'space-between'} display="flex">
+										<Typography variant="caption" color={theme.palette.text.secondary}>
+											{e.name}
+										</Typography>
+										{e.team_lead && (
+											<Typography
+												style={{
+													borderRadius: 3,
+													background: '#FF6B00',
+													color: 'white',
+													fontSize: 8,
+													height: 15,
+													paddingInline: 5,
+													paddingBlock: 1,
+												}}
+												variant={'caption'}
+											>
+												TEAM LEAD
 											</Typography>
-											{e.team_lead && (
-												<Typography
-													style={{
-														borderRadius: 3,
-														background: '#FF6B00',
-														color: 'white',
-														fontSize: 8,
-														height: 15,
-														paddingInline: 5,
-														paddingBlock: 1,
-													}}
-													variant={'caption'}
-												>
-													TEAM LEAD
-												</Typography>
-											)}
-										</Box>
-										<Box>
-											<Typography variant="caption">{title}</Typography>
-										</Box>
+										)}
+									</Box>
+									<Box>
+										<Typography variant="caption">{title}</Typography>
 									</Box>
 								</Box>
-							</Grid>
-						)
-					})}
+							</Box>
+						</Grid>
+					))}
 				</Grid>
 			</Box>
 		</>

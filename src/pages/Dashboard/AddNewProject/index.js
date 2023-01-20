@@ -4,20 +4,19 @@ import 'ag-grid-community/styles/ag-theme-alpine.css'
 import 'ag-theme-ddconst.scss'
 
 import {
-	Accordion as MuiAccordion,
 	AccordionDetails,
+	Accordion as MuiAccordion,
 	AccordionSummary as MuiAccordionSummary,
 	Stack,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import Iconify from 'components/Iconify'
 import PropTypes from 'prop-types'
-import React from 'react'
 
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import Contract from './Contract'
 import ExecutionBudget from './ExcecutionBudget'
 import Tasks from './Tasks/Tasks'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 const Accordion = styled((props) => <MuiAccordion disableGutters elevation={0} square {...props} />)(() => ({
 	background: 'transparent',
@@ -53,8 +52,6 @@ const AddNewProject = ({ edit = false }) => {
 	const navigate = useNavigate()
 
 	const tab = searchParams.get('tab')
-
-	console.log(tab)
 
 	const handleChange = (id) => (event, isExpanded) => {
 		navigate({
@@ -93,10 +90,7 @@ const AddNewProject = ({ edit = false }) => {
 						<Iconify sx={{ color: '#FF6B00' }} icon="tabler:clipboard-list" width={20} height={20} /> Tasks
 					</Stack>
 				</AccordionSummary>
-				<AccordionDetails>
-					{/* <Datepicker controls={['calendar']} select="range" touchUi={true} /> */}
-					<Tasks />
-				</AccordionDetails>
+				<AccordionDetails>{edit && tab === '2' && <Tasks />}</AccordionDetails>
 			</Accordion>
 			<Accordion disabled={!edit} expanded={tab === '3'} onChange={handleChange(3)}>
 				<AccordionSummary
@@ -110,13 +104,7 @@ const AddNewProject = ({ edit = false }) => {
 					</Stack>
 				</AccordionSummary>
 				<AccordionDetails sx={{ background: (theme) => theme.palette.background.default }}>
-					{/* <Datepicker
-					value={[new Date('20/01/2023'), new Date('25/01/2023')]}
-					onChange={(e) => console.log(e)}
-					controls={['calendar']}
-					select="range"
-				/> */}
-					<ExecutionBudget />
+					{edit && tab === '3' && <ExecutionBudget />}
 				</AccordionDetails>
 			</Accordion>
 		</div>

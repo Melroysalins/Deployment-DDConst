@@ -26,7 +26,6 @@ export const subscribeEvent = async (handleUpdate) => {
 	const events = supabase
 		.channel('custom-all-channel')
 		.on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, (payload) => {
-			console.log('Change received!', payload)
 			handleUpdate()
 		})
 		.subscribe()
