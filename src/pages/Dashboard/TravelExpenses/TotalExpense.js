@@ -5,6 +5,7 @@ import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { getTeTotals } from 'supabase/travelExpenses';
 import Project from './Project';
+import {  useParams } from 'react-router-dom';
 
 const headerCol = [
   'Lodging days requested',
@@ -57,15 +58,16 @@ const createRow = (resources) => {
 export default function CollapsibleTable() {
   const { state } = useMain();
   const { dateRange } = state.filters || {};
+  const { id } = useParams();
 
   const [rows, setrows] = useState([]);
-  const fetchTotals = async () => {
-    const resources = await getTeTotals(dateRange);
+  const fetchTotals = async (id) => {
+    const resources = await getTeTotals(dateRange,id);
     setrows(createRow(resources));
   };
 
   useEffect(() => {
-    fetchTotals();
+    fetchTotals(id);
   }, []);
 
   return (
