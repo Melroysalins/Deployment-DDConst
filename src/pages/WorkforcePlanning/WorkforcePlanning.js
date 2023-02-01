@@ -102,8 +102,6 @@ function App() {
     return () => {};
   }, []);
 
-  console.log(myEvents,"<--myEvents",projectSites,"<--projectSites")
-
   const handleValidation = () => {
     if (popupEventSite !== null && popupEventSite !== '') {
       setProjectError(false);
@@ -122,7 +120,7 @@ function App() {
         title: popupEventTitle,
         start: startDate,
         end: endDate,
-        // site_id: popupEventSite,
+        project: popupEventSite,
         employee: checkedResources,
         type: "dw",
       };
@@ -303,12 +301,13 @@ function App() {
         >
           <div className="mbsc-form-group">
             <Select
+              disabled={isEdit}
               readOnly={isEdit}
               onChange={(e) => {
                 setTitle(e.valueText);
                 setSite(e.value);
               }}
-              value={popupEventSite}
+              value={isEdit && tempEvent ? tempEvent.project : popupEventSite}
               data={projectSites}
               touchUi={false}
               label="Project Site"
@@ -321,6 +320,7 @@ function App() {
             <Input ref={startRef} label="Starts" />
             <Input ref={endRef} label="Ends" />
             <Datepicker
+              disabled={isEdit}
               readOnly={isEdit}
               select="range"
               controls={['date']}
