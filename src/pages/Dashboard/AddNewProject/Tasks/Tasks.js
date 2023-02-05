@@ -2,31 +2,38 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
-import { styled } from '@mui/material/styles'
 
+import { momentTimezone, setOptions } from '@mobiscroll/react'
 import {
-	Accordion as MuiAccordion,
-	AccordionDetails as MuiAccordionDetails,
-	AccordionSummary as MuiAccordionSummary,
+	Alert,
 	Box,
 	Button,
 	MenuItem,
+	Accordion as MuiAccordion,
+	AccordionDetails as MuiAccordionDetails,
+	AccordionSummary as MuiAccordionSummary,
 	Select,
+	Snackbar,
 	Stack,
 	Typography,
-	CircularProgress,
 } from '@mui/material'
+import { styled } from '@mui/material/styles'
 import { AgGridReact } from 'ag-grid-react'
 import Iconify from 'components/Iconify'
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import moment from 'moment-timezone'
 import PropTypes from 'prop-types'
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { useQuery } from 'react-query'
+import { useParams } from 'react-router'
+import { createNewTasks, deleteTask, deleteTasks, listAllTeams, listFilteredTasks, updateTask } from 'supabase'
+import TimeRangeEditor from './TimeRangeEditor'
 
-const initialValues = {
-	title: '',
-	team: '',
-	task_period: '',
-	notes: '',
-}
+setOptions({
+	theme: 'ios',
+	themeVariant: 'light',
+})
+
+momentTimezone.moment = moment
 
 const Accordion = styled((props) => <MuiAccordion disableGutters elevation={0} square {...props} />)(({ theme }) => ({
 	borderRadius: '8px',
@@ -67,83 +74,80 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 	padding: theme.spacing(2),
 }))
 
-const Tasks = () => {
-	const [metalFitting, setMetalFitting] = useState([])
-	const [installation, setInstallation] = useState([])
-	const [connection, setConnection] = useState([])
-	const [completionTest, setCompletionTest] = useState([])
-	const [loader, setLoader] = useState(false)
+const Tasks = () => (
+	<>
+		<Stack gap={2}>
+			<Accordion>
+				<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+					<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+						Metal Fittings Installation
+					</Typography>
+				</AccordionSummary>
+				<AccordionDetails>
+					<Task task_group="Metal Fittings Installation" />
+				</AccordionDetails>
+			</Accordion>
+			<Accordion>
+				<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+					<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+						Installation
+					</Typography>
+				</AccordionSummary>
+				<AccordionDetails>
+					<Task task_group="Installation" />
+				</AccordionDetails>
+			</Accordion>
+			<Accordion>
+				<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+					<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+						Connection
+					</Typography>
+				</AccordionSummary>
+				<AccordionDetails>
+					<Task task_group="Connection" />
+				</AccordionDetails>
+			</Accordion>
+			<Accordion>
+				<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+					<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+						Completion Test (AC)
+					</Typography>
+				</AccordionSummary>
+				<AccordionDetails>
+					<Task task_group="Completion Test (AC)" />
+				</AccordionDetails>
+			</Accordion>
+		</Stack>
+	</>
+)
 
-	return (
-		<>
-			<Stack gap={2}>
-				<Accordion>
-					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-							Metal Fittings Installation
-						</Typography>
-					</AccordionSummary>
-					<AccordionDetails>
-						<Task rowData={metalFitting} setRowData={setMetalFitting} />
-					</AccordionDetails>
-				</Accordion>
-				<Accordion>
-					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-							Installation
-						</Typography>
-					</AccordionSummary>
-					<AccordionDetails>
-						<Task rowData={installation} setRowData={setInstallation} />
-					</AccordionDetails>
-				</Accordion>
-				<Accordion>
-					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-							Connection
-						</Typography>
-					</AccordionSummary>
-					<AccordionDetails>
-						<Task rowData={connection} setRowData={setConnection} />
-					</AccordionDetails>
-				</Accordion>
-				<Accordion>
-					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-							Completion Test (AC)
-						</Typography>
-					</AccordionSummary>
-					<AccordionDetails>
-						<Task rowData={completionTest} setRowData={setCompletionTest} />
-					</AccordionDetails>
-				</Accordion>
-				<Button fullWidth={false} variant="contained" color="secondary" type="submit" disabled={loader}>
-					{loader ? <CircularProgress size={17} fontSize="inherit" /> : 'Submit'}
-				</Button>
-			</Stack>
-		</>
-	)
-}
+const Task = ({ task_group }) => {
+	const { id } = useParams()
 
-const Task = ({ rowData, setRowData }) => {
+	const [toast, setToast] = useState(false)
+
+	const handleClose = () => {
+		setToast(null)
+	}
 	const gridRef = useRef()
 	const containerStyle = useMemo(() => ({ width: '100%', height: '100%' }), [])
 	const gridStyle = useMemo(() => ({ height: '100%', width: '100%' }), [])
 	const [selectedRows, setSelectedRows] = useState([])
 
+	const { data: teams } = useQuery(['Teams teams'], () => listAllTeams())
+
+	const { refetch, data: list } = useQuery([`task ${task_group}`], () => listFilteredTasks(task_group, id), {
+		select: (r) => r?.data.map((itm) => ({ ...itm, task_period: [itm.start, itm.end] })),
+	})
+
 	// DELETE CELL BUTTON
 
-	const DeleteCellRenderer = ({ value }) => {
+	const DeleteCellRenderer = useCallback(({ value }) => {
 		const handleDelete = () => {
-			console.log(value)
 			if (Array.isArray(value)) {
-				setRowData((prev) => {
-					const res = prev.filter(({ id }) => !value.includes(id))
-					console.log(prev, res)
-					return res
-				})
+				deleteTasks(value).then(() => refetch())
 			} else {
-				setRowData((prev) => prev.filter((itm) => itm.id !== value))
+				deleteTask(value).then(() => refetch())
 			}
 		}
 
@@ -154,53 +158,174 @@ const Task = ({ rowData, setRowData }) => {
 				</Button>
 			</>
 		)
-	}
+	})
+
+	const TimeRangeRenderer = ({ value }) =>
+		value && value[0] && value[1]
+			? `${moment(value[0]).format('DD/MM/YYYY')} - ${moment(value[1]).format('DD/MM/YYYY')}`
+			: '-'
+
+	const TeamRenderer = ({ value }) => (value && teams ? teams?.data.find((team) => team.id === value)?.name : '-')
 
 	DeleteCellRenderer.propTypes = {
 		value: PropTypes.any,
 	}
 
+	const SelectCellEditor = forwardRef((props, ref) => {
+		const createInitialState = () => {
+			let startValue
+
+			if (props.eventKey === KEY_BACKSPACE || props.eventKey === KEY_DELETE) {
+				// if backspace or delete pressed, we clear the cell
+				startValue = ''
+			} else if (props.charPress) {
+				// if a letter was pressed, we start with the letter
+				startValue = props.charPress
+			} else {
+				// otherwise we start with the current value
+				startValue = props.value
+			}
+
+			return {
+				value: startValue,
+			}
+		}
+
+		const initialState = createInitialState()
+		const [value, setValue] = useState(initialState.value)
+		const refInput = useRef(null)
+
+		// focus on the input
+		useEffect(() => {
+			// get ref from React component
+			window.setTimeout(() => {
+				const eInput = refInput.current
+				eInput.focus()
+			})
+		}, [])
+
+		/* Utility Methods */
+		const cancelBeforeStart = props.charPress && '1234567890'.indexOf(props.charPress) < 0
+
+		const isLeftOrRight = (event) => ['ArrowLeft', 'ArrowRight'].indexOf(event.key) > -1
+
+		const isCharNumeric = (charStr) => !!/\d/.test(charStr)
+
+		const isKeyPressedNumeric = (event) => {
+			const charStr = event.key
+			return isCharNumeric(charStr)
+		}
+
+		const deleteOrBackspace = (event) => [KEY_DELETE, KEY_BACKSPACE].indexOf(event.key) > -1
+
+		const finishedEditingPressed = (event) => {
+			const { key } = event
+			return key === KEY_ENTER || key === KEY_TAB
+		}
+
+		const onKeyDown = (event) => {
+			if (isLeftOrRight(event) || deleteOrBackspace(event)) {
+				event.stopPropagation()
+				return
+			}
+
+			if (!finishedEditingPressed(event) && !isKeyPressedNumeric(event)) {
+				if (event.preventDefault) event.preventDefault()
+			}
+		}
+
+		/* Component Editor Lifecycle methods */
+		useImperativeHandle(ref, () => ({
+			// the final value to send to the grid, on completion of editing
+			getValue() {
+				return value
+			},
+
+			// Gets called once before editing starts, to give editor a chance to
+			// cancel the editing before it even starts.
+			isCancelBeforeStart() {
+				return cancelBeforeStart
+			},
+
+			// Gets called once when editing is finished (eg if Enter is pressed).
+			// If you return true, then the result of the edit will be ignored.
+			isCancelAfterEnd() {
+				// will reject the number if it greater than 1,000,000
+				// not very practical, but demonstrates the method.
+				return value > 1000000
+			},
+		}))
+
+		return (
+			<Select
+				defaultOpen
+				ref={refInput}
+				labelId="demo-simple-select-helper-label"
+				id="demo-simple-select-helper"
+				value={value}
+				label="Expense Type"
+				onChange={(event) => setValue(event.target.value)}
+				name="sub_type"
+				fullWidth
+				onKeyDown={(event) => onKeyDown(event)}
+			>
+				{teams?.data.map((team) => (
+					<MenuItem value={team.id} key={team.id}>
+						{team.name}
+					</MenuItem>
+				))}
+			</Select>
+		)
+	})
+
 	useEffect(() => {
 		setSelectedRows(gridRef?.current?.api?.getSelectedRows().map(({ id }) => id) ?? [])
-	}, [rowData])
+	}, [list])
 
 	const AddButton = () => (
-		<Button color="secondary" onClick={handleClick}>
+		<Button color="secondary" onClick={handleAdd}>
 			<Iconify icon="material-symbols:add" width={20} height={20} />
 		</Button>
 	)
-	const [columnDefs, setColumnDefs] = useState([
-		{
-			headerName: 'Task Title',
-			field: 'title',
-			headerCheckboxSelection: true,
-			checkboxSelection: (params) => !!params.data,
-			showDisabledCheckboxes: true,
-		},
-		{
-			headerName: 'Team',
-			field: 'team',
-			cellEditor: SelectCellEditor,
-		},
-		{
-			headerName: 'Task Period',
-			field: 'task_period',
-		},
-		{
-			headerName: 'Notes',
-			field: 'notes',
-		},
-		{
-			headerName: '',
-			field: 'id',
-			cellRenderer: DeleteCellRenderer,
-			headerComponent: AddButton,
-			cellStyle: { display: 'flex', 'justify-content': 'flex-end' },
-			headerClass: 'header',
-			editable: false,
-			maxWidth: 100,
-		},
-	])
+	const columnDefs = useMemo(
+		() => [
+			{
+				headerName: 'Task Title',
+				field: 'title',
+				headerCheckboxSelection: true,
+				checkboxSelection: (params) => !!params.data,
+				showDisabledCheckboxes: true,
+			},
+			{
+				headerName: 'Team',
+				field: 'team',
+				cellEditor: SelectCellEditor,
+				cellRenderer: TeamRenderer,
+			},
+			{
+				headerName: 'Task Period',
+				field: 'task_period',
+				cellEditor: TimeRangeEditor,
+				cellRenderer: TimeRangeRenderer,
+				cellClass: 'ag-grid-datepicker',
+			},
+			{
+				headerName: 'Notes',
+				field: 'notes',
+			},
+			{
+				headerName: '',
+				field: 'id',
+				cellRenderer: DeleteCellRenderer,
+				headerComponent: AddButton,
+				cellStyle: { display: 'flex', justifyContent: 'flex-end' },
+				headerClass: 'header',
+				editable: false,
+				maxWidth: 100,
+			},
+		],
+		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer]
+	)
 	const defaultColDef = useMemo(
 		() => ({
 			flex: 1,
@@ -209,26 +334,8 @@ const Task = ({ rowData, setRowData }) => {
 		[]
 	)
 
-	// const onGridReady = useCallback((params) => {
-	// 	fetch('https://www.ag-grid.com/example-assets/small-olympic-winners.json')
-	// 	  .then((resp) => resp.json())
-	// 	  .then((data) => setRowData(data));
-	// }, [])
-
-	//   const onFirstDataRendered = useCallback((params) => {
-	//     gridRef.current.api.forEachNode((node) =>
-	//       node.setSelected(!!node.data && node.data.year !== 2012)
-	//     );
-	//   }, []);
-
-	const handleClick = (event) => {
-		setRowData((prev) => [
-			...prev,
-			{
-				id: new Date().getTime(),
-				...initialValues,
-			},
-		])
+	const handleAdd = () => {
+		createNewTasks({ title: '', notes: '', task_group, project: id }).then(() => refetch())
 	}
 
 	const onCellEditRequest = (event) => {
@@ -239,17 +346,39 @@ const Task = ({ rowData, setRowData }) => {
 		} = event
 		const newItem = { ...data }
 		newItem[field] = newValue
-		setRowData((prev) => prev.map((oldItem) => (oldItem.id === newItem.id ? newItem : oldItem)))
+		const { id } = newItem
+		if (typeof id !== 'string') {
+			updateTask(
+				{
+					title: newItem.title,
+					team: newItem.team,
+					notes: newItem.notes,
+					start: newItem.task_period ? newItem.task_period[0] : null,
+					end: newItem.task_period ? newItem.task_period[1] : null,
+				},
+				newItem.id
+			).then(() => refetch())
+		}
 	}
 
 	return (
 		<>
+			<Snackbar
+				open={toast}
+				anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+				autoHideDuration={5000}
+				onClose={handleClose}
+			>
+				<Alert onClose={handleClose} severity={toast?.severity} sx={{ width: '100%' }}>
+					{toast?.message}
+				</Alert>
+			</Snackbar>
 			<div style={containerStyle}>
 				<div style={gridStyle} className=" ag-theme-ddconst">
 					<Stack gap={2}>
 						<AgGridReact
 							ref={gridRef}
-							rowData={rowData}
+							rowData={list}
 							columnDefs={columnDefs}
 							defaultColDef={defaultColDef}
 							rowSelection={'multiple'}
@@ -263,7 +392,7 @@ const Task = ({ rowData, setRowData }) => {
 							//   onFirstDataRendered={onFirstDataRendered}
 						/>
 						<Box display="flex" justifyContent="space-between">
-							<Button onClick={handleClick}>Add Task</Button>
+							<Button onClick={handleAdd}>Add Task</Button>
 							{selectedRows.length > 0 && (
 								<Box>
 									{selectedRows.length} items selected:
@@ -279,8 +408,7 @@ const Task = ({ rowData, setRowData }) => {
 }
 
 Task.propTypes = {
-	rowData: PropTypes.array.isRequired,
-	setRowData: PropTypes.func.isRequired,
+	task_group: PropTypes.string.isRequired,
 }
 
 export default Tasks
@@ -289,109 +417,3 @@ const KEY_BACKSPACE = 'Backspace'
 const KEY_DELETE = 'Delete'
 const KEY_ENTER = 'Enter'
 const KEY_TAB = 'Tab'
-
-const SelectCellEditor = forwardRef((props, ref) => {
-	const createInitialState = () => {
-		let startValue
-
-		if (props.eventKey === KEY_BACKSPACE || props.eventKey === KEY_DELETE) {
-			// if backspace or delete pressed, we clear the cell
-			startValue = ''
-		} else if (props.charPress) {
-			// if a letter was pressed, we start with the letter
-			startValue = props.charPress
-		} else {
-			// otherwise we start with the current value
-			startValue = props.value
-		}
-
-		return {
-			value: startValue,
-		}
-	}
-
-	const initialState = createInitialState()
-	const [value, setValue] = useState(initialState.value)
-	const refInput = useRef(null)
-
-	// focus on the input
-	useEffect(() => {
-		// get ref from React component
-		window.setTimeout(() => {
-			const eInput = refInput.current
-			eInput.focus()
-		})
-	}, [])
-
-	/* Utility Methods */
-	const cancelBeforeStart = props.charPress && '1234567890'.indexOf(props.charPress) < 0
-
-	const isLeftOrRight = (event) => ['ArrowLeft', 'ArrowRight'].indexOf(event.key) > -1
-
-	const isCharNumeric = (charStr) => !!/\d/.test(charStr)
-
-	const isKeyPressedNumeric = (event) => {
-		const charStr = event.key
-		return isCharNumeric(charStr)
-	}
-
-	const deleteOrBackspace = (event) => [KEY_DELETE, KEY_BACKSPACE].indexOf(event.key) > -1
-
-	const finishedEditingPressed = (event) => {
-		const { key } = event
-		return key === KEY_ENTER || key === KEY_TAB
-	}
-
-	const onKeyDown = (event) => {
-		console.log(event)
-		if (isLeftOrRight(event) || deleteOrBackspace(event)) {
-			event.stopPropagation()
-			return
-		}
-
-		if (!finishedEditingPressed(event) && !isKeyPressedNumeric(event)) {
-			if (event.preventDefault) event.preventDefault()
-		}
-	}
-
-	/* Component Editor Lifecycle methods */
-	useImperativeHandle(ref, () => ({
-		// the final value to send to the grid, on completion of editing
-		getValue() {
-			return value
-		},
-
-		// Gets called once before editing starts, to give editor a chance to
-		// cancel the editing before it even starts.
-		isCancelBeforeStart() {
-			return cancelBeforeStart
-		},
-
-		// Gets called once when editing is finished (eg if Enter is pressed).
-		// If you return true, then the result of the edit will be ignored.
-		isCancelAfterEnd() {
-			// will reject the number if it greater than 1,000,000
-			// not very practical, but demonstrates the method.
-			return value > 1000000
-		},
-	}))
-
-	return (
-		<Select
-			defaultOpen
-			ref={refInput}
-			labelId="demo-simple-select-helper-label"
-			id="demo-simple-select-helper"
-			value={value}
-			label="Expense Type"
-			onChange={(event) => setValue(event.target.value)}
-			name="sub_type"
-			fullWidth
-			onKeyDown={(event) => onKeyDown(event)}
-		>
-			<MenuItem value="Installation team">Installation team</MenuItem>
-			<MenuItem value="Connection team 1">Connection team 1</MenuItem>
-			<MenuItem value="Connection team 2">Connection team 2</MenuItem>
-		</Select>
-	)
-})

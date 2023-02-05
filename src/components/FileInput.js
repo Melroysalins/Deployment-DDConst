@@ -22,7 +22,6 @@ export default function FileInput({ label, sx, name, height = 'auto' }) {
 	const [file, setFile] = useState(null)
 
 	useEffect(() => {
-		console.log(field)
 		if (field.value) {
 			const reader = new FileReader()
 
@@ -50,7 +49,6 @@ export default function FileInput({ label, sx, name, height = 'auto' }) {
 				hidden
 				name={name}
 				onChange={(e) => {
-					console.log(e)
 					helpers.setValue(e.currentTarget.files[0])
 				}}
 			/>

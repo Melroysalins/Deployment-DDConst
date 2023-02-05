@@ -34,6 +34,7 @@ export default function Router() {
 						{ path: ':id/travel-expenses', element: <TravelExpenses /> },
 
 						{ path: 'add', element: <AddNewProject /> },
+						{ path: 'edit/:id', element: <AddNewProject edit /> },
 						{ path: ':id', element: <ProjectDetails /> },
 					],
 				},

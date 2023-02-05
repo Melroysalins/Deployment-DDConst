@@ -14,7 +14,7 @@ const DoublingEditor = forwardRef((props, ref) => {
 		// the final value to send to the grid, on completion of editing
 		getValue() {
 			// this simple editor doubles any value entered into the input
-			return value * 2
+			return value
 		},
 
 		// Gets called once before editing starts, to give editor a chance to
@@ -34,6 +34,7 @@ const DoublingEditor = forwardRef((props, ref) => {
 	return (
 		<input
 			type="number"
+			step="0.1"
 			ref={refInput}
 			value={value}
 			onChange={(event) => setValue(event.target.value)}
