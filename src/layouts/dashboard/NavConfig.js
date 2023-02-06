@@ -35,6 +35,7 @@ const navConfig = [
 		title: 'Hr/Admin',
 		path: '/dashboard/hr-admin',
 		icon: getIcon('clarity:administrator-solid'),
+		target_blank: true,
 	},
 	// {
 	//   title: 'product',

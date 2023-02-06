@@ -1,3 +1,4 @@
+/* eslint-disable func-names */
 import React from 'react'
 import '@mobiscroll/react/dist/css/mobiscroll.min.css'
 import { Eventcalendar, setOptions, Popup, Button, Input, Datepicker, momentTimezone } from '@mobiscroll/react'
@@ -5,8 +6,8 @@ import moment from 'moment-timezone'
 import './calendar.scss'
 
 import { Loader, getHolidays } from 'reusables'
-
-import data from './data.json'
+import { useParams } from 'react-router'
+import { listAllTasksByProject } from 'supabase'
 
 setOptions({
 	theme: 'ios',
@@ -21,14 +22,14 @@ const viewSettings = {
 		weekNumbers: false,
 	},
 }
-const responsivePopup = {
-	medium: {
-		display: 'anchored',
-		width: 520,
-		fullScreen: false,
-		touchUi: false,
-	},
-}
+// const responsivePopup = {
+// 	medium: {
+// 		display: 'anchored',
+// 		width: 520,
+// 		fullScreen: false,
+// 		touchUi: false,
+// 	},
+// }
 
 const defaultHolidays = [
 	{ background: 'rgba(100, 100, 100, 0.1)', recurring: { repeat: 'weekly', weekDays: 'SU' } },
@@ -36,31 +37,45 @@ const defaultHolidays = [
 ]
 
 function App() {
-	const [myEvents, setMyEvents] = React.useState(data.events)
+	const { project } = useParams()
+	const [myEvents, setMyEvents] = React.useState([])
 	const [tempEvent, setTempEvent] = React.useState(null)
 	const [isOpen, setOpen] = React.useState(false)
 	const [isEdit, setEdit] = React.useState(false)
-	const [anchor, setAnchor] = React.useState(null)
-	const [start, startRef] = React.useState(null)
-	const [end, endRef] = React.useState(null)
+	// const [anchor, setAnchor] = React.useState(null)
+	// const [start, startRef] = React.useState(null)
+	// const [end, endRef] = React.useState(null)
 	const [popupEventTitle, setTitle] = React.useState('')
 	const [popupEventSite, setSite] = React.useState('')
 	const [popupEventColor, setColor] = React.useState('')
 	const [popupEventDate, setDate] = React.useState([])
-	const [mySelectedDate, setSelectedDate] = React.useState(data.events[0].start)
+	const [mySelectedDate, setSelectedDate] = React.useState(new Date())
 	const [checkedResources, setCheckedResources] = React.useState([])
-	const [myResources, setMyResources] = React.useState(data.resources)
-	const [invalid, setInvalid] = React.useState([
-		{
-			recurring: {
-				repeat: 'daily',
-			},
-			resource: [],
-		},
-	])
+	const [myResources, setMyResources] = React.useState([])
+
 	const [loader, setLoader] = React.useState(false)
 	const [projectError, setProjectError] = React.useState(false)
 	const [holidays, setHolidays] = React.useState(defaultHolidays)
+
+	const handleSetEvent = (data) => {
+		setMyEvents(data.map((e) => ({ ...e, resource: e.task_group })))
+	}
+
+	const handlesetMyResources = (data) => {
+		const unique = [...new Map(data.map((item) => [item.task_group, item])).values()]
+		setMyResources(unique.map((e) => ({ id: e.task_group, task_group: e.task_group })))
+	}
+
+	React.useEffect(() => {
+		;(async function () {
+			listAllTasksByProject(project).then((data) => {
+				console.log(data?.data, '<--data?.data')
+				handleSetEvent(data?.data)
+				handlesetMyResources(data?.data)
+			})
+		})()
+		return () => {}
+	}, [])
 
 	const handleValidation = () => {
 		if (popupEventSite !== null && popupEventSite !== '') {
@@ -91,28 +106,12 @@ function App() {
 		}
 	}, [isEdit, myEvents, popupEventDate, popupEventColor, popupEventTitle, popupEventSite, tempEvent, checkedResources])
 
-	const renderMyResource = (resource) => (
-		<div>
-			{resource.name && `Work: ${resource.name}`}
-			<br />
-			{resource.team && `Team: ${resource.team}`}
-		</div>
-	)
+	const renderMyResource = (resource) => <div>{resource.task_group}</div>
 
 	const renderScheduleEvent = (event) => {
-		let bg = '#000'
-		let color = '#000'
-		let border = null
-		if (event.original.completed != null) {
-			bg = '#fff'
-			color = event.color
-			border = `2.5px solid ${event.color}`
-			// if (event.original.completed) border = '2px solid red';
-			// else border = '2px solid black';
-		} else {
-			bg = event.color ? event.color : '#ccc'
-			color = '#fff'
-		}
+		const bg = '#5ac8fa'
+		const color = '#000'
+		const border = null
 		return (
 			<div className="timeline-event" style={{ background: bg, color, border }}>
 				{event.title}
@@ -120,103 +119,103 @@ function App() {
 		)
 	}
 
-	const loadPopupForm = React.useCallback((event) => {
-		try {
-			let startDate = new Date(event.start)
-			let endDate = new Date(event.end)
-			startDate = moment(startDate).format('YYYY-MM-DD')
-			endDate = moment(endDate).format('YYYY-MM-DD')
-			setTitle('')
-			setSite(event.location)
-			setColor(event.color)
-			setDate([startDate, endDate])
-			setCheckedResources(event.resource)
-		} catch (error) {
-			console.log(error)
-		}
-	}, [])
+	// const loadPopupForm = React.useCallback((event) => {
+	// 	try {
+	// 		let startDate = new Date(event.start)
+	// 		let endDate = new Date(event.end)
+	// 		startDate = moment(startDate).format('YYYY-MM-DD')
+	// 		endDate = moment(endDate).format('YYYY-MM-DD')
+	// 		setTitle('')
+	// 		setSite(event.location)
+	// 		setColor(event.color)
+	// 		setDate([startDate, endDate])
+	// 		setCheckedResources(event.resource)
+	// 	} catch (error) {
+	// 		console.log(error)
+	// 	}
+	// }, [])
 
 	// handle popup form changes
 
-	const dateChange = React.useCallback((args) => {
-		setDate(args.value)
-	}, [])
+	// const dateChange = React.useCallback((args) => {
+	// 	setDate(args.value)
+	// }, [])
 
-	const onDeleteClick = React.useCallback(() => {
-		setLoader(true)
+	// const onDeleteClick = React.useCallback(() => {
+	// 	setLoader(true)
 
-		setOpen(false)
-	}, [tempEvent])
+	// 	setOpen(false)
+	// }, [tempEvent])
 
-	// scheduler options
+	// // scheduler options
 
-	const onSelectedDateChange = React.useCallback((event) => {
-		setSelectedDate(event.date)
-	}, [])
+	// const onSelectedDateChange = React.useCallback((event) => {
+	// 	setSelectedDate(event.date)
+	// }, [])
 
-	const onEventClick = React.useCallback(
-		(args) => {
-			setEdit(true)
+	// const onEventClick = React.useCallback(
+	// 	(args) => {
+	// 		setEdit(true)
 
-			setTempEvent({ ...args.event })
-			// fill popup form with event data
-			loadPopupForm(args.event)
-			setAnchor(args.domEvent.target)
-			setOpen(true)
-		},
-		[loadPopupForm]
-	)
+	// 		setTempEvent({ ...args.event })
+	// 		// fill popup form with event data
+	// 		loadPopupForm(args.event)
+	// 		setAnchor(args.domEvent.target)
+	// 		setOpen(true)
+	// 	},
+	// 	[loadPopupForm]
+	// )
 
-	const onEventCreated = React.useCallback(
-		(args) => {
-			setEdit(false)
-			setTempEvent(args.event)
-			// fill popup form with event data
-			loadPopupForm(args.event)
-			setAnchor(args.target)
-			// open the popup
-			setOpen(true)
-		},
-		[loadPopupForm]
-	)
+	// const onEventCreated = React.useCallback(
+	// 	(args) => {
+	// 		setEdit(false)
+	// 		setTempEvent(args.event)
+	// 		// fill popup form with event data
+	// 		loadPopupForm(args.event)
+	// 		setAnchor(args.target)
+	// 		// open the popup
+	// 		setOpen(true)
+	// 	},
+	// 	[loadPopupForm]
+	// )
 
-	const onEventDeleted = React.useCallback((args) => {}, [])
+	// const onEventDeleted = React.useCallback((args) => {}, [])
 
 	// popup options
-	const headerText = React.useMemo(() => (isEdit ? 'View work order' : 'New work order'), [isEdit])
-	const popupButtons = React.useMemo(() => {
-		if (isEdit) {
-			return ['cancel']
-		}
+	// const headerText = React.useMemo(() => (isEdit ? 'View work order' : 'New work order'), [isEdit])
+	// const popupButtons = React.useMemo(() => {
+	// 	if (isEdit) {
+	// 		return ['cancel']
+	// 	}
 
-		return [
-			'cancel',
-			{
-				handler: () => {
-					saveEvent()
-				},
-				keyCode: 'enter',
-				text: 'Add',
-				cssClass: 'mbsc-popup-button-primary',
-			},
-		]
-	}, [isEdit, saveEvent])
+	// 	return [
+	// 		'cancel',
+	// 		{
+	// 			handler: () => {
+	// 				saveEvent()
+	// 			},
+	// 			keyCode: 'enter',
+	// 			text: 'Add',
+	// 			cssClass: 'mbsc-popup-button-primary',
+	// 		},
+	// 	]
+	// }, [isEdit, saveEvent])
 
-	const onClose = React.useCallback(() => {
-		if (!isEdit) {
-			// refresh the list, if add popup was canceled, to remove the temporary event
-			setMyEvents([...myEvents])
-		}
-		setOpen(false)
-	}, [isEdit, myEvents])
+	// const onClose = React.useCallback(() => {
+	// 	if (!isEdit) {
+	// 		// refresh the list, if add popup was canceled, to remove the temporary event
+	// 		setMyEvents([...myEvents])
+	// 	}
+	// 	setOpen(false)
+	// }, [isEdit, myEvents])
 
-	const extendDefaultEvent = React.useCallback(
-		(args) => ({
-			title: 'Work order',
-			location: '',
-		}),
-		[]
-	)
+	// const extendDefaultEvent = React.useCallback(
+	// 	(args) => ({
+	// 		title: 'Work order',
+	// 		location: '',
+	// 	}),
+	// 	[]
+	// )
 
 	async function onPageLoading(event, inst) {
 		const start = new Date(event.firstDay)
@@ -231,7 +230,6 @@ function App() {
 			<Eventcalendar
 				view={viewSettings}
 				data={myEvents}
-				invalid={invalid}
 				displayTimezone="local"
 				dataTimezone="local"
 				onPageLoading={onPageLoading}
@@ -239,17 +237,17 @@ function App() {
 				renderScheduleEvent={renderScheduleEvent}
 				resources={myResources}
 				clickToCreate="double"
-				dragToCreate={true}
+				dragToCreate={false}
 				dragTimeStep={30}
-				selectedDate={mySelectedDate}
-				onSelectedDateChange={onSelectedDateChange}
-				onEventClick={onEventClick}
-				onEventCreated={onEventCreated}
-				onEventDeleted={onEventDeleted}
-				extendDefaultEvent={extendDefaultEvent}
+				// selectedDate={mySelectedDate}
+				// onSelectedDateChange={onSelectedDateChange}
+				// onEventClick={onEventClick}
+				// onEventCreated={onEventCreated}
+				// onEventDeleted={onEventDeleted}
+				// extendDefaultEvent={extendDefaultEvent}
 				colors={holidays}
 			/>
-			<Popup
+			{/* <Popup
 				display="bottom"
 				fullScreen={true}
 				contentPadding={false}
@@ -311,7 +309,7 @@ function App() {
 						</div>
 					)}
 				</div>
-			</Popup>
+			</Popup> */}
 		</>
 	)
 }

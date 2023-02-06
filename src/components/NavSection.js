@@ -41,7 +41,7 @@ function NavItem({ item, active, leftDrawerOpened }) {
 
 	const isActiveRoot = active(item.path)
 
-	const { title, path, icon, info, children } = item
+	const { title, path, icon, info, children, target_blank } = item
 
 	const [open, setOpen] = useState(isActiveRoot)
 
@@ -86,13 +86,13 @@ function NavItem({ item, active, leftDrawerOpened }) {
 				<Collapse in={open} timeout="auto" unmountOnExit>
 					<List component="div" disablePadding>
 						{children.map((item) => {
-							const { title, path } = item
+							const { title, path, target_blank } = item
 							const isActiveSub = active(path)
 
 							return (
 								<ListItemStyle
 									key={title}
-									LinkComponent={RouterLink}
+									LinkComponent={target_blank ? RouterLink : null}
 									to={path}
 									sx={{
 										...(isActiveSub ? activeSubStyle : {}),
@@ -135,6 +135,7 @@ function NavItem({ item, active, leftDrawerOpened }) {
 			onClick={() => (isLogout ? handlesignOut() : null)}
 			LinkComponent={!isLogout ? RouterLink : null}
 			to={!isLogout ? path : ''}
+			target={target_blank && '_blank'}
 			sx={{
 				...(isActiveRoot ? activeRootStyle : {}),
 			}}
