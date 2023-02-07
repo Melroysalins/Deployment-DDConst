@@ -1,12 +1,18 @@
 import { supabase } from 'lib/api'
 
-export const listAllEvents = async () => {
-	const { data: events, error } = await supabase.from('events').select('*')
-	if (error) {
-		return []
-	}
-	return events
-}
+// export const getProjectDetails = async (id) => {
+//   const res = await supabase.from('projects').select('*').eq('id', id).single();
+//   return res;
+// };
+export const listAllEvents = async (filters) => {
+  let filter = Object.keys(filters).map((itm) => `type.eq.${itm}`);
+  filter = filter.join(',');
+  const { data: events, error } = await supabase.from('events').select('*').or(filter);
+  if (error) {
+    return [];
+  }
+  return events;
+};
 export const createNewEvent = async (data) => {
 	const res = await supabase.from('events').insert([data])
 	return res

@@ -40,7 +40,7 @@ export default function Router() {
 				},
 
 				{ path: 'workforce-planning', element: <WorkforcePlanning /> },
-				{ path: 'project-schedule', element: <ProjectImplementationSchedule /> },
+				{ path: 'project-schedule/:project', element: <ProjectImplementationSchedule /> },
 				{ path: 'user', element: <User /> },
 				{ path: 'products', element: <Products /> },
 				{ path: 'blog', element: <Blog /> },
