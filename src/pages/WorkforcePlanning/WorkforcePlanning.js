@@ -38,6 +38,7 @@ const defaultHolidays = [
   { background: 'rgba(100, 100, 100, 0.1)', recurring: { repeat: 'weekly', weekDays: 'SU' } },
   { background: 'rgba(100, 100, 100, 0.1)', recurring: { repeat: 'weekly', weekDays: 'SA' } },
 ];
+const filters={dw:true}
 
 function App() {
   const [myEvents, setMyEvents] = React.useState([]);
@@ -67,23 +68,33 @@ function App() {
   const [projectError, setProjectError] = React.useState(false);
   const [holidays, setHolidays] = React.useState(defaultHolidays);
 
+  const handleSetEvent=(data)=>{
+    setMyEvents(data.map(e => ({...e,resource: e.employee})))
+  }
+
   React.useEffect(() => {
     (async function () {
       setLoader(true);
+      // listAllEmployees().then((data) => {
+      //   const resource = data.map((item) => item.id);
+      //   setInvalid([
+      //     {
+      //       recurring: {
+      //         repeat: 'daily',
+      //       },
+      //       resource,
+      //     },
+      //   ]);
+      //   setMyResources(data);
+      // });
+
       listAllEmployees().then((data) => {
-        const resource = data.map((item) => item.id);
-        setInvalid([
-          {
-            recurring: {
-              repeat: 'daily',
-            },
-            resource,
-          },
-        ]);
-        setMyResources(data);
+        setMyResources(data?.data);
       });
-      listAllEvents().then((data) => setMyEvents(data));
+      listAllEvents(filters).then((data) => handleSetEvent(data));
+
       listAllProjects().then((data) => {
+        data = data?.data.map((item) => ({ text: item.title, value: item.id }));
         setLoader(false);
         setProjectSites(data);
       });
@@ -109,13 +120,14 @@ function App() {
         title: popupEventTitle,
         start: startDate,
         end: endDate,
-        site_id: popupEventSite,
-        employee_id: checkedResources,
+        project: popupEventSite,
+        employee: checkedResources,
+        type: "dw",
       };
       createNewEvent(newEvent).then((res) => {
-        listAllEvents().then((data) => {
+        listAllEvents(filters).then((data) => {
           setLoader(false);
-          setMyEvents(data);
+          handleSetEvent(data);
         });
       });
 
@@ -160,9 +172,9 @@ function App() {
   const onDeleteClick = React.useCallback(() => {
     setLoader(true);
     deleteEvent(tempEvent.id).then((res) => {
-      listAllEvents().then((data) => {
+      listAllEvents(filters).then((data) => {
         setLoader(false);
-        setMyEvents(data);
+        handleSetEvent(data);
       });
     });
 
@@ -289,12 +301,13 @@ function App() {
         >
           <div className="mbsc-form-group">
             <Select
+              disabled={isEdit}
               readOnly={isEdit}
               onChange={(e) => {
                 setTitle(e.valueText);
                 setSite(e.value);
               }}
-              value={popupEventSite}
+              value={isEdit && tempEvent ? tempEvent.project : popupEventSite}
               data={projectSites}
               touchUi={false}
               label="Project Site"
@@ -307,6 +320,7 @@ function App() {
             <Input ref={startRef} label="Starts" />
             <Input ref={endRef} label="Ends" />
             <Datepicker
+              disabled={isEdit}
               readOnly={isEdit}
               select="range"
               controls={['date']}

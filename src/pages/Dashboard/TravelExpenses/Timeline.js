@@ -591,7 +591,7 @@ export default function Timeline() {
       </Stack>
     );
   };
-
+console.log(state.events,"<--state.events",state.resources)
   return (
     <>
       {popupType && (
