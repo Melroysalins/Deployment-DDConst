@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { NavLink as RouterLink, matchPath, useLocation } from 'react-router-dom'
@@ -36,12 +37,16 @@ NavItem.propTypes = {
 	leftDrawerOpened: PropTypes.bool,
 }
 
+const handleTargetLink = (link) => {
+	window.open(link, '_blank')
+}
+
 function NavItem({ item, active, leftDrawerOpened }) {
 	const theme = useTheme()
 
 	const isActiveRoot = active(item.path)
 
-	const { title, path, icon, info, children, target_blank } = item
+	const { title, path, icon, info, children, target_link } = item
 
 	const [open, setOpen] = useState(isActiveRoot)
 
@@ -86,13 +91,13 @@ function NavItem({ item, active, leftDrawerOpened }) {
 				<Collapse in={open} timeout="auto" unmountOnExit>
 					<List component="div" disablePadding>
 						{children.map((item) => {
-							const { title, path, target_blank } = item
+							const { title, path } = item
 							const isActiveSub = active(path)
 
 							return (
 								<ListItemStyle
 									key={title}
-									LinkComponent={target_blank ? RouterLink : null}
+									LinkComponent={RouterLink}
 									to={path}
 									sx={{
 										...(isActiveSub ? activeSubStyle : {}),
@@ -132,10 +137,9 @@ function NavItem({ item, active, leftDrawerOpened }) {
 	const isLogout = title === 'logout'
 	return (
 		<ListItemStyle
-			onClick={() => (isLogout ? handlesignOut() : null)}
-			LinkComponent={!isLogout ? RouterLink : null}
-			to={!isLogout ? path : ''}
-			target={target_blank && '_blank'}
+			onClick={() => (isLogout ? handlesignOut() : target_link ? handleTargetLink(target_link) : null)}
+			LinkComponent={!isLogout && !target_link ? RouterLink : null}
+			to={!isLogout && !target_link ? path : ''}
 			sx={{
 				...(isActiveRoot ? activeRootStyle : {}),
 			}}

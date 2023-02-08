@@ -33,9 +33,8 @@ const navConfig = [
 	// },
 	{
 		title: 'Hr/Admin',
-		path: '/dashboard/hr-admin',
 		icon: getIcon('clarity:administrator-solid'),
-		target_blank: true,
+		target_link: 'https://ddconst.budibase.app/app/hradmin#/',
 	},
 	// {
 	//   title: 'product',
