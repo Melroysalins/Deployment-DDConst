@@ -1,5 +1,5 @@
-import './calendar.scss'
 import '@mobiscroll/react/dist/css/mobiscroll.min.css'
+import './calendar.scss'
 
 import {
 	CalendarNav,
@@ -23,7 +23,6 @@ import { getTeResources } from 'supabase/travelExpenses'
 
 import useTE from './context/context'
 import { TEActionType } from './context/types'
-import data from './data.json'
 import getHolidays from './getHolidays'
 import AddFormPopup from './popups/AddFormPopup'
 import ViewEventPopup from './popups/ViewEventPopup'
@@ -34,6 +33,15 @@ setOptions({
 	themeVariant: 'light',
 })
 momentTimezone.moment = moment
+
+const FilledLine = styled(Box, {
+	shouldForwardProp: (prop) => prop !== 'color',
+})(({ theme, color }) => ({
+	width: '20px',
+	height: '4px',
+	background: color,
+	borderRadius: '4px',
+}))
 
 const viewSettings = {
 	timeline: {
@@ -696,39 +704,45 @@ export default function Timeline() {
 				dayNamesMin={['S', 'M', 'T', 'W', 'T', 'F', 'S']}
 			/>
 			<Popup variant="secondary" anchor={anchor} handleClose={onClose}>
-				<Stack flexDirection="row" justifyContent="space-between" sx={{ p: 1 }}>
+				<Stack width="max-content" flexDirection="row" justifyContent="space-between" sx={{ p: 1 }}>
 					<MuiButton
 						onClick={() => {
 							addTeEvent({ ...popupData, type: 'ste', sub_type: 'overtime' })
 							setAnchor(null)
 						}}
-						startIcon={<Iconify icon="tabler:plane-tilt" width={15} height={15} />}
 						size="small"
 						color="inherit"
 					>
-						Add Overtime
+						<Typography sx={{ display: 'flex', alignItems: 'center', marginRight: 3 }} variant="caption">
+							<FilledLine color="#DA4C57" />
+							&nbsp;Add Overtime
+						</Typography>
 					</MuiButton>
 					<MuiButton
 						onClick={() => {
 							addTeEvent({ ...popupData, type: 'ste', sub_type: 'nightTime' })
 							setAnchor(null)
 						}}
-						startIcon={<Iconify icon="mdi:auto-pay" width={15} height={15} />}
 						size="small"
 						color="inherit"
 					>
-						Add night time
+						<Typography sx={{ display: 'flex', alignItems: 'center', marginRight: 3 }} variant="caption">
+							<FilledLine color="#8FA429" />
+							&nbsp;Add Night-time
+						</Typography>
 					</MuiButton>
 					<MuiButton
 						onClick={() => {
 							addTeEvent({ ...popupData, type: 'ste', sub_type: 'restDayMove' })
 							setAnchor(null)
 						}}
-						startIcon={<Iconify icon="mdi:auto-pay" width={15} height={15} />}
 						size="small"
 						color="inherit"
 					>
-						Add rest day move
+						<Typography sx={{ display: 'flex', alignItems: 'center', marginRight: 3 }} variant="caption">
+							<FilledLine color="#A3888C" />
+							&nbsp;Add Rest day move
+						</Typography>
 					</MuiButton>
 				</Stack>
 				{/* <div className="mbsc-form-group">
