@@ -10,7 +10,7 @@ import {
 	momentTimezone,
 	setOptions,
 } from '@mobiscroll/react'
-import { Avatar, Box, Button as MuiButton, Stack, Tooltip, Typography } from '@mui/material'
+import { Alert, Avatar, Box, Button as MuiButton, Snackbar, Stack, Tooltip, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import Iconify from 'components/Iconify'
 import Popup from 'components/Popups/Popup'
@@ -18,7 +18,7 @@ import moment from 'moment-timezone'
 import React from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Loader } from 'reusables'
-import { deleteEvent, editEvent, listAllEvents } from 'supabase/events'
+import { createNewEvent, deleteEvent, editEvent, listAllEvents } from 'supabase/events'
 import { getTeResources } from 'supabase/travelExpenses'
 
 import useTE from './context/context'
@@ -107,6 +107,11 @@ export default function Timeline() {
 	const [popupType, setPopupType] = React.useState(null)
 	const [viewPopup, setViewPopup] = React.useState(null)
 	const [filters, setFilters] = React.useState(initialFilters)
+	const [toast, setToast] = React.useState(null)
+
+	const handleCloseToast = () => {
+		setToast(null)
+	}
 
 	const handlePopupTypeChange = React.useCallback((title) => setPopupType(title), [])
 
@@ -123,9 +128,24 @@ export default function Timeline() {
 				pathname,
 				search: `?filters=te,ste`,
 			})
-		console.log({ ..._filters })
 	}, [searchParams])
 
+	const addTeEvent = async (values) => {
+		setLoader(true)
+		try {
+			delete values.id
+			const res = await createNewEvent(values)
+			if (res.status >= 200 && res.status < 300) {
+				setToast({ severity: 'success', message: 'Succesfully added new event!' })
+				dispatch({ type: TEActionType.BEEP, payload: true })
+			} else {
+				setToast({ severity: 'error', message: 'Failed to added new event!' })
+			}
+		} catch (err) {
+			console.log(err)
+		}
+		setLoader(false)
+	}
 	// // for checking filter parameters
 	React.useEffect(() => {
 		handleFilters()
@@ -469,11 +489,12 @@ export default function Timeline() {
 				start: startDate,
 				end: endDate,
 				employee: resource.length === 1 && String(event?.resource)?.split('|').length === 2 ? null : resource[0],
-				sub_type,
+				sub_type: sub_type ?? resource[1],
 				id,
-				status,
+				status: status ?? 'Planned',
 			}
 			setPopupData(data)
+			return data
 		} catch (error) {
 			console.log(error)
 		}
@@ -516,13 +537,15 @@ export default function Timeline() {
 			const expense_type = args.event.resource?.split('-')
 			if (expense_type.length > 1 && expense_type[1] !== 'task') {
 				handlePopupTypeChange('te')
-				handleOpenPopup(args.target)
+				// handleOpenPopup(args.target)
+				const data = loadPopupForm(args.event)
+				addTeEvent({ ...data, type: 'te' })
 			} else {
 				setAnchor(args.target)
+				loadPopupForm(args.event)
 			}
 			// fill popup form with event data
 
-			loadPopupForm(args.event)
 			// open the popup
 		},
 		[loadPopupForm]
@@ -534,7 +557,6 @@ export default function Timeline() {
 				const start = moment(event.start).format('YYYY-MM-DD')
 				const end = moment(event.end).format('YYYY-MM-DD')
 				setTempEvent(event)
-				console.log(event)
 
 				// fill popup form with event data
 				editEvent({ start, end }, event.id).then(() => {
@@ -612,7 +634,7 @@ export default function Timeline() {
 			</Stack>
 		)
 	}
-	console.log(state.events, '<--state.events', state.resources)
+
 	return (
 		<>
 			{popupType && (
@@ -635,6 +657,16 @@ export default function Timeline() {
 			)}
 
 			<Loader open={loader} setOpen={setLoader} />
+			<Snackbar
+				open={toast}
+				anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+				autoHideDuration={5000}
+				onClose={handleCloseToast}
+			>
+				<Alert onClose={handleCloseToast} severity={toast?.severity} sx={{ width: '100%' }}>
+					{toast?.message}
+				</Alert>
+			</Snackbar>
 			<Eventcalendar
 				cssClass="mbsc-calendar-projects md-timeline-height"
 				view={viewSettings}
@@ -667,8 +699,8 @@ export default function Timeline() {
 				<Stack flexDirection="row" justifyContent="space-between" sx={{ p: 1 }}>
 					<MuiButton
 						onClick={() => {
-							handlePopupTypeChange('ste')
-							handleOpenPopup(anchor)
+							addTeEvent({ ...popupData, type: 'ste', sub_type: 'overtime' })
+							setAnchor(null)
 						}}
 						startIcon={<Iconify icon="tabler:plane-tilt" width={15} height={15} />}
 						size="small"
@@ -678,14 +710,25 @@ export default function Timeline() {
 					</MuiButton>
 					<MuiButton
 						onClick={() => {
-							handlePopupTypeChange('te')
-							handleOpenPopup(anchor)
+							addTeEvent({ ...popupData, type: 'ste', sub_type: 'nightTime' })
+							setAnchor(null)
 						}}
 						startIcon={<Iconify icon="mdi:auto-pay" width={15} height={15} />}
 						size="small"
 						color="inherit"
 					>
-						Add Travel Expenses
+						Add night time
+					</MuiButton>
+					<MuiButton
+						onClick={() => {
+							addTeEvent({ ...popupData, type: 'ste', sub_type: 'restDayMove' })
+							setAnchor(null)
+						}}
+						startIcon={<Iconify icon="mdi:auto-pay" width={15} height={15} />}
+						size="small"
+						color="inherit"
+					>
+						Add rest day move
 					</MuiButton>
 				</Stack>
 				{/* <div className="mbsc-form-group">
