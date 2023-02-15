@@ -144,7 +144,7 @@ export default function Timeline() {
 			delete values.id
 			const res = await createNewEvent(values)
 			if (res.status >= 200 && res.status < 300) {
-				setToast({ severity: 'success', message: 'Succesfully added new event!' })
+				// setToast({ severity: 'success', message: 'Succesfully added new event!' })
 				dispatch({ type: TEActionType.BEEP, payload: true })
 			} else {
 				setToast({ severity: 'error', message: 'Failed to added new event!' })
@@ -540,14 +540,19 @@ export default function Timeline() {
 
 	const onEventCreated = React.useCallback(
 		(args) => {
+			console.log(args)
 			setEdit(false)
 			setTempEvent(args.event)
 			const expense_type = args.event.resource?.split('-')
-			if (expense_type.length > 1 && expense_type[1] !== 'task') {
+			if ((expense_type.length > 1 && expense_type[1] !== 'task') || args.event.type === 'te') {
 				handlePopupTypeChange('te')
+				console.log(args)
 				// handleOpenPopup(args.target)
 				const data = loadPopupForm(args.event)
 				addTeEvent({ ...data, type: 'te' })
+			} else if (args.event.type === 'ste') {
+				const data = loadPopupForm(args.event)
+				addTeEvent({ ...data, type: 'ste' })
 			} else {
 				setAnchor(args.target)
 				loadPopupForm(args.event)
@@ -690,6 +695,7 @@ export default function Timeline() {
 				dragToCreate={true}
 				dragToMove
 				dragToResize
+				externalDrop
 				onEventUpdate={onEventUpdate}
 				dragTimeStep={30}
 				selectedDate={mySelectedDate}
