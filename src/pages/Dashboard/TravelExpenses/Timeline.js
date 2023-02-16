@@ -18,12 +18,11 @@ import moment from 'moment-timezone'
 import React from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Loader } from 'reusables'
-import { createNewEvent, deleteEvent, listAllEvents } from 'supabase/events'
+import { createNewEvent, deleteEvent, editEvent, listAllEvents } from 'supabase/events'
 import { getTeResources } from 'supabase/travelExpenses'
 
 import useTE from './context/context'
 import { TEActionType } from './context/types'
-import data from './data.json'
 import getHolidays from './getHolidays'
 import AddFormPopup from './popups/AddFormPopup'
 import ViewEventPopup from './popups/ViewEventPopup'
@@ -34,6 +33,15 @@ setOptions({
 	themeVariant: 'light',
 })
 momentTimezone.moment = moment
+
+const FilledLine = styled(Box, {
+	shouldForwardProp: (prop) => prop !== 'color',
+})(({ theme, color }) => ({
+	width: '20px',
+	height: '4px',
+	background: color,
+	borderRadius: '4px',
+}))
 
 const viewSettings = {
 	timeline: {
@@ -107,6 +115,11 @@ export default function Timeline() {
 	const [popupType, setPopupType] = React.useState(null)
 	const [viewPopup, setViewPopup] = React.useState(null)
 	const [filters, setFilters] = React.useState(initialFilters)
+	const [toast, setToast] = React.useState(null)
+
+	const handleCloseToast = () => {
+		setToast(null)
+	}
 
 	const handlePopupTypeChange = React.useCallback((title) => setPopupType(title), [])
 
@@ -123,9 +136,24 @@ export default function Timeline() {
 				pathname,
 				search: `?filters=te,ste`,
 			})
-		console.log({ ..._filters })
 	}, [searchParams])
 
+	const addTeEvent = async (values) => {
+		setLoader(true)
+		try {
+			delete values.id
+			const res = await createNewEvent(values)
+			if (res.status >= 200 && res.status < 300) {
+				// setToast({ severity: 'success', message: 'Succesfully added new event!' })
+				dispatch({ type: TEActionType.BEEP, payload: true })
+			} else {
+				setToast({ severity: 'error', message: 'Failed to added new event!' })
+			}
+		} catch (err) {
+			console.log(err)
+		}
+		setLoader(false)
+	}
 	// // for checking filter parameters
 	React.useEffect(() => {
 		handleFilters()
@@ -468,13 +496,14 @@ export default function Timeline() {
 			const data = {
 				start: startDate,
 				end: endDate,
-				employee:
-					resource.length === 1 && String(event?.resource)?.split('|').length === 2 ? event?.resource : resource[0],
-				sub_type,
+				employee: resource.length === 1 && String(event?.resource)?.split('|').length === 2 ? null : resource[0],
+				sub_type: sub_type ?? resource[1],
 				id,
-				status,
+				status: status ?? 'Planned',
+				...(resource.length === 1 && String(event?.resource)?.split('|').length === 2 && { teamData: event?.resource }),
 			}
 			setPopupData(data)
+			return data
 		} catch (error) {
 			console.log(error)
 		}
@@ -512,18 +541,45 @@ export default function Timeline() {
 
 	const onEventCreated = React.useCallback(
 		(args) => {
+			console.log(args)
 			setEdit(false)
 			setTempEvent(args.event)
 			const expense_type = args.event.resource?.split('-')
-			if (expense_type.length > 1 && expense_type[1] !== 'task') {
+			if ((expense_type.length > 1 && expense_type[1] !== 'task') || args.event.type === 'te') {
 				handlePopupTypeChange('te')
-				handleOpenPopup(args.target)
+				console.log(args)
+				// handleOpenPopup(args.target)
+				const data = loadPopupForm(args.event)
+				addTeEvent({ ...data, type: 'te' })
+			} else if (args.event.type === 'ste') {
+				const data = loadPopupForm(args.event)
+				addTeEvent({ ...data, type: 'ste' })
 			} else {
 				setAnchor(args.target)
+				loadPopupForm(args.event)
 			}
 			// fill popup form with event data
 
-			loadPopupForm(args.event)
+			// open the popup
+		},
+		[loadPopupForm]
+	)
+
+	const onEventUpdate = React.useCallback(
+		({ event }) => {
+			try {
+				const start = moment(event.start).format('YYYY-MM-DD')
+				const end = moment(event.end).format('YYYY-MM-DD')
+				setTempEvent(event)
+
+				// fill popup form with event data
+				editEvent({ start, end }, event.id).then(() => {
+					dispatch({ type: TEActionType.BEEP, payload: true })
+				})
+			} catch (e) {
+				console.log(e)
+			}
+
 			// open the popup
 		},
 		[loadPopupForm]
@@ -593,32 +649,31 @@ export default function Timeline() {
 		)
 	}
 
-	const [toast, setToast] = React.useState(null)
-	const onSubmit = async (type) => {
-		console.log(popupData, employees)
+	const onSubmit = async (sub_type, status = 'Planned', type = 'te') => {
 		let obj
-		if (popupData?.employee?.split('|').length === 2) {
+		if (popupData?.teamData) {
 			obj = state.resources[0]?.children
-				?.find((e) => e.id === popupData?.employee)
+				?.find((e) => e.id === popupData?.teamData)
 				?.children?.map((e) => ({
 					employee: e.id,
 					type,
+					sub_type,
 					start: popupData.start,
 					end: popupData.end,
-					status: 'Planned',
+					status,
 				}))
 		} else {
 			obj = [
 				{
 					employee: popupData.employee,
 					type,
+					sub_type,
 					start: popupData.start,
 					end: popupData.end,
-					status: 'Planned',
+					status,
 				},
 			]
 		}
-		console.log(obj)
 		setLoader(true)
 		try {
 			const promises = obj.map(async (detail) => {
@@ -642,36 +697,14 @@ export default function Timeline() {
 					handleCloseViewPopup()
 				})
 				.catch(() => setToast({ severity: 'error', message: 'Failed to added new event!' }))
-
-			// const res = await createNewEvent(values)
-			// if (res.status >= 200 && res.status < 300) {
-			// 	setToast({ severity: 'success', message: 'Succesfully added new event!' })
-			// 	dispatch({ type: TEActionType.BEEP, payload: true })
-			// } else {
-			// 	setToast({ severity: 'error', message: 'Failed to added new event!' })
-			// }
 		} catch (err) {
 			console.log(err)
 		}
 		setLoader(false)
 	}
-	const handleCloseToast = () => {
-		setToast(null)
-	}
 
 	return (
 		<>
-			<Snackbar
-				open={toast}
-				anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-				autoHideDuration={5000}
-				onClose={handleCloseToast}
-			>
-				<Alert onClose={handleCloseToast} severity={toast?.severity} sx={{ width: '100%' }}>
-					{toast?.message}
-				</Alert>
-			</Snackbar>
-
 			{popupType && (
 				<AddFormPopup
 					data={popupData}
@@ -692,6 +725,16 @@ export default function Timeline() {
 			)}
 
 			<Loader open={loader} setOpen={setLoader} />
+			<Snackbar
+				open={toast}
+				anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+				autoHideDuration={5000}
+				onClose={handleCloseToast}
+			>
+				<Alert onClose={handleCloseToast} severity={toast?.severity} sx={{ width: '100%' }}>
+					{toast?.message}
+				</Alert>
+			</Snackbar>
 			<Eventcalendar
 				cssClass="mbsc-calendar-projects md-timeline-height"
 				view={viewSettings}
@@ -705,6 +748,10 @@ export default function Timeline() {
 				resources={state.resources}
 				clickToCreate="double"
 				dragToCreate={true}
+				dragToMove
+				dragToResize
+				externalDrop
+				onEventUpdate={onEventUpdate}
 				dragTimeStep={30}
 				selectedDate={mySelectedDate}
 				onSelectedDateChange={onSelectedDateChange}
@@ -720,47 +767,63 @@ export default function Timeline() {
 			<Popup variant="secondary" anchor={anchor} handleClose={onClose}>
 				<Stack flexDirection="row" justifyContent="space-between" sx={{ p: 1 }}>
 					<MuiButton
-						onClick={() => onSubmit('ste')}
-						startIcon={<Iconify icon="tabler:plane-tilt" width={15} height={15} />}
+						onClick={() => onSubmit('lodging')}
+						startIcon={<Iconify icon="icon-park-outline:double-bed" width={15} height={15} />}
 						size="small"
 						color="inherit"
 					>
-						Add Overtime
+						Add Lodging
 					</MuiButton>
 					<MuiButton
-						onClick={() => onSubmit('te')}
-						startIcon={<Iconify icon="mdi:auto-pay" width={15} height={15} />}
+						onClick={() => onSubmit('meals')}
+						startIcon={<Iconify icon="bxs:bowl-rice" width={15} height={15} />}
 						size="small"
 						color="inherit"
 					>
-						Add Travel Expenses
+						Add Meals
 					</MuiButton>
 				</Stack>
-				{/* <div className="mbsc-form-group">
-            <Input ref={startRef} label="Starts" />
-            <Input ref={endRef} label="Ends" />
-            <Datepicker
-              readOnly={isEdit}
-              select="range"
-              controls={['date']}
-              touchUi={true}
-              startInput={start}
-              endInput={end}
-              showRangeLabels={false}
-              onChange={dateChange}
-              value={popupEventDate}
-            />
-          </div>
-
-          <div className="mbsc-form-group">
-            {isEdit && (
-              <div className="mbsc-button-group">
-                <Button className="mbsc-button-block" color="danger" variant="outline" onClick={onDeleteClick}>
-                  Delete event
-                </Button>
-              </div>
-            )}
-          </div> */}
+				{/* <Stack width="max-content" flexDirection="row" justifyContent="space-between" sx={{ p: 1 }}>
+					<MuiButton
+						onClick={() => {
+							addTeEvent({ ...popupData, type: 'ste', sub_type: 'overtime' })
+							setAnchor(null)
+						}}
+						size="small"
+						color="inherit"
+					>
+						<Typography sx={{ display: 'flex', alignItems: 'center', marginRight: 3 }} variant="caption">
+							<FilledLine color="#DA4C57" />
+							&nbsp;Add Overtime
+						</Typography>
+					</MuiButton>
+					<MuiButton
+						onClick={() => {
+							addTeEvent({ ...popupData, type: 'ste', sub_type: 'nightTime' })
+							setAnchor(null)
+						}}
+						size="small"
+						color="inherit"
+					>
+						<Typography sx={{ display: 'flex', alignItems: 'center', marginRight: 3 }} variant="caption">
+							<FilledLine color="#8FA429" />
+							&nbsp;Add Night-time
+						</Typography>
+					</MuiButton>
+					<MuiButton
+						onClick={() => {
+							addTeEvent({ ...popupData, type: 'ste', sub_type: 'restDayMove' })
+							setAnchor(null)
+						}}
+						size="small"
+						color="inherit"
+					>
+						<Typography sx={{ display: 'flex', alignItems: 'center', marginRight: 3 }} variant="caption">
+							<FilledLine color="#A3888C" />
+							&nbsp;Add Rest day move
+						</Typography>
+					</MuiButton>
+				</Stack> */}
 			</Popup>
 		</>
 	)

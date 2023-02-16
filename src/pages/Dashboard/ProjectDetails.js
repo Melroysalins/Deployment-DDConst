@@ -59,45 +59,45 @@ export default function Projects() {
 	const handleClose = () => {
 		setToast(null)
 	}
-
+	
 	const events = [
-	{
-		icon: <Iconify width={40} height={40} color="#8D99FF" icon="ph:users-light" />,
-		title: 'Daily Workforce Planning',
-		description: 'Installation team, Connection Team 1, Connection Team 2',
-		redirect: '/dashboard/workforce-planning',
-	},
-	{
-		icon: <Iconify width={40} height={40} color="#FFA58D" icon="heroicons-outline:calendar" />,
-		title: 'Weekly Process Planning',
-		description: '24/02/2022 - 02/03/2022 - 45.78%',
-		redirect: '#',
-	},
-	{
-		icon: <Iconify width={40} height={40} color="#8D99FF" icon="heroicons:truck" />,
-		title: 'Travel Expenses / Overtime',
-		description: '3 day shifts, 54 night shifts, 5 Overtime, 3 Nighttime, 4 Move on rest day',
-		redirect: 'travel-expenses?filters=te,ste,outsourced,tasks',
-	},
-	{
-		icon: <Iconify width={40} height={40} color="#8CCC67" icon="ant-design:money-collect-outlined" />,
-		title: 'Contract Execution Budget',
-		description: '169,000,000 (Operating profit: 1,435,293 (0.8%))',
-		redirect: '#',
-	},
-	{
-		icon: <Iconify width={40} height={40} color="#7FBCFE" icon="fluent:clipboard-bullet-list-ltr-16-regular" />,
-		title: 'Implementation Schedule',
-		description: ' 15/06/2022 - 14/08/2022',
-		redirect: `/dashboard/project-schedule/${id}`,
-	},
-	{
-		icon: <Iconify width={40} height={40} color="#FF62B5" icon="heroicons:chart-bar" />,
-		title: 'Profit & Loss Reports',
-		description: 'Pellentesque in ipsum id orci porta dapibus',
-		redirect: '#',
-	},
-]
+		{
+			icon: <Iconify width={40} height={40} color="#8CCC67" icon="ant-design:money-collect-outlined" />,
+			title: 'Contract Execution Budget',
+			description: '169,000,000 (Operating profit: 1,435,293 (0.8%))',
+			redirect: '#',
+		},
+		{
+			icon: <Iconify width={40} height={40} color="#7FBCFE" icon="fluent:clipboard-bullet-list-ltr-16-regular" />,
+			title: 'Implementation Schedule',
+			description: ' 15/06/2022 - 14/08/2022',
+			redirect: `/dashboard/project-schedule/${id}`,
+		},
+		{
+			icon: <Iconify width={40} height={40} color="#8D99FF" icon="ph:users-light" />,
+			title: 'Daily Workforce Planning',
+			description: 'Installation team, Connection Team 1, Connection Team 2',
+			redirect: '/dashboard/workforce-planning',
+		},
+		{
+			icon: <Iconify width={40} height={40} color="#FFA58D" icon="heroicons-outline:calendar" />,
+			title: 'Weekly Process Planning',
+			description: '24/02/2022 - 02/03/2022 - 45.78%',
+			redirect: '#',
+		},
+		{
+			icon: <Iconify width={40} height={40} color="#8D99FF" icon="heroicons:truck" />,
+			title: 'Travel Expenses / Overtime',
+			description: '3 day shifts, 54 night shifts, 5 Overtime, 3 Nighttime, 4 Move on rest day',
+			redirect: 'travel-expenses?filters=te,ste',
+		},
+		{
+			icon: <Iconify width={40} height={40} color="#FF62B5" icon="heroicons:chart-bar" />,
+			title: 'Profit & Loss Reports',
+			description: 'Pellentesque in ipsum id orci porta dapibus',
+			redirect: '#',
+		}
+	]
 
 	const projectInfo = [
 		{
