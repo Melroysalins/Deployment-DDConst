@@ -1,5 +1,5 @@
-import '@mobiscroll/react/dist/css/mobiscroll.min.css'
 import './calendar.scss'
+import '@mobiscroll/react/dist/css/mobiscroll.min.css'
 
 import {
 	CalendarNav,
@@ -96,6 +96,7 @@ export default function Timeline() {
 	const [tempEvent, setTempEvent] = React.useState(null)
 	const [isEdit, setEdit] = React.useState(false)
 	const [anchor, setAnchor] = React.useState(null)
+	const [anchorTeam, setAnchorTeam] = React.useState(null)
 	const [popupData, setPopupData] = React.useState(null)
 	const [employees, setEmployees] = React.useState([])
 	const [mySelectedDate, setSelectedDate] = React.useState(new Date())
@@ -166,6 +167,7 @@ export default function Timeline() {
 			dispatch({ type: TEActionType.UPDATE_EVENTS, payload: [...state.events] })
 		}
 		setAnchor(null)
+		setAnchorTeam(null)
 	}, [dispatch, isEdit, state.events])
 
 	const handleOpenViewPopup = React.useCallback(
@@ -500,6 +502,7 @@ export default function Timeline() {
 				sub_type: sub_type ?? resource[1],
 				id,
 				status: status ?? 'Planned',
+				...(resource.length === 1 && String(event?.resource)?.split('|').length === 2 && { teamData: event?.resource }),
 			}
 			setPopupData(data)
 			return data
@@ -554,7 +557,8 @@ export default function Timeline() {
 				const data = loadPopupForm(args.event)
 				addTeEvent({ ...data, type: 'ste' })
 			} else {
-				setAnchor(args.target)
+				// eslint-disable-next-line no-unused-expressions
+				String(args.event?.resource)?.split('|').length === 2 ? setAnchorTeam(args.target) : setAnchor(args.target)
 				loadPopupForm(args.event)
 			}
 			// fill popup form with event data
@@ -648,6 +652,46 @@ export default function Timeline() {
 		)
 	}
 
+	const onSubmit = async (sub_type, status = 'Planned', type = 'te') => {
+		const obj = state.resources[0]?.children
+			?.find((e) => e.id === popupData?.teamData)
+			?.children?.map((e) => ({
+				employee: e.id,
+				type,
+				sub_type,
+				start: popupData.start,
+				end: popupData.end,
+				status,
+			}))
+		setLoader(true)
+		try {
+			const promises = obj.map(async (detail) => {
+				// eslint-disable-next-line no-async-promise-executor
+				const promiseArr = new Promise(async (resolve, reject) => {
+					const res = await createNewEvent(detail)
+					if (res.status >= 200 && res.status < 300) {
+						resolve(res)
+					} else {
+						reject(res)
+					}
+				})
+				return promiseArr
+			})
+			await Promise.all(promises)
+				.then(() => {
+					fetchData({ te: true, ste: true })
+					setToast({ severity: 'success', message: 'Succesfully added new event!' })
+					dispatch({ type: TEActionType.BEEP, payload: true })
+					handleClosePopup()
+					handleCloseViewPopup()
+				})
+				.catch(() => setToast({ severity: 'error', message: 'Failed to added new event!' }))
+		} catch (err) {
+			console.log(err)
+		}
+		setLoader(false)
+	}
+
 	return (
 		<>
 			{popupType && (
@@ -709,6 +753,28 @@ export default function Timeline() {
 				colors={holidays}
 				dayNamesMin={['S', 'M', 'T', 'W', 'T', 'F', 'S']}
 			/>
+
+			<Popup variant="secondary" anchor={anchorTeam} handleClose={onClose}>
+				<Stack flexDirection="row" justifyContent="space-between" sx={{ p: 1 }}>
+					<MuiButton
+						onClick={() => onSubmit('lodging')}
+						startIcon={<Iconify icon="icon-park-outline:double-bed" width={15} height={15} />}
+						size="small"
+						color="inherit"
+					>
+						Add Lodging
+					</MuiButton>
+					<MuiButton
+						onClick={() => onSubmit('meals')}
+						startIcon={<Iconify icon="bxs:bowl-rice" width={15} height={15} />}
+						size="small"
+						color="inherit"
+					>
+						Add Meals
+					</MuiButton>
+				</Stack>
+			</Popup>
+
 			<Popup variant="secondary" anchor={anchor} handleClose={onClose}>
 				<Stack width="max-content" flexDirection="row" justifyContent="space-between" sx={{ p: 1 }}>
 					<MuiButton
@@ -751,31 +817,6 @@ export default function Timeline() {
 						</Typography>
 					</MuiButton>
 				</Stack>
-				{/* <div className="mbsc-form-group">
-            <Input ref={startRef} label="Starts" />
-            <Input ref={endRef} label="Ends" />
-            <Datepicker
-              readOnly={isEdit}
-              select="range"
-              controls={['date']}
-              touchUi={true}
-              startInput={start}
-              endInput={end}
-              showRangeLabels={false}
-              onChange={dateChange}
-              value={popupEventDate}
-            />
-          </div>
-
-          <div className="mbsc-form-group">
-            {isEdit && (
-              <div className="mbsc-button-group">
-                <Button className="mbsc-button-block" color="danger" variant="outline" onClick={onDeleteClick}>
-                  Delete event
-                </Button>
-              </div>
-            )}
-          </div> */}
 			</Popup>
 		</>
 	)
