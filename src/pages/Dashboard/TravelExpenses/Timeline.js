@@ -96,6 +96,7 @@ export default function Timeline() {
 	const [tempEvent, setTempEvent] = React.useState(null)
 	const [isEdit, setEdit] = React.useState(false)
 	const [anchor, setAnchor] = React.useState(null)
+	const [anchorTeam, setAnchorTeam] = React.useState(null)
 	const [popupData, setPopupData] = React.useState(null)
 	const [employees, setEmployees] = React.useState([])
 	const [mySelectedDate, setSelectedDate] = React.useState(new Date())
@@ -166,6 +167,7 @@ export default function Timeline() {
 			dispatch({ type: TEActionType.UPDATE_EVENTS, payload: [...state.events] })
 		}
 		setAnchor(null)
+		setAnchorTeam(null)
 	}, [dispatch, isEdit, state.events])
 
 	const handleOpenViewPopup = React.useCallback(
@@ -555,7 +557,8 @@ export default function Timeline() {
 				const data = loadPopupForm(args.event)
 				addTeEvent({ ...data, type: 'ste' })
 			} else {
-				setAnchor(args.target)
+				// eslint-disable-next-line no-unused-expressions
+				String(args.event?.resource)?.split('|').length === 2 ? setAnchorTeam(args.target) : setAnchor(args.target)
 				loadPopupForm(args.event)
 			}
 			// fill popup form with event data
@@ -650,30 +653,16 @@ export default function Timeline() {
 	}
 
 	const onSubmit = async (sub_type, status = 'Planned', type = 'te') => {
-		let obj
-		if (popupData?.teamData) {
-			obj = state.resources[0]?.children
-				?.find((e) => e.id === popupData?.teamData)
-				?.children?.map((e) => ({
-					employee: e.id,
-					type,
-					sub_type,
-					start: popupData.start,
-					end: popupData.end,
-					status,
-				}))
-		} else {
-			obj = [
-				{
-					employee: popupData.employee,
-					type,
-					sub_type,
-					start: popupData.start,
-					end: popupData.end,
-					status,
-				},
-			]
-		}
+		const obj = state.resources[0]?.children
+			?.find((e) => e.id === popupData?.teamData)
+			?.children?.map((e) => ({
+				employee: e.id,
+				type,
+				sub_type,
+				start: popupData.start,
+				end: popupData.end,
+				status,
+			}))
 		setLoader(true)
 		try {
 			const promises = obj.map(async (detail) => {
@@ -764,7 +753,8 @@ export default function Timeline() {
 				colors={holidays}
 				dayNamesMin={['S', 'M', 'T', 'W', 'T', 'F', 'S']}
 			/>
-			<Popup variant="secondary" anchor={anchor} handleClose={onClose}>
+
+			<Popup variant="secondary" anchor={anchorTeam} handleClose={onClose}>
 				<Stack flexDirection="row" justifyContent="space-between" sx={{ p: 1 }}>
 					<MuiButton
 						onClick={() => onSubmit('lodging')}
@@ -783,7 +773,10 @@ export default function Timeline() {
 						Add Meals
 					</MuiButton>
 				</Stack>
-				{/* <Stack width="max-content" flexDirection="row" justifyContent="space-between" sx={{ p: 1 }}>
+			</Popup>
+
+			<Popup variant="secondary" anchor={anchor} handleClose={onClose}>
+				<Stack width="max-content" flexDirection="row" justifyContent="space-between" sx={{ p: 1 }}>
 					<MuiButton
 						onClick={() => {
 							addTeEvent({ ...popupData, type: 'ste', sub_type: 'overtime' })
@@ -823,7 +816,7 @@ export default function Timeline() {
 							&nbsp;Add Rest day move
 						</Typography>
 					</MuiButton>
-				</Stack> */}
+				</Stack>
 			</Popup>
 		</>
 	)
