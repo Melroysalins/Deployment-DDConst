@@ -153,6 +153,7 @@ export const getTeamTitleEvents = async (projectId) => {
 		.from('teams_employees')
 		.select('*')
 		.not('employees', 'is', null)
+
 	project_tasks.map(async ({ team, start, end }) => {
 		const { employees } = teamEmployees.find((e) => e.id === team)
 
@@ -165,6 +166,30 @@ export const getTeamTitleEvents = async (projectId) => {
 	})
 
 	console.log(events)
-
+	const totals = await addDetailsInEvent(events, projectId)
+	console.log(totals)
 	return events
+}
+
+const addDetailsInEvent = async (events, project) => {
+	const data = await Promise.all(
+		events.map(async (event) => {
+			const { data: totals, error: error3 } = await supabase
+				.rpc('get_totals', {
+					start_date: moment(event.start).format('YYYY-MM-DD'),
+					end_date: moment(event.end).format('YYYY-MM-DD'),
+				})
+				.match({ project, team: event.resource.split('|')[1] })
+			event.title = [
+				event.title,
+				...totals.map(
+					({ event_sub_type, no_of_days }) =>
+						`${event_sub_type.charAt(0).toUpperCase() + event_sub_type.slice(1)}: ${no_of_days}`
+				),
+			].join(', ')
+			return event
+		})
+	)
+
+	return data
 }
