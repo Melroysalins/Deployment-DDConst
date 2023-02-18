@@ -19,7 +19,7 @@ import React from 'react'
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Loader } from 'reusables'
 import { createNewEvent, deleteEvent, editEvent, listAllEvents } from 'supabase/events'
-import { getTeResources } from 'supabase/travelExpenses'
+import { getTeResources, getTeamTitleEvents } from 'supabase/travelExpenses'
 
 import useTE from './context/context'
 import { TEActionType } from './context/types'
@@ -93,7 +93,6 @@ export default function Timeline() {
 	const { state, dispatch } = useTE()
 	const { id } = useParams()
 
-	const [tempEvent, setTempEvent] = React.useState(null)
 	const [isEdit, setEdit] = React.useState(false)
 	const [anchor, setAnchor] = React.useState(null)
 	const [anchorTeam, setAnchorTeam] = React.useState(null)
@@ -131,7 +130,7 @@ export default function Timeline() {
 	const handleFilters = React.useCallback(() => {
 		let _filters = searchParams.get('filters')
 		_filters = _filters?.split(',').reduce((acc, cur) => ({ ...acc, [cur]: true }), {})
-		if (_filters) setFilters((prev) => ({ ..._filters }))
+		if (_filters) setFilters(() => ({ ..._filters }))
 		else
 			navigate({
 				pathname,
@@ -186,15 +185,9 @@ export default function Timeline() {
 		onClose()
 	}, [onClose])
 
-	const handleOpenPopup = React.useCallback((anchor) => {
-		setOpenPopup(anchor)
-		setAnchor(null)
-	}, [])
-
 	const handleToggle = () => setOpenActions((prev) => !prev)
 
 	const updateCalendarData = React.useCallback((resources, events) => {
-		const teamEvents = []
 		let employees = []
 
 		const updatedResources = resources.map((project) => ({
@@ -212,12 +205,7 @@ export default function Timeline() {
 							collapsed: true,
 						}
 					}) ?? []
-				teamEvents.push({
-					title: `EMPLOYEES: ${teamEmployees.map((x) => x.name).join(', ')}`,
-					resource: String(team.id),
-					start: team.start,
-					end: team.end,
-				})
+
 				employees = [...employees, ...teamEmployees]
 				return {
 					...team,
@@ -237,7 +225,7 @@ export default function Timeline() {
 				? { ...event, start, end, resource: `${event.employee}-${event.sub_type}` }
 				: { ...event, start, end, resource: event.employee }
 		})
-		return { resources: updatedResources, events: [...updatedEvents, ...teamEvents] }
+		return { resources: updatedResources, events: updatedEvents }
 	}, [])
 
 	// for handling calendar data to create one more layer with expenses of meals, lodging, task
@@ -246,15 +234,17 @@ export default function Timeline() {
 		// const res = await getProjectDetails(id);
 		const resources = await getTeResources(id)
 		const events = await listAllEvents(filters)
+		const teamEvents = await getTeamTitleEvents(id)
 		const res = updateCalendarData(resources, events)
 		dispatch({ type: TEActionType.UPDATE_RESOURCES, payload: res.resources })
-		dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events })
+		dispatch({ type: TEActionType.UPDATE_EVENTS, payload: [...res.events, ...teamEvents] })
 	}
 
 	const fetchEvents = async (filters) => {
 		const events = await listAllEvents(filters)
+		const teamEvents = await getTeamTitleEvents(id)
 		const res = updateCalendarData(state.resources, events)
-		dispatch({ type: TEActionType.UPDATE_EVENTS, payload: res.events })
+		dispatch({ type: TEActionType.UPDATE_EVENTS, payload: [...res.events, ...teamEvents] })
 	}
 
 	React.useEffect(() => {
@@ -521,7 +511,6 @@ export default function Timeline() {
 		(args) => {
 			try {
 				setEdit(true)
-				setTempEvent({ ...args.event })
 				// fill popup form with event data
 				loadPopupForm(args.event)
 				const expense_type = String(args?.event?.resource)?.split('-')
@@ -545,7 +534,6 @@ export default function Timeline() {
 		(args) => {
 			console.log(args)
 			setEdit(false)
-			setTempEvent(args.event)
 			const expense_type = args.event.resource?.split('-')
 			if ((expense_type.length > 1 && expense_type[1] !== 'task') || args.event.type === 'te') {
 				handlePopupTypeChange('te')
@@ -573,7 +561,6 @@ export default function Timeline() {
 			try {
 				const start = moment(event.start).format('YYYY-MM-DD')
 				const end = moment(event.end).format('YYYY-MM-DD')
-				setTempEvent(event)
 
 				// fill popup form with event data
 				editEvent({ start, end }, event.id).then(() => {
