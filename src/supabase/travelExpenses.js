@@ -142,17 +142,14 @@ const rowAdd = (row, values, e) => {
 }
 
 export const getTeamTitleEvents = async (projectId) => {
-	const { data: project_tasks, error } = await supabase
+	const { data: project_tasks } = await supabase
 		.from('project_tasks')
 		.select('*')
 		.not('team', 'is', null)
 		.eq('project', projectId)
 
 	const events = []
-	const { data: teamEmployees, error: error2 } = await supabase
-		.from('teams_employees')
-		.select('*')
-		.not('employees', 'is', null)
+	const { data: teamEmployees } = await supabase.from('teams_employees').select('*').not('employees', 'is', null)
 
 	project_tasks.map(async ({ team, start, end }) => {
 		const { employees } = teamEmployees.find((e) => e.id === team)
@@ -171,31 +168,34 @@ export const getTeamTitleEvents = async (projectId) => {
 	return events
 }
 
-const addDetailsInEvent = async (events, project) => {
-	const data = await Promise.all(
-		events.map(async (event) => {
-			const { data: totals, error: error3 } = await supabase
-				.rpc('get_totals', {
-					start_date: moment(event.start).format('YYYY-MM-DD'),
-					end_date: moment(event.end).format('YYYY-MM-DD'),
+const addDetailsInEvent = async (events) => {
+	try {
+		const data = await Promise.all(
+			events.map(async (event) => {
+				const { data: totals } = await supabase
+					.rpc('get_totals', {
+						start_date: moment(event.start).format('YYYY-MM-DD'),
+						end_date: moment(event.end).format('YYYY-MM-DD'),
+					})
+					.match({ team: event.resource.split('|')[1] })
+				const calculated_totals = {}
+				totals.forEach((item) => {
+					// eslint-disable-next-line no-unused-expressions
+					calculated_totals[item.event_sub_type] !== undefined
+						? (calculated_totals[item.event_sub_type] += item.no_of_days)
+						: (calculated_totals[item.event_sub_type] = item.no_of_days)
 				})
-				.match({ team: event.resource.split('|')[1] })
-			const calculated_totals = {}
-			totals.forEach((item) => {
-				// eslint-disable-next-line no-unused-expressions
-				calculated_totals[item.event_sub_type] !== undefined
-					? (calculated_totals[item.event_sub_type] += item.no_of_days)
-					: (calculated_totals[item.event_sub_type] = item.no_of_days)
+				event.title = [
+					event.title,
+					...Object.keys(calculated_totals).map(
+						(key) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${calculated_totals[key]}`
+					),
+				].join(', ')
+				return event
 			})
-			event.title = [
-				event.title,
-				...Object.keys(calculated_totals).map(
-					(key) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${calculated_totals[key]}`
-				),
-			].join(', ')
-			return event
-		})
-	)
-
-	return data
+		)
+		return data
+	} catch (error) {
+		return []
+	}
 }
