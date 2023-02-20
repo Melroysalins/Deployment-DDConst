@@ -179,7 +179,7 @@ const addDetailsInEvent = async (events, project) => {
 					start_date: moment(event.start).format('YYYY-MM-DD'),
 					end_date: moment(event.end).format('YYYY-MM-DD'),
 				})
-				.match({ project, team: event.resource.split('|')[1] })
+				.match({  team: event.resource.split('|')[1] })
 			event.title = [
 				event.title,
 				...totals.map(
