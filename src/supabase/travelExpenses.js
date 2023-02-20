@@ -179,12 +179,18 @@ const addDetailsInEvent = async (events, project) => {
 					start_date: moment(event.start).format('YYYY-MM-DD'),
 					end_date: moment(event.end).format('YYYY-MM-DD'),
 				})
-				.match({ project, team: event.resource.split('|')[1] })
+				.match({ team: event.resource.split('|')[1] })
+			const calculated_totals = {}
+			totals.forEach((item) => {
+				// eslint-disable-next-line no-unused-expressions
+				calculated_totals[item.event_sub_type] !== undefined
+					? (calculated_totals[item.event_sub_type] += item.no_of_days)
+					: (calculated_totals[item.event_sub_type] = item.no_of_days)
+			})
 			event.title = [
 				event.title,
-				...totals.map(
-					({ event_sub_type, no_of_days }) =>
-						`${event_sub_type.charAt(0).toUpperCase() + event_sub_type.slice(1)}: ${no_of_days}`
+				...Object.keys(calculated_totals).map(
+					(key) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${calculated_totals[key]}`
 				),
 			].join(', ')
 			return event
