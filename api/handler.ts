@@ -8,6 +8,7 @@ export default async function handler(
   request: VercelRequest,
   response: VercelResponse,
   ) {
+    console.log(request.record.body)
   const res = await supabase.from('projects').select('*')
   response.status(200).json({
     data:"no",
