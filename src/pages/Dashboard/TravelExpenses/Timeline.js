@@ -142,7 +142,7 @@ export default function Timeline() {
 		setLoader(true)
 		try {
 			delete values.id
-			const res = await createNewEvent(values)
+			const res = await createNewEvent({ ...values, project: id })
 			if (res.status >= 200 && res.status < 300) {
 				// setToast({ severity: 'success', message: 'Succesfully added new event!' })
 				dispatch({ type: TEActionType.BEEP, payload: true })
@@ -209,6 +209,7 @@ export default function Timeline() {
 				employees = [...employees, ...teamEmployees]
 				return {
 					...team,
+					collapsed: true,
 					children: updatedEmployees,
 				}
 			}),
@@ -655,7 +656,7 @@ export default function Timeline() {
 			const promises = obj.map(async (detail) => {
 				// eslint-disable-next-line no-async-promise-executor
 				const promiseArr = new Promise(async (resolve, reject) => {
-					const res = await createNewEvent(detail)
+					const res = await createNewEvent({ ...detail, project: id })
 					if (res.status >= 200 && res.status < 300) {
 						resolve(res)
 					} else {
