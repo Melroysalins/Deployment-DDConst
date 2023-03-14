@@ -25,7 +25,7 @@ import React from 'react'
 import { useQuery } from 'react-query'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { listAllBranches } from 'supabase'
-import { createNewProject, getProjectDetails, getProjectFileLink, updateProject, uploadFile } from 'supabase/projects'
+import { addFile, createNewProject, getProjectDetails, getProjectFileLink, removeFile, replaceFile, updateProject } from 'supabase/projects'
 import * as Yup from 'yup'
 
 import Page from '../../../components/Page'
@@ -59,7 +59,7 @@ export default function CreateNewProject({ edit }) {
 	const navigate = useNavigate()
 
 	const { data: branches } = useQuery(['Branches'], () => listAllBranches())
-	const { data: project } = useQuery(['project'], () => getProjectDetails(id), {
+	const { data: project, refetch: refetchProject } = useQuery(['project', id], ({queryKey}) => getProjectDetails(queryKey[1]), {
 		enabled: !!edit,
 		select: (r) => r.data,
 	})
@@ -67,6 +67,8 @@ export default function CreateNewProject({ edit }) {
 	const handleClose = () => {
 		setToast(null)
 	}
+
+	console.log('renredner')
 
 	return (
 		<Page title={edit ? 'Edit Project' : 'Add New Project'}>
@@ -94,42 +96,48 @@ export default function CreateNewProject({ edit }) {
 						onSubmit={async (values) => {
 							setLoader(true)
 							try {
+								const file_names = {};
+								const files = values.files ? Object.keys(values.files).map((itm) => {
+									const file_extension = values.files[itm].name.split('.').pop()
+									file_names[itm] = `${itm}_${id}.${file_extension}`;
+									return {name:`${itm}_${id}.${file_extension}`, file: values.files[itm], type:itm};
+								}) : []
 								if (edit) {
-									const { files = {} } = values
 									delete values.files
-									values.contract_file = Boolean(values?.contract_file || files.contract_file)
-									values.design_book_file = Boolean(values?.design_book_file || files.design_book_file)
-									values.blueprint_file = Boolean(values?.blueprint_file || files.blueprint_file)
 									const res = await updateProject(
-										{
-											...values,
-										},
-										id
+										{...values, ...file_names},
+										id,
+
 									)
-									console.log(res, files)
-									Object.keys(files).forEach((itm) => {
-										const file = files[itm]
-										const file_extension = files[itm].name.split('.').pop()
-										uploadFile(`${itm}_${res.data[0].id}.${file_extension}`, file)
+									files.forEach(({name, file, type}) => {
+										if(values[type]){
+											if(values[type]===name)
+											replaceFile(name, file)
+											else {
+												removeFile(values[type]).then(()=>addFile(name, file))
+											}
+										}
+										else addFile(name, file);
 									})
+									
 									if (res.status >= 200 && res.status < 300) {
 										setToast({ severity: 'success', message: 'Succesfully updated project details!' })
+										refetchProject()
 										navigate(`?tab=2`)
 									} else {
 										setToast({ severity: 'error', message: 'Failed to updated project details!' })
 									}
 								} else {
-									const { files } = values
 									delete values.files
-									const res = await createNewProject(values)
-									Object.keys(files).forEach((itm) => {
-										const file = files[itm]
-										const file_extension = files[itm].split('.').pop()
-										uploadFile(`${itm}_${res.data[0].id}.${file_extension}`, file)
+									const res = await createNewProject(
+										{...values, ...file_names},
+									)
+									files.forEach(({name, file}) => {
+										 addFile(name, file);
 									})
-									console.log(res)
 									if (res.status === 201) {
 										setToast({ severity: 'success', message: 'Succesfully added new project!' })
+										refetchProject()
 										navigate(`/dashboard/projects/edit/${res.data[0].id}?tab=2`)
 									} else {
 										setToast({ severity: 'error', message: 'Failed to added new project!' })
@@ -488,8 +496,7 @@ export default function CreateNewProject({ edit }) {
 										<Grid container spacing={3}>
 											<Grid display="flex" flexDirection="column" gap={2} item xs={12} md={4} lg={4}>
 												<FileInput height={100} name="files.contract_file" label="Upload Contract" />
-
-												{values?.contract_file && (
+												{project?.contract_file && (
 													<Button
 														startIcon={<Iconify icon="ion:cloud-download-outline" width={20} height={20} />}
 														variant="outlined"
@@ -504,11 +511,39 @@ export default function CreateNewProject({ edit }) {
 													</Button>
 												)}
 											</Grid>
-											<Grid item xs={12} md={4} lg={4}>
-												<FileInput height={100} name="files.design_book_file" label="Upload Design Book" />
+											<Grid display="flex" flexDirection="column" gap={2} item xs={12} md={4} lg={4}>
+												<FileInput  height={100} name="files.design_file" label="Upload Design Book" />
+												{project?.design_file && (
+													<Button
+														startIcon={<Iconify icon="ion:cloud-download-outline" width={20} height={20} />}
+														variant="outlined"
+														color="info"
+														onClick={async () => {
+															const link = await getProjectFileLink(`design_file_${id}.pdf`)
+															window.open(link, '_blank')
+														}}
+														fullWidth
+													>
+														View Design file
+													</Button>
+												)}
 											</Grid>
-											<Grid item xs={12} md={4} lg={4}>
-												<FileInput height={100} name="files.blueprint_file" label="Upload Blueprint" />
+											<Grid display="flex" flexDirection="column" gap={2} item xs={12} md={4} lg={4}>
+												<FileInput  height={100} name="files.blueprint_file" label="Upload Blueprint" />
+												{project?.blueprint_file && (
+													<Button
+														startIcon={<Iconify icon="ion:cloud-download-outline" width={20} height={20} />}
+														variant="outlined"
+														color="info"
+														onClick={async () => {
+															const link = await getProjectFileLink(`blueprint_file_${id}.pdf`)
+															window.open(link, '_blank')
+														}}
+														fullWidth
+													>
+														View Blueprint file
+													</Button>
+												)}
 											</Grid>
 										</Grid>
 									</Grid>

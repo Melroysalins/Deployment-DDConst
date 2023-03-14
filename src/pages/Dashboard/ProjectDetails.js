@@ -1,49 +1,57 @@
-import { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
-import { useParams, useNavigate, useNavigationType } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 // @mui
 import {
-	Grid,
-	Container,
-	Card,
-	CardHeader,
-	CardContent,
-	Snackbar,
 	Alert,
-	Typography,
-	Box,
-	Stack,
-	Skeleton,
 	Avatar,
-	Chip,
+	Box,
 	Button,
+	Container,
+	Divider,
+	Grid,
+	IconButton,
+	Skeleton,
+	Snackbar,
+	Stack,
+	Typography
 } from '@mui/material'
 // components
 import Page from '../../components/Page'
 // sections
-import { getProjectDetails } from 'supabase/projects'
-import Iconify from 'components/Iconify'
 import { useTheme } from '@mui/material/styles'
-import { formatNumber } from 'utils/helper'
+import Iconify from 'components/Iconify'
+import { useQuery } from 'react-query'
 import { listEmployeesByProject } from 'supabase/employees'
+import { getProjectDetails, getProjectFileLink } from 'supabase/projects'
+import { formatNumber } from 'utils/helper'
 
 // ----------------------------------------------------------------------
 
 export default function Projects() {
 	const { id } = useParams()
-	const [data, setData] = useState(null)
+	// const [data, setData] = useState(null)
 	const [toast, setToast] = useState(false)
 	const [loading, setLoading] = useState(false)
 	const [empData, setempData] = useState(null)
 	const navigate = useNavigate()
 
-	const fetchData = async (id) => {
-		setLoading(true)
-		const res = await getProjectDetails(id)
-		if (res.status === 404) setToast(true)
-		setData(res.data)
-		setLoading(false)
-	}
+	// const fetchData = async (id) => {
+	// 	setLoading(true)
+	// 	const res = await getProjectDetails(id)
+	// 	if (res.status === 404) setToast(true)
+	// 	setData(res.data)
+	// 	setLoading(false)
+	// }
+
+	const {data, refetch:fetchData, isLoading} = useQuery(["list projects", id], async({queryKey})=>{
+		const res = await getProjectDetails(queryKey[1])
+		if (res.status === 404) {
+			setToast(true);
+			return null
+		}
+		return res?.data
+	})
 
 	const fetchDataEmp = async (id) => {
 		const res = await listEmployeesByProject(id)
@@ -52,7 +60,7 @@ export default function Projects() {
 	}
 
 	useEffect(() => {
-		fetchData(id)
+		// fetchData(id)
 		fetchDataEmp(id)
 	}, [id])
 
@@ -100,7 +108,7 @@ export default function Projects() {
 	]
 
 	const projectInfo = [
-		{
+		[{
 			title: data?.title,
 			icon: 'material-symbols:handshake-outline-sharp',
 		},
@@ -127,7 +135,26 @@ export default function Projects() {
 		{
 			title: data?.contract_value ? formatNumber(data?.contract_value) : '',
 			icon: 'material-symbols:account-balance-wallet-outline',
-		},
+		}],[
+			{
+				title: 'Contract',
+				icon: 'material-symbols:handshake-outline',
+				value: data?.contract_file,
+				file_name:'contract_file'
+			},
+			{
+				title: 'Design',
+				icon: 'akar-icons:book-open',
+				value: data?.design_file,
+				file_name:'design_file'
+			},
+			{
+				title: 'Blueprint',
+				icon: 'material-symbols:account-balance-wallet-outline',
+				value: data?.blueprint_file,
+				file_name:'blueprint_file'
+			},
+		]
 	]
 
 	return (
@@ -199,7 +226,7 @@ export default function Projects() {
 					{data && (
 						<>
 							<Grid item xs={12} sm={4} md={3}>
-								<ProjectInfo projectInfo={projectInfo} />
+								<ProjectInfo projectInfo={projectInfo} id={id} />
 							</Grid>
 
 							<Grid item xs={12} sm={8} md={9}>
@@ -323,7 +350,7 @@ function Loading() {
 	)
 }
 
-function ProjectInfo({ projectInfo }) {
+function ProjectInfo({ projectInfo, id }) {
 	return (
 		<>
 			<Box
@@ -337,7 +364,7 @@ function ProjectInfo({ projectInfo }) {
 				<Typography m={1} sx={{ fontWeight: 600, fontSize: 16 }}>
 					Project info
 				</Typography>
-				{projectInfo?.map((e) => (
+				{projectInfo[0] ? projectInfo[0]?.map((e) => (
 					<>
 						{!!e.title && (
 							<Grid key={e.title} container spacing={2} style={{ alignItems: 'center', flex: 1 }} mt={1} pl={3}>
@@ -349,7 +376,28 @@ function ProjectInfo({ projectInfo }) {
 							</Grid>
 						)}
 					</>
-				))}
+				)) : null}
+				<Divider />
+				{projectInfo[1] ? projectInfo[1]?.map((e) => (
+					<>
+					{e.value && (
+						<Grid key={e.title} container spacing={2} style={{ alignItems: 'center', flex: 1 }} mt={1} pl={3}>
+							<Iconify sx={{ minWidth: 15 }} width={15} height={15} icon={e.icon} />
+
+							<Typography flexGrow={1} m={1} sx={{ fontSize: 12, color: 'text.secondary' }}>
+								{e.title}
+							</Typography>
+							<IconButton onClick={async()=>{
+								const link = await getProjectFileLink(`contract_file_${id}.pdf`)
+								window.open(link, '_blank')
+							}}>
+							<Iconify sx={{ minWidth: 15 }} width={15} height={15} icon="material-symbols:download-rounded" />
+
+							</IconButton>
+						</Grid>
+					)}
+				</>
+				)):null}
 			</Box>
 		</>
 	)

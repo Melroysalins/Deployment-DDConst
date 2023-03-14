@@ -17,11 +17,26 @@ export const listAllProjects = async () => {
 	const res = await supabase.from('projects').select('*')
 	return res
 }
-export const uploadFile = async (name, file) => {
+export const addFile = async (name, file) => {
+	const res = await supabase.storage.from('files').upload(name, file, {
+		cacheControl: '3600',
+		upsert: false,
+	})
+	if(res?.error && res?.error?.statusCode === "409"){
+		const res = await replaceFile(name, file);
+		return res;
+	}
+	return res
+}
+export const replaceFile = async (name, file) => {
 	const res = await supabase.storage.from('files').update(name, file, {
 		cacheControl: '3600',
 		upsert: false,
 	})
+	return res
+}
+export const removeFile = async (name) => {
+	const res = await supabase.storage.from('files').remove([name])
 	return res
 }
 
