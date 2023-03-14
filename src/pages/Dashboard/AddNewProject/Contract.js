@@ -25,10 +25,11 @@ import React from 'react'
 import { useQuery } from 'react-query'
 import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { listAllBranches } from 'supabase'
-import { createNewProject, getProjectDetails, updateProject } from 'supabase/projects'
+import { createNewProject, getProjectDetails, getProjectFileLink, updateProject, uploadFile } from 'supabase/projects'
 import * as Yup from 'yup'
 
 import Page from '../../../components/Page'
+import Iconify from 'components/Iconify'
 
 // components
 // api
@@ -66,6 +67,7 @@ export default function CreateNewProject({ edit }) {
 	const handleClose = () => {
 		setToast(null)
 	}
+
 	return (
 		<Page title={edit ? 'Edit Project' : 'Add New Project'}>
 			<Snackbar
@@ -84,47 +86,57 @@ export default function CreateNewProject({ edit }) {
 						initialValues={
 							edit
 								? {
-										contracted_source: project?.contracted_source,
-										service: project?.service,
-										voltage: project?.voltage,
-										location: project?.location,
-										construction_type: project?.construction_type,
-										branch: project?.branch,
-										title: project?.title,
-										contract_code: project?.contract_code,
-										start: project?.start,
-										end: project?.end,
-										contract_value: project?.contract_value,
-										contract_value_vat: project?.contract_value_vat,
-										contract_value_vat_written: project?.contract_value_vat_written,
-										adjustment_rate: project?.adjustment_rate,
-										contract_value_price: project?.contract_value_price,
-										contract_value_price_written: project?.contract_value_price_written,
-										deposit_rate: project?.deposit_rate,
-										warranty_period: project?.warranty_period,
-										compensation_rate: project?.compensation_rate,
+										...project,
 								  }
 								: initialValues
 						}
 						validationSchema={validationSchema}
 						onSubmit={async (values) => {
 							setLoader(true)
-							if (edit) {
-								const res = await updateProject(values, id)
-								if (res.status >= 200 && res.status < 300) {
-									setToast({ severity: 'success', message: 'Succesfully updated project details!' })
-									navigate(`?tab=2`)
+							try {
+								if (edit) {
+									const { files = {} } = values
+									delete values.files
+									values.contract_file = Boolean(values?.contract_file || files.contract_file)
+									values.design_book_file = Boolean(values?.design_book_file || files.design_book_file)
+									values.blueprint_file = Boolean(values?.blueprint_file || files.blueprint_file)
+									const res = await updateProject(
+										{
+											...values,
+										},
+										id
+									)
+									console.log(res, files)
+									Object.keys(files).forEach((itm) => {
+										const file = files[itm]
+										const file_extension = files[itm].name.split('.').pop()
+										uploadFile(`${itm}_${res.data[0].id}.${file_extension}`, file)
+									})
+									if (res.status >= 200 && res.status < 300) {
+										setToast({ severity: 'success', message: 'Succesfully updated project details!' })
+										navigate(`?tab=2`)
+									} else {
+										setToast({ severity: 'error', message: 'Failed to updated project details!' })
+									}
 								} else {
-									setToast({ severity: 'error', message: 'Failed to updated project details!' })
+									const { files } = values
+									delete values.files
+									const res = await createNewProject(values)
+									Object.keys(files).forEach((itm) => {
+										const file = files[itm]
+										const file_extension = files[itm].split('.').pop()
+										uploadFile(`${itm}_${res.data[0].id}.${file_extension}`, file)
+									})
+									console.log(res)
+									if (res.status === 201) {
+										setToast({ severity: 'success', message: 'Succesfully added new project!' })
+										navigate(`/dashboard/projects/edit/${res.data[0].id}?tab=2`)
+									} else {
+										setToast({ severity: 'error', message: 'Failed to added new project!' })
+									}
 								}
-							} else {
-								const res = await createNewProject(values)
-								if (res.status === 201) {
-									setToast({ severity: 'success', message: 'Succesfully added new project!' })
-									navigate(`/dashboard/projects/edit/${res.data[0].id}?tab=2`)
-								} else {
-									setToast({ severity: 'error', message: 'Failed to added new project!' })
-								}
+							} catch (err) {
+								console.log(err)
 							}
 							setLoader(false)
 						}}
@@ -474,14 +486,29 @@ export default function CreateNewProject({ edit }) {
 
 									<Grid item xs={12}>
 										<Grid container spacing={3}>
-											<Grid item xs={12} md={4} lg={4}>
-												<FileInput height={100} name="contract_file" label="Upload Contract" />
+											<Grid display="flex" flexDirection="column" gap={2} item xs={12} md={4} lg={4}>
+												<FileInput height={100} name="files.contract_file" label="Upload Contract" />
+
+												{values?.contract_file && (
+													<Button
+														startIcon={<Iconify icon="ion:cloud-download-outline" width={20} height={20} />}
+														variant="outlined"
+														color="info"
+														onClick={async () => {
+															const link = await getProjectFileLink(`contract_file_${id}.pdf`)
+															window.open(link, '_blank')
+														}}
+														fullWidth
+													>
+														View Contract file
+													</Button>
+												)}
 											</Grid>
 											<Grid item xs={12} md={4} lg={4}>
-												<FileInput height={100} name="design_book_file" label="Upload Design Book" />
+												<FileInput height={100} name="files.design_book_file" label="Upload Design Book" />
 											</Grid>
 											<Grid item xs={12} md={4} lg={4}>
-												<FileInput height={100} name="blueprint_file" label="Upload Blueprint" />
+												<FileInput height={100} name="files.blueprint_file" label="Upload Blueprint" />
 											</Grid>
 										</Grid>
 									</Grid>
