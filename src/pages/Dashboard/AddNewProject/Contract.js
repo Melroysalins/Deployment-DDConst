@@ -23,13 +23,13 @@ import moment from 'moment-timezone'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { useQuery } from 'react-query'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { listAllBranches } from 'supabase'
 import { addFile, createNewProject, getProjectDetails, getProjectFileLink, removeFile, replaceFile, updateProject } from 'supabase/projects'
 import * as Yup from 'yup'
 
-import Page from '../../../components/Page'
 import Iconify from 'components/Iconify'
+import Page from '../../../components/Page'
 
 // components
 // api
@@ -83,7 +83,7 @@ export default function CreateNewProject({ edit }) {
 				</Alert>
 			</Snackbar>
 			{(!edit || project) && (
-				<Container maxWidth="xl">
+				<Container maxWidth="100%">
 					<Formik
 						initialValues={
 							edit
@@ -502,8 +502,8 @@ export default function CreateNewProject({ edit }) {
 														variant="outlined"
 														color="info"
 														onClick={async () => {
-															const link = await getProjectFileLink(`contract_file_${id}.pdf`)
-															window.open(link, '_blank')
+															const link = await getProjectFileLink(project?.contract_file)
+															if(link) window.open(link, '_blank')
 														}}
 														fullWidth
 													>
@@ -519,7 +519,7 @@ export default function CreateNewProject({ edit }) {
 														variant="outlined"
 														color="info"
 														onClick={async () => {
-															const link = await getProjectFileLink(`design_file_${id}.pdf`)
+															const link = await getProjectFileLink(project?.design_file)
 															window.open(link, '_blank')
 														}}
 														fullWidth
@@ -536,7 +536,7 @@ export default function CreateNewProject({ edit }) {
 														variant="outlined"
 														color="info"
 														onClick={async () => {
-															const link = await getProjectFileLink(`blueprint_file_${id}.pdf`)
+															const link = await getProjectFileLink(project?.blueprint_file)
 															window.open(link, '_blank')
 														}}
 														fullWidth
