@@ -14,7 +14,7 @@ import {
 	Skeleton,
 	Snackbar,
 	Stack,
-	Typography
+	Typography,
 } from '@mui/material'
 // components
 import Page from '../../components/Page'
@@ -44,10 +44,14 @@ export default function Projects() {
 	// 	setLoading(false)
 	// }
 
-	const {data, refetch:fetchData, isLoading} = useQuery(["list projects", id], async({queryKey})=>{
+	const {
+		data,
+		refetch: fetchData,
+		isLoading,
+	} = useQuery(['list projects', id], async ({ queryKey }) => {
 		const res = await getProjectDetails(queryKey[1])
 		if (res.status === 404) {
-			setToast(true);
+			setToast(true)
 			return null
 		}
 		return res?.data
@@ -67,7 +71,7 @@ export default function Projects() {
 	const handleClose = () => {
 		setToast(null)
 	}
-	
+
 	const events = [
 		{
 			icon: <Iconify width={40} height={40} color="#8CCC67" icon="ant-design:money-collect-outlined" />,
@@ -104,57 +108,60 @@ export default function Projects() {
 			title: 'Profit & Loss Reports',
 			description: 'Pellentesque in ipsum id orci porta dapibus',
 			redirect: '#',
-		}
+		},
 	]
 
 	const projectInfo = [
-		[{
-			title: data?.title,
-			icon: 'material-symbols:handshake-outline-sharp',
-		},
-		{
-			title: data?.service,
-			icon: 'material-symbols:home-repair-service-outline',
-		},
-		{
-			title: data?.voltage,
-			icon: 'radix-icons:lightning-bolt',
-		},
-		{
-			title: data?.location,
-			icon: 'heroicons-outline:location-marker',
-		},
-		{
-			title: data?.construction_type,
-			icon: 'bi:buildings',
-		},
-		{
-			title: data?.contract_code,
-			icon: 'ion:document-text-outline',
-		},
-		{
-			title: data?.contract_value ? formatNumber(data?.contract_value) : '',
-			icon: 'material-symbols:account-balance-wallet-outline',
-		}],[
+		[
+			{
+				title: data?.title,
+				icon: 'material-symbols:handshake-outline-sharp',
+			},
+			{
+				title: data?.service,
+				icon: 'material-symbols:home-repair-service-outline',
+			},
+			{
+				title: data?.voltage,
+				icon: 'radix-icons:lightning-bolt',
+			},
+			{
+				title: data?.location,
+				icon: 'heroicons-outline:location-marker',
+			},
+			{
+				title: data?.construction_type,
+				icon: 'bi:buildings',
+			},
+			{
+				title: data?.contract_code,
+				icon: 'ion:document-text-outline',
+			},
+			{
+				title: data?.contract_value ? formatNumber(data?.contract_value) : '',
+				icon: 'material-symbols:account-balance-wallet-outline',
+			},
+		],
+		[
 			{
 				title: 'Contract',
 				icon: 'material-symbols:handshake-outline',
 				value: data?.contract_file,
-				file_name:'contract_file'
+				file_name: 'contract_file',
 			},
 			{
 				title: 'Design',
 				icon: 'akar-icons:book-open',
 				value: data?.design_file,
-				file_name:'design_file'
+				file_name: 'design_file',
 			},
 			{
 				title: 'Blueprint',
 				icon: 'material-symbols:account-balance-wallet-outline',
 				value: data?.blueprint_file,
-				file_name:'blueprint_file'
+				file_name: 'blueprint_file',
 			},
-		]
+		],
 	]
 
 	return (
@@ -364,40 +371,45 @@ function ProjectInfo({ projectInfo, id }) {
 				<Typography m={1} sx={{ fontWeight: 600, fontSize: 16 }}>
 					Project info
 				</Typography>
-				{projectInfo[0] ? projectInfo[0]?.map((e) => (
-					<>
-						{!!e.title && (
-							<Grid key={e.title} container spacing={2} style={{ alignItems: 'center', flex: 1 }} mt={1} pl={3}>
-								<Iconify sx={{ minWidth: 15 }} width={15} height={15} icon={e.icon} />
+				{projectInfo[0]
+					? projectInfo[0]?.map((e) => (
+							<>
+								{!!e.title && (
+									<Grid key={e.title} container spacing={2} style={{ alignItems: 'center', flex: 1 }} mt={1} pl={3}>
+										<Iconify sx={{ minWidth: 15 }} width={15} height={15} icon={e.icon} />
 
-								<Typography m={1} sx={{ fontSize: 12, color: 'text.secondary' }}>
-									{e.title}
-								</Typography>
-							</Grid>
-						)}
-					</>
-				)) : null}
+										<Typography m={1} sx={{ fontSize: 12, color: 'text.secondary' }}>
+											{e.title}
+										</Typography>
+									</Grid>
+								)}
+							</>
+					  ))
+					: null}
 				<Divider />
-				{projectInfo[1] ? projectInfo[1]?.map((e) => (
-					<>
-					{e.value && (
-						<Grid key={e.title} container spacing={2} style={{ alignItems: 'center', flex: 1 }} mt={1} pl={3}>
-							<Iconify sx={{ minWidth: 15 }} width={15} height={15} icon={e.icon} />
+				{projectInfo[1]
+					? projectInfo[1]?.map((e) => (
+							<>
+								{e.value && (
+									<Grid key={e.title} container spacing={2} style={{ alignItems: 'center', flex: 1 }} mt={1} pl={3}>
+										<Iconify sx={{ minWidth: 15 }} width={15} height={15} icon={e.icon} />
 
-							<Typography flexGrow={1} m={1} sx={{ fontSize: 12, color: 'text.secondary' }}>
-								{e.title}
-							</Typography>
-							<IconButton onClick={async()=>{
-								const link = await getProjectFileLink(`contract_file_${id}.pdf`)
-								window.open(link, '_blank')
-							}}>
-							<Iconify sx={{ minWidth: 15 }} width={15} height={15} icon="material-symbols:download-rounded" />
-
-							</IconButton>
-						</Grid>
-					)}
-				</>
-				)):null}
+										<Typography flexGrow={1} m={1} sx={{ fontSize: 12, color: 'text.secondary' }}>
+											{e.title}
+										</Typography>
+										<IconButton
+											onClick={async () => {
+												const link = await getProjectFileLink(e.value)
+												window.open(link, '_blank')
+											}}
+										>
+											<Iconify sx={{ minWidth: 15 }} width={15} height={15} icon="material-symbols:download-rounded" />
+										</IconButton>
+									</Grid>
+								)}
+							</>
+					  ))
+					: null}
 			</Box>
 		</>
 	)
