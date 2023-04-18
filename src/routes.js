@@ -16,6 +16,11 @@ import TravelExpenses from './pages/Dashboard/TravelExpenses/TELayout'
 import ProjectImplementationSchedule from './pages/ProjectImplementationSchedule'
 import HrAdmin from 'pages/HrAdmin'
 import useMain from 'pages/context/context'
+import MangeEmpLayout from 'pages/Dashboard/ManageEmps/MangeEmpLayout'
+import AddEmployee from 'pages/Dashboard/ManageEmps/Employee/AddEmployee'
+import EmployeeList from 'pages/Dashboard/ManageEmps/Employee/EmployeeList'
+import TeamList from 'pages/Dashboard/ManageEmps/Team/TeamList'
+import AddTeam from 'pages/Dashboard/ManageEmps/Team/AddTeam'
 
 // ----------------------------------------------------------------------
 
@@ -54,6 +59,32 @@ export default function Router() {
 		{
 			path: 'register',
 			element: <Register />,
+		},
+		{
+			path: '/manageEmp',
+			element: user ? <DashboardLayout /> : <Navigate to="/login" />,
+			children: [
+				{
+					path: 'employee',
+					element: <MangeEmpLayout />,
+					children: [
+						{ path: 'emplist', element: <EmployeeList /> },
+						{ path: 'empadd', element: <AddEmployee /> },
+						{ path: 'empedit/:id', element: <AddEmployee /> },
+						{ path: 'empview/:id', element: <AddEmployee /> },
+					],
+				},
+				{
+					path: 'team',
+					element: <MangeEmpLayout />,
+					children: [
+						{ path: 'teamlist', element: <TeamList /> },
+						{ path: 'teamadd', element: <AddTeam /> },
+						{ path: 'teamedit/:id', element: <AddTeam /> },
+						{ path: 'teamview/:id', element: <AddTeam /> },
+					],
+				},
+			],
 		},
 		{
 			path: '/',
