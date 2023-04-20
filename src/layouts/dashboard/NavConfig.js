@@ -61,6 +61,11 @@ const navConfig = [
 		path: '/logout',
 		icon: getIcon('material-symbols:logout'),
 	},
+	{
+		title: 'manageEmp',
+		path: '/manageEmp/employee/emplist',
+		icon: getIcon('pepicons-pop:persons'),
+	},
 	// {
 	//   title: 'Not found',
 	//   path: '/404',

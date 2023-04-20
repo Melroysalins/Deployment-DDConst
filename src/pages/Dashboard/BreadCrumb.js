@@ -12,7 +12,7 @@ export default function CustomSeparator(props) {
 	const { state, dispatch } = useMain()
 	const { isfilterOpen } = state.filters || {}
 
-	const { selected } = props
+	const { selected, typeName } = props
 	const history = useNavigate()
 	const { pathname } = useLocation()
 	const pathnames = pathname.split('/').filter((x) => x)
@@ -39,7 +39,7 @@ export default function CustomSeparator(props) {
 				{pathnames.map((name, index) => {
 					const routeTo = `${basePath}+/${pathnames.slice(0, index + 1).join('/')}`
 					const isLast = index === pathnames.length - 1
-					if (index === 0) return <CustomizedMenus key={2} option={name} />
+					if (index === 0) return <CustomizedMenus key={2} option={name} typeName={typeName} />
 					if (isLast)
 						return (
 							<Typography fontWeight="600" key={name}>
@@ -63,6 +63,22 @@ const titles = (name) => {
 			return 'Add New Project'
 		case 'list':
 			return 'Projects'
+		case 'empadd':
+			return 'Add New Employee'
+		case 'empedit':
+			return 'Edit Employee'
+		case 'empview':
+			return 'View Employee'
+		case 'emplist':
+			return 'Employees'
+		case 'teamadd':
+			return 'Add New Team'
+		case 'teamedit':
+			return 'Edit Team'
+		case 'teamview':
+			return 'View Team'
+		case 'teamlist':
+			return 'Teams'
 		default:
 			return 'View Project'
 	}
@@ -105,7 +121,7 @@ const StyledMenu = styled((props) => (
 	},
 }))
 
-function CustomizedMenus({ option }) {
+function CustomizedMenus({ option, typeName }) {
 	const [anchorEl, setAnchorEl] = React.useState(null)
 	const open = Boolean(anchorEl)
 	const handleClick = (event) => {
@@ -139,16 +155,33 @@ function CustomizedMenus({ option }) {
 				open={open}
 				onClose={handleClose}
 			>
-				<MenuItem selected={option === 'add'} onClick={handleClose} disableRipple>
-					<Link underline="hover" key="11" color="inherit" href="/dashboard/projects/add">
-						Add new project
-					</Link>
-				</MenuItem>
-				<MenuItem selected={option === 'list'} onClick={handleClose} disableRipple>
-					<Link underline="hover" key="12" color="inherit" href="/dashboard/projects/list">
-						Projects list
-					</Link>
-				</MenuItem>
+				{typeName ? (
+					<>
+						<MenuItem selected={option === 'emplist'} onClick={handleClose} disableRipple>
+							<Link underline="hover" color="inherit" href={`/${typeName}/employee/emplist`}>
+								Employees
+							</Link>
+						</MenuItem>
+						<MenuItem selected={option === 'teamlist'} onClick={handleClose} disableRipple>
+							<Link underline="hover" color="inherit" href={`/${typeName}/team/teamlist`}>
+								Teams
+							</Link>
+						</MenuItem>
+					</>
+				) : (
+					<>
+						<MenuItem selected={option === 'add'} onClick={handleClose} disableRipple>
+							<Link underline="hover" key="11" color="inherit" href="/dashboard/projects/add">
+								Add new project
+							</Link>
+						</MenuItem>
+						<MenuItem selected={option === 'list'} onClick={handleClose} disableRipple>
+							<Link underline="hover" key="12" color="inherit" href="/dashboard/projects/list">
+								Projects list
+							</Link>
+						</MenuItem>
+					</>
+				)}
 			</StyledMenu>
 		</div>
 	)
