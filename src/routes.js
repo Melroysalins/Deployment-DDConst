@@ -68,6 +68,7 @@ export default function Router() {
 					path: 'employee',
 					element: <MangeEmpLayout />,
 					children: [
+						{ path: '', element: <EmployeeList /> },
 						{ path: 'emplist', element: <EmployeeList /> },
 						{ path: 'empadd', element: <AddEmployee /> },
 						{ path: 'empedit/:id', element: <AddEmployee /> },
@@ -78,6 +79,7 @@ export default function Router() {
 					path: 'team',
 					element: <MangeEmpLayout />,
 					children: [
+						{ path: '', element: <TeamList /> },
 						{ path: 'teamlist', element: <TeamList /> },
 						{ path: 'teamadd', element: <AddTeam /> },
 						{ path: 'teamedit/:id', element: <AddTeam /> },

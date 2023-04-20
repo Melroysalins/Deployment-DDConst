@@ -111,7 +111,7 @@ export default function AddTeam() {
 							const res = await updateTeamWithEmp(values, id)
 							if (res.status >= 200 && res.status < 300) {
 								setToast({ severity: 'success', message: 'Succesfully updated Team details!' })
-								navigate(`/manageEmp/team/teamlist`)
+								// navigate(`/manageEmp/team/teamlist`)
 							} else {
 								setToast({ severity: 'error', message: 'Failed to updated Team details!' })
 							}

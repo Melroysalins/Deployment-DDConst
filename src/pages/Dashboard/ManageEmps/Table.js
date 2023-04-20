@@ -12,10 +12,7 @@ import Paper from '@mui/material/Paper'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
 import { visuallyHidden } from '@mui/utils'
-import DeleteIcon from '@mui/icons-material/Delete'
-import VisibilityIcon from '@mui/icons-material/Visibility'
-import CreateIcon from '@mui/icons-material/Create'
-import { Avatar, CircularProgress, Grid, Stack } from '@mui/material'
+import { Avatar, CircularProgress, Stack } from '@mui/material'
 import Iconify from 'components/Iconify'
 import { certificateColors } from 'constant'
 
@@ -49,7 +46,7 @@ function stableSort(array, comparator) {
 
 const DEFAULT_ORDER = 'asc'
 const DEFAULT_ORDER_BY = 'name'
-const DEFAULT_ROWS_PER_PAGE = 10
+const DEFAULT_ROWS_PER_PAGE = 5
 
 function EnhancedTableHead(props) {
 	const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort, headCells } = props
@@ -172,14 +169,12 @@ export default function EnhancedTable({
 			// There is no layout jump to handle on the first page.
 			setPaddingHeight(0)
 		},
-		[order, orderBy]
+		[order, orderBy, rows]
 	)
 
 	const handleChangeDense = (event) => {
 		setDense(event.target.checked)
 	}
-
-	const isSelected = (name) => selected.indexOf(name) !== -1
 
 	const AvatarRating = (value) => (
 		<div style={{ display: 'flex', gap: 5, justifyContent: 'center', alignItems: 'center' }}>
@@ -266,7 +261,7 @@ export default function EnhancedTable({
 					</Table>
 				</TableContainer>
 				<TablePagination
-					rowsPerPageOptions={[10, 20, 30]}
+					rowsPerPageOptions={[5, 10, 20]}
 					component="div"
 					count={rows.length}
 					rowsPerPage={rowsPerPage}

@@ -121,7 +121,7 @@ export default function CreateNewEmployee() {
 							const res = await updateEmployee(values, id)
 							if (res.status >= 200 && res.status < 300) {
 								setToast({ severity: 'success', message: 'Succesfully updated employee details!' })
-								navigate(`/manageEmp/employee/emplist`)
+								// navigate(`/manageEmp/employee/emplist`)
 							} else {
 								setToast({ severity: 'error', message: 'Failed to updated employee details!' })
 							}
