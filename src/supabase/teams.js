@@ -29,9 +29,6 @@ export const listTeamDetailsWithEmp = async () => {
      *,
 	branch(
 		id, name
-	),
-	project(
-		id, title
 	)
   `)
 	const promises = res.data?.map(async (t) => {
@@ -51,9 +48,6 @@ export const getTeamDetailsWithEmp = async (id) => {
 			`*,
 			branch(
 				id, name
-			),
-			project(
-				id, title
 			)`
 		)
 		.eq('id', id)

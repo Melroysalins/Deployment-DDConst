@@ -5,7 +5,6 @@ const REACT_APP_SUPABASE_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY ?? ''
 console.log(process.env.REACT_APP_SUPABASE_URL)
 console.log(process.env.REACT_APP_SUPABASE_KEY)
 const supabase = createClient('https://jobpkosfpjjzhcwhdofe.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvYnBrb3NmcGpqemhjd2hkb2ZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NjM5MTA2MTcsImV4cCI6MTk3OTQ4NjYxN30.z3RPWSzsc5cDltFQlyfjeSiXCmJHAC7xKDTMwYnZnnU')
-console.log(supabase)
 export default async function handler(request, response) {
 	console.log(request.body)
 	let record = request.body.record
