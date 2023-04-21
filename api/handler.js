@@ -3,8 +3,9 @@ import { createClient } from '@supabase/supabase-js'
 const REACT_APP_SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL ?? ''
 const REACT_APP_SUPABASE_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY ?? ''
 console.log(process.env.REACT_APP_SUPABASE_URL)
+console.log(process.env.REACT_APP_SUPABASE_KEY)
 const supabase = createClient(REACT_APP_SUPABASE_URL, REACT_APP_SUPABASE_KEY)
-
+console.log(supabase)
 export default async function handler(request, response) {
 	console.log(request.body)
 	let record = request.body.record
