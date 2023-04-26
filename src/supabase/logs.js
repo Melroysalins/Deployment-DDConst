@@ -6,10 +6,17 @@ export const listAllLogs = async () => {
 }
 
 export const listAllLogsByProject = async (project) => {
-	const res = await supabase.from('logs').select('*').eq('project', project).select(`
+	const res = await supabase
+		.from('logs')
+		.select('*')
+		.eq('project', project)
+		.select(
+			`
 	*,
 	employee(id, name)
-	`)
+	`
+		)
+		.order('id', { ascending: false })
 	const changeActionName = (val) => {
 		switch (val) {
 			case 'INSERT':

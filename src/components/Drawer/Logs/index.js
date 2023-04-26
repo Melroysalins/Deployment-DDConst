@@ -38,6 +38,8 @@ export default function Logs({ open, setopen }) {
 					<Message detail={e} />
 				</React.Fragment>
 			))}
+
+			{logs?.length === 0 && <div className={style.logMessage} style={{ width: 250 }} />}
 		</Drawer>
 	)
 }
