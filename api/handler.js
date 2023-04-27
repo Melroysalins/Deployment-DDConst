@@ -7,7 +7,12 @@ console.log(process.env.REACT_APP_SUPABASE_KEY)
 const supabase = createClient('https://jobpkosfpjjzhcwhdofe.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpvYnBrb3NmcGpqemhjd2hkb2ZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NjM5MTA2MTcsImV4cCI6MTk3OTQ4NjYxN30.z3RPWSzsc5cDltFQlyfjeSiXCmJHAC7xKDTMwYnZnnU')
 export default async function handler(request, response) {
 	console.log(request.body)
-	let record = request.body.record
+	let record;
+	if(request.body.type != 'DELETE') {
+		record = request.body.record
+	} else {
+		record= request.body.old_record;
+	}
 	const { id, created_at, ...valuesToInsert } = record
 	console.log(valuesToInsert)
 
