@@ -34,8 +34,8 @@ const Header = () => {
       >
         Pending
       </MuiButton>
-
-      <Logs open={isDrawerOpen} setopen={setisDrawerOpen} />
+      {isDrawerOpen &&  <Logs open={isDrawerOpen} setopen={setisDrawerOpen} />}
+     
     </Stack>
   );
 };
