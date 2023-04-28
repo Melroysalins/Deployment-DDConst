@@ -1,0 +1,18 @@
+.mbsc-timeline.mbsc-ltr {
+  max-height: calc(100vh - 90px);
+}
+.mbsc-ios.mbsc-schedule-event-background {
+  opacity: 1;
+}
+
+.mbsc-eventcalendar {
+  height: auto;
+}
+
+.first-day { 
+  position: relative; 
+  z-index: 1; 
+  width: 700%; 
+  border: 1px solid grey; 
+  text-align: start; 
+}
