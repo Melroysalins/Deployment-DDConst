@@ -3,8 +3,8 @@ import React from 'react'
 import { useLocation, Outlet } from 'react-router-dom'
 import { Box, Stack } from '@mui/material'
 // components
-import BreadCrumb from '../BreadCrumb'
-import { StoreProvider, useStore } from '../store/Store'
+import BreadCrumb from '../Dashboard/BreadCrumb'
+import { StoreProvider, useStore } from 'pages/Dashboard/store/Store'
 
 // ----------------------------------------------------------------------
 

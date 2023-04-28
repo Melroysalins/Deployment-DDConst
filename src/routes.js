@@ -16,12 +16,11 @@ import TravelExpenses from './pages/Dashboard/TravelExpenses/TELayout'
 import ProjectImplementationSchedule from './pages/ProjectImplementationSchedule'
 import HrAdmin from 'pages/HrAdmin'
 import useMain from 'pages/context/context'
-import MangeEmpLayout from 'pages/Dashboard/ManageEmps/MangeEmpLayout'
-import AddEmployee from 'pages/Dashboard/ManageEmps/Employee/AddEmployee'
-import EmployeeList from 'pages/Dashboard/ManageEmps/Employee/EmployeeList'
-import TeamList from 'pages/Dashboard/ManageEmps/Team/TeamList'
-import AddTeam from 'pages/Dashboard/ManageEmps/Team/AddTeam'
-
+import MangeEmpLayout from 'pages/ManageEmps/MangeEmpLayout'
+import EmployeeList from 'pages/ManageEmps/Employee/EmployeeList'
+import TeamList from 'pages/ManageEmps/Team/TeamList'
+import AddTeam from 'pages/ManageEmps/Team/AddTeam'
+import AddEmployee from 'pages/ManageEmps/Employee/AddEmployee'
 // ----------------------------------------------------------------------
 
 export default function Router() {
