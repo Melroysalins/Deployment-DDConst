@@ -100,38 +100,38 @@ function App() {
 				eventOccurrence = 'more'
 			}
 		}
-    const d = formatDate('DD DDD', args.date)
+		const d = formatDate('DD DDD', args.date)
 		const isFirstDay = args.date.getDay() === 0 // Sunday, but it can vary depending on your first day of week option
 		const now = new Date()
 		const cutOff = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - now.getDay()))
-		const thisWeek = args.date < cutOff;
-    let div;
-    if (isFirstDay) {
-      div = <div>
-      <div className="first-day">{thisWeek ? 'This Weekly Progress':'Next Weeks Plan'}</div>
-      <div>{d}</div>
-    </div>; 
-    } else {
-      div = 
-		  <div>{d}</div>
-
-    }
-    return div;
+		const thisWeek = args.date < cutOff
+		let div
+		if (isFirstDay) {
+			div = (
+				<div>
+					<div className="first-day">{thisWeek ? 'Progress' : ' Plan'}</div>
+					{/* <div>{d}</div> */}
+				</div>
+			)
+		} else {
+			div = <div>{d}</div>
+		}
+		return div
 
 		// const d = formatDate('DD DDD', args.date)
 		// const isFirstDay = args.date.getDay() === 0 // Sunday, but it can vary depending on your first day of week option
 		// const now = new Date()
 		// const cutOff = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - now.getDay()))
 		// const thisWeek = args.date < cutOff;
-    // // return <div>This week Progress</div>
-    // return <div className={'md-date-header md-date-header-events-' + eventOccurrence}>
+		// // return <div>This week Progress</div>
+		// return <div className={'md-date-header md-date-header-events-' + eventOccurrence}>
 		//     <div className="md-date-header-day-name">{formatDate('DDD', date)}</div>
 		//      <div className="md-date-header-day-nr">{formatDate('DD', date)}</div>
 		//  </div>;
-// 		return `<div ${isFirstDay ? 'class="first-day"' : ''} style="height: 28px;">${
-// 			isFirstDay ? (thisWeek ? 'This weeks progress' : 'Next weeks plan') : ''
-// 		}</div> 
-// <div>${d}</div>`
+		// 		return `<div ${isFirstDay ? 'class="first-day"' : ''} style="height: 28px;">${
+		// 			isFirstDay ? (thisWeek ? 'This weeks progress' : 'Next weeks plan') : ''
+		// 		}</div>
+		// <div>${d}</div>`
 	}
 
 	React.useEffect(() => {
