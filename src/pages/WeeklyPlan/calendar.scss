@@ -10,15 +10,26 @@
 }
 
 .first-day { 
-  position: relative; 
-  z-index: 1; 
-  width: 700%; 
-  border: 1px solid grey; 
-  text-align: start; 
+
+  height: 29px;
+  width: max-content;
+  background: white;
+  z-index: 9999;
+  position: absolute;
+  top: 0px;
+  font-weight: 600;
+  border: 0;
+  margin: 0 20;
+  font-size: 1rem;
+  left: 160px;
 }
 
-
-.mbsc-timeline-day , .mbsc-timeline-header-date-cont{
-  width: 70px;
+.main-day{
+  border: 1px solid #ccc;
+  border-right: 0;
+  padding-left: 2px;
 }
 
+.mbsc-timeline-header-date.mbsc-ltr{
+  border:0
+}

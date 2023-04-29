@@ -33,8 +33,8 @@ const viewSettings = {
 		type: 'week',
 		size: 2,
 		eventList: true,
-		startDay: 0,
-		endDay: 7,
+		// startDay: 0,
+		// endDay: 7,
 		// weekNumbers: true
 	},
 }
@@ -105,17 +105,14 @@ function App() {
 		const now = new Date()
 		const cutOff = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - now.getDay()))
 		const thisWeek = args.date < cutOff
-		let div
-		if (isFirstDay) {
-			div = (
-				<div>
-					<div className="first-day">{thisWeek ? 'Progress' : ' Plan'}</div>
-					{/* <div>{d}</div> */}
+		const div = (
+			<div>
+				<div className="first-day">{isFirstDay && <>{thisWeek ? 'This Weekly Progress' : 'Next Weeks Plan'}</>}</div>
+				<div style={{ marginTop: 30 }} className="main-day">
+					{d}
 				</div>
-			)
-		} else {
-			div = <div>{d}</div>
-		}
+			</div>
+		)
 		return div
 
 		// const d = formatDate('DD DDD', args.date)
