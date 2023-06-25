@@ -79,6 +79,8 @@ const titles = (name) => {
 			return 'View Team'
 		case 'teamlist':
 			return 'Teams'
+		case 'weekly-plan':
+			return 'Weekly Process Planning'
 		default:
 			return 'View Project'
 	}
@@ -131,6 +133,21 @@ function CustomizedMenus({ option, typeName }) {
 		setAnchorEl(null)
 	}
 
+	if (option === 'weekly-plan')
+		return (
+			<Typography
+				display="flex"
+				direction="row"
+				alignItems="center"
+				key="3"
+				color="text.primary"
+				label="Accessories"
+				onClick={handleClick}
+			>
+				{titles(option)}
+				<KeyboardArrowDownIcon />
+			</Typography>
+		)
 	return (
 		<div>
 			<Typography

@@ -41,11 +41,13 @@ export default function Router() {
 						{ path: 'add', element: <AddNewProject /> },
 						{ path: 'edit/:id', element: <AddNewProject edit /> },
 						{ path: ':id', element: <ProjectDetails /> },
+
+						{ path: 'weekly-plan', element: <WeeklyPlan /> },
 					],
 				},
 
 				{ path: 'workforce-planning', element: <WorkforcePlanning /> },
-				{ path: 'weekly-plan', element: <WeeklyPlan /> },
+
 				{ path: 'project-schedule/:project', element: <ProjectImplementationSchedule /> },
 				{ path: 'user', element: <User /> },
 				{ path: 'products', element: <Products /> },

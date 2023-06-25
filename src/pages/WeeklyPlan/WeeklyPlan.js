@@ -10,6 +10,9 @@ import {
 	Select,
 	momentTimezone,
 	formatDate,
+	CalendarPrev,
+	CalendarNext,
+	CalendarNav,
 } from '@mobiscroll/react'
 import moment from 'moment-timezone'
 import './calendar.scss'
@@ -21,6 +24,13 @@ import { listAllEmployees } from 'supabase/employees'
 import { listAllProjects } from 'supabase/projects'
 
 import Page from '../../components/Page'
+import { Stack, Button as MuiButton, Grid, Box } from '@mui/material'
+import LeftMenu from './LeftMenu'
+import ProgressRate from './ProgressRate'
+import Drawer from './Drawer'
+import { useNavigate } from 'react-router-dom'
+import Iconify from 'components/Iconify'
+import Message from './Message'
 
 setOptions({
 	theme: 'ios',
@@ -53,7 +63,13 @@ const defaultHolidays = [
 ]
 const filters = { dw: true }
 
+const startOfWeek = moment().startOf('week').toDate().toLocaleDateString()
+const endOfWeek = moment().endOf('week').toDate().toLocaleDateString()
+const startNextWeek = moment().add(1, 'weeks').startOf('week').toDate().toLocaleDateString()
+const endNextWeek = moment().add(1, 'weeks').endOf('week').toDate().toLocaleDateString()
+
 function App() {
+	const navigate = useNavigate()
 	const [myEvents, setMyEvents] = React.useState([])
 	const [tempEvent, setTempEvent] = React.useState(null)
 	const [isOpen, setOpen] = React.useState(false)
@@ -107,8 +123,31 @@ function App() {
 		const thisWeek = args.date < cutOff
 		const div = (
 			<div>
-				<div className="first-day">{isFirstDay && <>{thisWeek ? 'This Weekly Progress' : 'Next Weeks Plan'}</>}</div>
-				<div style={{ marginTop: 30 }} className="main-day">
+				<div className="first-day" style={{ borderBottom: `1px solid ${thisWeek ? '#DA4C57' : '#8CCC67'}` }}>
+					{isFirstDay && (
+						<>
+							{thisWeek
+								? `This Week Progress (${startOfWeek} - ${endOfWeek})`
+								: `Next Weeks Plan (${startNextWeek} - ${endNextWeek})`}
+						</>
+					)}
+				</div>
+				<div className="first-day" style={{ marginTop: 30, left: 100, fontSize: '0.88rem' }}>
+					{isFirstDay && (
+						<>
+							{thisWeek ? (
+								<span>
+									APPROVAL STATUS: <span style={{ color: '#DA4C57' }}>Rejected</span>
+								</span>
+							) : (
+								<span>
+									APPROVAL STATUS: <span style={{ color: '#8CCC67' }}>Approved</span>
+								</span>
+							)}
+						</>
+					)}
+				</div>
+				<div style={{ marginTop: 60 }} className="main-day">
 					{d}
 				</div>
 			</div>
@@ -197,14 +236,21 @@ function App() {
 		}
 	}, [isEdit, myEvents, popupEventDate, popupEventColor, popupEventTitle, popupEventSite, tempEvent, checkedResources])
 
-	const renderMyResource = (resource) => {
-		const parent = resource.children
-		return (
-			<div className={parent ? 'md-shift-resource' : ''} style={{ color: parent ? '#1dab2f' : '' }}>
-				{resource.name}
+	const renderCustomResource = (resource) => (
+		<div className="md-resource-header-template-cont">
+			<div className="md-resource-header-template-name">{resource.name}</div>
+			<div className="md-resource-header-template-seats">Location</div>
+		</div>
+	)
+
+	const renderCustomHeader = () => (
+		<>
+			<div className="md-resource-header-template-title">
+				<div className="md-resource-header-template-name">Work</div>
+				<div className="md-resource-header-template-seats">Location</div>
 			</div>
-		)
-	}
+		</>
+	)
 
 	const loadPopupForm = React.useCallback((event) => {
 		try {
@@ -321,101 +367,142 @@ function App() {
 		const data = await getHolidays(start, end)
 		if (data) setHolidays([...defaultHolidays, ...data])
 	}
-	//   const renderCustomDay1 = (data) => {
-	//     const d = formatDate('DD DDD', data.date);
-	//     const isFirstDay = data.date.getDay() === 0; // Sunday, but it can vary depending on your first day of week option
-	//     const now = new Date();
-	//     const cutOff = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - now.getDay()));
-	//     const thisWeek = data.date < cutOff;
-	//     return `<div ${isFirstDay ? 'class="first-day"' : ''} style="height: 28px;">${
-	//         isFirstDay ? (thisWeek ? 'This weeks progress' : 'Next weeks plan') : ''
-	//     }</div>
-	//  <div>${d}</div>`;
-	//  }
+	const renderHeader = () => (
+		<>
+			<Stack
+				sx={{ color: 'black', background: 'white' }}
+				flexDirection="row"
+				justifyContent="space-between"
+				width="100%"
+			>
+				<MuiButton size="small" color="inherit" sx={{ padding: 0, minWidth: 0 }}>
+					<CalendarPrev className="cal-header-prev" />
+				</MuiButton>
+				<CalendarNav />
+				<MuiButton size="small" color="inherit" sx={{ padding: 0, minWidth: 0 }}>
+					<CalendarNext className="cal-header-next" />
+				</MuiButton>
+			</Stack>
+		</>
+	)
 
 	return (
-		<>
-			<Page title="WP">
-				<Loader open={loader} setOpen={setLoader} />
-				<Eventcalendar
-					view={viewSettings}
-					data={myEvents}
-					invalid={invalid}
-					displayTimezone="local"
-					dataTimezone="local"
-					onPageLoading={onPageLoading}
-					renderResource={renderMyResource}
-					resources={myResources}
-					clickToCreate="double"
-					dragToCreate={true}
-					dragTimeStep={30}
-					selectedDate={mySelectedDate}
-					onSelectedDateChange={onSelectedDateChange}
-					onEventClick={onEventClick}
-					onEventCreated={onEventCreated}
-					onEventDeleted={onEventDeleted}
-					extendDefaultEvent={extendDefaultEvent}
-					colors={holidays}
-					renderDay={renderCustomDay}
-				/>
-
-				<Popup
-					display="bottom"
-					fullScreen={true}
-					contentPadding={false}
-					headerText={headerText}
-					anchor={anchor}
-					buttons={popupButtons}
-					isOpen={isOpen}
-					onClose={onClose}
-					responsive={responsivePopup}
+		<Page title="WP">
+			{/* <Message /> */}
+			<Box sx={{ position: 'absolute', top: 28, right: 44, height: '100%' }}>
+				<MuiButton variant="contained" size="medium" color="inherit" sx={{ border: '1px solid #596570' }}>
+					승인 요청
+				</MuiButton>
+				<MuiButton
+					variant="contained"
+					size="medium"
+					color="inherit"
+					sx={{ background: '#8D99FF', marginLeft: 1, minWidth: 40, width: 40, padding: '5px 0', height: 37 }}
 				>
-					<div className="mbsc-form-group">
-						<Select
-							disabled={isEdit}
-							readOnly={isEdit}
-							onChange={(e) => {
-								setTitle(e.valueText)
-								setSite(e.value)
-							}}
-							value={isEdit && tempEvent ? tempEvent.project : popupEventSite}
-							data={projectSites}
-							touchUi={false}
-							label="Project Site"
-							labelStyle="floating"
-							error={projectError}
-							errorMessage={'Please select a project'}
+					<Iconify icon="uil:bars" width={25} height={25} color="white" />
+				</MuiButton>
+			</Box>
+			<Grid container spacing={3}>
+				<Grid item sm={12} md={4}>
+					<LeftMenu />
+				</Grid>
+				<Grid item sm={12} md={8}>
+					<Box className="weekly-calender" position={'relative'}>
+						<Loader open={loader} setOpen={setLoader} />
+						<Drawer />
+						<Eventcalendar
+							renderResourceHeader={renderCustomHeader}
+							renderHeader={renderHeader}
+							view={viewSettings}
+							data={myEvents}
+							invalid={invalid}
+							displayTimezone="local"
+							dataTimezone="local"
+							onPageLoading={onPageLoading}
+							renderResource={renderCustomResource}
+							resources={myResources}
+							clickToCreate="double"
+							dragToCreate={true}
+							dragTimeStep={30}
+							selectedDate={mySelectedDate}
+							onSelectedDateChange={onSelectedDateChange}
+							onEventClick={onEventClick}
+							onEventCreated={onEventCreated}
+							onEventDeleted={onEventDeleted}
+							extendDefaultEvent={extendDefaultEvent}
+							colors={holidays}
+							renderDay={renderCustomDay}
+							cssClass="md-resource-header-template"
 						/>
-					</div>
-					<div className="mbsc-form-group">
-						<Input ref={startRef} label="Starts" />
-						<Input ref={endRef} label="Ends" />
-						<Datepicker
-							disabled={isEdit}
-							readOnly={isEdit}
-							select="range"
-							controls={['date']}
-							touchUi={true}
-							startInput={start}
-							endInput={end}
-							showRangeLabels={false}
-							onChange={dateChange}
-							value={popupEventDate}
-						/>
-					</div>
 
-					<div className="mbsc-form-group">
-						{isEdit && (
-							<div className="mbsc-button-group">
-								<Button className="mbsc-button-block" color="danger" variant="outline" onClick={onDeleteClick}>
-									Delete event
-								</Button>
+						<Popup
+							display="bottom"
+							fullScreen={true}
+							contentPadding={false}
+							headerText={headerText}
+							anchor={anchor}
+							buttons={popupButtons}
+							isOpen={isOpen}
+							onClose={onClose}
+							responsive={responsivePopup}
+						>
+							<div className="mbsc-form-group">
+								<Select
+									disabled={isEdit}
+									readOnly={isEdit}
+									onChange={(e) => {
+										setTitle(e.valueText)
+										setSite(e.value)
+									}}
+									value={isEdit && tempEvent ? tempEvent.project : popupEventSite}
+									data={projectSites}
+									touchUi={false}
+									label="Project Site"
+									labelStyle="floating"
+									error={projectError}
+									errorMessage={'Please select a project'}
+								/>
 							</div>
-						)}
-					</div>
-				</Popup>
-			</Page>
-		</>
+							<div className="mbsc-form-group">
+								<Input ref={startRef} label="Starts" />
+								<Input ref={endRef} label="Ends" />
+								<Datepicker
+									disabled={isEdit}
+									readOnly={isEdit}
+									select="range"
+									controls={['date']}
+									touchUi={true}
+									startInput={start}
+									endInput={end}
+									showRangeLabels={false}
+									onChange={dateChange}
+									value={popupEventDate}
+								/>
+							</div>
+
+							<div className="mbsc-form-group">
+								{isEdit && (
+									<div className="mbsc-button-group">
+										<Button className="mbsc-button-block" color="danger" variant="outline" onClick={onDeleteClick}>
+											Delete event
+										</Button>
+									</div>
+								)}
+							</div>
+						</Popup>
+					</Box>
+				</Grid>
+			</Grid>
+
+			<Grid container spacing={3} mt={1}>
+				<Grid item sm={12} md={4}>
+					<ProgressRate />
+				</Grid>
+				<Grid item sm={12} md={8}>
+					<img src={'/static/images/Weekly-HardCode.png'} alt={'weekly'} />
+				</Grid>
+			</Grid>
+		</Page>
 	)
 }
 

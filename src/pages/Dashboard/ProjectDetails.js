@@ -95,7 +95,7 @@ export default function Projects() {
 			icon: <Iconify width={40} height={40} color="#FFA58D" icon="heroicons-outline:calendar" />,
 			title: 'Weekly Process Planning',
 			description: '24/02/2022 - 02/03/2022 - 45.78%',
-			redirect: '#',
+			redirect: `/dashboard/projects/weekly-plan`,
 		},
 		{
 			icon: <Iconify width={40} height={40} color="#8D99FF" icon="heroicons:truck" />,
