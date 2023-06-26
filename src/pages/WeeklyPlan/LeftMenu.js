@@ -89,9 +89,9 @@ const EventCardCost = ({ event }) => (
 							<Iconify icon={event.icon} sx={{ width: 18, height: 18, color: event.color }} />
 						)}
 					</Box>
-					<Typography fontSize={13}>{event?.title}</Typography>
+					<Typography fontSize={12}>{event?.title}</Typography>
 				</Stack>
-				<Typography fontSize={13} fontWeight={600}>
+				<Typography fontSize={12} fontWeight={600}>
 					{event?.right}
 				</Typography>
 			</Stack>
