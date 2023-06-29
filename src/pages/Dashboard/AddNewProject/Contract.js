@@ -23,11 +23,12 @@ import moment from 'moment-timezone'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { useQuery } from 'react-query'
-import { Navigate, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { listAllBranches } from 'supabase'
-import { createNewProject, getProjectDetails, updateProject } from 'supabase/projects'
+import { addFile, createNewProject, getProjectDetails, getProjectFileLink, removeFile, replaceFile, updateProject } from 'supabase/projects'
 import * as Yup from 'yup'
 
+import Iconify from 'components/Iconify'
 import Page from '../../../components/Page'
 
 // components
@@ -58,7 +59,7 @@ export default function CreateNewProject({ edit }) {
 	const navigate = useNavigate()
 
 	const { data: branches } = useQuery(['Branches'], () => listAllBranches())
-	const { data: project } = useQuery(['project'], () => getProjectDetails(id), {
+	const { data: project, refetch: refetchProject } = useQuery(['project', id], ({queryKey}) => getProjectDetails(queryKey[1]), {
 		enabled: !!edit,
 		select: (r) => r.data,
 	})
@@ -66,6 +67,9 @@ export default function CreateNewProject({ edit }) {
 	const handleClose = () => {
 		setToast(null)
 	}
+
+	console.log('renredner')
+
 	return (
 		<Page title={edit ? 'Edit Project' : 'Add New Project'}>
 			<Snackbar
@@ -79,52 +83,68 @@ export default function CreateNewProject({ edit }) {
 				</Alert>
 			</Snackbar>
 			{(!edit || project) && (
-				<Container maxWidth="xl">
+				<Container maxWidth="100%">
 					<Formik
 						initialValues={
 							edit
 								? {
-										contracted_source: project?.contracted_source,
-										service: project?.service,
-										voltage: project?.voltage,
-										location: project?.location,
-										construction_type: project?.construction_type,
-										branch: project?.branch,
-										title: project?.title,
-										contract_code: project?.contract_code,
-										start: project?.start,
-										end: project?.end,
-										contract_value: project?.contract_value,
-										contract_value_vat: project?.contract_value_vat,
-										contract_value_vat_written: project?.contract_value_vat_written,
-										adjustment_rate: project?.adjustment_rate,
-										contract_value_price: project?.contract_value_price,
-										contract_value_price_written: project?.contract_value_price_written,
-										deposit_rate: project?.deposit_rate,
-										warranty_period: project?.warranty_period,
-										compensation_rate: project?.compensation_rate,
+										...project,
 								  }
 								: initialValues
 						}
 						validationSchema={validationSchema}
 						onSubmit={async (values) => {
 							setLoader(true)
-							if (edit) {
-								const res = await updateProject(values, id)
-								if (res.status >= 200 && res.status < 300) {
-									setToast({ severity: 'success', message: 'Succesfully updated project details!' })
-									navigate(`?tab=2`)
+							try {
+								const file_names = {};
+								const files = values.files ? Object.keys(values.files).map((itm) => {
+									const file_extension = values.files[itm].name.split('.').pop()
+									file_names[itm] = `${itm}_${id}.${file_extension}`;
+									return {name:`${itm}_${id}.${file_extension}`, file: values.files[itm], type:itm};
+								}) : []
+								if (edit) {
+									delete values.files
+									const res = await updateProject(
+										{...values, ...file_names},
+										id,
+
+									)
+									files.forEach(({name, file, type}) => {
+										if(values[type]){
+											if(values[type]===name)
+											replaceFile(name, file)
+											else {
+												removeFile(values[type]).then(()=>addFile(name, file))
+											}
+										}
+										else addFile(name, file);
+									})
+									
+									if (res.status >= 200 && res.status < 300) {
+										setToast({ severity: 'success', message: 'Succesfully updated project details!' })
+										refetchProject()
+										navigate(`?tab=2`)
+									} else {
+										setToast({ severity: 'error', message: 'Failed to updated project details!' })
+									}
 								} else {
-									setToast({ severity: 'error', message: 'Failed to updated project details!' })
+									delete values.files
+									const res = await createNewProject(
+										{...values, ...file_names},
+									)
+									files.forEach(({name, file}) => {
+										 addFile(name, file);
+									})
+									if (res.status === 201) {
+										setToast({ severity: 'success', message: 'Succesfully added new project!' })
+										refetchProject()
+										navigate(`/dashboard/projects/edit/${res.data[0].id}?tab=2`)
+									} else {
+										setToast({ severity: 'error', message: 'Failed to added new project!' })
+									}
 								}
-							} else {
-								const res = await createNewProject(values)
-								if (res.status === 201) {
-									setToast({ severity: 'success', message: 'Succesfully added new project!' })
-									navigate(`/dashboard/projects/edit/${res.data[0].id}?tab=2`)
-								} else {
-									setToast({ severity: 'error', message: 'Failed to added new project!' })
-								}
+							} catch (err) {
+								console.log(err)
 							}
 							setLoader(false)
 						}}
@@ -474,14 +494,56 @@ export default function CreateNewProject({ edit }) {
 
 									<Grid item xs={12}>
 										<Grid container spacing={3}>
-											<Grid item xs={12} md={4} lg={4}>
-												<FileInput height={100} name="contract_file" label="Upload Contract" />
+											<Grid display="flex" flexDirection="column" gap={2} item xs={12} md={4} lg={4}>
+												<FileInput height={100} name="files.contract_file" label="Upload Contract" />
+												{project?.contract_file && (
+													<Button
+														startIcon={<Iconify icon="ion:cloud-download-outline" width={20} height={20} />}
+														variant="outlined"
+														color="info"
+														onClick={async () => {
+															const link = await getProjectFileLink(project?.contract_file)
+															if(link) window.open(link, '_blank')
+														}}
+														fullWidth
+													>
+														View Contract file
+													</Button>
+												)}
 											</Grid>
-											<Grid item xs={12} md={4} lg={4}>
-												<FileInput height={100} name="design_book_file" label="Upload Design Book" />
+											<Grid display="flex" flexDirection="column" gap={2} item xs={12} md={4} lg={4}>
+												<FileInput  height={100} name="files.design_file" label="Upload Design Book" />
+												{project?.design_file && (
+													<Button
+														startIcon={<Iconify icon="ion:cloud-download-outline" width={20} height={20} />}
+														variant="outlined"
+														color="info"
+														onClick={async () => {
+															const link = await getProjectFileLink(project?.design_file)
+															window.open(link, '_blank')
+														}}
+														fullWidth
+													>
+														View Design file
+													</Button>
+												)}
 											</Grid>
-											<Grid item xs={12} md={4} lg={4}>
-												<FileInput height={100} name="blueprint_file" label="Upload Blueprint" />
+											<Grid display="flex" flexDirection="column" gap={2} item xs={12} md={4} lg={4}>
+												<FileInput  height={100} name="files.blueprint_file" label="Upload Blueprint" />
+												{project?.blueprint_file && (
+													<Button
+														startIcon={<Iconify icon="ion:cloud-download-outline" width={20} height={20} />}
+														variant="outlined"
+														color="info"
+														onClick={async () => {
+															const link = await getProjectFileLink(project?.blueprint_file)
+															window.open(link, '_blank')
+														}}
+														fullWidth
+													>
+														View Blueprint file
+													</Button>
+												)}
 											</Grid>
 										</Grid>
 									</Grid>

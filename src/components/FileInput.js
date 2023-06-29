@@ -2,8 +2,8 @@ import { Button, FormHelperText, Stack } from '@mui/material'
 import { useField } from 'formik'
 import PropTypes from 'prop-types'
 
-import Iconify from './Iconify'
 import { useEffect, useState } from 'react'
+import Iconify from './Iconify'
 
 // material
 // ----------------------------------------------------------------------
@@ -17,7 +17,7 @@ FileInput.propTypes = {
 	height: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 }
 
-export default function FileInput({ label, sx, name, height = 'auto' }) {
+export default function FileInput({ label, sx, name, height = 'auto', ...rest }) {
 	const [field, meta, helpers] = useField(name)
 	const [file, setFile] = useState(null)
 
@@ -51,6 +51,7 @@ export default function FileInput({ label, sx, name, height = 'auto' }) {
 				onChange={(e) => {
 					helpers.setValue(e.currentTarget.files[0])
 				}}
+				{...rest}
 			/>
 			{/* <img src={file} alt="sdf" className="img-thumbnail mt-2" height={200} width={200} /> */}
 		</Button>
