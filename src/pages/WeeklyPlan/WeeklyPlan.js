@@ -31,6 +31,7 @@ import Drawer from './Drawer'
 import { useNavigate } from 'react-router-dom'
 import Iconify from 'components/Iconify'
 import Message from './Message'
+import BasicTabs from 'components/Drawer/BasicTabs'
 
 setOptions({
 	theme: 'ios',
@@ -63,12 +64,8 @@ const defaultHolidays = [
 ]
 const filters = { dw: true }
 
-const startOfWeek = moment().startOf('week').toDate().toLocaleDateString()
-const endOfWeek = moment().endOf('week').toDate().toLocaleDateString()
-const startNextWeek = moment().add(1, 'weeks').startOf('week').toDate().toLocaleDateString()
-const endNextWeek = moment().add(1, 'weeks').endOf('week').toDate().toLocaleDateString()
-
 function App() {
+	const [isDrawerOpen, setisDrawerOpen] = React.useState(false)
 	const navigate = useNavigate()
 	const [myEvents, setMyEvents] = React.useState([])
 	const [tempEvent, setTempEvent] = React.useState(null)
@@ -121,6 +118,12 @@ function App() {
 		const now = new Date()
 		const cutOff = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - now.getDay()))
 		const thisWeek = args.date < cutOff
+
+		const startOfWeek = moment(date).subtract(1, 'weeks').startOf('week').toDate().toLocaleDateString()
+		const endOfWeek = moment(date).subtract(1, 'weeks').endOf('week').toDate().toLocaleDateString()
+		const startNextWeek = moment(date).startOf('week').toDate().toLocaleDateString()
+		const endNextWeek = moment(date).endOf('week').toDate().toLocaleDateString()
+
 		const div = (
 			<div>
 				<div className="first-day" style={{ borderBottom: `1px solid ${thisWeek ? '#DA4C57' : '#8CCC67'}` }}>
@@ -395,6 +398,7 @@ function App() {
 						승인 요청
 					</MuiButton>
 					<MuiButton
+						onClick={() => setisDrawerOpen(true)}
 						variant="contained"
 						size="medium"
 						color="inherit"
@@ -503,6 +507,8 @@ function App() {
 					</Grid>
 				</Grid>
 			</Container>
+
+			{isDrawerOpen && <BasicTabs open={isDrawerOpen} setopen={setisDrawerOpen} />}
 		</Page>
 	)
 }
