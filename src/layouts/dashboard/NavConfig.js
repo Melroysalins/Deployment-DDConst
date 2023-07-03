@@ -31,11 +31,11 @@ const navConfig = [
 	//   path: '/dashboard/travel-expenses',
 	//   icon: getIcon('zondicons:travel-taxi-cab'),
 	// },
-	{
-		title: 'Hr/Admin',
-		icon: getIcon('clarity:administrator-solid'),
-		target_link: 'https://ddconst.budibase.app/app/hradmin#/',
-	},
+	// {
+	// 	title: 'Hr/Admin',
+	// 	icon: getIcon('clarity:administrator-solid'),
+	// 	target_link: 'https://ddconst.budibase.app/app/hradmin#/',
+	// },
 	// {
 	//   title: 'product',
 	//   path: '/dashboard/products',
@@ -62,7 +62,7 @@ const navConfig = [
 		icon: getIcon('material-symbols:logout'),
 	},
 	{
-		title: 'manageEmp',
+		title: 'Manage EmpLoyees',
 		path: '/manageEmp/employee/emplist',
 		icon: getIcon('pepicons-pop:persons'),
 	},
