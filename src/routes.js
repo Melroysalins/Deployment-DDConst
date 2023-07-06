@@ -14,6 +14,7 @@ import ProjectLayout from './pages/Dashboard/ProjectLayout'
 import WorkforcePlanning from './pages/WorkforcePlanning/WorkforcePlanning'
 import TravelExpenses from './pages/Dashboard/TravelExpenses/TELayout'
 import ProjectImplementationSchedule from './pages/ProjectImplementationSchedule'
+import WeeklyPlan from './pages/WeeklyPlan/WeeklyPlan'
 import HrAdmin from 'pages/HrAdmin'
 import useMain from 'pages/context/context'
 import MangeEmpLayout from 'pages/ManageEmps/MangeEmpLayout'
@@ -40,10 +41,13 @@ export default function Router() {
 						{ path: 'add', element: <AddNewProject /> },
 						{ path: 'edit/:id', element: <AddNewProject edit /> },
 						{ path: ':id', element: <ProjectDetails /> },
+
+						{ path: 'weekly-plan', element: <WeeklyPlan /> },
 					],
 				},
 
 				{ path: 'workforce-planning', element: <WorkforcePlanning /> },
+
 				{ path: 'project-schedule/:project', element: <ProjectImplementationSchedule /> },
 				{ path: 'user', element: <User /> },
 				{ path: 'products', element: <Products /> },

@@ -8,6 +8,7 @@ import { Box, List, Collapse, ListItemText, ListItemIcon, ListItemButton } from 
 //
 import Iconify from './Iconify'
 import { supabase } from '../supabaseClient'
+import useMain from 'pages/context/context'
 
 // ----------------------------------------------------------------------
 
@@ -20,7 +21,7 @@ const ListItemStyle = styled((props) => <ListItemButton disableGutters {...props
 	borderRadius: theme.shape.borderRadius,
 }))
 
-const ListItemIconStyle = styled(ListItemIcon)({
+export const ListItemIconStyle = styled(ListItemIcon)({
 	width: 22,
 	height: 22,
 	color: 'inherit',
@@ -43,6 +44,7 @@ const handleTargetLink = (link) => {
 
 function NavItem({ item, active, leftDrawerOpened }) {
 	const theme = useTheme()
+	const { openaccoutReview, setopenaccoutReview } = useMain()
 
 	const isActiveRoot = active(item.path)
 
@@ -135,9 +137,18 @@ function NavItem({ item, active, leftDrawerOpened }) {
 	}
 
 	const isLogout = title === 'logout'
+	const isAccoutReview = title === 'accoutReview'
 	return (
 		<ListItemStyle
-			onClick={() => (isLogout ? handlesignOut() : target_link ? handleTargetLink(target_link) : null)}
+			onClick={() =>
+				isAccoutReview
+					? setopenaccoutReview(!openaccoutReview)
+					: isLogout
+					? handlesignOut()
+					: target_link
+					? handleTargetLink(target_link)
+					: null
+			}
 			LinkComponent={!isLogout && !target_link ? RouterLink : null}
 			to={!isLogout && !target_link ? path : ''}
 			sx={{

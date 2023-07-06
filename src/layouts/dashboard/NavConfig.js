@@ -57,6 +57,10 @@ const navConfig = [
 	//   icon: getIcon('eva:person-add-fill'),
 	// },
 	{
+		title: 'accoutReview',
+		icon: getIcon('pepicons-pop:ruler-off'),
+	},
+	{
 		title: 'logout',
 		path: '/logout',
 		icon: getIcon('material-symbols:logout'),

@@ -1,0 +1,89 @@
+.mbsc-timeline.mbsc-ltr {
+  max-height: calc(100vh - 90px);
+}
+.mbsc-ios.mbsc-schedule-event-background {
+  opacity: 1;
+}
+
+.mbsc-eventcalendar {
+  height: auto;
+}
+
+.first-day { 
+
+  height: 29px;
+  width: max-content;
+  background: white;
+  z-index: 9999;
+  position: absolute;
+  top: 0px;
+  font-weight: 600;
+  border: 0;
+  font-size: 1rem;
+  left: 50px;
+}
+
+.main-day{
+  border: 1px solid #ccc;
+  border-right: 0;
+  padding-left: 2px;
+}
+
+.mbsc-timeline-header-date.mbsc-ltr{
+  border:0
+}
+
+.weekly-calender{
+
+  // 2 headers css
+  .md-resource-header-template .mbsc-timeline-resource-col {
+      width: 230px;
+  }
+
+  .md-resource-header-template .mbsc-timeline-resource-header,
+  .md-resource-header-template .mbsc-timeline-resource-title {
+      padding: 0;
+      height: inherit;
+  }
+
+  .md-resource-header-template .mbsc-timeline-resource-title {
+      height: 100%;
+  }
+
+  .md-resource-header-template-cont {
+      line-height: 50px;
+      height: 100%;
+  }
+
+  .md-resource-header-template-name {
+      height: 100%;
+      display: inline-block;
+      padding: 0 5px;
+      overflow: hidden;
+    text-overflow: ellipsis;
+    width: 120px;
+  }
+
+  .md-resource-header-template-seats {
+      border-left: 1px solid #ccc;
+      width: 90px;
+      height: 100%;
+      float: right;
+      padding: 0 5px;
+  }
+
+  .md-resource-header-template-title {
+      font-weight: 600;
+      line-height: 56px;
+      height: inherit;
+  }
+
+  @supports (overflow:clip) {
+      .md-resource-header-template.mbsc-ltr .mbsc-schedule-event-inner {
+          left: 230px;
+      }
+      .md-resource-header-template.mbsc-rtl .mbsc-schedule-event-inner {
+          right: 230px;
+      }
+  }
+}
