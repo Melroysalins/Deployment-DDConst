@@ -1,81 +1,7 @@
 import { Box, Divider, Grid, List, ListItem, Paper, Stack, Typography } from '@mui/material'
 import Iconify from 'components/Iconify'
 import React, { memo, useState } from 'react'
-
-const Items = [
-	{
-		title: '소유자',
-		right: '소유자',
-		color: '#596570',
-		icon: 'radix-icons:person',
-	},
-	{
-		title: '소유자',
-		right: '소유자',
-		color: '#596570',
-		icon: 'uil:calender',
-	},
-	{
-		title: '소유자',
-		right: '소유자',
-		img: '/static/icons/Calender_expiration.svg',
-	},
-	{
-		title: '소유자',
-		right: '118',
-		img: '/static/icons/Calender_tick.svg',
-	},
-	{
-		title: '소유자',
-		right: '소유자',
-		color: '#FF62B5',
-		icon: 'teenyicons:clock-outline',
-	},
-	{
-		title: '소유자',
-		right: '소유자',
-		color: '#596570',
-		img: '/static/icons/arrow_top.svg',
-	},
-]
-
-const Funds = [
-	{
-		id: '1',
-		title: 'Contruction Period',
-		right: '20-01-2023 KRW',
-		detail: '',
-		icon: 'radix-icons:person',
-	},
-	{
-		id: '2',
-		title: 'Contract',
-		right: '20/01/2023 KRW',
-		detail: '',
-	},
-	{
-		id: '3',
-		title: 'Used Cons',
-		right: '20/01/2023 - 20/01/2023',
-		detail: '',
-	},
-	{
-		id: '4',
-		title: 'Construction',
-		right: '20/01/2023 - 20/01/2023',
-		detail: '',
-	},
-	{
-		id: '5',
-		title: 'Project Detals',
-		detail: 'Constrction Sections',
-	},
-	{
-		id: '6',
-		title: 'Special situations',
-		detail: 'Constrction Sections Constrction Sections Constrction Sections',
-	},
-]
+import { calculateCompletedDays, calculateRemainingDays, calculteDateDiff } from 'utils/helper'
 
 const EventCardCost = ({ event }) => (
 	<Grid item xs={6}>
@@ -120,12 +46,90 @@ const ProcessListItem = ({ event }) => (
 	</>
 )
 
-function LeftMenu() {
+function LeftMenu({ project }) {
+	const { start, end, rate_of_completion, title, created_at, contract_value, contracted_source, construction_type } =
+		project || {}
 	const [isCollapsed, setisCollapsed] = useState(false)
+
+	const Items = [
+		{
+			title: 'Owner',
+			right: '소유자',
+			color: '#596570',
+			icon: 'radix-icons:person',
+		},
+		{
+			title: 'Date',
+			right: new Date(created_at).toLocaleDateString(),
+			color: '#596570',
+			icon: 'uil:calender',
+		},
+		{
+			title: 'Remaining Days',
+			right: calculateRemainingDays(end),
+			img: '/static/icons/Calender_expiration.svg',
+		},
+		{
+			title: 'Completed Days',
+			right: calculateCompletedDays(start, end),
+			img: '/static/icons/Calender_tick.svg',
+		},
+		{
+			title: 'Contract Length',
+			right: calculteDateDiff(start, end),
+			color: '#FF62B5',
+			icon: 'teenyicons:clock-outline',
+		},
+		{
+			title: 'Completion Rate',
+			right: rate_of_completion,
+			color: '#596570',
+			img: '/static/icons/arrow_top.svg',
+		},
+	]
+
+	const Funds = [
+		{
+			id: '1',
+			title: 'Contruction Period',
+			right: `${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}`,
+			detail: '',
+			icon: 'radix-icons:person',
+		},
+		{
+			id: '2',
+			title: 'Contract',
+			right: `${contract_value} KRW`,
+			detail: '',
+		},
+		{
+			id: '3',
+			title: 'Used Cons',
+			right: '20/01/2023 - 20/01/2023',
+			detail: '',
+		},
+		{
+			id: '4',
+			title: 'Construction',
+			right: `${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}`,
+			detail: '',
+		},
+		{
+			id: '5',
+			title: 'Project Details',
+			detail: `${contracted_source}, ${construction_type}`,
+		},
+		{
+			id: '6',
+			title: 'Special situations',
+			detail: 'Constrction Sections Constrction Sections Constrction Sections',
+		},
+	]
+
 	return (
 		<>
 			<Typography variant="h5" mb={1}>
-				프로젝트 이름
+				{title}
 			</Typography>
 			<Grid container spacing={1}>
 				{Items.map((event, index) => (

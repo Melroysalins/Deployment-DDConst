@@ -32,3 +32,8 @@ export const deleteTasks = async (ids) => {
 	const res = await supabase.from('project_tasks').delete().in('id', ids)
 	return res
 }
+
+export const listAllTaskGroups = async () => {
+	const res = await supabase.from('task_groups').select('*')
+	return res
+}
