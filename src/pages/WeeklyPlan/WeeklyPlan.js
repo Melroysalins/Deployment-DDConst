@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import '@mobiscroll/react/dist/css/mobiscroll.min.css'
 import {
 	Eventcalendar,
@@ -15,7 +15,7 @@ import { Loader, getHolidays } from 'reusables'
 import { getProjectDetails } from 'supabase/projects'
 
 import Page from '../../components/Page'
-import { Stack, Button as MuiButton, Grid, Box, Container, Typography } from '@mui/material'
+import { Stack, Button as MuiButton, Grid, Box, Container, Typography, Menu, MenuItem } from '@mui/material'
 import LeftMenu from './LeftMenu'
 import ProgressRate from './ProgressRate'
 import Drawer from './Drawer'
@@ -282,19 +282,48 @@ function App() {
 		</>
 	)
 
-	const renderScheduleEvent = (event) => (
-		<>
-			<Box
-				component="div"
-				className="timeline-event"
-				sx={{
-					background: event.original?.task_id ? '#BDB2E9' : '#8D99FF',
-				}}
-			>
-				{event.title}
-			</Box>
-		</>
-	)
+	const renderScheduleEvent = (event) => {
+		const bgColor = event.original?.task_id ? '#BDB2E9' : '#8D99FF'
+
+		return (
+			<>
+				<Stack
+					component="div"
+					justifyContent="flex-between"
+					className="timeline-event"
+					sx={{
+						background: bgColor,
+						boxShadow: (theme) => theme.customShadows.z8,
+						justifyContent: 'flex-between',
+						alignItems: 'initial !important',
+						marginTop: !event.original?.task_id ? '3px !important' : 0,
+					}}
+				>
+					{!event.original?.task_id ? (
+						<>
+							<Box
+							// onClick={(e) => {
+							// 	e.stopPropagation()
+							// }}
+							>
+								<img
+									width={16}
+									height={16}
+									src={'/static/icons/Message.svg'}
+									alt={'message'}
+									style={{ position: 'absolute', right: 5, top: -5 }}
+								/>
+							</Box>
+
+							{event.title}
+						</>
+					) : (
+						<>{event.title}</>
+					)}
+				</Stack>
+			</>
+		)
+	}
 
 	const handleDrag = (event) => {
 		const { id, resource, created_at, allDay, ...rest } = event
