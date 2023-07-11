@@ -102,9 +102,10 @@ function App() {
 		const now = new Date()
 		const cutOff = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - now.getDay()))
 		const thisWeek = args.date < cutOff
+		console.log(args.date, cutOff, '<--')
 
-		const startOfWeek = moment(date).subtract(1, 'weeks').startOf('week').toDate().toLocaleDateString()
-		const endOfWeek = moment(date).subtract(1, 'weeks').endOf('week').toDate().toLocaleDateString()
+		const startOfWeek = moment(date).startOf('week').toDate().toLocaleDateString()
+		const endOfWeek = moment(date).endOf('week').toDate().toLocaleDateString()
 		const startNextWeek = moment(date).startOf('week').toDate().toLocaleDateString()
 		const endNextWeek = moment(date).endOf('week').toDate().toLocaleDateString()
 
