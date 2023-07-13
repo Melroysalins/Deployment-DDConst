@@ -15,3 +15,6 @@ CREATE TYPE public."event_type" AS ENUM (
 	'Planned',
 	'Approved',
 	'Rejected');
+
+
+	CREATE TYPE pages AS ENUM('travel_expenses', 'weekly_plan','project');
