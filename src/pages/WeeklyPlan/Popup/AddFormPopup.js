@@ -2,6 +2,15 @@ import React from 'react'
 import PopupForm from 'components/Popups/PopupForm'
 import AddProjectTaskForm from './AddProjectTaskForm'
 import { deleteTask } from 'supabase'
+import PropTypes from 'prop-types'
+
+AddFormPopup.propTypes = {
+	handleClose: PropTypes.func,
+	anchor: PropTypes.string.isRequired,
+	data: PropTypes.object,
+	handleSetEvent: PropTypes.func,
+	myEvents: PropTypes.array,
+}
 
 export default function AddFormPopup({ handleClose, anchor, data, handleSetEvent, myEvents }) {
 	const ref = React.useRef()

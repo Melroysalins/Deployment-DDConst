@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useCallback } from 'react'
 import '@mobiscroll/react/dist/css/mobiscroll.min.css'
 import {
 	Eventcalendar,
@@ -15,7 +15,7 @@ import { Loader, getHolidays } from 'reusables'
 import { getProjectDetails } from 'supabase/projects'
 
 import Page from '../../components/Page'
-import { Stack, Button as MuiButton, Grid, Box, Container, Typography, Menu, MenuItem } from '@mui/material'
+import { Stack, Button as MuiButton, Grid, Box, Container, Typography } from '@mui/material'
 import LeftMenu from './LeftMenu'
 import ProgressRate from './ProgressRate'
 import Drawer from './Drawer'
@@ -66,43 +66,23 @@ function App() {
 	const [holidays, setHolidays] = React.useState(defaultHolidays)
 
 	const { id } = useParams()
-	const { data: project, refetch: refetchProject } = useQuery(
-		['project', id],
-		({ queryKey }) => getProjectDetails(queryKey[1]),
-		{
-			// enabled: !!edit,
-			select: (r) => r.data,
-		}
-	)
+	const { data: project } = useQuery(['project', id], ({ queryKey }) => getProjectDetails(queryKey[1]), {
+		// enabled: !!edit,
+		select: (r) => r.data,
+	})
 
-	const handleSetEvent = () => {
+	const handleSetEvent = useCallback(() => {
 		listAllTasksByProject(id).then((data) => {
 			setMyEvents(data?.data?.map((e) => ({ ...e, resource: e.task_group_id })))
 			setLoader(false)
 		})
-	}
+	}, [id])
 	const renderCustomDay = (args) => {
-		const date = args.date
-		let eventOccurrence = 'none'
-
-		if (args.events) {
-			const eventNr = args.events.length
-			if (eventNr === 0) {
-				eventOccurrence = 'none'
-			} else if (eventNr === 1) {
-				eventOccurrence = 'one'
-			} else if (eventNr < 4) {
-				eventOccurrence = 'few'
-			} else {
-				eventOccurrence = 'more'
-			}
-		}
-		const d = formatDate('DD DDD', args.date)
+		const { date } = args
 		const isFirstDay = args.date.getDay() === 0 // Sunday, but it can vary depending on your first day of week option
 		const now = new Date()
 		const cutOff = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - now.getDay()))
 		const thisWeek = args.date < cutOff
-		console.log(args.date, cutOff, '<--')
 
 		const startOfWeek = moment(date).startOf('week').toDate().toLocaleDateString()
 		const endOfWeek = moment(date).endOf('week').toDate().toLocaleDateString()
@@ -157,7 +137,7 @@ function App() {
 			setMyResources(data?.data)
 		})
 		handleSetEvent()
-	}, [id])
+	}, [id, handleSetEvent])
 
 	const renderCustomResource = (resource) => (
 		<div className="md-resource-header-template-cont">
@@ -201,6 +181,7 @@ function App() {
 				console.log(error)
 			}
 		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[myEvents]
 	)
 
@@ -233,6 +214,7 @@ function App() {
 		(args) => {
 			deleteTask(args.event)
 		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[deleteTask]
 	)
 
@@ -254,7 +236,7 @@ function App() {
 			title: '',
 			project: Number(id),
 		}),
-		[]
+		[id]
 	)
 
 	async function onPageLoading(event) {
@@ -326,6 +308,7 @@ function App() {
 	}
 
 	const handleDrag = (event) => {
+		// eslint-disable-next-line no-unused-vars
 		const { id, resource, created_at, allDay, ...rest } = event
 		updateTask({ ...rest, task_group_id: resource }, id)
 	}

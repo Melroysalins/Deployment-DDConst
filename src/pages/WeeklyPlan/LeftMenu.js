@@ -2,49 +2,66 @@ import { Box, Divider, Grid, List, ListItem, Paper, Stack, Typography } from '@m
 import Iconify from 'components/Iconify'
 import React, { memo, useState } from 'react'
 import { calculateCompletedDays, calculateRemainingDays, calculteDateDiff } from 'utils/helper'
+import PropTypes from 'prop-types'
 
-const EventCardCost = ({ event }) => (
-	<Grid item xs={6}>
-		<Paper sx={{ padding: '10px 7px' }}>
-			<Stack direction="row" justifyContent={'space-between'} width={'100%'}>
-				<Stack direction="row" gap={1} justifyContent={'space-between'} alignItems={'center'}>
-					<Box sx={{ width: 20, height: 20 }}>
-						{event.img ? (
-							<img src={event.img} alt={event?.title} />
-						) : (
-							<Iconify icon={event.icon} sx={{ width: 18, height: 18, color: event.color }} />
-						)}
-					</Box>
-					<Typography fontSize={12}>{event?.title}</Typography>
+EventCardCost.propTypes = {
+	event: PropTypes.object,
+}
+
+function EventCardCost({ event }) {
+	return (
+		<Grid item xs={6}>
+			<Paper sx={{ padding: '10px 7px' }}>
+				<Stack direction="row" justifyContent={'space-between'} width={'100%'}>
+					<Stack direction="row" gap={1} justifyContent={'space-between'} alignItems={'center'}>
+						<Box sx={{ width: 20, height: 20 }}>
+							{event.img ? (
+								<img src={event.img} alt={event?.title} />
+							) : (
+								<Iconify icon={event.icon} sx={{ width: 18, height: 18, color: event.color }} />
+							)}
+						</Box>
+						<Typography fontSize={12}>{event?.title}</Typography>
+					</Stack>
+					<Typography fontSize={12} fontWeight={600}>
+						{event?.right}
+					</Typography>
 				</Stack>
-				<Typography fontSize={12} fontWeight={600}>
+			</Paper>
+		</Grid>
+	)
+}
+
+ProcessListItem.propTypes = {
+	event: PropTypes.object,
+}
+
+function ProcessListItem({ event }) {
+	return (
+		<>
+			{event.id > 1 && <Divider />}
+			<ListItem sx={{ justifyContent: 'space-between' }}>
+				<Stack>
+					<Typography fontSize={13}>
+						{event.id}. {event?.title}
+					</Typography>
+					{event?.detail && (
+						<Typography fontSize={11} fontWeight={500}>
+							{event?.detail}
+						</Typography>
+					)}
+				</Stack>
+				<Typography fontSize={11} fontWeight={500}>
 					{event?.right}
 				</Typography>
-			</Stack>
-		</Paper>
-	</Grid>
-)
+			</ListItem>
+		</>
+	)
+}
 
-const ProcessListItem = ({ event }) => (
-	<>
-		{event.id > 1 && <Divider />}
-		<ListItem sx={{ justifyContent: 'space-between' }}>
-			<Stack>
-				<Typography fontSize={13}>
-					{event.id}. {event?.title}
-				</Typography>
-				{event?.detail && (
-					<Typography fontSize={11} fontWeight={500}>
-						{event?.detail}
-					</Typography>
-				)}
-			</Stack>
-			<Typography fontSize={11} fontWeight={500}>
-				{event?.right}
-			</Typography>
-		</ListItem>
-	</>
-)
+LeftMenu.propTypes = {
+	project: PropTypes.object,
+}
 
 function LeftMenu({ project }) {
 	const { start, end, rate_of_completion, title, created_at, contract_value, contracted_source, construction_type } =

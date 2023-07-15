@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 // @mui
 import {
 	Alert,
@@ -49,7 +50,7 @@ const initialValues = {
 	approval_status: null,
 }
 const AddProjectTaskForm = forwardRef((props, ref) => {
-	const { data = {}, handleClose, edit = false, handleSetEvent, myEvents } = props
+	const { data = {}, handleClose, handleSetEvent, myEvents } = props
 	const [loader, setLoader] = React.useState(false)
 	const [toast, setToast] = React.useState(null)
 
@@ -60,6 +61,7 @@ const AddProjectTaskForm = forwardRef((props, ref) => {
 			setLoader(true)
 			try {
 				let res
+				// eslint-disable-next-line no-unused-vars
 				const { id, isTask, ...rest } = values
 				if (data.id) {
 					res = await updateTask(rest, id)
@@ -99,6 +101,7 @@ const AddProjectTaskForm = forwardRef((props, ref) => {
 
 	React.useEffect(() => {
 		if (data) setValues({ ...values, ...data, isTask: !data.task_id })
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data])
 
 	return (
@@ -136,7 +139,7 @@ const AddProjectTaskForm = forwardRef((props, ref) => {
 							<RadioGroup
 								row
 								name="isTask"
-								onChange={(e) => setFieldValue('isTask', !values.isTask)}
+								onChange={() => setFieldValue('isTask', !values.isTask)}
 								onBlur={handleBlur}
 								value={values.isTask}
 							>
