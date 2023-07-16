@@ -52,7 +52,7 @@ export default function AddFormPopup({ handleClose, anchor, data, handleSetEvent
 					<Box sx={{ width: '100%' }}>
 						<Tabs variant="fullWidth" value={value} onChange={handleChange} aria-label="secondary tabs example">
 							<Tab label="Task" {...a11yProps(0)} />
-							<Tab label="Mesage" {...a11yProps(0)} />
+							<Tab label="Comment" {...a11yProps(0)} />
 						</Tabs>
 					</Box>
 				)}
