@@ -1,0 +1,9 @@
+{
+  "owner": "Owner",
+  "date": "Date",
+  "remaining_days":"Remaining Days",
+  "completed_days":"Completed Days",
+  "contract_length":"Contract Length",
+  "completion_rate":"Completion Rate",
+  "pending_approval":"Pending Approvals"
+}

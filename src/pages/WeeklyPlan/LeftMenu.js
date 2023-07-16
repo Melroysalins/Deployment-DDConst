@@ -3,6 +3,7 @@ import Iconify from 'components/Iconify'
 import React, { memo, useState } from 'react'
 import { calculateCompletedDays, calculateRemainingDays, calculteDateDiff } from 'utils/helper'
 import PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next'
 
 EventCardCost.propTypes = {
 	event: PropTypes.object,
@@ -64,41 +65,42 @@ LeftMenu.propTypes = {
 }
 
 function LeftMenu({ project }) {
+	const { t } = useTranslation()
 	const { start, end, rate_of_completion, title, created_at, contract_value, contracted_source, construction_type } =
 		project || {}
 	const [isCollapsed, setisCollapsed] = useState(false)
 
 	const Items = [
 		{
-			title: 'Owner',
+			title: t('owner'),
 			right: '소유자',
 			color: '#596570',
 			icon: 'radix-icons:person',
 		},
 		{
-			title: 'Date',
+			title: t('date'),
 			right: new Date(created_at).toLocaleDateString(),
 			color: '#596570',
 			icon: 'uil:calender',
 		},
 		{
-			title: 'Remaining Days',
+			title: t('remaining_days'),
 			right: calculateRemainingDays(end),
 			img: '/static/icons/Calender_expiration.svg',
 		},
 		{
-			title: 'Completed Days',
+			title: t('completed_days'),
 			right: calculateCompletedDays(start, end),
 			img: '/static/icons/Calender_tick.svg',
 		},
 		{
-			title: 'Contract Length',
+			title: t('contract_length'),
 			right: calculteDateDiff(start, end),
 			color: '#FF62B5',
 			icon: 'teenyicons:clock-outline',
 		},
 		{
-			title: 'Completion Rate',
+			title: t('completion_rate'),
 			right: rate_of_completion,
 			color: '#596570',
 			img: '/static/icons/arrow_top.svg',

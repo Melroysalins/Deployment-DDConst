@@ -74,14 +74,16 @@ export default function PopupForm(props) {
 							Delete
 						</Button>
 					)}
-					<Button
-						sx={{ color: (theme) => color(variant, theme) }}
-						startIcon={<Iconify icon="ph:check-bold" width={15} height={15} />}
-						size="small"
-						onClick={handleSubmit}
-					>
-						Okay
-					</Button>
+					{handleSubmit && (
+						<Button
+							sx={{ color: (theme) => color(variant, theme) }}
+							startIcon={<Iconify icon="ph:check-bold" width={15} height={15} />}
+							size="small"
+							onClick={handleSubmit}
+						>
+							Okay
+						</Button>
+					)}
 				</Stack>
 			</MenuPopover>
 		</>

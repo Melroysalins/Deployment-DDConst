@@ -8,6 +8,7 @@ import {
 	CalendarPrev,
 	CalendarNext,
 	CalendarNav,
+	localeKo,
 } from '@mobiscroll/react'
 import moment from 'moment-timezone'
 import './calendar.scss'
@@ -25,6 +26,7 @@ import BasicTabs from 'components/Drawer/BasicTabs'
 import { useQuery } from 'react-query'
 import { deleteTask, listAllTaskGroups, listAllTasksByProject, updateTask } from 'supabase'
 import AddFormPopup from './Popup/AddFormPopup'
+import { useTranslation } from 'react-i18next'
 
 setOptions({
 	theme: 'ios',
@@ -45,7 +47,9 @@ const defaultHolidays = [
 	{ background: 'rgba(100, 100, 100, 0.1)', recurring: { repeat: 'weekly', weekDays: 'SA' } },
 ]
 
-function App() {
+function WeeklyPlan() {
+	const { i18n } = useTranslation()
+	const isEng = i18n.language === 'en'
 	const [popupData, setPopupData] = React.useState(null)
 
 	const [isDrawerOpen, setisDrawerOpen] = React.useState(false)
@@ -175,6 +179,7 @@ function App() {
 					task_group_id: event.resource,
 					from_page: 'weekly_plan',
 					project: id,
+					comments: event.comments,
 				}
 				setPopupData(data)
 			} catch (error) {
@@ -278,16 +283,12 @@ function App() {
 						boxShadow: (theme) => theme.customShadows.z8,
 						justifyContent: 'flex-between',
 						alignItems: 'initial !important',
-						marginTop: !event.original?.task_id ? '3px !important' : 0,
+						margin: !event.original?.task_id ? '3px 0 !important' : 0,
 					}}
 				>
-					{!event.original?.task_id ? (
+					{event.original?.comments?.length ? (
 						<>
-							<Box
-							// onClick={(e) => {
-							// 	e.stopPropagation()
-							// }}
-							>
+							<Box>
 								<img
 									width={16}
 									height={16}
@@ -368,6 +369,7 @@ function App() {
 								renderDay={renderCustomDay}
 								cssClass="md-resource-header-template mbsc-calendar-projects md-timeline-height"
 								dayNamesMin={['S', 'M', 'T', 'W', 'T', 'F', 'S']}
+								locale={isEng ? undefined : localeKo}
 							/>
 
 							<AddFormPopup
@@ -395,4 +397,4 @@ function App() {
 	)
 }
 
-export default App
+export default WeeklyPlan

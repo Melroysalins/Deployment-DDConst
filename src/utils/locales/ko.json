@@ -1,0 +1,9 @@
+{
+  "owner": "소유자:",
+  "date": "마지:",
+  "remaining_days":"남은 일수",
+  "completed_days":"완료 일",
+  "contract_length":"계약 기간",
+  "completion_rate":"완료율",
+  "pending_approval":"승인 대기 중"
+}

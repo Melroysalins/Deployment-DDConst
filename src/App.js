@@ -9,6 +9,9 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import { ReactQueryDevtools } from 'react-query/devtools'
 import './scss/mui.scss'
 import { MainProvider } from 'pages/context/context'
+import { I18nextProvider } from 'react-i18next'
+import i18n from './utils/locales/i18n'
+
 // ----------------------------------------------------------------------
 const queryClient = new QueryClient({
 	defaultOptions: {
@@ -22,14 +25,16 @@ const queryClient = new QueryClient({
 export default function App() {
 	return (
 		<ThemeProvider>
-			<ScrollToTop />
-			<BaseOptionChartStyle />
-			<QueryClientProvider client={queryClient}>
-				<MainProvider>
-					<Router />
-					<ReactQueryDevtools initialIsOpen={false} toggleButtonProps={{ style: { opacity: 0.2 } }} />
-				</MainProvider>
-			</QueryClientProvider>
+			<I18nextProvider i18n={i18n}>
+				<ScrollToTop />
+				<BaseOptionChartStyle />
+				<QueryClientProvider client={queryClient}>
+					<MainProvider>
+						<Router />
+						<ReactQueryDevtools initialIsOpen={false} toggleButtonProps={{ style: { opacity: 0.2 } }} />
+					</MainProvider>
+				</QueryClientProvider>
+			</I18nextProvider>
 		</ThemeProvider>
 	)
 }

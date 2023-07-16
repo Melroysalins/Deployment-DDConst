@@ -62,7 +62,7 @@ const AddProjectTaskForm = forwardRef((props, ref) => {
 			try {
 				let res
 				// eslint-disable-next-line no-unused-vars
-				const { id, isTask, ...rest } = values
+				const { id, isTask, comments, ...rest } = values
 				if (data.id) {
 					res = await updateTask(rest, id)
 					if (res.status >= 200 && res.status < 300) {

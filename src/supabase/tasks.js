@@ -11,7 +11,15 @@ export const listAllTasks = async () => {
 }
 
 export const listAllTasksByProject = async (project) => {
-	const res = await supabase.from('project_tasks').select('*').eq('project', project)
+	const res = await supabase
+		.from('project_tasks')
+		.select(
+			`*,
+              comments (
+                *
+              )`
+		)
+		.eq('project', project)
 	return res
 }
 
