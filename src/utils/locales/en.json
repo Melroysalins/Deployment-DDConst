@@ -1,4 +1,10 @@
 {
+  "dashboard":"Dashboard",
+  "hr_admin":"Hr/Admin",
+  "accoutReview":"accoutReview",
+  "logout":"logout",
+  "manageEmp":"manageEmp",
+
   "owner": "Owner",
   "date": "Date",
   "remaining_days":"Remaining Days",

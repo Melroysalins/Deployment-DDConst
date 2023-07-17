@@ -1,4 +1,10 @@
 {
+  "dashboard":"계기반",
+  "hr_admin":"인사/관리자",
+  "accoutReview":"계정 검토",
+  "logout":"로그 아웃",
+  "manageEmp":"직원 관리",
+
   "owner": "소유자:",
   "date": "마지:",
   "remaining_days":"남은 일수",

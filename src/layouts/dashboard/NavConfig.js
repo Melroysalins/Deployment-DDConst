@@ -32,7 +32,7 @@ const navConfig = [
 	//   icon: getIcon('zondicons:travel-taxi-cab'),
 	// },
 	{
-		title: 'Hr/Admin',
+		title: 'hr_admin',
 		icon: getIcon('clarity:administrator-solid'),
 		target_link: 'https://ddconst.budibase.app/app/hradmin#/',
 	},
