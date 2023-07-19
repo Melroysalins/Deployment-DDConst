@@ -317,7 +317,6 @@ function WeeklyPlan() {
 	return (
 		<Page title="WP">
 			<Container maxWidth="xl">
-				{/* <Message /> */}
 				<Box sx={{ position: 'absolute', top: 28, right: 44 }}>
 					<MuiButton variant="contained" size="medium" color="inherit" sx={{ border: '1px solid #596570' }}>
 						승인 요청

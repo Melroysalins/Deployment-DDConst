@@ -47,6 +47,7 @@ export default function AddFormPopup({ handleClose, anchor, data, handleSetEvent
 				handleClose={handleClose}
 				anchor={anchor}
 				handleDelete={data?.id && handleDelete}
+				marginTop={value === 1 ? -7 : -6}
 			>
 				{data?.id && !data.task_id && (
 					<Box sx={{ width: '100%' }}>

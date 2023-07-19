@@ -18,7 +18,7 @@ PopupForm.propTypes = {
 }
 
 export default function PopupForm(props) {
-	const { title, variant = 'primary', handleSubmit, anchor, handleClose, handleDelete } = props
+	const { title, variant = 'primary', handleSubmit, anchor, handleClose, handleDelete, marginTop = 1.5 } = props
 
 	return (
 		<>
@@ -26,7 +26,7 @@ export default function PopupForm(props) {
 				open={Boolean(anchor)}
 				anchorEl={anchor}
 				onClose={handleClose}
-				sx={{ width: 400, p: 0, mt: 1.5, ml: 0.75 }}
+				sx={{ width: 400, p: 0, mt: marginTop, ml: 0.75 }}
 			>
 				{title ? (
 					<Box
