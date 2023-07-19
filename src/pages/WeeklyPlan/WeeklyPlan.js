@@ -310,7 +310,7 @@ function WeeklyPlan() {
 
 	const handleDrag = (event) => {
 		// eslint-disable-next-line no-unused-vars
-		const { id, resource, created_at, allDay, ...rest } = event
+		const { id, resource, created_at, allDay, comments, ...rest } = event
 		updateTask({ ...rest, task_group_id: resource }, id)
 	}
 
