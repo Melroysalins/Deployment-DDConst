@@ -42,7 +42,7 @@ export default function Router() {
 						{ path: 'edit/:id', element: <AddNewProject edit /> },
 						{ path: ':id', element: <ProjectDetails /> },
 
-						{ path: 'weekly-plan', element: <WeeklyPlan /> },
+						{ path: ':id/weekly-plan', element: <WeeklyPlan /> },
 					],
 				},
 

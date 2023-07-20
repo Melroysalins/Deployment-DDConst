@@ -1,131 +1,154 @@
 import { Box, Divider, Grid, List, ListItem, Paper, Stack, Typography } from '@mui/material'
 import Iconify from 'components/Iconify'
 import React, { memo, useState } from 'react'
+import { calculateCompletedDays, calculateRemainingDays, calculteDateDiff } from 'utils/helper'
+import PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next'
 
-const Items = [
-	{
-		title: '소유자',
-		right: '소유자',
-		color: '#596570',
-		icon: 'radix-icons:person',
-	},
-	{
-		title: '소유자',
-		right: '소유자',
-		color: '#596570',
-		icon: 'uil:calender',
-	},
-	{
-		title: '소유자',
-		right: '소유자',
-		img: '/static/icons/Calender_expiration.svg',
-	},
-	{
-		title: '소유자',
-		right: '118',
-		img: '/static/icons/Calender_tick.svg',
-	},
-	{
-		title: '소유자',
-		right: '소유자',
-		color: '#FF62B5',
-		icon: 'teenyicons:clock-outline',
-	},
-	{
-		title: '소유자',
-		right: '소유자',
-		color: '#596570',
-		img: '/static/icons/arrow_top.svg',
-	},
-]
+EventCardCost.propTypes = {
+	event: PropTypes.object,
+}
 
-const Funds = [
-	{
-		id: '1',
-		title: 'Contruction Period',
-		right: '20-01-2023 KRW',
-		detail: '',
-		icon: 'radix-icons:person',
-	},
-	{
-		id: '2',
-		title: 'Contract',
-		right: '20/01/2023 KRW',
-		detail: '',
-	},
-	{
-		id: '3',
-		title: 'Used Cons',
-		right: '20/01/2023 - 20/01/2023',
-		detail: '',
-	},
-	{
-		id: '4',
-		title: 'Construction',
-		right: '20/01/2023 - 20/01/2023',
-		detail: '',
-	},
-	{
-		id: '5',
-		title: 'Project Detals',
-		detail: 'Constrction Sections',
-	},
-	{
-		id: '6',
-		title: 'Special situations',
-		detail: 'Constrction Sections Constrction Sections Constrction Sections',
-	},
-]
-
-const EventCardCost = ({ event }) => (
-	<Grid item xs={6}>
-		<Paper sx={{ padding: '10px 7px' }}>
-			<Stack direction="row" justifyContent={'space-between'} width={'100%'}>
-				<Stack direction="row" gap={1} justifyContent={'space-between'} alignItems={'center'}>
-					<Box sx={{ width: 20, height: 20 }}>
-						{event.img ? (
-							<img src={event.img} alt={event?.title} />
-						) : (
-							<Iconify icon={event.icon} sx={{ width: 18, height: 18, color: event.color }} />
-						)}
-					</Box>
-					<Typography fontSize={12}>{event?.title}</Typography>
+function EventCardCost({ event }) {
+	return (
+		<Grid item xs={6}>
+			<Paper sx={{ padding: '10px 7px' }}>
+				<Stack direction="row" justifyContent={'space-between'} width={'100%'}>
+					<Stack direction="row" gap={1} justifyContent={'space-between'} alignItems={'center'}>
+						<Box sx={{ width: 20, height: 20 }}>
+							{event.img ? (
+								<img src={event.img} alt={event?.title} />
+							) : (
+								<Iconify icon={event.icon} sx={{ width: 18, height: 18, color: event.color }} />
+							)}
+						</Box>
+						<Typography fontSize={12}>{event?.title}</Typography>
+					</Stack>
+					<Typography fontSize={12} fontWeight={600}>
+						{event?.right}
+					</Typography>
 				</Stack>
-				<Typography fontSize={12} fontWeight={600}>
+			</Paper>
+		</Grid>
+	)
+}
+
+ProcessListItem.propTypes = {
+	event: PropTypes.object,
+}
+
+function ProcessListItem({ event }) {
+	return (
+		<>
+			{event.id > 1 && <Divider />}
+			<ListItem sx={{ justifyContent: 'space-between' }}>
+				<Stack>
+					<Typography fontSize={13}>
+						{event.id}. {event?.title}
+					</Typography>
+					{event?.detail && (
+						<Typography fontSize={11} fontWeight={500}>
+							{event?.detail}
+						</Typography>
+					)}
+				</Stack>
+				<Typography fontSize={11} fontWeight={500}>
 					{event?.right}
 				</Typography>
-			</Stack>
-		</Paper>
-	</Grid>
-)
+			</ListItem>
+		</>
+	)
+}
 
-const ProcessListItem = ({ event }) => (
-	<>
-		{event.id > 1 && <Divider />}
-		<ListItem sx={{ justifyContent: 'space-between' }}>
-			<Stack>
-				<Typography fontSize={13}>
-					{event.id}. {event?.title}
-				</Typography>
-				{event?.detail && (
-					<Typography fontSize={11} fontWeight={500}>
-						{event?.detail}
-					</Typography>
-				)}
-			</Stack>
-			<Typography fontSize={11} fontWeight={500}>
-				{event?.right}
-			</Typography>
-		</ListItem>
-	</>
-)
+LeftMenu.propTypes = {
+	project: PropTypes.object,
+}
 
-function LeftMenu() {
+function LeftMenu({ project }) {
+	const { t } = useTranslation()
+	const { start, end, rate_of_completion, title, created_at, contract_value, contracted_source, construction_type } =
+		project || {}
 	const [isCollapsed, setisCollapsed] = useState(false)
+
+	const Items = [
+		{
+			title: t('owner'),
+			right: '소유자',
+			color: '#596570',
+			icon: 'radix-icons:person',
+		},
+		{
+			title: t('date'),
+			right: new Date(created_at).toLocaleDateString(),
+			color: '#596570',
+			icon: 'uil:calender',
+		},
+		{
+			title: t('remaining_days'),
+			right: calculateRemainingDays(end),
+			img: '/static/icons/Calender_expiration.svg',
+		},
+		{
+			title: t('completed_days'),
+			right: calculateCompletedDays(start, end),
+			img: '/static/icons/Calender_tick.svg',
+		},
+		{
+			title: t('contract_length'),
+			right: calculteDateDiff(start, end),
+			color: '#FF62B5',
+			icon: 'teenyicons:clock-outline',
+		},
+		{
+			title: t('completion_rate'),
+			right: rate_of_completion,
+			color: '#596570',
+			img: '/static/icons/arrow_top.svg',
+		},
+	]
+
+	const Funds = [
+		{
+			id: '1',
+			title: 'Contruction Period',
+			right: `${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}`,
+			detail: '',
+			icon: 'radix-icons:person',
+		},
+		{
+			id: '2',
+			title: 'Contract',
+			right: `${contract_value} KRW`,
+			detail: '',
+		},
+		{
+			id: '3',
+			title: 'Used Cons',
+			right: '20/01/2023 - 20/01/2023',
+			detail: '',
+		},
+		{
+			id: '4',
+			title: 'Construction',
+			right: `${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}`,
+			detail: '',
+		},
+		{
+			id: '5',
+			title: 'Project Details',
+			detail: `${contracted_source}, ${construction_type}`,
+		},
+		{
+			id: '6',
+			title: 'Special situations',
+			detail: 'Constrction Sections Constrction Sections Constrction Sections',
+		},
+	]
+
 	return (
 		<>
 			<Typography variant="h5" mb={1}>
-				프로젝트 이름
+				{title}
 			</Typography>
 			<Grid container spacing={1}>
 				{Items.map((event, index) => (

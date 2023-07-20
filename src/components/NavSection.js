@@ -9,6 +9,7 @@ import { Box, List, Collapse, ListItemText, ListItemIcon, ListItemButton } from 
 import Iconify from './Iconify'
 import { supabase } from '../supabaseClient'
 import useMain from 'pages/context/context'
+import { useTranslation } from 'react-i18next'
 
 // ----------------------------------------------------------------------
 
@@ -44,6 +45,7 @@ const handleTargetLink = (link) => {
 
 function NavItem({ item, active, leftDrawerOpened }) {
 	const theme = useTheme()
+	const { t } = useTranslation()
 	const { openaccoutReview, setopenaccoutReview } = useMain()
 
 	const isActiveRoot = active(item.path)
@@ -158,7 +160,7 @@ function NavItem({ item, active, leftDrawerOpened }) {
 			{icon ? <ListItemIconStyle>{icon}</ListItemIconStyle> : null}
 			{leftDrawerOpened ? (
 				<>
-					<ListItemText disableTypography primary={title} />
+					<ListItemText disableTypography primary={t(title)} />
 					{info || ''}
 				</>
 			) : null}
