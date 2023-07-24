@@ -11,5 +11,5 @@
   "completed_days":"Completed Days",
   "contract_length":"Contract Length",
   "completion_rate":"Completion Rate",
-  "pending_approval":"Pending Approvals"
+  "request_approval":"Request Approvals"
 }

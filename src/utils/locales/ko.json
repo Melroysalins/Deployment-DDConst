@@ -11,5 +11,5 @@
   "completed_days":"완료 일",
   "contract_length":"계약 기간",
   "completion_rate":"완료율",
-  "pending_approval":"승인 대기 중"
+  "request_approval":"승인 대기 중"
 }

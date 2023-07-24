@@ -7,6 +7,13 @@ import { Drawer, Logs } from 'components'
 import Approval from '../Approval'
 import Info from '../Info'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
+import PropTypes from 'prop-types'
+
+TabPanel.propTypes = {
+	children: PropTypes.node,
+	value: PropTypes.number,
+	index: PropTypes.number,
+}
 
 function TabPanel(props) {
 	const { children, value, index, ...other } = props
@@ -35,6 +42,11 @@ function a11yProps(index) {
 	}
 }
 
+BasicTabs.propTypes = {
+	open: PropTypes.bool,
+	setopen: PropTypes.func,
+}
+
 export default function BasicTabs({ open, setopen }) {
 	const [value, setValue] = React.useState(2)
 
@@ -44,7 +56,7 @@ export default function BasicTabs({ open, setopen }) {
 
 	return (
 		<Drawer open={open} setopen={setopen} headerIcon={'material-symbols:close'}>
-			<Box sx={{ width: 370, maxWidth: 420 }}>
+			<Box sx={{ width: 380, maxWidth: 420 }}>
 				<Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
 					<Tabs
 						sx={{

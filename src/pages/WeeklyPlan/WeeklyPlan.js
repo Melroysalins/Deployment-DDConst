@@ -48,7 +48,7 @@ const defaultHolidays = [
 ]
 
 function WeeklyPlan() {
-	const { i18n } = useTranslation()
+	const { i18n, t } = useTranslation()
 	const isEng = i18n.language === 'en'
 	const [popupData, setPopupData] = React.useState(null)
 
@@ -319,7 +319,7 @@ function WeeklyPlan() {
 			<Container maxWidth="xl">
 				<Box sx={{ position: 'absolute', top: 28, right: 44 }}>
 					<MuiButton variant="contained" size="medium" color="inherit" sx={{ border: '1px solid #596570' }}>
-						승인 요청
+						{t('request_approval')}
 					</MuiButton>
 					<MuiButton
 						onClick={() => setisDrawerOpen(true)}

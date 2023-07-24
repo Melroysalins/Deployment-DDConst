@@ -56,10 +56,10 @@ const navConfig = [
 	//   path: '/register',
 	//   icon: getIcon('eva:person-add-fill'),
 	// },
-	{
-		title: 'accoutReview',
-		icon: getIcon('pepicons-pop:ruler-off'),
-	},
+	// {
+	// 	title: 'accoutReview',
+	// 	icon: getIcon('pepicons-pop:ruler-off'),
+	// },
 	{
 		title: 'logout',
 		path: '/logout',
