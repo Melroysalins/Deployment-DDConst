@@ -76,8 +76,6 @@ export default function ApprovalRequest() {
 			})
 	}
 
-	console.log(currentApproval, '<--currentApproval')
-
 	return (
 		<>
 			<LeftDrawer
