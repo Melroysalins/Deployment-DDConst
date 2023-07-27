@@ -8,12 +8,15 @@ import moment from 'moment'
 import PropTypes from 'prop-types'
 import { fDateLocale } from 'utils/formatTime'
 import useMain from 'pages/context/context'
+import { useNavigate } from 'react-router-dom'
 
 const currentDate = moment()
 const groupObjectsByDate = (approvals) => {
 	const today = []
 	const yesterday = []
 	const older = []
+
+	approvals.sort((a, b) => moment(b.approval.created_at) - moment(a.approval.created_at))
 
 	approvals.forEach((obj) => {
 		const objDate = moment(obj.approval.created_at)
@@ -34,14 +37,13 @@ export default function Messages() {
 	const [approvalsArr, setapprovalsArr] = useState([])
 	const { user } = useMain()
 
-	const { isLoading } = useQuery(['ApproverDetail'], () => getApproversDetailByUser(user.id), {
+	const { isFetching } = useQuery(['ApproverDetail'], () => getApproversDetailByUser(user.id), {
 		select: (r) => r.data,
 		enabled: !!user.id,
 		onSuccess: (data) => {
 			setapprovalsArr(groupObjectsByDate(data))
 		},
 	})
-
 	return (
 		<>
 			<Scrollbar>
@@ -55,7 +57,7 @@ export default function Messages() {
 					</Typography>
 					{!approvalsArr.yesterday?.length ? (
 						<Box sx={{ fontWeight: 600, marginBottom: 3 }} align="center" mt={2}>
-							{isLoading ? <CircularProgress size={22} fontSize="inherit" /> : 'No Notication Found'}
+							{isFetching ? <CircularProgress size={22} fontSize="inherit" /> : 'No Notication Found'}
 						</Box>
 					) : null}
 				</Box>
@@ -69,7 +71,7 @@ export default function Messages() {
 					</Typography>
 					{!approvalsArr.older?.length ? (
 						<Box sx={{ fontWeight: 600, marginBottom: 3 }} align="center" mt={2}>
-							{isLoading ? <CircularProgress size={22} fontSize="inherit" /> : 'No Notication Found'}
+							{isFetching ? <CircularProgress size={22} fontSize="inherit" /> : 'No Notication Found'}
 						</Box>
 					) : null}
 				</Box>
@@ -105,11 +107,14 @@ function TaskNotification({ notification }) {
 // ----------------------------------------------------------------------
 
 function RenderContent(notification) {
-	const { setopenaccoutReview, setcurrentApproval } = useMain()
+	const { setopenaccoutReview, setcurrentApproval, setopenNotification } = useMain()
+	const navigate = useNavigate()
 
 	const handlePageNavigation = (detail) => {
 		setcurrentApproval(detail)
 		setopenaccoutReview(true)
+		navigate(`/dashboard/projects/${detail.approval.project.id}/weekly-plan`)
+		setopenNotification(false)
 	}
 
 	const { project, from_page, start, end, created_at } = notification.approval || {}
@@ -128,7 +133,11 @@ function RenderContent(notification) {
 				>
 					Automated
 				</Typography>
-				<Typography component="span" variant="body2" sx={{ color: 'text.secondary', cursor: 'auto' }}>
+				<Typography
+					component="span"
+					variant="body2"
+					sx={{ color: 'text.secondary', cursor: 'auto', fontSize: '0.9rem' }}
+				>
 					&nbsp;Approval request for {project.title} {from_page} ( {fDateLocale(start)} - {fDateLocale(end)} )
 				</Typography>
 

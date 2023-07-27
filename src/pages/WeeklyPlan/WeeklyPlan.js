@@ -27,6 +27,7 @@ import { useQuery } from 'react-query'
 import { deleteTask, listAllTaskGroups, listAllTasksByProject, updateTask } from 'supabase'
 import AddFormPopup from './Popup/AddFormPopup'
 import { useTranslation } from 'react-i18next'
+import useMain from 'pages/context/context'
 
 setOptions({
 	theme: 'ios',
@@ -51,12 +52,12 @@ function WeeklyPlan() {
 	const { i18n, t } = useTranslation()
 	const isEng = i18n.language === 'en'
 	const [popupData, setPopupData] = React.useState(null)
-
+	const { currentApproval } = useMain()
 	const [isDrawerOpen, setisDrawerOpen] = React.useState(false)
 	const [myEvents, setMyEvents] = React.useState([])
 	const [isOpen, setOpen] = React.useState(false)
 	const [isEdit, setEdit] = React.useState(false)
-	const [mySelectedDate, setSelectedDate] = React.useState(new Date())
+	const [mySelectedDate, setSelectedDate] = React.useState(currentApproval?.approval?.start || new Date())
 	const [myResources, setMyResources] = React.useState([])
 	const [invalid] = React.useState([
 		{
@@ -68,6 +69,12 @@ function WeeklyPlan() {
 	])
 	const [loader, setLoader] = React.useState(false)
 	const [holidays, setHolidays] = React.useState(defaultHolidays)
+
+	useEffect(() => {
+		if (currentApproval) {
+			setSelectedDate(currentApproval?.approval?.start)
+		}
+	}, [currentApproval])
 
 	const { id } = useParams()
 	const { data: project } = useQuery(['project', id], ({ queryKey }) => getProjectDetails(queryKey[1]), {

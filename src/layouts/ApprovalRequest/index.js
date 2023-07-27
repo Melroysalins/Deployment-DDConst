@@ -12,7 +12,7 @@ import { fDateLocale } from 'utils/formatTime'
 import { ApprovalStatus, getNameApprovalStatus } from 'constant'
 
 export default function ApprovalRequest() {
-	const { openaccoutReview, setopenaccoutReview, currentApproval } = useMain()
+	const { openaccoutReview, setopenaccoutReview, currentApproval, setopenNotification, setcurrentApproval } = useMain()
 	const { approval, employee } = currentApproval || {}
 	const { project, from_page, start, end } = approval || {}
 	const [addComment, setaddComment] = useState(false)
@@ -28,6 +28,7 @@ export default function ApprovalRequest() {
 	const currentApproverStatus = approvers?.find((e) => e.employee.id === employee.id)?.status
 
 	const handleCloseDrawer = () => {
+		setcurrentApproval(null)
 		setopenaccoutReview(false)
 	}
 
@@ -79,10 +80,14 @@ export default function ApprovalRequest() {
 	return (
 		<>
 			<LeftDrawer
+				variant="permanent"
 				open={openaccoutReview}
 				setopen={setopenaccoutReview}
 				headerText={'Approval Request'}
-				onBack={() => setopenaccoutReview(false)}
+				onBack={() => {
+					setopenNotification(true)
+					handleCloseDrawer()
+				}}
 				headerRightSide={
 					<Typography sx={{ color: '#FF6B00', fontSize: '0.8rem' }}>
 						Deadline: {fDateLocale(approval.deadline)}
