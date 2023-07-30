@@ -30,6 +30,7 @@ import { createApproval, createApprovers } from 'supabase/approval'
 import PropTypes from 'prop-types'
 import { approvalStatus } from 'constant'
 import DragList from './DragList'
+import useMain from 'pages/context/context'
 
 const validationSchema = Yup.object().shape({
 	project: Yup.string().required('Required').nullable(),
@@ -45,6 +46,7 @@ Approval.propTypes = {
 }
 
 function Approval({ setopen }) {
+	const { user } = useMain()
 	const { id: projectId } = useParams()
 	const [addedEmp, setaddedEmp] = React.useState([])
 	const [currentApprover, setcurrentApprover] = useState(null)
@@ -58,11 +60,7 @@ function Approval({ setopen }) {
 		select: (r) => r.data.filter((e) => e.user),
 	})
 
-	const handleClickOpen = () => {
-		setopenDialog(true)
-	}
-
-	const handleClose = (value) => {
+	const handleClose = () => {
 		setopenDialog(false)
 		setopen(false)
 	}
@@ -97,7 +95,7 @@ function Approval({ setopen }) {
 				onSubmit={async (values) => {
 					setLoader(true)
 					try {
-						const res = await createApproval(values)
+						const res = await createApproval({ ...values, created_by: user.email })
 						if (res.status === 201) {
 							const promises = addedEmp.map((obj, index) =>
 								createApprovers({
@@ -273,26 +271,6 @@ function Approval({ setopen }) {
 						</Box>
 
 						<DragList addedEmp={addedEmp} setaddedEmp={setaddedEmp} handleEmployeeRemove={handleEmployeeRemove} />
-
-						{/* <Box mb={3} mt={3}>
-							{addedEmp.map((e) => (
-								// eslint-disable-next-line react/jsx-key
-								<Stack direction="row" justifyContent={'space-between'} alignItems={'center'} mt={2} key={e.id}>
-									<Stack direction={'row'} gap={2} alignItems={'center'}>
-										<img src={'/static/icons/Drag.svg'} alt={'drag'} />
-										<Avatar alt="avatar image" sx={{ width: 46, height: 46 }}>
-											{e.name ? e.name[0] : e.email_address[0]}
-										</Avatar>
-										<Box>
-											<h5>{e.name || e.email_address}</h5>
-											<div style={{ fontSize: '0.75rem', color: '#596570' }}>{e.rating}</div>
-										</Box>
-									</Stack>
-
-									<Iconify icon="ic:round-close" width={14} height={14} onClick={() => handleEmployeeRemove(e.id)} />
-								</Stack>
-							))}
-						</Box> */}
 
 						<Paper elevation={12} sx={{ border: '1px solid transparent', borderRadius: 1, padding: '5px 7px' }}>
 							{addApprover ? (

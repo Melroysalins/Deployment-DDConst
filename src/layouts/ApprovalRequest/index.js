@@ -200,25 +200,26 @@ export default function ApprovalRequest() {
 					</Box>
 
 					<Paper elevation={12} sx={{ border: '1px solid transparent', borderRadius: 1, padding: '7px', marginTop: 2 }}>
-						<Stack direction="row" justifyContent={'space-between'}>
+						{!!approval.comment && (
 							<Box>
-								<Typography variant="body2">Overtime, Vincent J. Powell, 02/24/2022</Typography>
+								<Typography variant="body2">
+									{approval.created_by}, {new Date(approval.created_at).toLocaleDateString()}
+								</Typography>
 								<Typography variant="body2" sx={{ color: '#596570', fontSize: '0.8rem' }}>
-									Why did this person have to work overtime?
+									{approval.comment}
 								</Typography>
 							</Box>
-							<Iconify icon="pepicons-pencil:dots-y" />
-						</Stack>
+						)}
 					</Paper>
 
-					<Paper elevation={12} sx={{ border: '1px solid transparent', borderRadius: 1, padding: '7px', marginTop: 1 }}>
+					{/* <Paper elevation={12} sx={{ border: '1px solid transparent', borderRadius: 1, padding: '7px', marginTop: 1 }}>
 						<Stack direction="row" justifyContent={'space-between'}>
 							<Box>
 								<Typography variant="body2">Lodging, Steven T. Joy, 03/01/2022</Typography>
 							</Box>
 							<Iconify icon="pepicons-pencil:dots-y" />
 						</Stack>
-					</Paper>
+					</Paper> */}
 
 					<Paper
 						elevation={12}
