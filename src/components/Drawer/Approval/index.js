@@ -91,6 +91,7 @@ function Approval({ setopen }) {
 					deadline: null,
 					status: 'Planned',
 					from_page: 'weekly_plan',
+					comment: '',
 				}}
 				validationSchema={validationSchema}
 				onSubmit={async (values) => {
@@ -257,7 +258,18 @@ function Approval({ setopen }) {
 							</LocalizationProvider>
 
 							<div style={{ fontSize: '0.85rem', marginBottom: 3, paddingTop: 7 }}>Comment</div>
-							<TextField name="comment" value={''} fullWidth label="Text here" multiline />
+							<TextField
+								name="comment"
+								value={values.comment}
+								onChange={handleChange}
+								onBlur={handleBlur}
+								fullWidth
+								label="Text here"
+								multiline
+							/>
+							<FormHelperText error={errors.comment && touched.comment}>
+								{touched.comment ? errors.comment : null}
+							</FormHelperText>
 						</Box>
 
 						<DragList addedEmp={addedEmp} setaddedEmp={setaddedEmp} handleEmployeeRemove={handleEmployeeRemove} />
@@ -326,7 +338,7 @@ function Approval({ setopen }) {
 											onChange={handleChange}
 											onBlur={handleBlur}
 										>
-											<MenuItem value="Private Co.">Private Co.</MenuItem>
+											{/* <MenuItem value="Private Co.">Private Co.</MenuItem> */}
 										</Select>
 										<FormHelperText error={errors.occupation && touched.occupation}>
 											{touched.occupation ? errors.occupation : null}
