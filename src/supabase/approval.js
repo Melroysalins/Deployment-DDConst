@@ -33,6 +33,11 @@ export const getApproversDetailByUser = async (user) => {
 	return res
 }
 
+export const getApprovalsByProject = async (projectId) => {
+	const res = await supabase.from('approval').select(`*`).eq('project', projectId)
+	return res
+}
+
 export const deleteApproval = async (id) => {
 	const res = await supabase.from('approval').delete().eq('id', id)
 	return res

@@ -28,6 +28,8 @@ import { deleteTask, listAllTaskGroups, listAllTasksByProject, updateTask } from
 import AddFormPopup from './Popup/AddFormPopup'
 import { useTranslation } from 'react-i18next'
 import useMain from 'pages/context/context'
+import { getApprovalsByProject } from 'supabase/approval'
+import { ApprovalStatus } from 'constant'
 
 setOptions({
 	theme: 'ios',
@@ -47,6 +49,23 @@ const defaultHolidays = [
 	{ background: 'rgba(100, 100, 100, 0.1)', recurring: { repeat: 'weekly', weekDays: 'SU' } },
 	{ background: 'rgba(100, 100, 100, 0.1)', recurring: { repeat: 'weekly', weekDays: 'SA' } },
 ]
+
+const colorApprovalTask = {
+	Approved: '#6AC79B',
+	Planned: '#8D99FF',
+	Rejected: 'red',
+}
+const colorHeading = {
+	Approved: '#6AC79B',
+	Planned: '#8D99FF',
+	Pending: '#8D99FF',
+	Rejected: 'red',
+}
+const colorApprovalSubTask = {
+	Approved: '#6AC750',
+	Planned: '#BDB2E9',
+	Rejected: '#FF6B00',
+}
 
 function WeeklyPlan() {
 	const { i18n, t } = useTranslation()
@@ -77,10 +96,21 @@ function WeeklyPlan() {
 	}, [currentApproval])
 
 	const { id } = useParams()
+
+	const { data: approvals } = useQuery(
+		['ApprovalsByProject', id],
+		({ queryKey }) => getApprovalsByProject(queryKey[1]),
+		{
+			select: (r) => r.data,
+		}
+	)
+
 	const { data: project } = useQuery(['project', id], ({ queryKey }) => getProjectDetails(queryKey[1]), {
 		// enabled: !!edit,
 		select: (r) => r.data,
 	})
+
+	console.log(approvals, '<--approvals')
 
 	const handleSetEvent = useCallback(() => {
 		listAllTasksByProject(id).then((data) => {
@@ -88,6 +118,26 @@ function WeeklyPlan() {
 			setLoader(false)
 		})
 	}, [id])
+
+	const findDatesInApproval = useCallback(
+		(startDate, endDate) =>
+			approvals?.find((data) => {
+				const dataStartDate = new Date(data.start)
+				const dataEndDate = new Date(data.end)
+				const checkStartDate = new Date(startDate)
+				const checkEndDate = new Date(endDate)
+
+				console.log(dataStartDate <= checkStartDate, '<--checkStartDate')
+				return (
+					dataStartDate <= checkStartDate &&
+					dataEndDate >= checkStartDate &&
+					dataStartDate <= checkEndDate &&
+					dataEndDate >= checkEndDate
+				)
+			}),
+		[approvals]
+	)
+
 	const renderCustomDay = (args) => {
 		const { date } = args
 		const isFirstDay = args.date.getDay() === 0 // Sunday, but it can vary depending on your first day of week option
@@ -100,9 +150,11 @@ function WeeklyPlan() {
 		const startNextWeek = moment(date).startOf('week').toDate().toLocaleDateString()
 		const endNextWeek = moment(date).endOf('week').toDate().toLocaleDateString()
 
+		const checkStatus = findDatesInApproval(startOfWeek, endOfWeek)?.status || 'Pending'
+
 		const div = (
 			<div>
-				<div className="first-day" style={{ borderBottom: `1px solid ${thisWeek ? '#DA4C57' : '#8CCC67'}` }}>
+				<div className="first-day" style={{ borderBottom: `1px solid ${colorHeading[checkStatus]}` }}>
 					{isFirstDay && (
 						<>
 							{thisWeek
@@ -114,15 +166,12 @@ function WeeklyPlan() {
 				<div className="first-day" style={{ marginTop: 30, left: 100, fontSize: '0.88rem' }}>
 					{isFirstDay && (
 						<>
-							{thisWeek ? (
-								<span>
-									APPROVAL STATUS: <span style={{ color: '#DA4C57' }}>Rejected</span>
+							<span>
+								APPROVAL STATUS:{' '}
+								<span style={{ color: colorHeading[checkStatus] }}>
+									{checkStatus === ApprovalStatus.Planned ? 'Pending' : checkStatus}
 								</span>
-							) : (
-								<span>
-									APPROVAL STATUS: <span style={{ color: '#8CCC67' }}>Approved</span>
-								</span>
-							)}
+							</span>
 						</>
 					)}
 				</div>
@@ -277,7 +326,9 @@ function WeeklyPlan() {
 	)
 
 	const renderScheduleEvent = (event) => {
-		const bgColor = event.original?.task_id ? '#BDB2E9' : '#8D99FF'
+		const bgColor = event.original?.task_id
+			? colorApprovalSubTask[event.original?.approval_status]
+			: colorApprovalTask[event.original?.approval_status]
 
 		return (
 			<>

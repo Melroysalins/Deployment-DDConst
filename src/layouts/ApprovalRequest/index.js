@@ -348,6 +348,7 @@ export default function ApprovalRequest() {
 				open={openRejectionDialog}
 				setopenRejectionDialog={setopenRejectionDialog}
 				handleApproveReject={handleApproveReject}
+				isUpdating={isUpdating}
 			/>
 		</>
 	)

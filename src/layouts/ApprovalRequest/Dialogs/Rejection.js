@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import DialogTitle from '@mui/material/DialogTitle'
 import Dialog from '@mui/material/Dialog'
-import { Box, InputAdornment, Stack, TextField } from '@mui/material'
+import { Box, CircularProgress, InputAdornment, Stack, TextField } from '@mui/material'
 import Iconify from 'components/Iconify'
 import useMain from 'pages/context/context'
 import { ApprovalStatus } from 'constant'
@@ -11,7 +11,7 @@ function SimpleDialog(props) {
 	const [comment, setcomment] = useState('')
 	const { currentApproval } = useMain()
 	const { employee, approval } = currentApproval || {}
-	const { onClose, selectedValue, open, setopenRejectionDialog, handleApproveReject } = props
+	const { onClose, selectedValue, open, setopenRejectionDialog, handleApproveReject, isUpdating } = props
 
 	const handleClose = () => {
 		onClose(selectedValue)
@@ -76,7 +76,11 @@ function SimpleDialog(props) {
 						sx={{ cursor: 'pointer', pointerEvents: comment ? 'initial' : 'none' }}
 						onClick={() => handleApproveReject(ApprovalStatus.Rejected, comment)}
 					>
-						<Iconify icon="charm:tick" width={16} height={16} />
+						{isUpdating ? (
+							<CircularProgress size={17} sx={{ color: '#596570' }} />
+						) : (
+							<Iconify icon="charm:tick" width={16} height={16} />
+						)}
 						Save
 					</Stack>
 				</Stack>
@@ -85,7 +89,7 @@ function SimpleDialog(props) {
 	)
 }
 
-export default function Rejection({ handleClose, open, setopenRejectionDialog, handleApproveReject }) {
+export default function Rejection({ handleClose, open, setopenRejectionDialog, handleApproveReject, isUpdating }) {
 	return (
 		<>
 			<SimpleDialog
@@ -93,6 +97,7 @@ export default function Rejection({ handleClose, open, setopenRejectionDialog, h
 				onClose={handleClose}
 				setopenRejectionDialog={setopenRejectionDialog}
 				handleApproveReject={handleApproveReject}
+				isUpdating={isUpdating}
 			/>
 		</>
 	)

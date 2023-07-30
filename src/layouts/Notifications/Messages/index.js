@@ -123,7 +123,7 @@ function RenderContent(notification) {
 	const handlePageNavigation = (detail) => {
 		setcurrentApproval(detail)
 		setopenaccoutReview(true)
-		navigate(`/dashboard/projects/${detail.approval.project.id}/weekly-plan`)
+		navigate(`/dashboard/projects/${detail.approval.project.id}/weekly-plan`, { replace: true })
 		setopenNotification(false)
 	}
 
