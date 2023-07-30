@@ -25,8 +25,6 @@ export default function ApprovalRequest() {
 		enabled: !!currentApproval,
 	})
 
-	console.log(approvers, '<--approvers')
-
 	const currentApproverStatus = approvers?.find((e) => e.employee.id === employee.id)?.status
 
 	const handleCloseDrawer = () => {
@@ -51,11 +49,12 @@ export default function ApprovalRequest() {
 		handleCloseDrawer()
 	}
 
-	const handleApproveReject = (status) => {
+	const handleApproveReject = (status, rejection_comment = '') => {
 		setisUpdating(true)
 		updateApprovers(
 			{
 				status,
+				rejection_comment,
 			},
 			currentApproval.id
 		)
@@ -154,6 +153,7 @@ export default function ApprovalRequest() {
 								</Avatar>
 								<Box sx={{ position: 'absolute', right: 2, top: 32 }}>
 									<img
+										style={{ width: 20, height: 20 }}
 										src={`/static/icons/${
 											// eslint-disable-next-line no-nested-ternary
 											e.status === ApprovalStatus.Planned
@@ -284,8 +284,7 @@ export default function ApprovalRequest() {
 											<Iconify icon="carbon:close" width={17} height={17} />
 										)
 									}
-									// onClick={handleRejectionDialogOpen}
-									onClick={() => handleApproveReject(ApprovalStatus.Rejected)}
+									onClick={handleRejectionDialogOpen}
 									disabled={isUpdating}
 								>
 									Reject
@@ -341,9 +340,14 @@ export default function ApprovalRequest() {
 				</Box>
 			</LeftDrawer>
 
-			<PayAttention handleClose={handleSaveDialogClose} open={openSaveDialog} />
+			<PayAttention handleClose={handleSaveDialogClose} open={openSaveDialog} setopenSaveDialog={setopenSaveDialog} />
 
-			<Rejection handleClose={handleRejectionDialogClose} open={openRejectionDialog} />
+			<Rejection
+				handleClose={handleRejectionDialogClose}
+				open={openRejectionDialog}
+				setopenRejectionDialog={setopenRejectionDialog}
+				handleApproveReject={handleApproveReject}
+			/>
 		</>
 	)
 }

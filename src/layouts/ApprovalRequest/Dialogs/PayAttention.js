@@ -1,10 +1,11 @@
+/* eslint-disable react/prop-types */
 import * as React from 'react'
 import DialogTitle from '@mui/material/DialogTitle'
 import Dialog from '@mui/material/Dialog'
 import { Box, Button, Stack } from '@mui/material'
 
 function SimpleDialog(props) {
-	const { onClose, selectedValue, open } = props
+	const { onClose, selectedValue, open, setopenSaveDialog } = props
 
 	const handleClose = () => {
 		onClose(selectedValue)
@@ -35,7 +36,7 @@ function SimpleDialog(props) {
 					size="medium"
 					color="inherit"
 					sx={{ color: '#FFFFFF', flex: 1, background: '#8D99FF' }}
-					onClick={handleClose}
+					onClick={() => setopenSaveDialog(false)}
 				>
 					No, continue approval
 				</Button>
@@ -44,10 +45,10 @@ function SimpleDialog(props) {
 	)
 }
 
-export default function PayAttention({ handleClose, open }) {
+export default function PayAttention({ handleClose, open, setopenSaveDialog }) {
 	return (
 		<>
-			<SimpleDialog open={open} onClose={handleClose} />
+			<SimpleDialog open={open} onClose={handleClose} setopenSaveDialog={setopenSaveDialog} />
 		</>
 	)
 }

@@ -1,5 +1,14 @@
 import { useState } from 'react'
-import { Avatar, Typography, ListItemText, ListItemAvatar, ListItemButton, Box, CircularProgress } from '@mui/material'
+import {
+	Avatar,
+	Typography,
+	ListItemText,
+	ListItemAvatar,
+	ListItemButton,
+	Box,
+	CircularProgress,
+	Stack,
+} from '@mui/material'
 import Scrollbar from 'components/Scrollbar'
 import Iconify from 'components/Iconify'
 import { getApproversDetailByUser } from 'supabase/approval'
@@ -9,6 +18,7 @@ import PropTypes from 'prop-types'
 import { fDateLocale } from 'utils/formatTime'
 import useMain from 'pages/context/context'
 import { useNavigate } from 'react-router-dom'
+import { ApprovalStatus } from 'constant'
 
 const currentDate = moment()
 const groupObjectsByDate = (approvals) => {
@@ -117,10 +127,19 @@ function RenderContent(notification) {
 		setopenNotification(false)
 	}
 
-	const { project, from_page, start, end, created_at } = notification.approval || {}
+	const { project, from_page, start, end, created_at, status } = notification.approval || {}
 	const title = (
 		<>
-			<Typography variant="subtitle2">Approval Request</Typography>
+			<Stack flexDirection={'row'} justifyContent={'space-between'}>
+				<Typography variant="subtitle2">Approval Request</Typography>
+				{status !== ApprovalStatus.Planned && (
+					<img
+						style={{ width: 18, height: 18 }}
+						src={`/static/icons/${status === ApprovalStatus.Approved ? 'approve.svg' : 'reject.svg'}`}
+						alt="icon"
+					/>
+				)}
+			</Stack>
 			<Typography variant="body2">
 				<Typography variant="caption" sx={{ color: (theme) => theme.palette.primary.light, fontSize: '14px' }}>
 					{notification.title}

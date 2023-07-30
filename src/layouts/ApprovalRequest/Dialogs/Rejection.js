@@ -1,11 +1,17 @@
-import * as React from 'react'
+/* eslint-disable react/prop-types */
+import { useState } from 'react'
 import DialogTitle from '@mui/material/DialogTitle'
 import Dialog from '@mui/material/Dialog'
 import { Box, InputAdornment, Stack, TextField } from '@mui/material'
 import Iconify from 'components/Iconify'
+import useMain from 'pages/context/context'
+import { ApprovalStatus } from 'constant'
 
 function SimpleDialog(props) {
-	const { onClose, selectedValue, open } = props
+	const [comment, setcomment] = useState('')
+	const { currentApproval } = useMain()
+	const { employee, approval } = currentApproval || {}
+	const { onClose, selectedValue, open, setopenRejectionDialog, handleApproveReject } = props
 
 	const handleClose = () => {
 		onClose(selectedValue)
@@ -24,7 +30,8 @@ function SimpleDialog(props) {
 					<TextField
 						size="small"
 						name="instanse"
-						value={''}
+						disabled
+						value={`${employee.name || employee.email}, ${new Date(approval.created_at).toLocaleDateString()}`}
 						fullWidth
 						label="Instanse type, Employee, Date"
 						InputProps={{
@@ -39,7 +46,15 @@ function SimpleDialog(props) {
 
 				<Box mt={1}>
 					<div style={{ fontSize: '0.85rem', marginBottom: 3 }}>Comment</div>
-					<TextField name="comment" value={''} fullWidth label="Text here" multiline minRows={3} />
+					<TextField
+						name="comment"
+						value={comment}
+						onChange={(e) => setcomment(e.target.value)}
+						fullWidth
+						label="Text here"
+						multiline
+						minRows={3}
+					/>
 				</Box>
 				<Stack direction={'row'} justifyContent={'space-between'} mt={2}>
 					<Stack
@@ -48,7 +63,7 @@ function SimpleDialog(props) {
 						alignItems={'center'}
 						color={'#596570'}
 						sx={{ cursor: 'pointer' }}
-						onClick={handleClose}
+						onClick={() => setopenRejectionDialog(false)}
 					>
 						<Iconify icon="ic:round-close" width={16} height={16} />
 						Cancel
@@ -57,9 +72,9 @@ function SimpleDialog(props) {
 						direction={'row'}
 						gap={1}
 						alignItems={'center'}
-						color={'#919EAB'}
-						sx={{ cursor: 'pointer' }}
-						onClick={handleClose}
+						color={comment ? '#596570' : '#919EAB'}
+						sx={{ cursor: 'pointer', pointerEvents: comment ? 'initial' : 'none' }}
+						onClick={() => handleApproveReject(ApprovalStatus.Rejected, comment)}
 					>
 						<Iconify icon="charm:tick" width={16} height={16} />
 						Save
@@ -70,10 +85,15 @@ function SimpleDialog(props) {
 	)
 }
 
-export default function Rejection({ handleClose, open }) {
+export default function Rejection({ handleClose, open, setopenRejectionDialog, handleApproveReject }) {
 	return (
 		<>
-			<SimpleDialog open={open} onClose={handleClose} />
+			<SimpleDialog
+				open={open}
+				onClose={handleClose}
+				setopenRejectionDialog={setopenRejectionDialog}
+				handleApproveReject={handleApproveReject}
+			/>
 		</>
 	)
 }

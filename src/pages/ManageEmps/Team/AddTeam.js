@@ -105,7 +105,6 @@ export default function AddTeam() {
 					enableReinitialize
 					validationSchema={validationSchema}
 					onSubmit={async (values) => {
-						console.log(values, '<--values')
 						setLoader(true)
 						if (edit) {
 							const res = await updateTeamWithEmp(values, id)
