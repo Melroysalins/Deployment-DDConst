@@ -2,17 +2,7 @@ import useMain from 'pages/context/context'
 import React, { useState } from 'react'
 import Box from '@mui/material/Box'
 import LeftDrawer from 'components/LeftDrawer'
-import {
-	Avatar,
-	Button,
-	CircularProgress,
-	IconButton,
-	InputAdornment,
-	Paper,
-	Stack,
-	TextField,
-	Typography,
-} from '@mui/material'
+import { Avatar, Button, CircularProgress, InputAdornment, Paper, Stack, TextField, Typography } from '@mui/material'
 import Iconify from 'components/Iconify'
 import PayAttention from './Dialogs/PayAttention'
 import Rejection from './Dialogs/Rejection'
@@ -20,7 +10,6 @@ import { useQuery } from 'react-query'
 import { getApproversByApproval, updateApproval, updateApprovers } from 'supabase/approval'
 import { fDateLocale } from 'utils/formatTime'
 import { ApprovalStatus, getNameApprovalStatus } from 'constant'
-import CancelRoundedIcon from '@mui/icons-material/CancelRounded'
 
 export default function ApprovalRequest() {
 	const { openaccoutReview, setopenaccoutReview, currentApproval, setopenNotification, setcurrentApproval } = useMain()
@@ -164,22 +153,17 @@ export default function ApprovalRequest() {
 									{e.employee.name ? e.employee.name[0] : e.employee.email_address[0]}
 								</Avatar>
 								<Box sx={{ position: 'absolute', right: 2, top: 32 }}>
-									{e.status === ApprovalStatus.Rejected ? (
-										<IconButton
-											style={{
-												width: 15,
-												height: 15,
-												backgroundColor: 'white',
-											}}
-										>
-											<CancelRoundedIcon sx={{ color: 'red', width: 20, height: 20 }} />
-										</IconButton>
-									) : (
-										<img
-											src={`/static/icons/${e.status === ApprovalStatus.Planned ? 'pending.svg' : 'approve.svg'}`}
-											alt="icon"
-										/>
-									)}
+									<img
+										src={`/static/icons/${
+											// eslint-disable-next-line no-nested-ternary
+											e.status === ApprovalStatus.Planned
+												? 'pending.svg'
+												: e.status === ApprovalStatus.Approved
+												? 'approve.svg'
+												: 'reject.svg'
+										}`}
+										alt="icon"
+									/>
 								</Box>
 								<Typography
 									variant="body2"
