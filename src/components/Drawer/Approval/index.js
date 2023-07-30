@@ -29,6 +29,7 @@ import { useParams } from 'react-router-dom'
 import { createApproval, createApprovers } from 'supabase/approval'
 import PropTypes from 'prop-types'
 import { approvalStatus } from 'constant'
+import DragList from './DragList'
 
 const validationSchema = Yup.object().shape({
 	project: Yup.string().required('Required').nullable(),
@@ -259,7 +260,9 @@ function Approval({ setopen }) {
 							<TextField name="comment" value={''} fullWidth label="Text here" multiline />
 						</Box>
 
-						<Box mb={3} mt={3}>
+						<DragList addedEmp={addedEmp} setaddedEmp={setaddedEmp} handleEmployeeRemove={handleEmployeeRemove} />
+
+						{/* <Box mb={3} mt={3}>
 							{addedEmp.map((e) => (
 								// eslint-disable-next-line react/jsx-key
 								<Stack direction="row" justifyContent={'space-between'} alignItems={'center'} mt={2} key={e.id}>
@@ -277,7 +280,7 @@ function Approval({ setopen }) {
 									<Iconify icon="ic:round-close" width={14} height={14} onClick={() => handleEmployeeRemove(e.id)} />
 								</Stack>
 							))}
-						</Box>
+						</Box> */}
 
 						<Paper elevation={12} sx={{ border: '1px solid transparent', borderRadius: 1, padding: '5px 7px' }}>
 							{addApprover ? (
