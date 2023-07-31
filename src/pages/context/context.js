@@ -23,6 +23,7 @@ export const MainProvider = ({ children }) => {
 	const [openaccoutReview, setopenaccoutReview] = useState(false)
 	const [openNotification, setopenNotification] = useState(false)
 	const [currentApproval, setcurrentApproval] = useState(null)
+	const [refetchApprovals, setrefetchApprovals] = useState(false)
 
 	return (
 		<MainContext.Provider
@@ -38,6 +39,8 @@ export const MainProvider = ({ children }) => {
 				setopenNotification,
 				currentApproval,
 				setcurrentApproval,
+				refetchApprovals,
+				setrefetchApprovals,
 			}}
 		>
 			{userLoading ? <></> : children}

@@ -71,7 +71,7 @@ function WeeklyPlan() {
 	const { i18n, t } = useTranslation()
 	const isEng = i18n.language === 'en'
 	const [popupData, setPopupData] = React.useState(null)
-	const { currentApproval } = useMain()
+	const { currentApproval, setrefetchApprovals, refetchApprovals } = useMain()
 	const [isDrawerOpen, setisDrawerOpen] = React.useState(false)
 	const [myEvents, setMyEvents] = React.useState([])
 	const [isOpen, setOpen] = React.useState(false)
@@ -97,7 +97,7 @@ function WeeklyPlan() {
 
 	const { id } = useParams()
 
-	const { data: approvals } = useQuery(
+	const { data: approvals, refetch: refetchApprovalByProject } = useQuery(
 		['ApprovalsByProject', id],
 		({ queryKey }) => getApprovalsByProject(queryKey[1]),
 		{
@@ -105,12 +105,18 @@ function WeeklyPlan() {
 		}
 	)
 
+	useEffect(() => {
+		if (refetchApprovals) {
+			setrefetchApprovals(false)
+			refetchApprovalByProject()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [refetchApprovals])
+
 	const { data: project } = useQuery(['project', id], ({ queryKey }) => getProjectDetails(queryKey[1]), {
 		// enabled: !!edit,
 		select: (r) => r.data,
 	})
-
-	console.log(approvals, '<--approvals')
 
 	const handleSetEvent = useCallback(() => {
 		listAllTasksByProject(id).then((data) => {
@@ -120,21 +126,42 @@ function WeeklyPlan() {
 	}, [id])
 
 	const findDatesInApproval = useCallback(
-		(startDate, endDate) =>
-			approvals?.find((data) => {
+		(startDate, endDate) => {
+			const _approvals = approvals?.filter((data) => {
 				const dataStartDate = new Date(data.start)
 				const dataEndDate = new Date(data.end)
 				const checkStartDate = new Date(startDate)
 				const checkEndDate = new Date(endDate)
 
-				console.log(dataStartDate <= checkStartDate, '<--checkStartDate')
-				return (
-					dataStartDate <= checkStartDate &&
-					dataEndDate >= checkStartDate &&
-					dataStartDate <= checkEndDate &&
-					dataEndDate >= checkEndDate
+				const dataStartDateWithoutTime = new Date(
+					dataStartDate.getFullYear(),
+					dataStartDate.getMonth(),
+					dataStartDate.getDate()
 				)
-			}),
+				const dataEndDateWithoutTime = new Date(
+					dataEndDate.getFullYear(),
+					dataEndDate.getMonth(),
+					dataEndDate.getDate()
+				)
+				const checkStartDateWithoutTime = new Date(
+					checkStartDate.getFullYear(),
+					checkStartDate.getMonth(),
+					checkStartDate.getDate()
+				)
+				const checkEndDateWithoutTime = new Date(
+					checkEndDate.getFullYear(),
+					checkEndDate.getMonth(),
+					checkEndDate.getDate()
+				)
+				return (
+					dataStartDateWithoutTime <= checkStartDateWithoutTime &&
+					dataEndDateWithoutTime >= checkStartDateWithoutTime &&
+					dataStartDateWithoutTime <= checkEndDateWithoutTime &&
+					dataEndDateWithoutTime >= checkEndDateWithoutTime
+				)
+			})
+			return _approvals?.[_approvals.length - 1] || null
+		},
 		[approvals]
 	)
 
@@ -150,7 +177,7 @@ function WeeklyPlan() {
 		const startNextWeek = moment(date).startOf('week').toDate().toLocaleDateString()
 		const endNextWeek = moment(date).endOf('week').toDate().toLocaleDateString()
 
-		const checkStatus = findDatesInApproval(startOfWeek, endOfWeek)?.status || 'Pending'
+		const checkStatus = (isFirstDay && findDatesInApproval(startOfWeek, endOfWeek)?.status) || 'Pending'
 
 		const div = (
 			<div>

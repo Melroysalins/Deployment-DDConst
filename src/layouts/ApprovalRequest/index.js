@@ -12,7 +12,14 @@ import { fDateLocale } from 'utils/formatTime'
 import { ApprovalStatus, getNameApprovalStatus } from 'constant'
 
 export default function ApprovalRequest() {
-	const { openaccoutReview, setopenaccoutReview, currentApproval, setopenNotification, setcurrentApproval } = useMain()
+	const {
+		openaccoutReview,
+		setopenaccoutReview,
+		currentApproval,
+		setopenNotification,
+		setcurrentApproval,
+		setrefetchApprovals,
+	} = useMain()
 	const { approval, employee } = currentApproval || {}
 	const { project, from_page, start, end } = approval || {}
 	const [addComment, setaddComment] = useState(false)
@@ -67,6 +74,7 @@ export default function ApprovalRequest() {
 					(checkTotalRejected?.length === approvers.length - 1 && status === ApprovalStatus.Rejected)
 				) {
 					await updateApproval({ status }, approval.id)
+					setrefetchApprovals(true)
 				}
 
 				setisUpdating(false)
@@ -198,9 +206,11 @@ export default function ApprovalRequest() {
 							</Typography>
 						</Stack>
 					</Box>
-
-					<Paper elevation={12} sx={{ border: '1px solid transparent', borderRadius: 1, padding: '7px', marginTop: 2 }}>
-						{!!approval.comment && (
+					{!!approval.comment && (
+						<Paper
+							elevation={12}
+							sx={{ border: '1px solid transparent', borderRadius: 1, padding: '7px', marginTop: 2 }}
+						>
 							<Box>
 								<Typography variant="body2">
 									{approval.created_by}, {new Date(approval.created_at).toLocaleDateString()}
@@ -209,8 +219,8 @@ export default function ApprovalRequest() {
 									{approval.comment}
 								</Typography>
 							</Box>
-						)}
-					</Paper>
+						</Paper>
+					)}
 
 					{/* <Paper elevation={12} sx={{ border: '1px solid transparent', borderRadius: 1, padding: '7px', marginTop: 1 }}>
 						<Stack direction="row" justifyContent={'space-between'}>
