@@ -114,7 +114,6 @@ function WeeklyPlan() {
 	}, [refetchApprovals])
 
 	const { data: project } = useQuery(['project', id], ({ queryKey }) => getProjectDetails(queryKey[1]), {
-		// enabled: !!edit,
 		select: (r) => r.data,
 	})
 
