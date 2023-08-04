@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next'
 import useMain from 'pages/context/context'
 import { getApprovalsByProject } from 'supabase/approval'
 import { ApprovalStatus } from 'constant'
+import { fDateLocale } from 'utils/formatTime'
 
 setOptions({
 	theme: 'ios',
@@ -159,6 +160,7 @@ function WeeklyPlan() {
 					dataEndDateWithoutTime >= checkEndDateWithoutTime
 				)
 			})
+
 			return _approvals?.[_approvals.length - 1] || null
 		},
 		[approvals]
@@ -166,15 +168,15 @@ function WeeklyPlan() {
 
 	const renderCustomDay = (args) => {
 		const { date } = args
-		const isFirstDay = args.date.getDay() === 0 // Sunday, but it can vary depending on your first day of week option
+		const isFirstDay = args.date.getDay() === 0
 		const now = new Date()
 		const cutOff = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - now.getDay()))
 		const thisWeek = args.date < cutOff
 
-		const startOfWeek = moment(date).startOf('week').toDate().toLocaleDateString()
-		const endOfWeek = moment(date).endOf('week').toDate().toLocaleDateString()
-		const startNextWeek = moment(date).startOf('week').toDate().toLocaleDateString()
-		const endNextWeek = moment(date).endOf('week').toDate().toLocaleDateString()
+		const startOfWeek = moment(date).startOf('week').toDate()
+		const endOfWeek = moment(date).endOf('week').toDate()
+		const startNextWeek = moment(date).startOf('week').toDate()
+		const endNextWeek = moment(date).endOf('week').toDate()
 
 		const checkStatus = (isFirstDay && findDatesInApproval(startOfWeek, endOfWeek)?.status) || 'Pending'
 
@@ -184,8 +186,8 @@ function WeeklyPlan() {
 					{isFirstDay && (
 						<>
 							{thisWeek
-								? `This Week Progress (${startOfWeek} - ${endOfWeek})`
-								: `Next Weeks Plan (${startNextWeek} - ${endNextWeek})`}
+								? `This Week Progress (${fDateLocale(startOfWeek)} - ${fDateLocale(endOfWeek)})`
+								: `Next Weeks Plan (${fDateLocale(startNextWeek)} - ${fDateLocale(endNextWeek)})`}
 						</>
 					)}
 				</div>
