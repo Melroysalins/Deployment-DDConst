@@ -11,7 +11,7 @@ import {
 } from '@mui/material'
 import Scrollbar from 'components/Scrollbar'
 import Iconify from 'components/Iconify'
-import { getApproversDetailByUser } from 'supabase/approval'
+import { getApproversDetailByEmployee } from 'supabase/approval'
 import { useQuery } from 'react-query'
 import moment from 'moment'
 import PropTypes from 'prop-types'
@@ -45,11 +45,11 @@ const groupObjectsByDate = (approvals) => {
 
 export default function Messages() {
 	const [approvalsArr, setapprovalsArr] = useState([])
-	const { user } = useMain()
+	const { currentEmployee } = useMain()
 
-	const { isFetching } = useQuery(['ApproverDetail'], () => getApproversDetailByUser(user.id), {
+	const { isFetching } = useQuery(['ApproverDetail'], () => getApproversDetailByEmployee(currentEmployee.id), {
 		select: (r) => r.data,
-		enabled: !!user.id,
+		enabled: !!currentEmployee?.id,
 		onSuccess: (data) => {
 			setapprovalsArr(groupObjectsByDate(data))
 		},

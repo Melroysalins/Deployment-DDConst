@@ -24,12 +24,12 @@ export const getApproversByApproval = async (approval) => {
 	return res
 }
 
-export const getApproversDetailByUser = async (user) => {
+export const getApproversDetailByEmployee = async (employee) => {
 	const res = await supabase
 		.from('approvers')
 		.select('*')
-		.eq('user', user)
-		.select(`*, employee(id, name, email_address), approval(*,  project(id, title))`)
+		.eq('employee', employee)
+		.select(`*, employee(id, name, email_address), approval(*,  project(id, title), owner(id, name, email_address))`)
 	return res
 }
 

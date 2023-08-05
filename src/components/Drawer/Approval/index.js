@@ -28,7 +28,7 @@ import moment from 'moment'
 import { useParams } from 'react-router-dom'
 import { createApproval, createApprovers } from 'supabase/approval'
 import PropTypes from 'prop-types'
-import { approvalStatus } from 'constant'
+import { ApprovalStatus, approvalStatus } from 'constant'
 import DragList from './DragList'
 import useMain from 'pages/context/context'
 
@@ -46,7 +46,7 @@ Approval.propTypes = {
 }
 
 function Approval({ setopen }) {
-	const { user } = useMain()
+	const { currentEmployee } = useMain()
 	const { id: projectId } = useParams()
 	const [addedEmp, setaddedEmp] = React.useState([])
 	const [currentApprover, setcurrentApprover] = useState(null)
@@ -87,7 +87,7 @@ function Approval({ setopen }) {
 					start: null,
 					end: null,
 					deadline: null,
-					status: 'Planned',
+					status: ApprovalStatus.Planned,
 					from_page: 'weekly_plan',
 					comment: '',
 				}}
@@ -95,15 +95,14 @@ function Approval({ setopen }) {
 				onSubmit={async (values) => {
 					setLoader(true)
 					try {
-						const res = await createApproval({ ...values, created_by: user.email })
+						const res = await createApproval({ ...values, owner: currentEmployee.id })
 						if (res.status === 201) {
 							const promises = addedEmp.map((obj, index) =>
 								createApprovers({
 									approval: res.data[0].id,
 									employee: obj.id,
-									user: obj.user,
 									order: index + 1,
-									status: 'Planned',
+									status: ApprovalStatus.Planned,
 								})
 							)
 							Promise.all(promises).then(() => {

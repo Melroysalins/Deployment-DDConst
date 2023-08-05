@@ -213,7 +213,7 @@ export default function ApprovalRequest() {
 						>
 							<Box>
 								<Typography variant="body2">
-									{approval.created_by}, {new Date(approval.created_at).toLocaleDateString()}
+									{approval.owner.name}, {new Date(approval.created_at).toLocaleDateString()}
 								</Typography>
 								<Typography variant="body2" sx={{ color: '#596570', fontSize: '0.8rem' }}>
 									{approval.comment}

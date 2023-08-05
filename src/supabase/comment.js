@@ -6,7 +6,7 @@ export const createComment = async (data) => {
 }
 
 export const getCommentsByProjectTask = async (project_task) => {
-	const res = await supabase.from('comments').select('*').eq('project_task', project_task).select(`*`)
+	const res = await supabase.from('comments').select('*, employee(*)').eq('project_task', project_task)
 	return res
 }
 
