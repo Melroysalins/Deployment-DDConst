@@ -26,7 +26,7 @@ import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import moment from 'moment'
 import { useParams } from 'react-router-dom'
-import { createApproval, createApprovers } from 'supabase/approval'
+import { createApproval, createApprovers, getApprovalsByProject } from 'supabase/approval'
 import PropTypes from 'prop-types'
 import { ApprovalStatus, approvalStatus } from 'constant'
 import DragList from './DragList'
@@ -45,10 +45,28 @@ Approval.propTypes = {
 	setopen: PropTypes.func,
 }
 
+const findDatesInApproval = (approvals, newStart, newEnd) => {
+	const _approvals = approvals?.filter((data) => {
+		let { start, end } = data
+		start = new Date(start)
+		end = new Date(end)
+		newStart = new Date(newStart)
+		newEnd = new Date(newEnd)
+
+		newStart = new Date(newStart.getFullYear(), newStart.getMonth(), newStart.getDate())
+		newEnd = new Date(newEnd.getFullYear(), newEnd.getMonth(), newEnd.getDate())
+		start = new Date(start.getFullYear(), start.getMonth(), start.getDate())
+		end = new Date(end.getFullYear(), end.getMonth(), end.getDate())
+		return newStart <= end && newEnd >= start && data.status !== ApprovalStatus.Planned
+	})
+	return _approvals?.[_approvals.length - 1] || null
+}
+
 function Approval({ setopen }) {
 	const { currentEmployee } = useMain()
 	const { id: projectId } = useParams()
 	const [addedEmp, setaddedEmp] = React.useState([])
+	const [matchingApproval, setmatchingApproval] = React.useState(null)
 	const [currentApprover, setcurrentApprover] = useState(null)
 	const [loader, setLoader] = React.useState(false)
 	const [addApprover, setaddApprover] = useState(false)
@@ -60,9 +78,15 @@ function Approval({ setopen }) {
 		select: (r) => r.data.filter((e) => e.user),
 	})
 
+	const { data: approvals } = useQuery(
+		['ApprovalsByProject', projectId],
+		({ queryKey }) => getApprovalsByProject(queryKey[1]),
+		{
+			select: (r) => r.data,
+		}
+	)
 	const handleClose = () => {
 		setopenDialog(false)
-		setopen(false)
 	}
 
 	const handleEmployeeAdd = () => {
@@ -93,9 +117,17 @@ function Approval({ setopen }) {
 				}}
 				validationSchema={validationSchema}
 				onSubmit={async (values) => {
-					setLoader(true)
+					const { confirm, ...rest } = values
 					try {
-						const res = await createApproval({ ...values, owner: currentEmployee.id })
+						const findApproravls = !confirm && findDatesInApproval(approvals, values.start, values.end)
+						if (findApproravls) {
+							setmatchingApproval(findApproravls)
+							setopenDialog(true)
+							return
+						}
+						setopenDialog(false)
+						setLoader(true)
+						const res = await createApproval({ ...rest, owner: currentEmployee?.id })
 						if (res.status === 201) {
 							const promises = addedEmp.map((obj, index) =>
 								createApprovers({
@@ -379,7 +411,6 @@ function Approval({ setopen }) {
 									fullWidth
 									variant="contained"
 									sx={{ marginTop: 2 }}
-									// onClick={handleClickOpen}
 									type="submit"
 									disabled={loader || !addedEmp.length}
 								>
@@ -388,7 +419,15 @@ function Approval({ setopen }) {
 							</>
 						)}
 
-						<ConfirmationDialog handleClose={handleClose} open={openDialog} />
+						{openDialog && (
+							<ConfirmationDialog
+								handleClose={handleClose}
+								open={openDialog}
+								handleSubmit={handleSubmit}
+								matchingApproval={matchingApproval}
+								setFieldValue={setFieldValue}
+							/>
+						)}
 					</Form>
 				)}
 			</Formik>

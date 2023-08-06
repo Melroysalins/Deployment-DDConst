@@ -1,11 +1,13 @@
+/* eslint-disable react/prop-types */
 import * as React from 'react'
 import DialogTitle from '@mui/material/DialogTitle'
 import Dialog from '@mui/material/Dialog'
 import { Box, Stack } from '@mui/material'
 import Iconify from 'components/Iconify'
+import { fDateLocale } from 'utils/formatTime'
 
 function SimpleDialog(props) {
-	const { onClose, selectedValue, open } = props
+	const { onClose, selectedValue, open, handleSubmit, matchingApproval, setFieldValue } = props
 
 	const handleClose = () => {
 		onClose(selectedValue)
@@ -16,7 +18,8 @@ function SimpleDialog(props) {
 			<DialogTitle sx={{ background: '#8D99FF', color: '#fff', fontWeight: 500 }}>Pay Attention</DialogTitle>
 			<Box textAlign={'center'} sx={{ padding: '10px', maxWidth: '75%', margin: 'auto' }}>
 				<span style={{ fontSize: '1.1rem', fontWeight: 600 }}>
-					Date Range 24/06/2023 -24/06/2023 was previously approved.
+					Date Range {fDateLocale(matchingApproval?.start)} - {fDateLocale(matchingApproval?.end)} was previously{' '}
+					{matchingApproval?.status}.
 				</span>
 				<div style={{ marginTop: 10, fontSize: '0.9rem' }}>
 					By requesting an Approval, you will be overwriting any approved Date Ranges back to Pending. Would you still
@@ -42,7 +45,10 @@ function SimpleDialog(props) {
 					alignItems={'center'}
 					color={'#8D99FF'}
 					sx={{ cursor: 'pointer' }}
-					onClick={handleClose}
+					onClick={() => {
+						setFieldValue('confirm', true)
+						handleSubmit()
+					}}
 				>
 					<Iconify icon="charm:tick" width={16} height={16} />
 					Confirm
@@ -52,10 +58,16 @@ function SimpleDialog(props) {
 	)
 }
 
-export default function ConfirmationDialog({ handleClose, open }) {
+export default function ConfirmationDialog({ handleClose, open, handleSubmit, matchingApproval, setFieldValue }) {
 	return (
 		<>
-			<SimpleDialog open={open} onClose={handleClose} />
+			<SimpleDialog
+				open={open}
+				onClose={handleClose}
+				handleSubmit={handleSubmit}
+				matchingApproval={matchingApproval}
+				setFieldValue={setFieldValue}
+			/>
 		</>
 	)
 }
