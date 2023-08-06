@@ -9,6 +9,7 @@ import TableRow from '@mui/material/TableRow'
 import Paper from '@mui/material/Paper'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
+import { useTranslation } from 'react-i18next'
 
 function createData(name, calories, fat, carbs1, carbs2, carbs3, protein) {
 	return { name, calories, fat, carbs1, carbs2, carbs3, protein }
@@ -24,6 +25,7 @@ const rows = [
 ]
 
 function ProgressRate() {
+	const { t } = useTranslation()
 	const [isCollapsed, setisCollapsed] = useState(false)
 	return (
 		<>
@@ -38,7 +40,7 @@ function ProgressRate() {
 				>
 					<Stack width={'100%'} direction="row" justifyContent={'space-between'}>
 						<Typography color={'#DA4C57'} variant="body1" fontWeight={600}>
-							Process/Funds
+							{t('progress_rate')}
 						</Typography>
 
 						<Box

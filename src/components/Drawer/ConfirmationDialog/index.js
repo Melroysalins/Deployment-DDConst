@@ -5,8 +5,10 @@ import Dialog from '@mui/material/Dialog'
 import { Box, Stack } from '@mui/material'
 import Iconify from 'components/Iconify'
 import { fDateLocale } from 'utils/formatTime'
+import { useTranslation } from 'react-i18next'
 
 function SimpleDialog(props) {
+	const { t } = useTranslation()
 	const { onClose, selectedValue, open, handleSubmit, matchingApproval, setFieldValue } = props
 
 	const handleClose = () => {
@@ -15,16 +17,13 @@ function SimpleDialog(props) {
 
 	return (
 		<Dialog onClose={handleClose} open={open} sx={{ maxWidth: '40%', margin: 'auto' }}>
-			<DialogTitle sx={{ background: '#8D99FF', color: '#fff', fontWeight: 500 }}>Pay Attention</DialogTitle>
+			<DialogTitle sx={{ background: '#8D99FF', color: '#fff', fontWeight: 500 }}>{t('pay_attention')}</DialogTitle>
 			<Box textAlign={'center'} sx={{ padding: '10px', maxWidth: '75%', margin: 'auto' }}>
 				<span style={{ fontSize: '1.1rem', fontWeight: 600 }}>
-					Date Range {fDateLocale(matchingApproval?.start)} - {fDateLocale(matchingApproval?.end)} was previously{' '}
-					{matchingApproval?.status}.
+					{t('date_range')} {fDateLocale(matchingApproval?.start)} - {fDateLocale(matchingApproval?.end)}{' '}
+					{t('was_previously')} {matchingApproval?.status}.
 				</span>
-				<div style={{ marginTop: 10, fontSize: '0.9rem' }}>
-					By requesting an Approval, you will be overwriting any approved Date Ranges back to Pending. Would you still
-					like to proceed?
-				</div>
+				<div style={{ marginTop: 10, fontSize: '0.9rem' }}>{t('overwriting_text')}</div>
 			</Box>
 
 			<Stack direction={'row'} justifyContent={'space-between'} m={'7px 20px 17px 20px'}>
@@ -37,7 +36,7 @@ function SimpleDialog(props) {
 					onClick={handleClose}
 				>
 					<Iconify icon="ic:round-close" width={16} height={16} />
-					Cancel
+					{t('cancel')}
 				</Stack>
 				<Stack
 					direction={'row'}
@@ -51,7 +50,7 @@ function SimpleDialog(props) {
 					}}
 				>
 					<Iconify icon="charm:tick" width={16} height={16} />
-					Confirm
+					{t('confirm')}
 				</Stack>
 			</Stack>
 		</Dialog>

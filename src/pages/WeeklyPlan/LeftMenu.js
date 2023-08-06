@@ -38,13 +38,14 @@ ProcessListItem.propTypes = {
 }
 
 function ProcessListItem({ event }) {
+	const { t } = useTranslation()
 	return (
 		<>
 			{event.id > 1 && <Divider />}
 			<ListItem sx={{ justifyContent: 'space-between' }}>
 				<Stack>
 					<Typography fontSize={13}>
-						{event.id}. {event?.title}
+						{event.id}. {t(`${event?.title}`)}
 					</Typography>
 					{event?.detail && (
 						<Typography fontSize={11} fontWeight={500}>
@@ -110,37 +111,37 @@ function LeftMenu({ project }) {
 	const Funds = [
 		{
 			id: '1',
-			title: 'Contruction Period',
+			title: 'contruction_period',
 			right: `${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}`,
 			detail: '',
 			icon: 'radix-icons:person',
 		},
 		{
 			id: '2',
-			title: 'Contract',
+			title: 'contract',
 			right: `${contract_value} KRW`,
 			detail: '',
 		},
 		{
 			id: '3',
-			title: 'Used Cons',
+			title: 'used_cons',
 			right: '20/01/2023 - 20/01/2023',
 			detail: '',
 		},
 		{
 			id: '4',
-			title: 'Construction',
+			title: 'construction',
 			right: `${new Date(start).toLocaleDateString()} - ${new Date(end).toLocaleDateString()}`,
 			detail: '',
 		},
 		{
 			id: '5',
-			title: 'Project Details',
+			title: 'project_details',
 			detail: `${contracted_source}, ${construction_type}`,
 		},
 		{
 			id: '6',
-			title: 'Special situations',
+			title: 'special_situations',
 			detail: 'Constrction Sections Constrction Sections Constrction Sections',
 		},
 	]
@@ -164,7 +165,7 @@ function LeftMenu({ project }) {
 				<Paper sx={{ padding: 1, borderRadius: !isCollapsed ? '6px 6px 0 0' : '6px' }}>
 					<Stack width={'100%'} direction="row" justifyContent={'space-between'}>
 						<Typography color={'#DA4C57'} variant="body1" fontWeight={600}>
-							Process/Funds
+							{t('process_funds')}
 						</Typography>
 
 						<Box

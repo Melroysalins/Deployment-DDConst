@@ -8,6 +8,7 @@ import Approval from '../Approval'
 import Info from '../Info'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next'
 
 TabPanel.propTypes = {
 	children: PropTypes.node,
@@ -49,7 +50,7 @@ BasicTabs.propTypes = {
 
 export default function BasicTabs({ open, setopen }) {
 	const [value, setValue] = React.useState(2)
-
+	const { t } = useTranslation()
 	const handleChange = (event, newValue) => {
 		setValue(newValue)
 	}
@@ -69,9 +70,9 @@ export default function BasicTabs({ open, setopen }) {
 						textColor="secondary"
 						indicatorColor="secondary"
 					>
-						<Tab label="Info" {...a11yProps(0)} />
-						<Tab label="Logs" {...a11yProps(1)} />
-						<Tab icon={<SettingsOutlinedIcon sx={{ width: 18 }} />} iconPosition="end" label="Approval" />
+						<Tab label={t('info')} {...a11yProps(0)} />
+						<Tab label={t('logs')} {...a11yProps(1)} />
+						<Tab icon={<SettingsOutlinedIcon sx={{ width: 18 }} />} iconPosition="end" label={t('approval')} />
 					</Tabs>
 				</Box>
 				<TabPanel value={value} index={0}>

@@ -6,8 +6,10 @@ import { Box, CircularProgress, InputAdornment, Stack, TextField } from '@mui/ma
 import Iconify from 'components/Iconify'
 import useMain from 'pages/context/context'
 import { ApprovalStatus } from 'constant'
+import { useTranslation } from 'react-i18next'
 
 function SimpleDialog(props) {
+	const { t } = useTranslation()
 	const [comment, setcomment] = useState('')
 	const { currentApproval } = useMain()
 	const { employee, approval } = currentApproval || {}
@@ -19,21 +21,21 @@ function SimpleDialog(props) {
 
 	return (
 		<Dialog onClose={handleClose} open={open} sx={{ maxWidth: '40%', margin: 'auto' }}>
-			<DialogTitle sx={{ background: '#DA4C57', color: '#fff', fontWeight: 500 }}>Add rejection reason</DialogTitle>
+			<DialogTitle sx={{ background: '#DA4C57', color: '#fff', fontWeight: 500 }}>{t('rejection_reason')}</DialogTitle>
 			<Box sx={{}} p={3}>
-				<span style={{ fontSize: '1.1rem', fontWeight: 600 }}>Please add a comment to continue.</span>
+				<span style={{ fontSize: '1.1rem', fontWeight: 600 }}>{t('rejection_text1')}.</span>
 				<br />
-				<span style={{ fontSize: '0.9rem' }}>Comment(s) are required when rejecting an Approval Request. </span>
+				<span style={{ fontSize: '0.9rem' }}>{t('rejection_text2')}</span>
 
 				<Box mt={2}>
-					<div style={{ fontSize: '0.85rem', marginBottom: 3 }}>Connected Reason</div>
+					<div style={{ fontSize: '0.85rem', marginBottom: 3 }}>{t('connected_reason')}</div>
 					<TextField
 						size="small"
 						name="instanse"
 						disabled
 						value={`${employee.name || employee.email}, ${new Date(approval.created_at).toLocaleDateString()}`}
 						fullWidth
-						label="Instanse type, Employee, Date"
+						label={t('intance_type_date')}
 						InputProps={{
 							endAdornment: (
 								<InputAdornment position="end">
@@ -45,13 +47,13 @@ function SimpleDialog(props) {
 				</Box>
 
 				<Box mt={1}>
-					<div style={{ fontSize: '0.85rem', marginBottom: 3 }}>Comment</div>
+					<div style={{ fontSize: '0.85rem', marginBottom: 3 }}>{t('comment')}</div>
 					<TextField
 						name="comment"
 						value={comment}
 						onChange={(e) => setcomment(e.target.value)}
 						fullWidth
-						label="Text here"
+						label={t('text_here')}
 						multiline
 						minRows={3}
 					/>
@@ -66,7 +68,7 @@ function SimpleDialog(props) {
 						onClick={() => setopenRejectionDialog(false)}
 					>
 						<Iconify icon="ic:round-close" width={16} height={16} />
-						Cancel
+						{t('cancel')}
 					</Stack>
 					<Stack
 						direction={'row'}
@@ -81,7 +83,7 @@ function SimpleDialog(props) {
 						) : (
 							<Iconify icon="charm:tick" width={16} height={16} />
 						)}
-						Save
+						{t('save')}
 					</Stack>
 				</Stack>
 			</Box>

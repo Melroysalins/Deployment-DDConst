@@ -19,6 +19,7 @@ import { fDateLocale } from 'utils/formatTime'
 import useMain from 'pages/context/context'
 import { useNavigate } from 'react-router-dom'
 import { ApprovalStatus } from 'constant'
+import { useTranslation } from 'react-i18next'
 
 const currentDate = moment()
 const groupObjectsByDate = (approvals) => {
@@ -46,6 +47,7 @@ const groupObjectsByDate = (approvals) => {
 export default function Messages() {
 	const [approvalsArr, setapprovalsArr] = useState([])
 	const { currentEmployee } = useMain()
+	const { t } = useTranslation()
 
 	const { isFetching } = useQuery(['ApproverDetail'], () => getApproversDetailByEmployee(currentEmployee.id), {
 		select: (r) => r.data,
@@ -63,11 +65,11 @@ export default function Messages() {
 
 				<Box>
 					<Typography variant="body1" sx={{ fontWeight: 600 }}>
-						Yesterday
+						{t('yesterday')}
 					</Typography>
 					{!approvalsArr.yesterday?.length ? (
 						<Box sx={{ fontWeight: 600, marginBottom: 3 }} align="center" mt={2}>
-							{isFetching ? <CircularProgress size={22} fontSize="inherit" /> : 'No Notication Found'}
+							{isFetching ? <CircularProgress size={22} fontSize="inherit" /> : t('no_notification')}
 						</Box>
 					) : null}
 				</Box>
@@ -77,11 +79,11 @@ export default function Messages() {
 				))}
 				<Box>
 					<Typography variant="body2" sx={{ fontWeight: 600 }}>
-						Older
+						{t('older')}
 					</Typography>
 					{!approvalsArr.older?.length ? (
 						<Box sx={{ fontWeight: 600, marginBottom: 3 }} align="center" mt={2}>
-							{isFetching ? <CircularProgress size={22} fontSize="inherit" /> : 'No Notication Found'}
+							{isFetching ? <CircularProgress size={22} fontSize="inherit" /> : t('no_notification')}
 						</Box>
 					) : null}
 				</Box>
@@ -119,6 +121,7 @@ function TaskNotification({ notification }) {
 function RenderContent(notification) {
 	const { setopenaccoutReview, setcurrentApproval, setopenNotification } = useMain()
 	const navigate = useNavigate()
+	const { t } = useTranslation()
 
 	const handlePageNavigation = (detail) => {
 		setcurrentApproval(detail)
@@ -131,7 +134,7 @@ function RenderContent(notification) {
 	const title = (
 		<>
 			<Stack flexDirection={'row'} justifyContent={'space-between'}>
-				<Typography variant="subtitle2">Approval Request</Typography>
+				<Typography variant="subtitle2">{t('approval_request')}</Typography>
 				{status !== ApprovalStatus.Planned && (
 					<img
 						style={{ width: 18, height: 18 }}
@@ -150,14 +153,14 @@ function RenderContent(notification) {
 					variant="body2"
 					sx={{ color: (theme) => theme.palette.primary.light, cursor: 'auto' }}
 				>
-					Automated
+					{t('automated')}
 				</Typography>
 				<Typography
 					component="span"
 					variant="body2"
 					sx={{ color: 'text.secondary', cursor: 'auto', fontSize: '0.9rem' }}
 				>
-					&nbsp;Approval request for {project.title} {from_page} ( {fDateLocale(start)} - {fDateLocale(end)} )
+					&nbsp;{t('approval_request_for')} {project.title} {from_page} ( {fDateLocale(start)} - {fDateLocale(end)} )
 				</Typography>
 
 				<Typography
@@ -171,7 +174,7 @@ function RenderContent(notification) {
 					}}
 					onClick={() => handlePageNavigation(notification)}
 				>
-					Go to Page&nbsp;
+					{t('goto_page')} &nbsp;
 					<Iconify icon="ic:round-arrow-forward" width={15} sx={{ fontWeight: 600 }} />
 				</Typography>
 			</Typography>

@@ -10,8 +10,10 @@ import { useQuery } from 'react-query'
 import { getApproversByApproval, updateApproval, updateApprovers } from 'supabase/approval'
 import { fDateLocale } from 'utils/formatTime'
 import { ApprovalStatus, getNameApprovalStatus } from 'constant'
+import { useTranslation } from 'react-i18next'
 
 export default function ApprovalRequest() {
+	const { t } = useTranslation()
 	const {
 		openaccoutReview,
 		setopenaccoutReview,
@@ -92,14 +94,14 @@ export default function ApprovalRequest() {
 				variant="permanent"
 				open={openaccoutReview}
 				setopen={setopenaccoutReview}
-				headerText={'Approval Request'}
+				headerText={t('approval_request')}
 				onBack={() => {
 					setopenNotification(true)
 					handleCloseDrawer()
 				}}
 				headerRightSide={
 					<Typography sx={{ color: '#FF6B00', fontSize: '0.8rem' }}>
-						Deadline: {fDateLocale(approval.deadline)}
+						{t('deadline')}: {fDateLocale(approval.deadline)}
 					</Typography>
 				}
 			>
@@ -118,7 +120,7 @@ export default function ApprovalRequest() {
 				</Stack>
 				<Box style={{ padding: '5px 20px' }}>
 					<Stack direction="row" gap={1} alignItems={'center'} justifyContent={'space-between'}>
-						<Typography sx={{}}>Approvers</Typography>
+						<Typography sx={{}}>{t('approvers')}</Typography>
 						<Typography
 							sx={{
 								color: (theme) => theme.palette.primary.light,
@@ -127,7 +129,7 @@ export default function ApprovalRequest() {
 								alignItems: 'center',
 							}}
 						>
-							See detailed history
+							{t('detail_history')}
 							<Iconify icon={'ic:round-arrow-forward'} width={15} height={15} />
 						</Typography>
 					</Stack>
@@ -237,8 +239,8 @@ export default function ApprovalRequest() {
 					>
 						{addComment ? (
 							<>
-								<h5 style={{ marginBottom: 5 }}>Add Comment</h5>
-								<div style={{ fontSize: '0.85rem', marginBottom: 3 }}>Comment</div>
+								<h5 style={{ marginBottom: 5 }}>{t('add_comment')}</h5>
+								<div style={{ fontSize: '0.85rem', marginBottom: 3 }}>{t('comment')}</div>
 								<TextField
 									name="comment"
 									value={''}
@@ -256,7 +258,7 @@ export default function ApprovalRequest() {
 														display: 'flex',
 													}}
 												>
-													Send
+													{t('send')}
 													<Iconify icon="carbon:send" style={{ transform: 'rotate(270deg)' }} />
 												</Typography>
 											</InputAdornment>
@@ -273,7 +275,7 @@ export default function ApprovalRequest() {
 									mt={1}
 									onClick={() => setaddComment(true)}
 								>
-									<h5 style={{ marginBottom: 5 }}>Add Comment</h5>
+									<h5 style={{ marginBottom: 5 }}>{t('add_comment')}</h5>
 									<Iconify icon="material-symbols:add" width={16} height={16} />
 								</Stack>
 							</>
@@ -298,7 +300,7 @@ export default function ApprovalRequest() {
 									onClick={handleRejectionDialogOpen}
 									disabled={isUpdating}
 								>
-									Reject
+									{t('reject')}
 								</Button>
 
 								<Button
@@ -323,7 +325,7 @@ export default function ApprovalRequest() {
 									onClick={() => handleApproveReject(ApprovalStatus.Approved)}
 									disabled={isUpdating}
 								>
-									Approve
+									{t('approve')}
 								</Button>
 							</Stack>
 
@@ -335,7 +337,7 @@ export default function ApprovalRequest() {
 									onClick={handleSaveDialogOpen}
 									disabled={isUpdating}
 								>
-									Save & Continue Later
+									{t('continue_later')}
 								</Button>
 							</Box>
 						</>
@@ -343,7 +345,7 @@ export default function ApprovalRequest() {
 						!!currentApproverStatus && (
 							<Box sx={{ margin: 'auto', width: '100%', textAlign: 'center' }} pt={2}>
 								<Typography variant="h5">
-									Status {currentApproverStatus === ApprovalStatus.Approved ? 'Approved' : 'Rejected'}
+									{t('status')} {currentApproverStatus === ApprovalStatus.Approved ? 'Approved' : 'Rejected'}
 								</Typography>
 							</Box>
 						)

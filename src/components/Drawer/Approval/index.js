@@ -31,6 +31,7 @@ import PropTypes from 'prop-types'
 import { ApprovalStatus, approvalStatus } from 'constant'
 import DragList from './DragList'
 import useMain from 'pages/context/context'
+import { useTranslation } from 'react-i18next'
 
 const validationSchema = Yup.object().shape({
 	project: Yup.string().required('Required').nullable(),
@@ -63,6 +64,7 @@ const findDatesInApproval = (approvals, newStart, newEnd) => {
 }
 
 function Approval({ setopen }) {
+	const { t } = useTranslation()
 	const { currentEmployee } = useMain()
 	const { id: projectId } = useParams()
 	const [addedEmp, setaddedEmp] = React.useState([])
@@ -152,11 +154,11 @@ function Approval({ setopen }) {
 				{({ values, handleSubmit, errors, touched, handleChange, handleBlur, setFieldValue }) => (
 					<Form onSubmit={handleSubmit}>
 						<Box>
-							<div style={{ fontSize: '0.85rem', marginBottom: 5 }}>Project Name</div>
+							<div style={{ fontSize: '0.85rem', marginBottom: 5 }}>{t('project_name')}</div>
 							<FormControl fullWidth>
-								<InputLabel id="demo-simple-select-helper-label">Project Name</InputLabel>
+								<InputLabel id="demo-simple-select-helper-label">{t('project_name')}</InputLabel>
 								<Select
-									label="Project Name"
+									label={t('project_name')}
 									sx={{ mb: 1, mt: 0 }}
 									name="project"
 									size="small"
@@ -176,11 +178,11 @@ function Approval({ setopen }) {
 								</FormHelperText>
 							</FormControl>
 
-							<div style={{ fontSize: '0.85rem', marginBottom: 5 }}>Page/Stage</div>
+							<div style={{ fontSize: '0.85rem', marginBottom: 5 }}>{t('page_stage')}</div>
 							<FormControl fullWidth>
-								<InputLabel id="demo-simple-select-helper-label">Page/Stage</InputLabel>
+								<InputLabel id="demo-simple-select-helper-label">{t('page_stage')}</InputLabel>
 								<Select
-									label="Page/Stage"
+									label={t('page_stage')}
 									sx={{ mb: 1, mt: 0 }}
 									name="page"
 									size="small"
@@ -200,7 +202,7 @@ function Approval({ setopen }) {
 								</FormHelperText>
 							</FormControl>
 
-							<div style={{ fontSize: '0.85rem', marginBottom: 3 }}>TimeFrame</div>
+							<div style={{ fontSize: '0.85rem', marginBottom: 5 }}>{t('timeframe')}</div>
 							<Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
 								<Box sx={{ width: '45%' }}>
 									<LocalizationProvider dateAdapter={AdapterMoment}>
@@ -215,7 +217,7 @@ function Approval({ setopen }) {
 											name="start"
 											fullWidth
 											id="outlined-textarea"
-											label="Start"
+											label={t('start')}
 											placeholder=""
 											renderInput={(params) => (
 												<TextField
@@ -243,7 +245,7 @@ function Approval({ setopen }) {
 											name="end"
 											fullWidth
 											id="outlined-textarea"
-											label="End"
+											label={t('end')}
 											placeholder=""
 											renderInput={(params) => (
 												<TextField
@@ -259,7 +261,7 @@ function Approval({ setopen }) {
 								</Box>
 							</Box>
 
-							<div style={{ fontSize: '0.85rem', marginBottom: 3, marginTop: 8 }}>Deadline</div>
+							<div style={{ fontSize: '0.85rem', marginBottom: 5, marginTop: 8 }}>{t('deadline')}</div>
 							<LocalizationProvider dateAdapter={AdapterMoment}>
 								<DatePicker
 									inputFormat="YYYY-MM-DD"
@@ -272,7 +274,7 @@ function Approval({ setopen }) {
 									name="deadline"
 									fullWidth
 									id="outlined-textarea"
-									label="Deadline"
+									label={t('deadline')}
 									placeholder=""
 									renderInput={(params) => (
 										<TextField
@@ -286,14 +288,14 @@ function Approval({ setopen }) {
 								/>
 							</LocalizationProvider>
 
-							<div style={{ fontSize: '0.85rem', marginBottom: 3, paddingTop: 7 }}>Comment</div>
+							<div style={{ fontSize: '0.85rem', marginBottom: 5, paddingTop: 7 }}>{t('comment')}</div>
 							<TextField
 								name="comment"
 								value={values.comment}
 								onChange={handleChange}
 								onBlur={handleBlur}
 								fullWidth
-								label="Text here"
+								label={t('text_here')}
 								multiline
 							/>
 							<FormHelperText error={errors.comment && touched.comment}>
@@ -306,12 +308,12 @@ function Approval({ setopen }) {
 						<Paper elevation={12} sx={{ border: '1px solid transparent', borderRadius: 1, padding: '5px 7px' }}>
 							{addApprover ? (
 								<>
-									<h5 style={{ marginBottom: 5 }}>Add approver</h5>
-									<div style={{ fontSize: '0.85rem', marginBottom: 3 }}>Approver</div>
+									<h5 style={{ marginBottom: 5 }}>{t('add_approver')}</h5>
+									<div style={{ fontSize: '0.85rem', marginBottom: 5 }}>{t('approver')}</div>
 									<FormControl fullWidth>
-										<InputLabel id="demo-simple-select-helper-label">Approver</InputLabel>
+										<InputLabel id="demo-simple-select-helper-label">{t('approver')}</InputLabel>
 										<Select
-											label="Approver"
+											label={t('approver')}
 											sx={{ mb: 1, mt: 0 }}
 											name="approver"
 											size="small"
@@ -335,11 +337,11 @@ function Approval({ setopen }) {
 										</Select>
 									</FormControl>
 
-									<div style={{ fontSize: '0.85rem', marginBottom: 3 }}>Occupation</div>
+									<div style={{ fontSize: '0.85rem', marginBottom: 5 }}>{t('occupation')}</div>
 									<FormControl fullWidth>
-										<InputLabel id="demo-simple-select-helper-label">Occupation</InputLabel>
+										<InputLabel id="demo-simple-select-helper-label">{t('occupation')}</InputLabel>
 										<Select
-											label="Occupation"
+											label={t('occupation')}
 											sx={{ mb: 1, mt: 0 }}
 											name="occupation"
 											size="small"
@@ -364,7 +366,7 @@ function Approval({ setopen }) {
 											onClick={() => setaddApprover(!addApprover)}
 										>
 											<Iconify icon="ic:round-close" width={16} height={16} />
-											Cancel
+											{t('cancel')}
 										</Stack>
 										<Stack
 											direction={'row'}
@@ -375,7 +377,7 @@ function Approval({ setopen }) {
 											onClick={() => currentApprover && handleEmployeeAdd()}
 										>
 											<Iconify icon="charm:tick" width={16} height={16} />
-											Add
+											{t('add')}
 										</Stack>
 									</Stack>
 								</>
@@ -388,7 +390,7 @@ function Approval({ setopen }) {
 										mt={1}
 										onClick={() => setaddApprover(true)}
 									>
-										<h5 style={{ marginBottom: 5 }}>Add approver</h5>
+										<h5 style={{ marginBottom: 5 }}>{t('add_approver')}</h5>
 										<Iconify icon="material-symbols:add" width={16} height={16} />
 									</Stack>
 								</>
@@ -399,11 +401,11 @@ function Approval({ setopen }) {
 								<Stack direction={'row'} gap={1} justifyContent={'space-between'} sx={{ cursor: 'pointer' }} mt={1}>
 									<Paper elevation={12} sx={{ border: '1px solid transparent', borderRadius: 1, padding: '5px 7px' }}>
 										<Radio size="small" style={{ padding: '0 3px' }} />
-										<span style={{ fontSize: '0.8rem' }}>Include all approvals</span>
+										<span style={{ fontSize: '0.8rem' }}>{t('include_approvals')}</span>
 									</Paper>
 									<Paper elevation={12} sx={{ border: '1px solid transparent', borderRadius: 1, padding: '5px 7px' }}>
 										<Radio size="small" style={{ padding: '0 3px' }} />
-										<span style={{ fontSize: '0.8rem' }}>Continue rejector</span>
+										<span style={{ fontSize: '0.8rem' }}>{t('continue_rejector')}</span>
 									</Paper>
 								</Stack>
 
@@ -414,7 +416,7 @@ function Approval({ setopen }) {
 									type="submit"
 									disabled={loader || !addedEmp.length}
 								>
-									{loader ? <CircularProgress size={17} fontSize="inherit" /> : 'Request approval'}
+									{loader ? <CircularProgress size={17} fontSize="inherit" /> : t('request_Approval')}
 								</Button>
 							</>
 						)}

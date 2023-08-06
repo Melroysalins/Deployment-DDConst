@@ -7,6 +7,7 @@ import Box from '@mui/material/Box'
 import LeftDrawer from 'components/LeftDrawer'
 import Messages from './Messages'
 import PropTypes from 'prop-types'
+import { useTranslation } from 'react-i18next'
 
 TabPanel.propTypes = {
 	children: PropTypes.node,
@@ -44,6 +45,7 @@ function a11yProps(index) {
 export default function Notifications() {
 	const { openNotification, setopenNotification } = useMain()
 	const [value, setValue] = React.useState(0)
+	const { t } = useTranslation()
 
 	const handleChange = (event, newValue) => {
 		setValue(newValue)
@@ -53,7 +55,7 @@ export default function Notifications() {
 		<LeftDrawer
 			open={openNotification}
 			setopen={setopenNotification}
-			headerText={'Inbox'}
+			headerText={t('inbox')}
 			onBack={() => setopenNotification(false)}
 		>
 			<Box>
@@ -69,9 +71,9 @@ export default function Notifications() {
 						textColor="secondary"
 						indicatorColor="secondary"
 					>
-						<Tab label="All" {...a11yProps(0)} />
-						<Tab label="Unread" {...a11yProps(1)} />
-						<Tab label="Tasks" />
+						<Tab label={t('all')} {...a11yProps(0)} />
+						<Tab label={t('unread')} {...a11yProps(1)} />
+						<Tab label={t('tasks')} />
 					</Tabs>
 				</Box>
 				<TabPanel value={value} index={0}>

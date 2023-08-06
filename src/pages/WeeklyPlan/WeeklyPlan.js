@@ -186,8 +186,8 @@ function WeeklyPlan() {
 					{isFirstDay && (
 						<>
 							{thisWeek
-								? `This Week Progress (${fDateLocale(startOfWeek)} - ${fDateLocale(endOfWeek)})`
-								: `Next Weeks Plan (${fDateLocale(startNextWeek)} - ${fDateLocale(endNextWeek)})`}
+								? `${t('week_progress')} (${fDateLocale(startOfWeek)} - ${fDateLocale(endOfWeek)})`
+								: `${t('next_week_plan')} (${fDateLocale(startNextWeek)} - ${fDateLocale(endNextWeek)})`}
 						</>
 					)}
 				</div>
@@ -195,7 +195,7 @@ function WeeklyPlan() {
 					{isFirstDay && (
 						<>
 							<span>
-								APPROVAL STATUS:{' '}
+								{t('approval_satus')}:{' '}
 								<span style={{ color: colorHeading[checkStatus] }}>
 									{checkStatus === ApprovalStatus.Planned ? 'Pending' : checkStatus}
 								</span>
@@ -237,8 +237,8 @@ function WeeklyPlan() {
 	const renderCustomHeader = () => (
 		<>
 			<div className="md-resource-header-template-title">
-				<div className="md-resource-header-template-name">Work</div>
-				<div className="md-resource-header-template-seats">Location</div>
+				<div className="md-resource-header-template-name">{t('work')}</div>
+				<div className="md-resource-header-template-seats">{t('location')}</div>
 			</div>
 		</>
 	)
