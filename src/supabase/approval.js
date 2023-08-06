@@ -1,3 +1,4 @@
+import { ApprovalStatus } from 'constant'
 import { supabase } from 'lib/api'
 
 export const createApproval = async (data) => {
@@ -28,9 +29,12 @@ export const getApproversDetailByEmployee = async (employee) => {
 	const res = await supabase
 		.from('approvers')
 		.select('*')
-		.eq('employee', employee)
 		.select(`*, employee(id, name, email_address), approval(*,  project(id, title), owner(id, name, email_address))`)
-	return res
+	const currentApprover = res.data.filter((a) => a.employee.id === employee)
+	const rejectedApprovers = res.data.filter(
+		(a) => a.approval.owner.id === employee && a.status === ApprovalStatus.Rejected
+	)
+	return [...currentApprover, ...rejectedApprovers]
 }
 
 export const getApprovalsByProject = async (projectId) => {

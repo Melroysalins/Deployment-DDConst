@@ -50,7 +50,6 @@ export default function Messages() {
 	const { t } = useTranslation()
 
 	const { isFetching } = useQuery(['ApproverDetail'], () => getApproversDetailByEmployee(currentEmployee.id), {
-		select: (r) => r.data,
 		enabled: !!currentEmployee?.id,
 		onSuccess: (data) => {
 			setapprovalsArr(groupObjectsByDate(data))
@@ -119,7 +118,7 @@ function TaskNotification({ notification }) {
 // ----------------------------------------------------------------------
 
 function RenderContent(notification) {
-	const { setopenaccoutReview, setcurrentApproval, setopenNotification } = useMain()
+	const { setopenaccoutReview, setcurrentApproval, setopenNotification, currentEmployee } = useMain()
 	const navigate = useNavigate()
 	const { t } = useTranslation()
 
@@ -130,7 +129,9 @@ function RenderContent(notification) {
 		setopenNotification(false)
 	}
 
-	const { project, from_page, start, end, created_at, status } = notification.approval || {}
+	const { approval, employee, status: approverStatus, rejection_comment } = notification
+	const { project, from_page, start, end, created_at, status } = approval || {}
+	console.log(notification, '<--employee')
 	const title = (
 		<>
 			<Stack flexDirection={'row'} justifyContent={'space-between'}>
@@ -160,7 +161,20 @@ function RenderContent(notification) {
 					variant="body2"
 					sx={{ color: 'text.secondary', cursor: 'auto', fontSize: '0.9rem' }}
 				>
-					&nbsp;{t('approval_request_for')} {project.title} {from_page} ( {fDateLocale(start)} - {fDateLocale(end)} )
+					&nbsp;{t('approval_request_for')} {project.title} {from_page}
+					{` `}
+					<Typography variant="caption">
+						({fDateLocale(start)} - {fDateLocale(end)})
+					</Typography>
+					<Typography sx={{ color: '#FF6B00' }} variant="caption">
+						{currentEmployee && currentEmployee.id !== employee?.id && approverStatus === ApprovalStatus.Rejected ? (
+							<>
+								- Rejected by {employee?.name} <b>{`\n`}Reason:</b> {rejection_comment}
+							</>
+						) : (
+							''
+						)}
+					</Typography>
 				</Typography>
 
 				<Typography
