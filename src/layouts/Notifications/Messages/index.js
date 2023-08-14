@@ -131,11 +131,13 @@ function RenderContent(notification) {
 
 	const { approval, employee, status: approverStatus, rejection_comment } = notification
 	const { project, from_page, start, end, created_at, status } = approval || {}
-	console.log(notification, '<--employee')
+
+	const isRejected =
+		currentEmployee && currentEmployee.id !== employee?.id && approverStatus === ApprovalStatus.Rejected
 	const title = (
 		<>
 			<Stack flexDirection={'row'} justifyContent={'space-between'}>
-				<Typography variant="subtitle2">{t('approval_request')}</Typography>
+				<Typography variant="subtitle2">{t(isRejected ? 'approval_rejected' : 'approval_request')}</Typography>
 				{status !== ApprovalStatus.Planned && (
 					<img
 						style={{ width: 18, height: 18 }}
@@ -167,7 +169,7 @@ function RenderContent(notification) {
 						({fDateLocale(start)} - {fDateLocale(end)})
 					</Typography>
 					<Typography sx={{ color: '#FF6B00' }} variant="caption">
-						{currentEmployee && currentEmployee.id !== employee?.id && approverStatus === ApprovalStatus.Rejected ? (
+						{isRejected ? (
 							<>
 								- Rejected by {employee?.name} <b>{`\n`}Reason:</b> {rejection_comment}
 							</>
