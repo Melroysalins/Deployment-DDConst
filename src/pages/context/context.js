@@ -19,9 +19,11 @@ MainContext.displayName = 'MainContext'
 
 export const MainProvider = ({ children }) => {
 	const [state, dispatch] = useReducer(mainReducer, initial_state)
-	const { getSession, user, userLoading } = useAuthentication()
+	const { getSession, user, userLoading, currentEmployee } = useAuthentication()
 	const [openaccoutReview, setopenaccoutReview] = useState(false)
 	const [openNotification, setopenNotification] = useState(false)
+	const [currentApproval, setcurrentApproval] = useState(null)
+	const [refetchApprovals, setrefetchApprovals] = useState(false)
 
 	return (
 		<MainContext.Provider
@@ -35,6 +37,11 @@ export const MainProvider = ({ children }) => {
 				setopenaccoutReview,
 				openNotification,
 				setopenNotification,
+				currentApproval,
+				setcurrentApproval,
+				refetchApprovals,
+				setrefetchApprovals,
+				currentEmployee,
 			}}
 		>
 			{userLoading ? <></> : children}

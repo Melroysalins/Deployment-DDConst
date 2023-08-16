@@ -10,14 +10,15 @@ export default function LeftDrawer({
 	children,
 	onBack,
 	headerRightSide,
+	variant = 'temporary',
 }) {
 	const handleClose = () => {
 		setopen(false)
 	}
 
 	return (
-		<Drawer anchor={anchor} open={open} onClose={handleClose}>
-			<Box sx={{ width: 370, maxWidth: 420 }}>
+		<Drawer anchor={anchor} open={open} onClose={handleClose} variant={variant}>
+			<Box sx={{ width: 370, maxWidth: 400 }}>
 				{!!headerText && (
 					<Stack
 						direction="row"

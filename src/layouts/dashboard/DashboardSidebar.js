@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 // material
 import { styled, useTheme } from '@mui/material/styles'
@@ -16,8 +16,6 @@ import {
 } from '@mui/material'
 // mock
 import account from '../../_mock/account'
-// hooks
-import useResponsive from '../../hooks/useResponsive'
 // components
 import Logo from '../../components/Logo'
 import Scrollbar from '../../components/Scrollbar'
@@ -26,10 +24,10 @@ import NavSection, { ListItemIconStyle } from '../../components/NavSection'
 import navConfig from './NavConfig'
 import { DRAWER_WIDTH, DRAWER_WIDTH_COLLAPSED } from 'constant'
 import useMain from 'pages/context/context'
-import Iconify from 'components/Iconify'
 import Notifications from 'layouts/Notifications'
 import ApprovalRequest from 'layouts/ApprovalRequest'
 import { useTranslation } from 'react-i18next'
+import Iconify from 'components/Iconify'
 
 // ----------------------------------------------------------------------
 
@@ -121,10 +119,10 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
 }))
 
 export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
-	const { user, openNotification, setopenNotification, openaccoutReview } = useMain()
+	const { user, openNotification, openaccoutReview, setopenNotification } = useMain()
 	const { pathname } = useLocation()
 	const theme = useTheme()
-	const isDesktop = useResponsive('up', 'lg')
+	// const isDesktop = useResponsive('up', 'lg')
 	const matchUpMd = useMediaQuery(theme.breakpoints.up('md'))
 
 	const { i18n } = useTranslation()

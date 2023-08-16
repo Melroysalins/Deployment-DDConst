@@ -49,3 +49,8 @@ export const listEmployeesByTeam = async (team) => {
   `)
 	return res?.data
 }
+
+export const getEmployeeByUser = async (user) => {
+	const res = await supabase.from('employees').select('*').eq('user', user).single()
+	return res
+}

@@ -1,103 +1,115 @@
-import { set, sub } from 'date-fns'
-import { noCase } from 'change-case'
-import { faker } from '@faker-js/faker'
 import { useState } from 'react'
-import { Avatar, Typography, ListItemText, ListItemAvatar, ListItemButton, Box } from '@mui/material'
+import {
+	Avatar,
+	Typography,
+	ListItemText,
+	ListItemAvatar,
+	ListItemButton,
+	Box,
+	CircularProgress,
+	Stack,
+} from '@mui/material'
 import Scrollbar from 'components/Scrollbar'
 import Iconify from 'components/Iconify'
+import { getApproversDetailByEmployee } from 'supabase/approval'
+import { useQuery } from 'react-query'
+import moment from 'moment'
+import PropTypes from 'prop-types'
+import { fDateLocale } from 'utils/formatTime'
+import useMain from 'pages/context/context'
+import { useNavigate } from 'react-router-dom'
+import { ApprovalStatus } from 'constant'
+import { useTranslation } from 'react-i18next'
 
-// ----------------------------------------------------------------------
+const currentDate = moment()
+const groupObjectsByDate = (approvals) => {
+	const today = []
+	const yesterday = []
+	const older = []
 
-const NOTIFICATIONS = [
-	{
-		id: faker.datatype.uuid(),
-		title: 'Name Here',
-		description: 'sapien pellentesque necnon nisi.',
-		avatar: null,
-		type: 'Task',
-		createdAt: set(new Date(), { hours: 10, minutes: 30 }),
-		isUnRead: false,
-	},
-	{
-		id: faker.datatype.uuid(),
-		title: faker.name.findName(),
-		description: 'sapien pellentesque necnon nisi.',
-		avatar: '/static/mock-images/avatars/avatar_2.jpg',
-		type: 'Notification',
-		createdAt: sub(new Date(), { hours: 3, minutes: 30 }),
-		isUnRead: false,
-	},
-	{
-		id: faker.datatype.uuid(),
-		title: 'You have new message',
-		description: 'sapien pellentesque necnon nisi.',
-		avatar: null,
-		type: 'Notification',
-		createdAt: sub(new Date(), { days: 1, hours: 3, minutes: 30 }),
-		isUnRead: false,
-	},
-	{
-		id: faker.datatype.uuid(),
-		title: 'You have new mail',
-		description: 'sent from Guido Padberg',
-		avatar: null,
-		type: 'Notification',
-		createdAt: sub(new Date(), { days: 2, hours: 3, minutes: 30 }),
-		isUnRead: false,
-	},
-	{
-		id: faker.datatype.uuid(),
-		title: 'Delivery processing',
-		description: 'Your order is being shipped',
-		avatar: null,
-		type: 'Task',
-		createdAt: sub(new Date(), { days: 3, hours: 3, minutes: 30 }),
-		isUnRead: false,
-	},
-]
+	approvals.sort((a, b) => moment(b.approval.created_at) - moment(a.approval.created_at))
+
+	approvals.forEach((obj) => {
+		const objDate = moment(obj.approval.created_at)
+
+		if (objDate.isSame(currentDate, 'day')) {
+			today.push(obj)
+		} else if (objDate.isSame(currentDate.clone().subtract(1, 'days'), 'day')) {
+			yesterday.push(obj)
+		} else {
+			older.push(obj)
+		}
+	})
+
+	return { today, yesterday, older }
+}
 
 export default function Messages() {
-	const [notifications, setNotifications] = useState(NOTIFICATIONS)
+	const [approvalsArr, setapprovalsArr] = useState([])
+	const { currentEmployee } = useMain()
+	const { t } = useTranslation()
 
+	const { isFetching } = useQuery(['ApproverDetail'], () => getApproversDetailByEmployee(currentEmployee.id), {
+		enabled: !!currentEmployee?.id,
+		onSuccess: (data) => {
+			setapprovalsArr(groupObjectsByDate(data))
+		},
+	})
 	return (
 		<>
 			<Scrollbar>
-				<NotificationItem notification={NOTIFICATIONS[0]} />
+				{approvalsArr.today?.map((notification) => (
+					<TaskNotification key={notification.id} notification={notification} />
+				))}
 
 				<Box>
 					<Typography variant="body1" sx={{ fontWeight: 600 }}>
-						Yesterday
+						{t('yesterday')}
 					</Typography>
+					{!approvalsArr.yesterday?.length ? (
+						<Box sx={{ fontWeight: 600, marginBottom: 3 }} align="center" mt={2}>
+							{isFetching ? <CircularProgress size={22} fontSize="inherit" /> : t('no_notification')}
+						</Box>
+					) : null}
 				</Box>
 
-				{notifications.slice(2, 4).map((notification) => (
-					<NotificationItem key={notification.id} notification={notification} />
+				{approvalsArr.yesterday?.map((notification) => (
+					<TaskNotification key={notification.id} notification={notification} />
 				))}
 				<Box>
 					<Typography variant="body2" sx={{ fontWeight: 600 }}>
-						Last 7 Days
+						{t('older')}
 					</Typography>
+					{!approvalsArr.older?.length ? (
+						<Box sx={{ fontWeight: 600, marginBottom: 3 }} align="center" mt={2}>
+							{isFetching ? <CircularProgress size={22} fontSize="inherit" /> : t('no_notification')}
+						</Box>
+					) : null}
 				</Box>
 
-				{notifications.slice(2, 6).map((notification) => (
-					<NotificationItem key={notification.id} notification={notification} />
+				{approvalsArr.older?.map((notification) => (
+					<TaskNotification key={notification.id} notification={notification} />
 				))}
 			</Scrollbar>
 		</>
 	)
 }
 
-function NotificationItem({ notification }) {
-	const { avatar, title } = renderContent(notification)
+TaskNotification.propTypes = {
+	notification: PropTypes.object,
+}
 
+function TaskNotification({ notification }) {
+	const { avatar, title, created_at } = RenderContent(notification)
+	const hoursAgo = moment().diff(moment(created_at), 'hours')
 	return (
 		<ListItemButton sx={{ padding: '0px' }}>
-			<ListItemAvatar sx={{ width: 40, height: 75 }}>
+			<ListItemAvatar sx={{ width: 50, height: 90 }}>
 				<Avatar sx={{ bgcolor: 'background.neutral' }}>{avatar}</Avatar>
 			</ListItemAvatar>
 			<ListItemText
 				primary={title}
-				secondary={<Typography variant="caption">12 hours ago . {notification.type}</Typography>}
+				secondary={<Typography variant="caption">{hoursAgo} hours ago . Task</Typography>}
 			/>
 		</ListItemButton>
 	)
@@ -105,39 +117,95 @@ function NotificationItem({ notification }) {
 
 // ----------------------------------------------------------------------
 
-function renderContent(notification) {
+function RenderContent(notification) {
+	const { setopenaccoutReview, setcurrentApproval, setopenNotification, currentEmployee } = useMain()
+	const navigate = useNavigate()
+	const { t } = useTranslation()
+
+	const handlePageNavigation = (detail) => {
+		setcurrentApproval(detail)
+		setopenaccoutReview(true)
+		navigate(`/dashboard/projects/${detail.approval.project.id}/weekly-plan`, { replace: true })
+		setopenNotification(false)
+	}
+
+	const { approval, employee, status: approverStatus, rejection_comment } = notification
+	const { project, from_page, start, end, created_at, status } = approval || {}
+
+	const isRejected =
+		currentEmployee && currentEmployee.id !== employee?.id && approverStatus === ApprovalStatus.Rejected
 	const title = (
 		<>
-			<Typography variant="subtitle2">Donec velit neque auctor</Typography>
+			<Stack flexDirection={'row'} justifyContent={'space-between'}>
+				<Typography variant="subtitle2">{t(isRejected ? 'approval_rejected' : 'approval_request')}</Typography>
+				{status !== ApprovalStatus.Planned && (
+					<img
+						style={{ width: 18, height: 18 }}
+						src={`/static/icons/${status === ApprovalStatus.Approved ? 'approve.svg' : 'reject.svg'}`}
+						alt="icon"
+					/>
+				)}
+			</Stack>
 			<Typography variant="body2">
 				<Typography variant="caption" sx={{ color: (theme) => theme.palette.primary.light, fontSize: '14px' }}>
 					{notification.title}
 				</Typography>
 
-				<Typography component="span" variant="body2" sx={{ color: 'text.secondary' }}>
-					&nbsp;{noCase(notification.description)}
+				<Typography
+					component="span"
+					variant="body2"
+					sx={{ color: (theme) => theme.palette.primary.light, cursor: 'auto' }}
+				>
+					{t('automated')}
 				</Typography>
-				{notification.type === 'Task' && (
-					<Typography
-						variant="body2"
-						sx={{
-							color: (theme) => theme.palette.primary.light,
-							fontSize: '12px',
-							fontWeight: 600,
-							display: 'flex',
-							alignItems: 'center',
-						}}
-					>
-						Go to Task&nbsp;
-						<Iconify icon="ic:round-arrow-forward" width={15} sx={{ fontWeight: 600 }} />
+				<Typography
+					component="span"
+					variant="body2"
+					sx={{ color: 'text.secondary', cursor: 'auto', fontSize: '0.9rem' }}
+				>
+					&nbsp;{t('approval_request_for')} {project.title} {from_page}
+					{` `}
+					<Typography variant="caption">
+						({fDateLocale(start)} - {fDateLocale(end)})
 					</Typography>
-				)}
+					<Typography sx={{ color: '#FF6B00' }} variant="caption">
+						{isRejected ? (
+							<>
+								- Rejected by {employee?.name} <b>{`\n`}Reason:</b> {rejection_comment}
+							</>
+						) : (
+							''
+						)}
+					</Typography>
+				</Typography>
+
+				<Typography
+					variant="body2"
+					sx={{
+						color: (theme) => theme.palette.primary.light,
+						fontSize: '12px',
+						fontWeight: 600,
+						display: 'flex',
+						alignItems: 'center',
+					}}
+					onClick={() => handlePageNavigation(notification)}
+				>
+					{t('goto_page')} &nbsp;
+					<Iconify icon="ic:round-arrow-forward" width={15} sx={{ fontWeight: 600 }} />
+				</Typography>
 			</Typography>
 		</>
 	)
 
 	return {
-		avatar: notification.avatar ? <img alt={notification.title} src={notification.avatar} /> : null,
+		avatar: (
+			<img
+				alt={notification.approval.title}
+				style={{ width: 35, height: 35 }}
+				src={notification.approval.avatar || '/static/logo.svg'}
+			/>
+		),
 		title,
+		created_at,
 	}
 }

@@ -21,7 +21,7 @@ export default function Comment({ data, handleSetEvent }) {
 	const [isLoader, setisLoader] = useState(false)
 	const [isDelLoader, setisDelLoader] = useState(false)
 	const [isEdit, setisEdit] = useState(null)
-	const { user } = useMain()
+	const { user, currentEmployee } = useMain()
 	const [comment, setcomment] = useState('')
 	const [anchorEl, setAnchorEl] = useState(null)
 	const [currentId, setcurrentId] = useState(null)
@@ -52,10 +52,9 @@ export default function Comment({ data, handleSetEvent }) {
 	const saveComment = () => {
 		setisLoader(true)
 		const obj = {
-			user: user.id,
 			body: comment,
 			project_task: data.id,
-			user_email: user.email,
+			employee: currentEmployee.id,
 		}
 		createComment(obj).then(async () => {
 			handleSetEvent()
@@ -133,7 +132,7 @@ export default function Comment({ data, handleSetEvent }) {
 										variant="caption"
 										sx={{ color: (theme) => theme.palette.primary.light, fontSize: '14px' }}
 									>
-										&nbsp;{val.user_email}&nbsp;
+										&nbsp;{val.employee.name}&nbsp;
 									</Typography>
 									{isEdit !== val.id ? (
 										<>{val.body}</>
@@ -170,7 +169,7 @@ export default function Comment({ data, handleSetEvent }) {
 									Edited. {fDateLocale(new Date(val.created_at))} at {fTimeLocale(new Date(val.created_at))}
 								</Typography>
 							</Box>
-							{val.user !== user.id ? (
+							{val.employee.user !== user.id ? (
 								<Iconify icon="tabler:arrow-back-up" style={{ position: 'absolute', right: 0, top: 3 }} />
 							) : (
 								<>

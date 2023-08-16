@@ -27,6 +27,10 @@ import { useQuery } from 'react-query'
 import { deleteTask, listAllTaskGroups, listAllTasksByProject, updateTask } from 'supabase'
 import AddFormPopup from './Popup/AddFormPopup'
 import { useTranslation } from 'react-i18next'
+import useMain from 'pages/context/context'
+import { getApprovalsByProject } from 'supabase/approval'
+import { ApprovalStatus } from 'constant'
+import { fDateLocale } from 'utils/formatTime'
 
 setOptions({
 	theme: 'ios',
@@ -47,16 +51,33 @@ const defaultHolidays = [
 	{ background: 'rgba(100, 100, 100, 0.1)', recurring: { repeat: 'weekly', weekDays: 'SA' } },
 ]
 
+const colorApprovalTask = {
+	Approved: '#6AC79B',
+	Planned: '#8D99FF',
+	Rejected: 'red',
+}
+const colorHeading = {
+	Approved: '#6AC79B',
+	Planned: '#8D99FF',
+	Pending: '#8D99FF',
+	Rejected: 'red',
+}
+const colorApprovalSubTask = {
+	Approved: '#6AC750',
+	Planned: '#BDB2E9',
+	Rejected: '#FF6B00',
+}
+
 function WeeklyPlan() {
-	const { i18n } = useTranslation()
+	const { i18n, t } = useTranslation()
 	const isEng = i18n.language === 'en'
 	const [popupData, setPopupData] = React.useState(null)
-
+	const { currentApproval, setrefetchApprovals, refetchApprovals } = useMain()
 	const [isDrawerOpen, setisDrawerOpen] = React.useState(false)
 	const [myEvents, setMyEvents] = React.useState([])
 	const [isOpen, setOpen] = React.useState(false)
 	const [isEdit, setEdit] = React.useState(false)
-	const [mySelectedDate, setSelectedDate] = React.useState(new Date())
+	const [mySelectedDate, setSelectedDate] = React.useState(currentApproval?.approval?.start || new Date())
 	const [myResources, setMyResources] = React.useState([])
 	const [invalid] = React.useState([
 		{
@@ -69,9 +90,31 @@ function WeeklyPlan() {
 	const [loader, setLoader] = React.useState(false)
 	const [holidays, setHolidays] = React.useState(defaultHolidays)
 
+	useEffect(() => {
+		if (currentApproval) {
+			setSelectedDate(currentApproval?.approval?.start)
+		}
+	}, [currentApproval])
+
 	const { id } = useParams()
+
+	const { data: approvals, refetch: refetchApprovalByProject } = useQuery(
+		['ApprovalsByProject', id],
+		({ queryKey }) => getApprovalsByProject(queryKey[1]),
+		{
+			select: (r) => r.data,
+		}
+	)
+
+	useEffect(() => {
+		if (refetchApprovals) {
+			setrefetchApprovals(false)
+			refetchApprovalByProject()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [refetchApprovals])
+
 	const { data: project } = useQuery(['project', id], ({ queryKey }) => getProjectDetails(queryKey[1]), {
-		// enabled: !!edit,
 		select: (r) => r.data,
 	})
 
@@ -81,41 +124,82 @@ function WeeklyPlan() {
 			setLoader(false)
 		})
 	}, [id])
+
+	const findDatesInApproval = useCallback(
+		(startDate, endDate) => {
+			const _approvals = approvals?.filter((data) => {
+				const dataStartDate = new Date(data.start)
+				const dataEndDate = new Date(data.end)
+				const checkStartDate = new Date(startDate)
+				const checkEndDate = new Date(endDate)
+
+				const dataStartDateWithoutTime = new Date(
+					dataStartDate.getFullYear(),
+					dataStartDate.getMonth(),
+					dataStartDate.getDate()
+				)
+				const dataEndDateWithoutTime = new Date(
+					dataEndDate.getFullYear(),
+					dataEndDate.getMonth(),
+					dataEndDate.getDate()
+				)
+				const checkStartDateWithoutTime = new Date(
+					checkStartDate.getFullYear(),
+					checkStartDate.getMonth(),
+					checkStartDate.getDate()
+				)
+				const checkEndDateWithoutTime = new Date(
+					checkEndDate.getFullYear(),
+					checkEndDate.getMonth(),
+					checkEndDate.getDate()
+				)
+				return (
+					dataStartDateWithoutTime <= checkStartDateWithoutTime &&
+					dataEndDateWithoutTime >= checkStartDateWithoutTime &&
+					dataStartDateWithoutTime <= checkEndDateWithoutTime &&
+					dataEndDateWithoutTime >= checkEndDateWithoutTime
+				)
+			})
+
+			return _approvals?.[_approvals.length - 1] || null
+		},
+		[approvals]
+	)
+
 	const renderCustomDay = (args) => {
 		const { date } = args
-		const isFirstDay = args.date.getDay() === 0 // Sunday, but it can vary depending on your first day of week option
+		const isFirstDay = args.date.getDay() === 0
 		const now = new Date()
 		const cutOff = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - now.getDay()))
 		const thisWeek = args.date < cutOff
 
-		const startOfWeek = moment(date).startOf('week').toDate().toLocaleDateString()
-		const endOfWeek = moment(date).endOf('week').toDate().toLocaleDateString()
-		const startNextWeek = moment(date).startOf('week').toDate().toLocaleDateString()
-		const endNextWeek = moment(date).endOf('week').toDate().toLocaleDateString()
+		const startOfWeek = moment(date).startOf('week').toDate()
+		const endOfWeek = moment(date).endOf('week').toDate()
+		const startNextWeek = moment(date).startOf('week').toDate()
+		const endNextWeek = moment(date).endOf('week').toDate()
+
+		const checkStatus = (isFirstDay && findDatesInApproval(startOfWeek, endOfWeek)?.status) || 'Pending'
 
 		const div = (
 			<div>
-				<div className="first-day" style={{ borderBottom: `1px solid ${thisWeek ? '#DA4C57' : '#8CCC67'}` }}>
+				<div className="first-day" style={{ borderBottom: `1px solid ${colorHeading[checkStatus]}` }}>
 					{isFirstDay && (
 						<>
 							{thisWeek
-								? `This Week Progress (${startOfWeek} - ${endOfWeek})`
-								: `Next Weeks Plan (${startNextWeek} - ${endNextWeek})`}
+								? `${t('week_progress')} (${fDateLocale(startOfWeek)} - ${fDateLocale(endOfWeek)})`
+								: `${t('next_week_plan')} (${fDateLocale(startNextWeek)} - ${fDateLocale(endNextWeek)})`}
 						</>
 					)}
 				</div>
 				<div className="first-day" style={{ marginTop: 30, left: 100, fontSize: '0.88rem' }}>
 					{isFirstDay && (
 						<>
-							{thisWeek ? (
-								<span>
-									APPROVAL STATUS: <span style={{ color: '#DA4C57' }}>Rejected</span>
+							<span>
+								{t('approval_satus')}:{' '}
+								<span style={{ color: colorHeading[checkStatus] }}>
+									{checkStatus === ApprovalStatus.Planned ? 'Pending' : checkStatus}
 								</span>
-							) : (
-								<span>
-									APPROVAL STATUS: <span style={{ color: '#8CCC67' }}>Approved</span>
-								</span>
-							)}
+							</span>
 						</>
 					)}
 				</div>
@@ -153,8 +237,8 @@ function WeeklyPlan() {
 	const renderCustomHeader = () => (
 		<>
 			<div className="md-resource-header-template-title">
-				<div className="md-resource-header-template-name">Work</div>
-				<div className="md-resource-header-template-seats">Location</div>
+				<div className="md-resource-header-template-name">{t('work')}</div>
+				<div className="md-resource-header-template-seats">{t('location')}</div>
 			</div>
 		</>
 	)
@@ -270,7 +354,9 @@ function WeeklyPlan() {
 	)
 
 	const renderScheduleEvent = (event) => {
-		const bgColor = event.original?.task_id ? '#BDB2E9' : '#8D99FF'
+		const bgColor = event.original?.task_id
+			? colorApprovalSubTask[event.original?.approval_status]
+			: colorApprovalTask[event.original?.approval_status]
 
 		return (
 			<>
@@ -319,7 +405,7 @@ function WeeklyPlan() {
 			<Container maxWidth="xl">
 				<Box sx={{ position: 'absolute', top: 28, right: 44 }}>
 					<MuiButton variant="contained" size="medium" color="inherit" sx={{ border: '1px solid #596570' }}>
-						승인 요청
+						{t('request_approval')}
 					</MuiButton>
 					<MuiButton
 						onClick={() => setisDrawerOpen(true)}

@@ -1,10 +1,13 @@
+/* eslint-disable react/prop-types */
 import * as React from 'react'
 import DialogTitle from '@mui/material/DialogTitle'
 import Dialog from '@mui/material/Dialog'
 import { Box, Button, Stack } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 function SimpleDialog(props) {
-	const { onClose, selectedValue, open } = props
+	const { t } = useTranslation()
+	const { onClose, selectedValue, open, setopenSaveDialog } = props
 
 	const handleClose = () => {
 		onClose(selectedValue)
@@ -12,11 +15,9 @@ function SimpleDialog(props) {
 
 	return (
 		<Dialog onClose={handleClose} open={open} sx={{ maxWidth: '38%', margin: 'auto' }}>
-			<DialogTitle sx={{ background: '#8D99FF', color: '#fff', fontWeight: 500 }}>Pay Attention</DialogTitle>
+			<DialogTitle sx={{ background: '#8D99FF', color: '#fff', fontWeight: 500 }}>{t('pay_attention')}</DialogTitle>
 			<Box textAlign={'center'} sx={{ padding: '10px', maxWidth: '75%', margin: 'auto' }}>
-				<span style={{ fontSize: '1.1rem', fontWeight: 600 }}>
-					Would you like to leave the approval review and continue later?
-				</span>
+				<span style={{ fontSize: '1.1rem', fontWeight: 600 }}>{t('continue_later_text')}</span>
 			</Box>
 
 			<Stack direction={'row'} justifyContent={'space-between'} gap={2} p={3}>
@@ -27,7 +28,7 @@ function SimpleDialog(props) {
 					sx={{ border: '1px solid #596570', flex: 1 }}
 					onClick={handleClose}
 				>
-					Yes, save and continue
+					{t('yes_continue_btn')}
 				</Button>
 
 				<Button
@@ -35,19 +36,19 @@ function SimpleDialog(props) {
 					size="medium"
 					color="inherit"
 					sx={{ color: '#FFFFFF', flex: 1, background: '#8D99FF' }}
-					onClick={handleClose}
+					onClick={() => setopenSaveDialog(false)}
 				>
-					No, continue approval
+					{t('No_continue_btn')}
 				</Button>
 			</Stack>
 		</Dialog>
 	)
 }
 
-export default function PayAttention({ handleClose, open }) {
+export default function PayAttention({ handleClose, open, setopenSaveDialog }) {
 	return (
 		<>
-			<SimpleDialog open={open} onClose={handleClose} />
+			<SimpleDialog open={open} onClose={handleClose} setopenSaveDialog={setopenSaveDialog} />
 		</>
 	)
 }
