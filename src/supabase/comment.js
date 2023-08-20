@@ -19,3 +19,14 @@ export const updateComment = async (data, id) => {
 	const res = await supabase.from('comments').update(data).eq('id', id).select('*')
 	return res
 }
+
+export const getCommentsByApproval = async (approval) => {
+	const res = await supabase.from('comments').select('*, employee(*)').eq('approval', approval).is('project_task', null)
+
+	return res
+}
+
+export const getCommentsByProject = async (project) => {
+	const res = await supabase.from('comments').select('*, employee(*)').eq('project', project)
+	return res
+}

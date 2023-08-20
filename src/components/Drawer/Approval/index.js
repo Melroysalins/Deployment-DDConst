@@ -5,19 +5,18 @@ import {
 	FormHelperText,
 	MenuItem,
 	Paper,
-	Radio,
 	Stack,
 	TextField,
 	Select,
 	FormControl,
 	InputLabel,
 	CircularProgress,
-	Avatar,
+	Chip,
 } from '@mui/material'
 import Iconify from 'components/Iconify'
 import React, { useState } from 'react'
 import ConfirmationDialog from '../ConfirmationDialog'
-import { listAllEmployees, listAllProjects } from 'supabase'
+import { createComment, listAllEmployees, listAllProjects } from 'supabase'
 import { useQuery } from 'react-query'
 import { Form, Formik } from 'formik'
 import * as Yup from 'yup'
@@ -32,6 +31,7 @@ import { ApprovalStatus, approvalStatus } from 'constant'
 import DragList from './DragList'
 import useMain from 'pages/context/context'
 import { useTranslation } from 'react-i18next'
+import { colorApprovalTask } from 'pages/WeeklyPlan/WeeklyPlan'
 
 const validationSchema = Yup.object().shape({
 	project: Yup.string().required('Required').nullable(),
@@ -44,6 +44,7 @@ const validationSchema = Yup.object().shape({
 
 Approval.propTypes = {
 	setopen: PropTypes.func,
+	isLeftMenu: PropTypes.bool,
 }
 
 const findDatesInApproval = (approvals, newStart, newEnd) => {
@@ -63,9 +64,17 @@ const findDatesInApproval = (approvals, newStart, newEnd) => {
 	return _approvals?.[_approvals.length - 1] || null
 }
 
-function Approval({ setopen }) {
+function Approval({ setopen, isLeftMenu }) {
 	const { t } = useTranslation()
-	const { currentEmployee } = useMain()
+	const {
+		currentEmployee,
+		setallowTaskCursor,
+		commentTasks,
+		handleCommentTask,
+		allowTaskCursor,
+		setopenRequestApproval,
+		setrefetchtaskProjects,
+	} = useMain()
 	const { id: projectId } = useParams()
 	const [addedEmp, setaddedEmp] = React.useState([])
 	const [matchingApproval, setmatchingApproval] = React.useState(null)
@@ -119,7 +128,7 @@ function Approval({ setopen }) {
 				}}
 				validationSchema={validationSchema}
 				onSubmit={async (values) => {
-					const { confirm, ...rest } = values
+					const { confirm, comment, ...rest } = values
 					try {
 						const findApproravls = !confirm && findDatesInApproval(approvals, values.start, values.end)
 						if (findApproravls) {
@@ -139,11 +148,39 @@ function Approval({ setopen }) {
 									status: ApprovalStatus.Planned,
 								})
 							)
-							Promise.all(promises).then(() => {
-								setopenDialog(false)
-								setopen(false)
-								setLoader(false)
+							if (!commentTasks.length) {
+								await createComment({
+									body: comment,
+									employee: currentEmployee.id,
+									approval: res.data[0].id,
+								})
+							}
+							const promises2 = commentTasks?.map((obj) => {
+								createComment({
+									body: comment,
+									project_task: obj.id,
+									employee: currentEmployee.id,
+									approval: res.data[0].id,
+								})
+
+								return null
 							})
+							try {
+								await Promise.all(promises)
+								await Promise.all(promises2)
+
+								setopenDialog(false)
+								if (isLeftMenu) {
+									setrefetchtaskProjects(true)
+									setopenRequestApproval(false)
+								} else {
+									setopen(false)
+								}
+
+								setLoader(false)
+							} catch (error) {
+								console.error(error)
+							}
 						}
 					} catch (err) {
 						setLoader(false)
@@ -288,19 +325,87 @@ function Approval({ setopen }) {
 								/>
 							</LocalizationProvider>
 
-							<div style={{ fontSize: '0.85rem', marginBottom: 5, paddingTop: 7 }}>{t('comment')}</div>
-							<TextField
-								name="comment"
-								value={values.comment}
-								onChange={handleChange}
-								onBlur={handleBlur}
-								fullWidth
-								label={t('text_here')}
-								multiline
-							/>
-							<FormHelperText error={errors.comment && touched.comment}>
-								{touched.comment ? errors.comment : null}
-							</FormHelperText>
+							<Box sx={{ background: '#F9F9FA', padding: '0 7px 5px', marginTop: '8px', borderRadius: '5px' }}>
+								<div style={{ fontSize: '0.9rem', marginBottom: 10, paddingTop: 7, fontWeight: 500 }}>
+									{t('comment_optional')}
+
+									{isLeftMenu && (
+										<>
+											{!allowTaskCursor && (
+												<Chip
+													size="small"
+													variant="outlined"
+													label={t('global')}
+													color="info"
+													sx={{
+														borderRadius: '6px',
+														height: 20,
+														fontSize: '0.78rem',
+														marginLeft: '4px',
+														'.MuiChip-label': { padding: '0 4px' },
+													}}
+												/>
+											)}
+											<Button
+												sx={{
+													background: !allowTaskCursor ? '#FF6B00' : 'white',
+													padding: '4px 0',
+													float: 'right',
+													minWidth: 20,
+													borderRadius: '5px',
+													boxShadow: '0px 3px 6px rgba(0, 0, 0, 0.1)',
+												}}
+												onClick={() => setallowTaskCursor(!allowTaskCursor)}
+											>
+												<Iconify
+													icon="ph:cursor-click-light"
+													sx={{ color: !allowTaskCursor ? 'white' : 'black' }}
+													width={12}
+													height={12}
+												/>
+											</Button>
+										</>
+									)}
+									<Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+										{commentTasks.map((t) => (
+											<Box
+												key={t.id}
+												sx={{
+													background: colorApprovalTask[t.status],
+													padding: '0 5px',
+													borderRadius: '7px',
+													textTransform: 'uppercase',
+													display: 'flex',
+													alignItems: 'center',
+													color: 'white',
+													fontSize: '0.8rem',
+												}}
+											>
+												{t.title}
+												<Iconify
+													icon="basil:cross-outline"
+													sx={{ cursor: 'pointer', marginLeft: '3px' }}
+													width={22}
+													height={22}
+													onClick={() => handleCommentTask(t.id)}
+												/>
+											</Box>
+										))}
+									</Box>
+								</div>
+								<TextField
+									name="comment"
+									value={values.comment}
+									onChange={handleChange}
+									onBlur={handleBlur}
+									fullWidth
+									label={t('text_here')}
+									multiline
+								/>
+								<FormHelperText error={errors.comment && touched.comment}>
+									{touched.comment ? errors.comment : null}
+								</FormHelperText>
+							</Box>
 						</Box>
 
 						<DragList addedEmp={addedEmp} setaddedEmp={setaddedEmp} handleEmployeeRemove={handleEmployeeRemove} />
@@ -398,7 +503,7 @@ function Approval({ setopen }) {
 						</Paper>
 						{!addApprover && (
 							<>
-								<Stack direction={'row'} gap={1} justifyContent={'space-between'} sx={{ cursor: 'pointer' }} mt={1}>
+								{/* <Stack direction={'row'} gap={1} justifyContent={'space-between'} sx={{ cursor: 'pointer' }} mt={1}>
 									<Paper elevation={12} sx={{ border: '1px solid transparent', borderRadius: 1, padding: '5px 7px' }}>
 										<Radio size="small" style={{ padding: '0 3px' }} />
 										<span style={{ fontSize: '0.8rem' }}>{t('include_approvals')}</span>
@@ -407,14 +512,14 @@ function Approval({ setopen }) {
 										<Radio size="small" style={{ padding: '0 3px' }} />
 										<span style={{ fontSize: '0.8rem' }}>{t('continue_rejector')}</span>
 									</Paper>
-								</Stack>
+								</Stack> */}
 
 								<Button
 									fullWidth
 									variant="contained"
 									sx={{ marginTop: 2 }}
 									type="submit"
-									disabled={loader || !addedEmp.length}
+									disabled={loader || !addedEmp.length || (allowTaskCursor && !commentTasks.length)}
 								>
 									{loader ? <CircularProgress size={17} fontSize="inherit" /> : t('request_Approval')}
 								</Button>

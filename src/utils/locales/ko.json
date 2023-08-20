@@ -86,5 +86,12 @@
    "date_range":"날짜 범위",
    "overwriting_text":"승인을 요청하면 승인된 모든 날짜 범위를 다시 보류 중으로 덮어쓰게 됩니다. 계속 진행하시겠습니까?",
    "was_previously":"이전에",
-   "confirm":"확인하다"
+   "confirm":"확인하다",
+
+   "request_new_approval":"새 승인 요청",
+   "comment_optional":"설명 추가(선택 사항)",
+   "global":"글로벌",
+   "comments":"코멘트",
+   "no_comment":"댓글이 추가되지 않았습니다.",
+   "please_select_task":"작업을 선택하세요."
 }

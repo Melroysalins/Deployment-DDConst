@@ -86,6 +86,12 @@
    "date_range":"Date Range",
    "overwriting_text":"By requesting an Approval, you will be overwriting any approved Date Ranges back to Pending. Would you still like to proceed?",
    "was_previously":"was previously",
-   "confirm":"Confirm"
+   "confirm":"Confirm",
 
+   "request_new_approval":"Request new approval",
+   "comment_optional":"Add Comment (Optional)",
+   "global":"Global",
+   "comments":"Comments",
+   "no_comment":"No Comment Added",
+   "please_select_task":"Please select task"
 }

@@ -31,6 +31,7 @@ import useMain from 'pages/context/context'
 import { getApprovalsByProject } from 'supabase/approval'
 import { ApprovalStatus } from 'constant'
 import { fDateLocale } from 'utils/formatTime'
+import RequestApproval from 'layouts/RequestApproval'
 
 setOptions({
 	theme: 'ios',
@@ -51,7 +52,7 @@ const defaultHolidays = [
 	{ background: 'rgba(100, 100, 100, 0.1)', recurring: { repeat: 'weekly', weekDays: 'SA' } },
 ]
 
-const colorApprovalTask = {
+export const colorApprovalTask = {
 	Approved: '#6AC79B',
 	Planned: '#8D99FF',
 	Rejected: 'red',
@@ -72,7 +73,17 @@ function WeeklyPlan() {
 	const { i18n, t } = useTranslation()
 	const isEng = i18n.language === 'en'
 	const [popupData, setPopupData] = React.useState(null)
-	const { currentApproval, setrefetchApprovals, refetchApprovals } = useMain()
+	const {
+		currentApproval,
+		setrefetchApprovals,
+		refetchApprovals,
+		refetchtaskProjects,
+		setrefetchtaskProjects,
+		openRequestApproval,
+		setopenRequestApproval,
+		allowTaskCursor,
+		handleCommentTask,
+	} = useMain()
 	const [isDrawerOpen, setisDrawerOpen] = React.useState(false)
 	const [myEvents, setMyEvents] = React.useState([])
 	const [isOpen, setOpen] = React.useState(false)
@@ -89,6 +100,11 @@ function WeeklyPlan() {
 	])
 	const [loader, setLoader] = React.useState(false)
 	const [holidays, setHolidays] = React.useState(defaultHolidays)
+
+	useEffect(() => {
+		setopenRequestApproval(false)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 
 	useEffect(() => {
 		if (currentApproval) {
@@ -114,16 +130,29 @@ function WeeklyPlan() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [refetchApprovals])
 
+	useEffect(() => {
+		if (refetchtaskProjects) {
+			setrefetchtaskProjects(false)
+			handleSetEvent()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [refetchtaskProjects])
+
 	const { data: project } = useQuery(['project', id], ({ queryKey }) => getProjectDetails(queryKey[1]), {
 		select: (r) => r.data,
 	})
 
-	const handleSetEvent = useCallback(() => {
-		listAllTasksByProject(id).then((data) => {
-			setMyEvents(data?.data?.map((e) => ({ ...e, resource: e.task_group_id })))
-			setLoader(false)
-		})
-	}, [id])
+	const { refetch: handleSetEvent } = useQuery(
+		['taskProjects', id],
+		({ queryKey }) => listAllTasksByProject(queryKey[1]),
+		{
+			select: (r) => r.data,
+			onSuccess: (data) => {
+				setMyEvents(data?.map((e) => ({ ...e, resource: e.task_group_id })))
+				setLoader(false)
+			},
+		}
+	)
 
 	const findDatesInApproval = useCallback(
 		(startDate, endDate) => {
@@ -371,6 +400,12 @@ function WeeklyPlan() {
 						alignItems: 'initial !important',
 						margin: !event.original?.task_id ? '3px 0 !important' : 0,
 					}}
+					onClick={(e) => {
+						if (allowTaskCursor && !event.original?.task_id) {
+							e.stopPropagation()
+							handleCommentTask(event.id, event.title, event.original?.approval_status)
+						}
+					}}
 				>
 					{event.original?.comments?.length ? (
 						<>
@@ -404,7 +439,13 @@ function WeeklyPlan() {
 		<Page title="WP">
 			<Container maxWidth="xl">
 				<Box sx={{ position: 'absolute', top: 28, right: 44 }}>
-					<MuiButton variant="contained" size="medium" color="inherit" sx={{ border: '1px solid #596570' }}>
+					<MuiButton
+						variant="contained"
+						size="medium"
+						color="inherit"
+						sx={{ border: '1px solid #596570' }}
+						onClick={() => setopenRequestApproval(!openRequestApproval)}
+					>
 						{t('request_approval')}
 					</MuiButton>
 					<MuiButton
@@ -478,6 +519,7 @@ function WeeklyPlan() {
 			</Container>
 
 			{isDrawerOpen && <BasicTabs open={isDrawerOpen} setopen={setisDrawerOpen} />}
+			{openRequestApproval && <RequestApproval />}
 		</Page>
 	)
 }
