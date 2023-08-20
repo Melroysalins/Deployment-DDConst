@@ -3,25 +3,26 @@ import { Navigate, useRoutes } from 'react-router-dom'
 import DashboardLayout from './layouts/dashboard'
 import LogoOnlyLayout from './layouts/LogoOnlyLayout'
 //
+import useMain from 'pages/context/context'
+import HrAdmin from 'pages/HrAdmin'
+import AddEmployee from 'pages/ManageEmps/Employee/AddEmployee'
+import EmployeeList from 'pages/ManageEmps/Employee/EmployeeList'
+import EmployeeProfile from 'pages/ManageEmps/Employee/Profile'
+import MangeEmpLayout from 'pages/ManageEmps/MangeEmpLayout'
+import AddTeam from 'pages/ManageEmps/Team/AddTeam'
+import TeamList from 'pages/ManageEmps/Team/TeamList'
 import Blog from './pages/Blog'
-import User from './pages/User'
+import { AddNewProject, ProjectDetails, Projects as ProjectList } from './pages/Dashboard'
+import ProjectLayout from './pages/Dashboard/ProjectLayout'
+import TravelExpenses from './pages/Dashboard/TravelExpenses/TELayout'
 import Login from './pages/Login'
 import NotFound from './pages/Page404'
-import Register from './pages/Register'
 import Products from './pages/Products'
-import { Projects as ProjectList, AddNewProject, ProjectDetails } from './pages/Dashboard'
-import ProjectLayout from './pages/Dashboard/ProjectLayout'
-import WorkforcePlanning from './pages/WorkforcePlanning/WorkforcePlanning'
-import TravelExpenses from './pages/Dashboard/TravelExpenses/TELayout'
 import ProjectImplementationSchedule from './pages/ProjectImplementationSchedule'
+import Register from './pages/Register'
+import User from './pages/User'
 import WeeklyPlan from './pages/WeeklyPlan/WeeklyPlan'
-import HrAdmin from 'pages/HrAdmin'
-import useMain from 'pages/context/context'
-import MangeEmpLayout from 'pages/ManageEmps/MangeEmpLayout'
-import EmployeeList from 'pages/ManageEmps/Employee/EmployeeList'
-import TeamList from 'pages/ManageEmps/Team/TeamList'
-import AddTeam from 'pages/ManageEmps/Team/AddTeam'
-import AddEmployee from 'pages/ManageEmps/Employee/AddEmployee'
+import WorkforcePlanning from './pages/WorkforcePlanning/WorkforcePlanning'
 // ----------------------------------------------------------------------
 
 export default function Router() {
@@ -73,9 +74,9 @@ export default function Router() {
 					children: [
 						{ path: '', element: <EmployeeList /> },
 						{ path: 'emplist', element: <EmployeeList /> },
-						{ path: 'empadd', element: <AddEmployee /> },
-						{ path: 'empedit/:id', element: <AddEmployee /> },
-						{ path: 'empview/:id', element: <AddEmployee /> },
+						{ path: 'add', element: <AddEmployee /> },
+						{ path: 'edit/:id', element: <AddEmployee /> },
+						{ path: 'view/:id', element: <EmployeeProfile /> },
 					],
 				},
 				{
