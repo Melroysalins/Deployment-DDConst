@@ -1,7 +1,11 @@
 import React from 'react'
 import style from './log.module.scss'
-import Iconify from 'components/Iconify'
 import moment from 'moment'
+import PropTypes from 'prop-types'
+
+Message.propTypes = {
+	detail: PropTypes.object,
+}
 
 export default function Message({ detail }) {
 	const { action, sub_type, start, end, employee, created_at } = detail

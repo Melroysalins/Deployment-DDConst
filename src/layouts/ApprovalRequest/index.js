@@ -1,5 +1,5 @@
 import useMain from 'pages/context/context'
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Box from '@mui/material/Box'
 import LeftDrawer from 'components/LeftDrawer'
 import {
@@ -50,6 +50,7 @@ export default function ApprovalRequest() {
 	const [openRejectionDialog, setopenRejectionDialog] = useState(false)
 	const [isUpdating, setisUpdating] = useState(false)
 	const [commentText, setcommentText] = useState('')
+	const messagesEndRef = useRef(null)
 
 	const { data: approvers } = useQuery(['Approvers'], () => getApproversByApproval(approval.id), {
 		select: (r) => r.data.sort((a, b) => a.order - b.order),
@@ -150,6 +151,14 @@ export default function ApprovalRequest() {
 		setcommentTasks([])
 		setcommentText('')
 		setaddComment(false)
+	}
+
+	useEffect(() => {
+		scrollToBottom()
+	}, [comments])
+
+	const scrollToBottom = () => {
+		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' })
 	}
 
 	return (
@@ -326,6 +335,7 @@ export default function ApprovalRequest() {
 									</Box>
 								</Paper>
 							))}
+							<div ref={messagesEndRef} />
 						</Box>
 					</Box>
 				</Box>
