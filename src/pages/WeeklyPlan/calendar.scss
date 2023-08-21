@@ -33,7 +33,7 @@
 
 .weekly-calender{
   .mbsc-timeline-resource {
-    overflow: hidden;
+    overflow: hidden !important;
   }
   // 2 headers css
   .md-resource-header-template .mbsc-timeline-resource-col {
@@ -44,6 +44,7 @@
   .md-resource-header-template .mbsc-timeline-resource-title {
       padding: 0;
       height: inherit;
+      display: block;
   }
 
   .md-resource-header-template .mbsc-timeline-resource-title {
@@ -60,13 +61,13 @@
       display: inline-block;
       padding: 0 5px;
       overflow: hidden;
-    text-overflow: ellipsis;
-    width: 120px;
+      text-overflow: ellipsis;
+      width: 55%;
   }
 
   .md-resource-header-template-seats {
       border-left: 1px solid #ccc;
-      width: 109px;
+      width: 45%;
       height: 100%;
       float: right;
       padding: 0 5px;
