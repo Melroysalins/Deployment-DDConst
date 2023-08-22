@@ -67,9 +67,9 @@ export default function EmployeeProfile() {
 			if (e.target.files.length > 0) {
 				const file = e.target.files[0]
 				const file_extension = file.name.split('.').pop()
-				const filename = `employee_profile_${employee.id}.${file_extension}`
+				const filename = `employee_profile_${employee?.id}.${file_extension}`
 				const { data, error } = await addFile(filename, file, 'profile_images')
-				if (data) await updateEmployee({ profile: filename }, employee.id)
+				if (data) await updateEmployee({ profile: filename }, employee?.id)
 				await refetch()
 				await refetchProfile()
 			}
@@ -156,10 +156,10 @@ export default function EmployeeProfile() {
 								{/* </Badge> */}
 								<Box marginTop={3}>
 									<Typography variant="h4" sx={{ color: 'common.white' }}>
-										{employee.name}
+										{employee?.name}
 									</Typography>
 									<Typography variant="body2" sx={{ color: 'common.white' }}>
-										{employee.email_address}
+										{employee?.email_address}
 									</Typography>
 								</Box>
 							</Box>
@@ -168,26 +168,29 @@ export default function EmployeeProfile() {
 					</Grid>
 					<Grid item xs={6}>
 						<Card style={{ background: '#fff', padding: 10 }}>
-							<Stack gap={2}>
+							<Stack gap={2} px={2} py={1}>
+								<Stack direction="row" gap={2}>
+									<Typography variant="h6">About {employee?.name}</Typography>
+								</Stack>
 								<Stack direction="row" gap={2}>
 									<Iconify icon="mdi:phone" width={24} height={24} />
-									<Typography variant="body2">{employee.phone_number}</Typography>
+									<Typography variant="body2">{employee?.phone_number}</Typography>
 								</Stack>
 								<Stack direction="row" gap={2}>
 									<Iconify icon="mdi:email" width={24} height={24} />
-									<Typography variant="body2">{employee.email_address}</Typography>
+									<Typography variant="body2">{employee?.email_address}</Typography>
 								</Stack>
 								<Stack direction="row" gap={2}>
 									<Iconify icon="mdi:star" width={24} height={24} />
-									<Typography variant="body2">Rating: {employee.rating ?? 'NA'}</Typography>
+									<Typography variant="body2">Rating: {employee?.rating ?? 'NA'}</Typography>
 								</Stack>
 								<Stack direction="row" gap={2}>
 									<Iconify icon="mdi:build" width={24} height={24} />
-									<Typography variant="body2">Project: {employee.project ?? 'NA'}</Typography>
+									<Typography variant="body2">Project: {employee?.project ?? 'NA'}</Typography>
 								</Stack>
 								<Stack direction="row" gap={2}>
 									<Iconify icon="mdi:people" width={24} height={24} />
-									<Typography variant="body2">Team: {employee.team ?? 'NA'}</Typography>
+									<Typography variant="body2">Team: {employee?.team ?? 'NA'}</Typography>
 								</Stack>
 							</Stack>
 						</Card>
