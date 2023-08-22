@@ -131,8 +131,8 @@ export default function ApprovalRequest() {
 			refetchApprovalComments()
 			resetComment()
 		} else {
-			const promises = commentTasks?.map((obj) => {
-				createComment({
+			const promises = commentTasks?.map(async (obj) => {
+				await createComment({
 					body: commentText,
 					project_task: obj.id,
 					employee: currentEmployee.id,
@@ -141,6 +141,7 @@ export default function ApprovalRequest() {
 				return null
 			})
 			await Promise.all(promises)
+			refetchApprovalComments()
 			setrefetchtaskProjects(true)
 			resetComment()
 		}
@@ -325,9 +326,28 @@ export default function ApprovalRequest() {
 											<Avatar alt="emp image" sx={{ width: 35, height: 35, textTransform: 'capitalize' }}>
 												{c.employee.name ? c.employee.name[0] : c.employee.email_address[0]}
 											</Avatar>
-											<Typography variant="body2">
-												{c.employee?.name || c.employee?.email_address}, {new Date(c.created_at).toLocaleDateString()}
-											</Typography>
+											<div>
+												<Typography variant="body2">
+													{c.employee?.name || c.employee?.email_address}, {new Date(c.created_at).toLocaleDateString()}
+												</Typography>
+												{!!c.project_task && (
+													<Typography variant="body2" sx={{ lineHeight: 1 }}>
+														Added on Task: {'  '}
+														<Chip
+															size="small"
+															variant="outlined"
+															label={c.project_task.title}
+															color="info"
+															sx={{
+																borderRadius: '4px',
+																height: 18,
+																fontSize: '0.73rem',
+																marginTop: '-2px',
+															}}
+														/>
+													</Typography>
+												)}
+											</div>
 										</Stack>
 										<Typography variant="body2" sx={{ color: '#596570', fontSize: '0.8rem' }}>
 											{c.body}
