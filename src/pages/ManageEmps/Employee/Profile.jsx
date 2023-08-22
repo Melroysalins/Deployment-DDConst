@@ -1,13 +1,13 @@
 /* eslint-disable no-nested-ternary */
 // @mui
-import { Alert, Avatar, Box, Card, Container, Grid, Snackbar, Typography } from '@mui/material'
+import { Alert, Avatar, Box, Card, Container, Grid, Input, Snackbar, Stack, Typography } from '@mui/material'
 import Iconify from 'components/Iconify'
 import Page from 'components/Page'
-import { certificateColors } from 'constant'
 import React, { useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getEmployeeDetails, listAllBranches, listAllTeams } from 'supabase'
+import { getEmployeeDetails, updateEmployee } from 'supabase'
+import { addFile, getFile } from 'supabaseClient'
 import * as Yup from 'yup'
 
 // components
@@ -45,24 +45,39 @@ export default function EmployeeProfile() {
 
 	const navigate = useNavigate()
 
-	const { data: branches } = useQuery(['Branches'], () => listAllBranches())
-	const { data: teams } = useQuery(['Teams'], () => listAllTeams())
-
-	const { data: employee } = useQuery(['employee'], () => getEmployeeDetails(id), {
+	const { data: employee, refetch } = useQuery(['employee'], () => getEmployeeDetails(id), {
 		enabled: !!edit,
 		select: (r) => r.data,
 	})
+
+	const { data: profile_url, refetch: refetchProfile } = useQuery(
+		['employee profile', employee?.profile],
+		({ queryKey }) => getFile(queryKey[1], 'profile_images'),
+		{
+			enabled: !!employee,
+		}
+	)
 
 	const handleClose = () => {
 		setToast(null)
 	}
 
-	const AvatarRating = (value) => (
-		<div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-			<Avatar sx={{ width: 20, height: 20, fontSize: 12, background: certificateColors[value] }}>{value}</Avatar>{' '}
-			<span style={{ color: '#596570' }}>Level of certfication</span>
-		</div>
-	)
+	const handleImageChange = async (e) => {
+		try {
+			if (e.target.files.length > 0) {
+				const file = e.target.files[0]
+				const file_extension = file.name.split('.').pop()
+				const filename = `employee_profile_${employee.id}.${file_extension}`
+				const { data, error } = await addFile(filename, file, 'profile_images')
+				if (data) await updateEmployee({ profile: filename }, employee.id)
+				await refetch()
+				await refetchProfile()
+			}
+		} catch (err) {
+			console.log(err)
+			setToast({ severity: 'error', message: 'Something went wrong, Please try again later!' })
+		}
+	}
 
 	return (
 		<Page title={edit ? 'Edit Employee' : 'Add New Employee'}>
@@ -90,34 +105,61 @@ export default function EmployeeProfile() {
 								height: '100%',
 							}}
 						>
-							<Box
-								position="absolute"
-								left={24}
-								bottom={12}
-								display="flex"
-								gap={3}
-								xs={12}
-								md={6}
-								lg={6}
-								width={128}
-								height={128}
-								zIndex={1}
-							>
+							<Box position="absolute" left={24} bottom={12} display="flex" gap={3} xs={12} md={6} lg={6} zIndex={1}>
 								{/* <Badge
 								overlap="circular"
 								anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
 								badgeContent={<Iconify icon="mdi:pencil-circle" style={{ color: '#ff6b00' }} width={23} height={23} />}
 							> */}
-								<Avatar alt="avatar image" sx={{ width: '100%', height: '100%' }}>
-									<Iconify icon="icon-park-solid:avatar" width={40} height={40} />
-								</Avatar>
+								<Box
+									overflow="hidden"
+									borderRadius="100%"
+									component="label"
+									htmlFor="profile"
+									position="relative"
+									width={128}
+									height={128}
+								>
+									<Avatar
+										src={profile_url}
+										alt={employee?.name}
+										sx={{ width: '100%', height: '100%', overflow: 'hidden' }}
+									/>
+									<Box
+										sx={{
+											position: 'absolute',
+											width: '100%',
+											height: '100%',
+											display: 'flex',
+											alignItems: 'center',
+											justifyContent: 'center',
+											flexDirection: 'column',
+											top: 0,
+											left: 0,
+											opacity: 0,
+											color: 'rgb(255, 255, 255)',
+											background: 'rgba(22, 28, 36, 0.64)',
+											transition: 'opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
+
+											gap: 0.5,
+											'&:hover': {
+												opacity: 0.75,
+											},
+											zIndex: 2,
+										}}
+									>
+										<Iconify icon="mdi:camera" width={30} height={30} />
+										<Typography variant="body2">Update Photo</Typography>
+									</Box>
+									<Input onChange={handleImageChange} sx={{ visibility: 'hidden' }} type="file" id="profile" />
+								</Box>
 								{/* </Badge> */}
 								<Box marginTop={3}>
 									<Typography variant="h4" sx={{ color: 'common.white' }}>
-										Employee_CMS
+										{employee.name}
 									</Typography>
 									<Typography variant="body2" sx={{ color: 'common.white' }}>
-										Employee_CMS
+										{employee.email_address}
 									</Typography>
 								</Box>
 							</Box>
@@ -126,21 +168,28 @@ export default function EmployeeProfile() {
 					</Grid>
 					<Grid item xs={6}>
 						<Card style={{ background: '#fff', padding: 10 }}>
-							<h4>About us</h4>
-							<Grid container spacing={3}>
-								<Grid item xs={12}>
-									dsf
-								</Grid>
-								<Grid item xs={12}>
-									dsf
-								</Grid>
-								<Grid item xs={12}>
-									dsf
-								</Grid>
-								<Grid item xs={12}>
-									dsf
-								</Grid>
-							</Grid>
+							<Stack gap={2}>
+								<Stack direction="row" gap={2}>
+									<Iconify icon="mdi:phone" width={24} height={24} />
+									<Typography variant="body2">{employee.phone_number}</Typography>
+								</Stack>
+								<Stack direction="row" gap={2}>
+									<Iconify icon="mdi:email" width={24} height={24} />
+									<Typography variant="body2">{employee.email_address}</Typography>
+								</Stack>
+								<Stack direction="row" gap={2}>
+									<Iconify icon="mdi:star" width={24} height={24} />
+									<Typography variant="body2">Rating: {employee.rating ?? 'NA'}</Typography>
+								</Stack>
+								<Stack direction="row" gap={2}>
+									<Iconify icon="mdi:build" width={24} height={24} />
+									<Typography variant="body2">Project: {employee.project ?? 'NA'}</Typography>
+								</Stack>
+								<Stack direction="row" gap={2}>
+									<Iconify icon="mdi:people" width={24} height={24} />
+									<Typography variant="body2">Team: {employee.team ?? 'NA'}</Typography>
+								</Stack>
+							</Stack>
 						</Card>
 					</Grid>
 				</Grid>
