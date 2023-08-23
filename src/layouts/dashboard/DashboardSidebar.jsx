@@ -190,9 +190,9 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 								{user.email}
 							</Typography>
 
-							{/* <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-								From only $69
-							</Typography> */}
+							<Typography variant="body2" sx={{ color: 'text.secondary' }}>
+								{employee.name}
+							</Typography>
 						</Box>
 
 						{/* <Button href="https://material-ui.com/store/items/minimal-dashboard/" target="_blank" variant="contained">
