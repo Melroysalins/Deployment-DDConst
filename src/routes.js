@@ -46,14 +46,13 @@ export default function Router() {
 						{ path: ':id/weekly-plan', element: <WeeklyPlan /> },
 					],
 				},
-
 				{ path: 'workforce-planning', element: <WorkforcePlanning /> },
-
 				{ path: 'project-schedule/:project', element: <ProjectImplementationSchedule /> },
 				{ path: 'user', element: <User /> },
 				{ path: 'products', element: <Products /> },
 				{ path: 'blog', element: <Blog /> },
 				{ path: 'hr-admin', element: <HrAdmin /> },
+				{ path: 'profile', element: <EmployeeProfile self /> },
 			],
 		},
 		{

@@ -5,7 +5,6 @@ import { Link as RouterLink, useLocation } from 'react-router-dom'
 import {
 	Avatar,
 	Box,
-	Button,
 	Drawer,
 	FormControlLabel,
 	Link,
@@ -17,7 +16,6 @@ import {
 } from '@mui/material'
 import { styled, useTheme } from '@mui/material/styles'
 // mock
-import account from '../../_mock/account'
 // components
 import Logo from '../../components/Logo'
 import NavSection, { ListItemIconStyle } from '../../components/NavSection'
@@ -29,6 +27,9 @@ import ApprovalRequest from 'layouts/ApprovalRequest'
 import Notifications from 'layouts/Notifications'
 import useMain from 'pages/context/context'
 import { useTranslation } from 'react-i18next'
+import { useQuery } from 'react-query'
+import { getEmployeeDetails } from 'supabase'
+import { getFile } from 'supabaseClient'
 import navConfig from './NavConfig'
 
 // ----------------------------------------------------------------------
@@ -121,7 +122,7 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
 }))
 
 export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
-	const { user, openNotification, openaccoutReview, setopenNotification } = useMain()
+	const { user, openNotification, openaccoutReview, setopenNotification, currentEmployee } = useMain()
 	const { pathname } = useLocation()
 	const theme = useTheme()
 	// const isDesktop = useResponsive('up', 'lg')
@@ -129,6 +130,23 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 
 	const { i18n } = useTranslation()
 	const isEng = i18n.language === 'en'
+
+	const { data: employee } = useQuery(
+		['employee', currentEmployee?.id],
+		({ queryKey }) => getEmployeeDetails(queryKey[1]),
+		{
+			enabled: !!currentEmployee?.id,
+			select: (r) => r.data,
+		}
+	)
+
+	const { data: profile_url } = useQuery(
+		['self profile', employee?.profile],
+		({ queryKey }) => getFile(queryKey[1], 'profile_images'),
+		{
+			enabled: !!employee,
+		}
+	)
 
 	const handleChangeLanguage = () => {
 		i18n.changeLanguage(isEng ? 'ko' : 'en')
@@ -158,26 +176,28 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 
 			{leftDrawerOpened ? (
 				<Box sx={{ px: 2.5, pb: 3, mt: 10 }}>
-					<Stack alignItems="center" spacing={3} sx={{ pt: 5, borderRadius: 2, position: 'relative' }}>
-						<Box
-							component="img"
-							src="/static/illustrations/illustration_avatar.png"
-							sx={{ width: 100, position: 'absolute', top: -50 }}
-						/>
+					<Stack alignItems="center" spacing={3} sx={{ pt: 5, position: 'relative', overflow: 'hidden' }}>
+						<Box component="a" href="/dashboard/profile" sx={{ width: 100, height: 100 }}>
+							<Avatar
+								src={profile_url}
+								alt={employee?.name}
+								sx={{ width: '100%', height: '100%', overflow: 'hidden' }}
+							/>
+						</Box>
 
 						<Box sx={{ textAlign: 'center' }}>
 							<Typography gutterBottom variant="h6">
 								{user.email}
 							</Typography>
 
-							<Typography variant="body2" sx={{ color: 'text.secondary' }}>
+							{/* <Typography variant="body2" sx={{ color: 'text.secondary' }}>
 								From only $69
-							</Typography>
+							</Typography> */}
 						</Box>
 
-						<Button href="https://material-ui.com/store/items/minimal-dashboard/" target="_blank" variant="contained">
+						{/* <Button href="https://material-ui.com/store/items/minimal-dashboard/" target="_blank" variant="contained">
 							Upgrade
-						</Button>
+						</Button> */}
 					</Stack>
 				</Box>
 			) : (
@@ -201,9 +221,9 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 						/>
 					</ListItemStyle>
 
-					<Link underline="none" component={RouterLink} to="#">
+					<Link underline="none" component={RouterLink} to="/dashboard/profile">
 						<AccountStyle>
-							<Avatar src={account.photoURL} alt="photoURL" />
+							<Avatar src={profile_url} alt="photoURL" />
 							{/* <Box sx={{ ml: 2 }}>
 							<Typography variant="subtitle2" sx={{ color: 'text.default' }}>
 								{user.email}

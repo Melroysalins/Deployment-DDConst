@@ -1,63 +1,53 @@
 /* eslint-disable no-nested-ternary */
 // @mui
-import { Alert, Avatar, Box, Card, Container, Grid, Input, Snackbar, Stack, Typography } from '@mui/material'
+import {
+	Alert,
+	Avatar,
+	Box,
+	Card,
+	CircularProgress,
+	Container,
+	Grid,
+	Input,
+	Snackbar,
+	Stack,
+	Typography,
+} from '@mui/material'
 import Iconify from 'components/Iconify'
 import Page from 'components/Page'
-import React, { useEffect, useState } from 'react'
+import useMain from 'pages/context/context'
+import React from 'react'
 import { useQuery } from 'react-query'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { getEmployeeDetails, updateEmployee } from 'supabase'
 import { addFile, getFile } from 'supabaseClient'
-import * as Yup from 'yup'
 
-// components
-// api
-// ----------------------------------------------------------------------
-const validationSchema = Yup.object().shape({
-	name: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
-	email_address: Yup.string().email('Must be a valid email').max(255).required('Email is Required').nullable(),
-	phone_number: Yup.number().min(6, 'Too Short!').min(18, 'Too long!').required('Required').nullable(),
-	team: Yup.string().required('Required').nullable(),
-	branch: Yup.string().required('Required').nullable(),
-	rating: Yup.string().required('Required').nullable(),
-})
-
-const initialValues = {
-	name: '',
-	email_address: '',
-	phone_number: '',
-	team: '',
-	branch: '',
-	rating: '',
-}
-
-export default function EmployeeProfile() {
-	const [loader, setLoader] = React.useState(false)
+export default function EmployeeProfile({ self }) {
 	const [toast, setToast] = React.useState(null)
 	const { id } = useParams()
-	const [edit, setedit] = useState(false)
 
-	useEffect(() => {
-		if (id) {
-			setedit(true)
-		}
-	}, [id])
+	const { currentEmployee } = useMain()
 
-	const navigate = useNavigate()
-
-	const { data: employee, refetch } = useQuery(['employee'], () => getEmployeeDetails(id), {
-		enabled: !!edit,
+	const {
+		data: employee,
+		refetch,
+		isLoading: isLoadingEmployee,
+	} = useQuery(['employee', id || currentEmployee?.id], ({ queryKey }) => getEmployeeDetails(queryKey[1]), {
+		enabled: !!id || self,
 		select: (r) => r.data,
 	})
 
-	const { data: profile_url, refetch: refetchProfile } = useQuery(
-		['employee profile', employee?.profile],
+	const {
+		data: profile_url,
+		refetch: refetchProfile,
+		isLoading: isLoadingProfileUrl,
+	} = useQuery(
+		[`${self ? 'self' : 'employee'} profile`, employee?.profile],
 		({ queryKey }) => getFile(queryKey[1], 'profile_images'),
 		{
 			enabled: !!employee,
 		}
 	)
-
 	const handleClose = () => {
 		setToast(null)
 	}
@@ -80,7 +70,7 @@ export default function EmployeeProfile() {
 	}
 
 	return (
-		<Page title={edit ? 'Edit Employee' : 'Add New Employee'}>
+		<Page title={self ? 'Your Profile' : 'Employee Profile'}>
 			<Snackbar
 				open={toast}
 				anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
@@ -125,6 +115,9 @@ export default function EmployeeProfile() {
 										alt={employee?.name}
 										sx={{ width: '100%', height: '100%', overflow: 'hidden' }}
 									/>
+
+									{isLoadingEmployee ||
+										(isLoadingProfileUrl && <CircularProgress sx={{ zIndex: 10 }} size={10} color="inherit" />)}
 									<Box
 										sx={{
 											position: 'absolute',
@@ -170,7 +163,7 @@ export default function EmployeeProfile() {
 						<Card style={{ background: '#fff', padding: 10 }}>
 							<Stack gap={2} px={2} py={1}>
 								<Stack direction="row" gap={2}>
-									<Typography variant="h6">About {employee?.name}</Typography>
+									<Typography variant="h6">About {self ? 'You' : employee?.name}</Typography>
 								</Stack>
 								<Stack direction="row" gap={2}>
 									<Iconify icon="mdi:phone" width={24} height={24} />
