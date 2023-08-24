@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'
-import Table from '../Table'
-import { deleteEmployee, listEmployeesWithDetail } from 'supabase'
 import { Box, Button } from '@mui/material'
 import Iconify from 'components/Iconify'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { deleteEmployee, listEmployeesWithDetail } from 'supabase'
+import Table from '../Table'
 
 export default function EmployeeList({ isTeamEmployees }) {
 	let headCells = [
@@ -81,10 +81,10 @@ export default function EmployeeList({ isTeamEmployees }) {
 	}, [])
 
 	const handleView = (id) => {
-		navigate(`/manageEmp/employee/empview/${id}`)
+		navigate(`/manageEmp/employee/view/${id}`)
 	}
 	const handleEdit = (id) => {
-		navigate(`/manageEmp/employee/empedit/${id}`)
+		navigate(`/manageEmp/employee/edit/${id}`)
 	}
 	const handleDelete = async (id) => {
 		setselectedId(id)
@@ -98,7 +98,7 @@ export default function EmployeeList({ isTeamEmployees }) {
 			<Box sx={{ position: 'absolute', top: '24px', right: '40px' }}>
 				<Button
 					variant="outlined"
-					href="/manageEmp/employee/empadd"
+					href="/manageEmp/employee/add"
 					startIcon={<Iconify icon={'fluent:add-16-filled'} sx={{ width: 16, height: 16, ml: 1 }} />}
 					sx={{
 						color: (theme) => theme.palette.text.default,
