@@ -199,7 +199,7 @@ function WeeklyPlan() {
 
 	const renderCustomDay = (args) => {
 		const { date } = args
-		const isFirstDay = args.date.getDay() === 1
+		const isFirstDay = date.getDay() === 1
 
 		moment.updateLocale('en', {
 			week: {
@@ -208,7 +208,7 @@ function WeeklyPlan() {
 		})
 		let [startOfWeek, endOfWeek, startNextWeek, endNextWeek, weekName] = ['', '', '', '', '']
 		if (isFirstDay) {
-			weekName = getWeekName(args.date)
+			weekName = getWeekName(date)
 			startOfWeek = moment(date).startOf('week').toDate()
 			endOfWeek = moment(date).endOf('week').toDate()
 			startNextWeek = moment(date).startOf('week').toDate()
