@@ -21,7 +21,11 @@ export const updateComment = async (data, id) => {
 }
 
 export const getCommentsByApproval = async (approval) => {
-	const res = await supabase.from('comments').select('*, employee(*), project_task(title)').eq('approval', approval)
+	const res = await supabase
+		.from('comments')
+		.select('*, employee(*), project_task(title, start, end)')
+		.eq('approval', approval)
+		.order('created_at', { ascending: false })
 
 	return res
 }

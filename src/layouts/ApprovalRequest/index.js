@@ -20,14 +20,15 @@ import PayAttention from './Dialogs/PayAttention'
 import Rejection from './Dialogs/Rejection'
 import { useQuery } from 'react-query'
 import { getApproversByApproval, updateApproval, updateApprovers } from 'supabase/approval'
-import { fDateLocale } from 'utils/formatTime'
+import { fDateLocale, getDateTimeEngKorean } from 'utils/formatTime'
 import { ApprovalStatus, getNameApprovalStatus } from 'constant'
 import { useTranslation } from 'react-i18next'
 import { colorApprovalTask } from 'pages/WeeklyPlan/WeeklyPlan'
 import { createComment, getCommentsByApproval } from 'supabase'
 
 export default function ApprovalRequest() {
-	const { t } = useTranslation()
+	const { t, i18n } = useTranslation()
+	const isEng = i18n.language === 'en'
 	const {
 		openaccoutReview,
 		setopenaccoutReview,
@@ -62,8 +63,11 @@ export default function ApprovalRequest() {
 		isFetching: loadingComments,
 		refetch: refetchApprovalComments,
 	} = useQuery(['ApprovalComments'], () => getCommentsByApproval(approval.id), {
-		select: (r) => r.data.sort((a, b) => a.order - b.order),
+		select: (r) => r.data, // .sort((a, b) => a.order - b.order),
 		enabled: !!currentApproval,
+		onSuccess() {
+			messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+		},
 	})
 
 	const currentApproverStatus = approvers?.find((e) => e.employee.id === employee.id)?.status
@@ -152,14 +156,6 @@ export default function ApprovalRequest() {
 		setcommentTasks([])
 		setcommentText('')
 		setaddComment(false)
-	}
-
-	useEffect(() => {
-		scrollToBottom()
-	}, [comments])
-
-	const scrollToBottom = () => {
-		messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' })
 	}
 
 	return (
@@ -315,6 +311,7 @@ export default function ApprovalRequest() {
 									)}
 								</>
 							)}
+							<div ref={messagesEndRef} />
 							{comments?.map((c) => (
 								<Paper
 									key={c.id}
@@ -323,39 +320,29 @@ export default function ApprovalRequest() {
 								>
 									<Box>
 										<Stack direction={'row'} alignItems={'center'} gap={'6px'}>
-											<Avatar alt="emp image" sx={{ width: 35, height: 35, textTransform: 'capitalize' }}>
+											<Avatar alt="emp image" sx={{ width: 28, height: 28, textTransform: 'capitalize' }}>
 												{c.employee.name ? c.employee.name[0] : c.employee.email_address[0]}
 											</Avatar>
-											<div>
-												<Typography variant="body2">
-													{c.employee?.name || c.employee?.email_address}, {new Date(c.created_at).toLocaleDateString()}
-												</Typography>
-												{!!c.project_task && (
-													<Typography variant="body2" sx={{ lineHeight: 1 }}>
-														Added on Task: {'  '}
-														<Chip
-															size="small"
-															variant="outlined"
-															label={c.project_task.title}
-															color="info"
-															sx={{
-																borderRadius: '4px',
-																height: 18,
-																fontSize: '0.73rem',
-																marginTop: '-2px',
-															}}
-														/>
-													</Typography>
-												)}
-											</div>
+
+											<Typography variant="body2" sx={{ fontSize: '12px' }} fontWeight={600}>
+												{c.employee?.name || c.employee?.email_address},{' '}
+												<span style={{ color: '#919EAB', fontWeight: 400 }}>
+													{getDateTimeEngKorean(c.created_at, isEng)}
+												</span>
+											</Typography>
 										</Stack>
-										<Typography variant="body2" sx={{ color: '#596570', fontSize: '0.8rem' }}>
+										{!!c.project_task && (
+											<Typography variant="body2" fontSize={14}>
+												Task, {c.project_task?.title}, {fDateLocale(c.project_task.start)} -{` `}
+												{fDateLocale(c.project_task.end)}
+											</Typography>
+										)}
+										<Typography variant="body2" sx={{ color: '#596570' }} fontSize={14}>
 											{c.body}
 										</Typography>
 									</Box>
 								</Paper>
 							))}
-							<div ref={messagesEndRef} />
 						</Box>
 					</Box>
 				</Box>

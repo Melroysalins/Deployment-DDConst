@@ -26,3 +26,15 @@ export function fToNow(date) {
 		addSuffix: true,
 	})
 }
+
+export function getDateTimeEngKorean(currentDate, isEng = true) {
+	// Format the current date using Intl.DateTimeFormat
+	return new Intl.DateTimeFormat(isEng ? 'en-US' : 'ko-KR', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: 'numeric',
+		hour12: true,
+	}).format(new Date(currentDate))
+}
