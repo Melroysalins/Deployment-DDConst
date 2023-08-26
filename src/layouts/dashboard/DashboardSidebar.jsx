@@ -2,32 +2,35 @@ import PropTypes from 'prop-types'
 import { useEffect } from 'react'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 // material
-import { styled, useTheme } from '@mui/material/styles'
 import {
-	Box,
-	Link,
-	Switch,
-	Drawer,
-	Typography,
 	Avatar,
-	useMediaQuery,
-	ListItemButton,
+	Box,
+	Drawer,
 	FormControlLabel,
+	Link,
+	ListItemButton,
+	Stack,
+	Switch,
+	Typography,
+	useMediaQuery,
 } from '@mui/material'
+import { styled, useTheme } from '@mui/material/styles'
 // mock
-import account from '../../_mock/account'
 // components
 import Logo from '../../components/Logo'
-import Scrollbar from '../../components/Scrollbar'
 import NavSection, { ListItemIconStyle } from '../../components/NavSection'
+import Scrollbar from '../../components/Scrollbar'
 //
-import navConfig from './NavConfig'
-import { DRAWER_WIDTH, DRAWER_WIDTH_COLLAPSED } from 'constant'
-import useMain from 'pages/context/context'
-import Notifications from 'layouts/Notifications'
-import ApprovalRequest from 'layouts/ApprovalRequest'
-import { useTranslation } from 'react-i18next'
 import Iconify from 'components/Iconify'
+import { DRAWER_WIDTH, DRAWER_WIDTH_COLLAPSED } from 'constant'
+import ApprovalRequest from 'layouts/ApprovalRequest'
+import Notifications from 'layouts/Notifications'
+import useMain from 'pages/context/context'
+import { useTranslation } from 'react-i18next'
+import { useQuery } from 'react-query'
+import { getEmployeeDetails } from 'supabase'
+import { getFile } from 'supabaseClient'
+import navConfig from './NavConfig'
 
 // ----------------------------------------------------------------------
 
@@ -119,7 +122,7 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
 }))
 
 export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
-	const { user, openNotification, openaccoutReview, setopenNotification } = useMain()
+	const { user, openNotification, openaccoutReview, setopenNotification, currentEmployee } = useMain()
 	const { pathname } = useLocation()
 	const theme = useTheme()
 	// const isDesktop = useResponsive('up', 'lg')
@@ -127,6 +130,23 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 
 	const { i18n } = useTranslation()
 	const isEng = i18n.language === 'en'
+
+	const { data: employee } = useQuery(
+		['employee', currentEmployee?.id],
+		({ queryKey }) => getEmployeeDetails(queryKey[1]),
+		{
+			enabled: !!currentEmployee?.id,
+			select: (r) => r.data,
+		}
+	)
+
+	const { data: profile_url } = useQuery(
+		['self profile', employee?.profile],
+		({ queryKey }) => getFile(queryKey[1], 'profile_images'),
+		{
+			enabled: !!employee,
+		}
+	)
 
 	const handleChangeLanguage = () => {
 		i18n.changeLanguage(isEng ? 'ko' : 'en')
@@ -153,40 +173,69 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 			<NavSection leftDrawerOpened={leftDrawerOpened} navConfig={navConfig} />
 
 			<Box sx={{ flexGrow: 1 }} />
-			<Box sx={{ mt: 2.5 }}>
-				<ListItemStyle>
-					<ListItemIconStyle onClick={() => setopenNotification(!openNotification)}>
-						<Iconify icon="ion:mail-notification-outline" sx={{ width: 16, height: 16 }} />
-					</ListItemIconStyle>
-				</ListItemStyle>
 
-				<ListItemStyle>
-					<FormControlLabel
-						control={
-							<MaterialUISwitch
-								sx={{ transform: 'rotate(90deg)', marginLeft: 1 }}
-								defaultChecked
-								value={isEng}
-								onChange={handleChangeLanguage}
+			{leftDrawerOpened ? (
+				<Box sx={{ px: 2.5, pb: 3, mt: 10 }}>
+					<Stack alignItems="center" spacing={3} sx={{ pt: 5, position: 'relative', overflow: 'hidden' }}>
+						<Box component="a" href="/dashboard/profile" sx={{ width: 100, height: 100 }}>
+							<Avatar
+								src={profile_url}
+								alt={employee?.name}
+								sx={{ width: '100%', height: '100%', overflow: 'hidden' }}
 							/>
-						}
-					/>
-				</ListItemStyle>
+						</Box>
 
-				<Link underline="none" component={RouterLink} to="#">
-					<AccountStyle>
-						<Avatar src={account.photoURL} alt="photoURL" />
-						<Box sx={{ ml: 2 }}>
+						<Box sx={{ textAlign: 'center' }}>
+							<Typography gutterBottom variant="h6">
+								{user.email}
+							</Typography>
+
+							<Typography variant="body2" sx={{ color: 'text.secondary' }}>
+								{employee.name}
+							</Typography>
+						</Box>
+
+						{/* <Button href="https://material-ui.com/store/items/minimal-dashboard/" target="_blank" variant="contained">
+							Upgrade
+						</Button> */}
+					</Stack>
+				</Box>
+			) : (
+				<Box sx={{ mt: 2.5 }}>
+					<ListItemStyle>
+						<ListItemIconStyle onClick={() => setopenNotification(!openNotification)}>
+							<Iconify icon="ion:mail-notification-outline" sx={{ width: 16, height: 16 }} />
+						</ListItemIconStyle>
+					</ListItemStyle>
+
+					<ListItemStyle>
+						<FormControlLabel
+							control={
+								<MaterialUISwitch
+									sx={{ transform: 'rotate(90deg)', marginLeft: 1 }}
+									defaultChecked
+									value={isEng}
+									onChange={handleChangeLanguage}
+								/>
+							}
+						/>
+					</ListItemStyle>
+
+					<Link underline="none" component={RouterLink} to="/dashboard/profile">
+						<AccountStyle>
+							<Avatar src={profile_url} alt="photoURL" />
+							{/* <Box sx={{ ml: 2 }}>
 							<Typography variant="subtitle2" sx={{ color: 'text.default' }}>
 								{user.email}
 							</Typography>
 							<Typography variant="body2" sx={{ color: 'text.default' }}>
 								{account.role}
 							</Typography>
-						</Box>
-					</AccountStyle>
-				</Link>
-			</Box>
+						</Box> */}
+						</AccountStyle>
+					</Link>
+				</Box>
+			)}
 		</Scrollbar>
 	)
 

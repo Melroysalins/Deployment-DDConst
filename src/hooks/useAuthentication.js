@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '../supabaseClient'
 import { useQuery } from 'react-query'
+import { useNavigate } from 'react-router-dom'
 import { getEmployeeByUser } from 'supabase'
+import { supabase } from '../supabaseClient'
 
 export default function useAuthentication() {
 	const [user, setuser] = useState(null)
