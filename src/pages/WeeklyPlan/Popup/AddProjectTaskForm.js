@@ -20,15 +20,16 @@ import {
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import { ApprovalStatus } from 'constant'
 import { useFormik } from 'formik'
 import moment from 'moment-timezone'
 import React, { forwardRef, useImperativeHandle } from 'react'
+import { useTranslation } from 'react-i18next'
 import { createNewTasks, updateTask } from 'supabase'
 import * as Yup from 'yup'
 
 const validationSchema = Yup.object().shape({
 	title: Yup.string().min(2, 'Too Short!').required('Required').nullable(),
-	notes: Yup.string().nullable(),
 	start: Yup.date().required('Required').nullable(),
 	end: Yup.date().required('Required').nullable(),
 	isTask: Yup.boolean(),
@@ -42,14 +43,14 @@ const validationSchema = Yup.object().shape({
 
 const initialValues = {
 	title: '',
-	notes: '',
 	task_id: null,
 	start: null,
 	end: null,
 	isTask: true,
-	approval_status: null,
+	approval_status: ApprovalStatus.Planned,
 }
 const AddProjectTaskForm = forwardRef((props, ref) => {
+	const { t } = useTranslation()
 	const { data = {}, handleClose, handleSetEvent, myEvents } = props
 	const [loader, setLoader] = React.useState(false)
 	const [toast, setToast] = React.useState(null)
@@ -66,20 +67,20 @@ const AddProjectTaskForm = forwardRef((props, ref) => {
 				if (data.id) {
 					res = await updateTask(rest, id)
 					if (res.status >= 200 && res.status < 300) {
-						setToast({ severity: 'success', message: 'Succesfully edited event!' })
+						setToast({ severity: 'success', message: t(`success_edit_event`) })
 						handleSetEvent()
 						handleClose()
 					} else {
-						setToast({ severity: 'error', message: 'Failed to edit event!' })
+						setToast({ severity: 'error', message: t(`failed_edit_event`) })
 					}
 				} else {
 					res = await createNewTasks(rest)
 					if (res.status >= 200 && res.status < 300) {
-						setToast({ severity: 'success', message: 'Succesfully added new event!' })
+						setToast({ severity: 'success', message: t(`success_added_event`) })
 						handleSetEvent()
 						handleClose()
 					} else {
-						setToast({ severity: 'error', message: 'Failed to added new event!' })
+						setToast({ severity: 'error', message: t(`failed_added_event`) })
 					}
 				}
 			} catch (err) {
@@ -100,7 +101,13 @@ const AddProjectTaskForm = forwardRef((props, ref) => {
 	}
 
 	React.useEffect(() => {
-		if (data) setValues({ ...values, ...data, isTask: !data.task_id })
+		if (data)
+			setValues({
+				...values,
+				...data,
+				isTask: !data.task_id,
+				approval_status: data.approval_status || ApprovalStatus.Planned,
+			})
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [data])
 
@@ -124,7 +131,7 @@ const AddProjectTaskForm = forwardRef((props, ref) => {
 					<Grid item xs={12}>
 						<TextField
 							fullWidth
-							label="Title"
+							label={t(`title`)}
 							size="small"
 							value={values.title}
 							name="title"
@@ -143,8 +150,8 @@ const AddProjectTaskForm = forwardRef((props, ref) => {
 								onBlur={handleBlur}
 								value={values.isTask}
 							>
-								<FormControlLabel value={true} control={<Radio size="small" />} label="Task" />
-								<FormControlLabel value={false} control={<Radio size="small" />} label="Sub Task" />
+								<FormControlLabel value={true} control={<Radio size="small" />} label={t(`task`)} />
+								<FormControlLabel value={false} control={<Radio size="small" />} label={t(`sub_task`)} />
 							</RadioGroup>
 						</Grid>
 					)}
@@ -153,14 +160,14 @@ const AddProjectTaskForm = forwardRef((props, ref) => {
 						<Grid item xs={12}>
 							<FormControl fullWidth>
 								<InputLabel shrink id="demo-simple-select-helper-label">
-									Select Task
+									{t('select_task')}
 								</InputLabel>
 								<Select
 									size="small"
 									labelId="demo-simple-select-helper-label"
 									id="demo-simple-select-helper"
 									value={values.task_id}
-									label="Select Task"
+									label={t('select_task')}
 									onChange={handleChange}
 									onBlur={handleBlur}
 									name="task_id"
@@ -184,22 +191,22 @@ const AddProjectTaskForm = forwardRef((props, ref) => {
 					<Grid item xs={12}>
 						<FormControl fullWidth>
 							<InputLabel shrink id="demo-simple-select-helper-label">
-								Approval Status
+								{t('approval_status')}
 							</InputLabel>
 							<Select
 								size="small"
 								labelId="demo-simple-select-helper-label"
 								id="demo-simple-select-helper"
 								value={values.approval_status}
-								label="Approval Type"
+								label={t('approval_type')}
 								onChange={handleChange}
 								onBlur={handleBlur}
 								name="approval_status"
 								fullWidth
 							>
-								<MenuItem value="Planned">Planned</MenuItem>
-								<MenuItem value="Approved">Approved</MenuItem>
-								<MenuItem value="Rejected">Rejected</MenuItem>
+								<MenuItem value="Planned">{t('planned')}</MenuItem>
+								<MenuItem value="Approved">{t('approved')}</MenuItem>
+								<MenuItem value="Rejected">{t('rejected')}</MenuItem>
 							</Select>
 							<FormHelperText error={errors.approval_status && touched.approval_status}>
 								{touched.approval_status ? errors.approval_status : null}
@@ -207,18 +214,6 @@ const AddProjectTaskForm = forwardRef((props, ref) => {
 						</FormControl>
 					</Grid>
 
-					<Grid item xs={12}>
-						<TextField
-							value={values.notes}
-							fullWidth
-							label="Notes"
-							size="small"
-							name="notes"
-							onChange={handleChange}
-							onBlur={handleBlur}
-						/>
-						<FormHelperText error={errors.notes && touched.notes}>{touched.notes ? errors.notes : null}</FormHelperText>
-					</Grid>
 					<Grid item xs={6}>
 						<LocalizationProvider dateAdapter={AdapterMoment}>
 							<DatePicker
@@ -232,7 +227,7 @@ const AddProjectTaskForm = forwardRef((props, ref) => {
 								name="start"
 								fullWidth
 								id="outlined-textarea"
-								label="start"
+								label={t('start')}
 								placeholder=""
 								renderInput={(params) => (
 									<TextField
@@ -258,7 +253,7 @@ const AddProjectTaskForm = forwardRef((props, ref) => {
 								name="end"
 								fullWidth
 								id="outlined-textarea"
-								label="end"
+								label={t('end')}
 								placeholder=""
 								renderInput={(params) => (
 									<TextField

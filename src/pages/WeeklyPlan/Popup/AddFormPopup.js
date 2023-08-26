@@ -6,6 +6,7 @@ import PropTypes from 'prop-types'
 import { Box, Tab, Tabs } from '@mui/material'
 import { a11yProps } from 'pages/Dashboard/TravelExpenses/popups/ViewEventPopup'
 import Comment from '../Comment'
+import { useTranslation } from 'react-i18next'
 
 AddFormPopup.propTypes = {
 	handleClose: PropTypes.func,
@@ -16,6 +17,7 @@ AddFormPopup.propTypes = {
 }
 
 export default function AddFormPopup({ handleClose, anchor, data, handleSetEvent, myEvents }) {
+	const { t } = useTranslation()
 	const ref = React.useRef()
 	const [value, setValue] = React.useState(0)
 
@@ -41,19 +43,19 @@ export default function AddFormPopup({ handleClose, anchor, data, handleSetEvent
 	return (
 		<>
 			<PopupForm
-				title={data?.id ? 'Edit Project Task' : 'Add Project Task'}
+				title={data?.id ? t('edit_project_task') : t('add_project_task')}
 				variant="primary"
 				handleSubmit={!value && handleSubmit}
 				handleClose={handleClose}
 				anchor={anchor}
-				handleDelete={data?.id && handleDelete}
-				marginTop={value === 1 ? -7 : -6}
+				handleDelete={data?.id && value === 0 && handleDelete}
+				marginTop={value === 1 ? -8 : -6}
 			>
 				{data?.id && !data.task_id && (
 					<Box sx={{ width: '100%' }}>
 						<Tabs variant="fullWidth" value={value} onChange={handleChange} aria-label="secondary tabs example">
-							<Tab label="Task" {...a11yProps(0)} />
-							<Tab label="Comment" {...a11yProps(0)} />
+							<Tab label={t('task')} {...a11yProps(0)} />
+							<Tab label={t('comment')} {...a11yProps(0)} />
 						</Tabs>
 					</Box>
 				)}

@@ -93,5 +93,31 @@
    "global":"글로벌",
    "comments":"코멘트",
    "no_comment":"댓글이 추가되지 않았습니다.",
-   "please_select_task":"작업을 선택하세요."
+   "please_select_task":"작업을 선택하세요.",
+
+   "success_edit_event":"이벤트가 성공적으로 편집되었습니다!",
+   "failed_edit_event":"이벤트를 수정하지 못했습니다.",
+   "success_added_event":"새로운 이벤트가 성공적으로 추가되었습니다!",
+   "failed_added_event":"새 이벤트를 추가하지 못했습니다!",
+   "title":"제목",
+   "task":"일",
+   "sub_task":"하위 작업",
+   "select_task":"작업 선택",
+   "approval_status":"승인 상태",
+   "approval_type":"승인 유형",
+   "planned":"예정",
+   "approved":"승인됨",
+   "rejected":"거부됨",
+   "edit_project_task":"프로젝트 작업 편집",
+   "add_project_task":"프로젝트 작업 추가",
+
+   "close":"닫다",
+   "okay":"좋아요",
+   "delete":"삭제",
+
+   "all_comments":"모든 댓글",
+   "no_comment_yet":"아직 댓글이 추가되지 않았습니다",
+   "edited":"편집되었습니다.",
+   "at":"~에"
+
 }

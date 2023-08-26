@@ -93,5 +93,32 @@
    "global":"Global",
    "comments":"Comments",
    "no_comment":"No Comment Added",
-   "please_select_task":"Please select task"
+   "please_select_task":"Please select task",
+
+   "success_edit_event":"Succesfully edited event!",
+   "failed_edit_event":"Failed to edit event!",
+   "success_added_event":"Succesfully added new event!",
+   "failed_added_event":"Failed to added new event!",
+   "title":"Title",
+   "task":"Task",
+   "sub_task":"Sub Task",
+   "select_task":"Select Task",
+   "approval_status":"Approval Status",
+   "approval_type":"Approval Type",
+   "planned":"Planned",
+   "approved":"Approved",
+   "rejected":"Rejected",
+   "edit_project_task":"Edit Project Task",
+   "add_project_task":"Add Project Task",
+
+   "close":"Close",
+   "okay":"Okay",
+   "delete":"Delete",
+
+   "all_comments":"All Comments",
+   "no_comment_yet":"No Comment Added Yet",
+   "edited":"Edited.",
+   "at":"at"
+
+
 }

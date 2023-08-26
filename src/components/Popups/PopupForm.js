@@ -5,6 +5,7 @@ import { Box, Button, Divider, Typography, Stack } from '@mui/material'
 // utils
 // components
 import MenuPopover from 'components/MenuPopover'
+import { useTranslation } from 'react-i18next'
 
 // ----------------------------------------------------------------------
 
@@ -15,9 +16,12 @@ PopupForm.propTypes = {
 	handleClose: PropTypes.func.isRequired,
 	anchor: PropTypes.any.isRequired,
 	handleDelete: PropTypes.func,
+	marginTop: PropTypes.number,
+	children: PropTypes.node,
 }
 
 export default function PopupForm(props) {
+	const { t } = useTranslation()
 	const { title, variant = 'primary', handleSubmit, anchor, handleClose, handleDelete, marginTop = 1.5 } = props
 
 	return (
@@ -61,7 +65,7 @@ export default function PopupForm(props) {
 						color="inherit"
 						onClick={handleClose}
 					>
-						Close
+						{t('close')}
 					</Button>
 					{handleDelete && (
 						<Button
@@ -71,7 +75,7 @@ export default function PopupForm(props) {
 							color="inherit"
 							onClick={handleDelete}
 						>
-							Delete
+							{t('delete')}
 						</Button>
 					)}
 					{handleSubmit && (
@@ -81,7 +85,7 @@ export default function PopupForm(props) {
 							size="small"
 							onClick={handleSubmit}
 						>
-							Okay
+							{t('okay')}
 						</Button>
 					)}
 				</Stack>

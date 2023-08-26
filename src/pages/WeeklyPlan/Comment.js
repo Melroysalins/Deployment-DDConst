@@ -10,6 +10,7 @@ import useMain from 'pages/context/context'
 import PropTypes from 'prop-types'
 import { createComment, deleteComment, getCommentsByProjectTask, updateComment } from 'supabase/comment'
 import { useQuery } from 'react-query'
+import { useTranslation } from 'react-i18next'
 
 Comment.propTypes = {
 	data: PropTypes.object,
@@ -17,6 +18,7 @@ Comment.propTypes = {
 }
 
 export default function Comment({ data, handleSetEvent }) {
+	const { t } = useTranslation()
 	const messagesEndRef = useRef(null)
 	const [isLoader, setisLoader] = useState(false)
 	const [isDelLoader, setisDelLoader] = useState(false)
@@ -99,11 +101,11 @@ export default function Comment({ data, handleSetEvent }) {
 	return (
 		<Box>
 			<Typography variant="body1" fontSize={16} fontWeight={600} mb={1} mt={1} p={'0 12px'}>
-				All Comments ({data.title})
+				{t('all_comments')} ({data.title})
 			</Typography>
 			<Box
 				sx={{
-					minHeight: 80,
+					minHeight: '27vh',
 					position: 'relative',
 					maxHeight: '35vh',
 					overflowY: 'auto',
@@ -118,8 +120,8 @@ export default function Comment({ data, handleSetEvent }) {
 			>
 				<Box p={'0 10px'}>
 					{!comments?.length && !isLoading && (
-						<Box pt={3} sx={{ fontWeight: 600, textAlign: 'center', fontSize: '1.1rem' }}>
-							No Comment Added Yet
+						<Box pt={3} sx={{ fontWeight: 600, textAlign: 'center', fontSize: '1.1rem', paddingTop: 8 }}>
+							{t('no_comment_yet')}
 						</Box>
 					)}
 					{comments?.map((val) => (
@@ -166,7 +168,8 @@ export default function Comment({ data, handleSetEvent }) {
 									)}
 								</Typography>
 								<Typography variant="body2" fontSize={12} pt={'3px'}>
-									Edited. {fDateLocale(new Date(val.created_at))} at {fTimeLocale(new Date(val.created_at))}
+									{t('edited')} {fDateLocale(new Date(val.created_at))} {t('at')}{' '}
+									{fTimeLocale(new Date(val.created_at))}
 								</Typography>
 							</Box>
 							{val.employee.user !== user.id ? (
