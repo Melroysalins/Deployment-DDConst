@@ -148,7 +148,7 @@ function Approval({ setopen, isLeftMenu }) {
 									status: ApprovalStatus.Planned,
 								})
 							)
-							if (!commentTasks.length) {
+							if (!commentTasks.length && comment) {
 								await createComment({
 									body: comment,
 									employee: currentEmployee.id,

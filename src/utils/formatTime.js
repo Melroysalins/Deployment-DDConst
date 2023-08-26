@@ -1,4 +1,6 @@
+import { WeekName } from 'constant'
 import { format, formatDistanceToNow } from 'date-fns'
+import moment from 'moment'
 
 // ----------------------------------------------------------------------
 
@@ -37,4 +39,17 @@ export function getDateTimeEngKorean(currentDate, isEng = true) {
 		minute: 'numeric',
 		hour12: true,
 	}).format(new Date(currentDate))
+}
+
+export function getWeekName(date) {
+	const currentDate = moment().startOf('week')
+	const inputDate = moment(date).startOf('week')
+
+	if (currentDate.isSame(inputDate, 'week')) {
+		return WeekName.Current
+	}
+	if (inputDate.isAfter(currentDate)) {
+		return WeekName.Next
+	}
+	return WeekName.Previous
 }

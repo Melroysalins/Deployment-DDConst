@@ -29,8 +29,8 @@ import AddFormPopup from './Popup/AddFormPopup'
 import { useTranslation } from 'react-i18next'
 import useMain from 'pages/context/context'
 import { getApprovalsByProject } from 'supabase/approval'
-import { ApprovalStatus } from 'constant'
-import { fDateLocale } from 'utils/formatTime'
+import { ApprovalStatus, WeekName } from 'constant'
+import { fDateLocale, getWeekName } from 'utils/formatTime'
 import RequestApproval from 'layouts/RequestApproval'
 
 setOptions({
@@ -44,6 +44,8 @@ const viewSettings = {
 		type: 'week',
 		size: 2,
 		eventList: true,
+		startDay: 1,
+		endDay: 0,
 	},
 }
 
@@ -197,15 +199,21 @@ function WeeklyPlan() {
 
 	const renderCustomDay = (args) => {
 		const { date } = args
-		const isFirstDay = args.date.getDay() === 0
-		const now = new Date()
-		const cutOff = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - now.getDay()))
-		const thisWeek = args.date < cutOff
+		const isFirstDay = args.date.getDay() === 1
 
-		const startOfWeek = moment(date).startOf('week').toDate()
-		const endOfWeek = moment(date).endOf('week').toDate()
-		const startNextWeek = moment(date).startOf('week').toDate()
-		const endNextWeek = moment(date).endOf('week').toDate()
+		moment.updateLocale('en', {
+			week: {
+				dow: 1,
+			},
+		})
+		let [startOfWeek, endOfWeek, startNextWeek, endNextWeek, weekName] = ['', '', '', '', '']
+		if (isFirstDay) {
+			weekName = getWeekName(args.date)
+			startOfWeek = moment(date).startOf('week').toDate()
+			endOfWeek = moment(date).endOf('week').toDate()
+			startNextWeek = moment(date).startOf('week').toDate()
+			endNextWeek = moment(date).endOf('week').toDate()
+		}
 
 		const checkStatus = (isFirstDay && findDatesInApproval(startOfWeek, endOfWeek)?.status) || 'Pending'
 
@@ -214,9 +222,11 @@ function WeeklyPlan() {
 				<div className="first-day" style={{ borderBottom: `1px solid ${colorHeading[checkStatus]}` }}>
 					{isFirstDay && (
 						<>
-							{thisWeek
+							{weekName === WeekName.Current
 								? `${t('week_progress')} (${fDateLocale(startOfWeek)} - ${fDateLocale(endOfWeek)})`
-								: `${t('next_week_plan')} (${fDateLocale(startNextWeek)} - ${fDateLocale(endNextWeek)})`}
+								: `${t(weekName === WeekName.Next ? 'next_week_plan' : 'last_week_plan')} (${fDateLocale(
+										startNextWeek
+								  )} - ${fDateLocale(endNextWeek)})`}
 						</>
 					)}
 				</div>

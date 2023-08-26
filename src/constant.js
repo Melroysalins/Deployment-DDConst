@@ -32,3 +32,9 @@ export const ApprovalStatus = {
 	Planned: 'Planned',
 	Rejected: 'Rejected',
 }
+
+export const WeekName = {
+	Current: 'Current',
+	Next: 'Next',
+	Previous: 'Previous',
+}
