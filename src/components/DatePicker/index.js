@@ -17,7 +17,7 @@ export default function BasicDateRangePicker({ startLabel = '', endLabel = '', s
 				renderInput={(startProps, endProps) => (
 					<>
 						<TextField {...startProps} size="small" />
-						<Box sx={{ mx: 2 }}>-</Box>
+						<Box sx={{ mx: 1 }}>-</Box>
 						<TextField {...endProps} size="small" />
 					</>
 				)}

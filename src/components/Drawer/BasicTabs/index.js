@@ -9,6 +9,7 @@ import Info from '../Info'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import PropTypes from 'prop-types'
 import { useTranslation } from 'react-i18next'
+import Approvals from '../Approval/Approvals'
 
 TabPanel.propTypes = {
 	children: PropTypes.node,
@@ -72,7 +73,8 @@ export default function BasicTabs({ open, setopen }) {
 					>
 						<Tab label={t('info')} {...a11yProps(0)} />
 						<Tab label={t('logs')} {...a11yProps(1)} />
-						<Tab icon={<SettingsOutlinedIcon sx={{ width: 18 }} />} iconPosition="end" label={t('approval')} />
+						<Tab label={t('approvals')} />
+						{/* icon={<SettingsOutlinedIcon sx={{ width: 18 }} />} iconPosition="end" */}
 					</Tabs>
 				</Box>
 				<TabPanel value={value} index={0}>
@@ -82,7 +84,8 @@ export default function BasicTabs({ open, setopen }) {
 					<Logs />
 				</TabPanel>
 				<TabPanel value={value} index={2}>
-					<Approval setopen={setopen} />
+					{/* <Approval setopen={setopen} /> */}
+					<Approvals setopen={setopen} />
 				</TabPanel>
 			</Box>
 		</Drawer>

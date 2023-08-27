@@ -5,8 +5,8 @@
   "logout":"로그 아웃",
   "manageEmp":"직원 관리",
 
-  "owner": "소유자:",
-  "date": "마지:",
+  "owner": "소유자",
+  "date": "마지",
   "remaining_days":"남은 일수",
   "completed_days":"완료 일",
   "contract_length":"계약 기간",
@@ -119,6 +119,17 @@
    "all_comments":"모든 댓글",
    "no_comment_yet":"아직 댓글이 추가되지 않았습니다",
    "edited":"편집되었습니다.",
-   "at":"~에"
+   "at":"~에",
 
+   "approvals":"승인",
+   "search_by_date_range":"날짜 범위로 검색",
+   "select_approval":"승인을 선택하세요",
+   "status":"상태",
+   "construction_name":"공사명",
+   "detail_page":"상세페이지",
+   "approval_request_date":"승인 요청일",
+   "approval_completion_date":"승인 완료 날짜",
+   "approval_progress":"승인 진행",
+   "open_detail_approval_view":"세부 승인 보기 열기",
+   "project_info":"프로젝트 정보"
 }

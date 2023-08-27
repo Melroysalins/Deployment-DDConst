@@ -119,7 +119,17 @@
    "all_comments":"All Comments",
    "no_comment_yet":"No Comment Added Yet",
    "edited":"Edited.",
-   "at":"at"
+   "at":"at",
 
-
+   "approvals":"Approvals",
+   "search_by_date_range":"Search by date range",
+   "select_approval":"Select an approval",
+   "status":"Status",
+   "construction_name":"Construction name",
+   "detail_page":"Detail page",
+   "approval_request_date":"Request Date",
+   "approval_completion_date":"Completion Date",
+   "approval_progress":"Approval progress",
+   "open_detail_approval_view":"Open detailed approval view",
+   "project_info":"Project Info"
 }
