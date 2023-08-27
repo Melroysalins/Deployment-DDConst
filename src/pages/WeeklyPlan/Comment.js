@@ -11,6 +11,7 @@ import PropTypes from 'prop-types'
 import { createComment, deleteComment, getCommentsByProjectTask, updateComment } from 'supabase/comment'
 import { useQuery } from 'react-query'
 import { useTranslation } from 'react-i18next'
+import { deepPurple } from '@mui/material/colors'
 
 Comment.propTypes = {
 	data: PropTypes.object,
@@ -126,10 +127,12 @@ export default function Comment({ data, handleSetEvent }) {
 					)}
 					{comments?.map((val) => (
 						<Stack direction="row" mb={2} mr={1} key={val.id} sx={{ position: 'relative' }}>
-							<Avatar>{val.user_email?.[0]}</Avatar>
+							<Avatar sx={{ bgcolor: deepPurple[500] }} src={val.employee?.signedUrl || ''}>
+								{val.employee.name?.[0]}
+							</Avatar>
 							<Box pl={1} sx={{ lineBreak: 'anywhere' }}>
 								<Typography variant="body2">
-									<Iconify icon="mdi:person-circle-outline" sx={{ color: (theme) => theme.palette.primary.light }} />
+									{/* <Iconify icon="mdi:person-circle-outline" sx={{ color: (theme) => theme.palette.primary.light }} /> */}
 									<Typography
 										variant="caption"
 										sx={{ color: (theme) => theme.palette.primary.light, fontSize: '14px' }}
@@ -217,12 +220,12 @@ export default function Comment({ data, handleSetEvent }) {
 				mr={1}
 				style={{ alignItems: 'center', justifyContent: 'center', display: 'flex' }}
 			>
-				<Avatar src={account.photoURL} alt="photoURL" />
+				<Avatar sx={{ bgcolor: deepPurple[500] }} src={currentEmployee?.signedUrl || account.photoURL} alt="photoURL" />
 				<TextField
 					multiline
 					variant="outlined"
 					size="small"
-					label="Comment"
+					label={t('comment')}
 					fullWidth
 					onClick={() => {
 						if (isEdit) {

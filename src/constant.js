@@ -38,3 +38,9 @@ export const WeekName = {
 	Next: 'Next',
 	Previous: 'Previous',
 }
+
+export const BucketName = {
+	Profile_Images: 'profile_images',
+	Avatars: 'avatars',
+	Files: 'files',
+}

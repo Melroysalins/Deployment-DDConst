@@ -1,5 +1,6 @@
+/* eslint-disable no-nested-ternary */
 import useMain from 'pages/context/context'
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useRef } from 'react'
 import Box from '@mui/material/Box'
 import LeftDrawer from 'components/LeftDrawer'
 import {
@@ -21,10 +22,12 @@ import Rejection from './Dialogs/Rejection'
 import { useQuery } from 'react-query'
 import { getApproversByApproval, updateApproval, updateApprovers } from 'supabase/approval'
 import { fDateLocale, getDateTimeEngKorean } from 'utils/formatTime'
-import { ApprovalStatus, getNameApprovalStatus } from 'constant'
+import { ApprovalStatus, BucketName, getNameApprovalStatus } from 'constant'
 import { useTranslation } from 'react-i18next'
 import { colorApprovalTask } from 'pages/WeeklyPlan/WeeklyPlan'
 import { createComment, getCommentsByApproval } from 'supabase'
+import { deepPurple } from '@mui/material/colors'
+import { getFile } from 'supabaseClient'
 
 export default function ApprovalRequest() {
 	const { t, i18n } = useTranslation()
@@ -51,7 +54,16 @@ export default function ApprovalRequest() {
 	const [openRejectionDialog, setopenRejectionDialog] = useState(false)
 	const [isUpdating, setisUpdating] = useState(false)
 	const [commentText, setcommentText] = useState('')
+	const [commentLoading, setcommentLoading] = useState(false)
 	const messagesEndRef = useRef(null)
+
+	const { data: ownerSignedUrl } = useQuery(
+		['OwnerImage'],
+		() => getFile(approval.owner?.profile, BucketName.Profile_Images),
+		{
+			enabled: !!approval.owner?.profile,
+		}
+	)
 
 	const { data: approvers } = useQuery(['Approvers'], () => getApproversByApproval(approval.id), {
 		select: (r) => r.data.sort((a, b) => a.order - b.order),
@@ -126,6 +138,7 @@ export default function ApprovalRequest() {
 
 	const saveComment = async () => {
 		if ((allowTaskCursor && !commentTasks.length) || !commentText) return
+		setcommentLoading(true)
 		if (!commentTasks.length) {
 			await createComment({
 				body: commentText,
@@ -134,6 +147,7 @@ export default function ApprovalRequest() {
 			})
 			refetchApprovalComments()
 			resetComment()
+			setcommentLoading(false)
 		} else {
 			const promises = commentTasks?.map(async (obj) => {
 				await createComment({
@@ -148,6 +162,7 @@ export default function ApprovalRequest() {
 			refetchApprovalComments()
 			setrefetchtaskProjects(true)
 			resetComment()
+			setcommentLoading(false)
 		}
 	}
 
@@ -175,19 +190,6 @@ export default function ApprovalRequest() {
 					</Typography>
 				}
 			>
-				{/* <Stack
-					direction="row"
-					gap={1}
-					alignItems={'center'}
-					sx={{ height: 50, padding: '3px 25px', background: '#F9F9FA' }}
-				>
-					<>
-						<Avatar alt="avatar image" sx={{ width: 40, height: 40, textTransform: 'capitalize' }}>
-							{employee.name ? employee.name[0] : employee.email_address[0]}
-						</Avatar>
-						<Typography variant="body1">{employee.name || employee.email_addres}</Typography>
-					</>
-				</Stack> */}
 				<Box style={{ padding: '3px 18px' }}>
 					<Stack direction="row" gap={1} alignItems={'center'} justifyContent={'space-between'}>
 						<Typography sx={{ fontWeight: 600 }}>{t('approvers')}</Typography>
@@ -219,42 +221,57 @@ export default function ApprovalRequest() {
 							},
 						}}
 					>
-						{approvers?.map((e) => (
-							<Box
-								key={e.id}
-								sx={{
-									position: 'relative',
-									textAlign: 'center',
-									maxWidth: 55,
-								}}
-							>
-								<Avatar alt="avatar image" sx={{ width: 45, height: 45, textTransform: 'capitalize' }}>
-									{e.employee.name ? e.employee.name[0] : e.employee.email_address[0]}
-								</Avatar>
-								<Box sx={{ position: 'absolute', right: 5, top: 28 }}>
-									<img
-										style={{ width: 20, height: 20 }}
-										src={`/static/icons/${
-											// eslint-disable-next-line no-nested-ternary
-											e.status === ApprovalStatus.Planned
-												? 'pending.svg'
-												: e.status === ApprovalStatus.Approved
-												? 'approve.svg'
-												: 'reject.svg'
-										}`}
-										alt="icon"
-									/>
-								</Box>
-								<Typography
-									variant="body2"
-									fontWeight={600}
-									mt={'5px'}
-									sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
+						{approvers?.length &&
+							[approval.owner, ...approvers]?.map((e, index) => (
+								<Box
+									key={e.id}
+									sx={{
+										position: 'relative',
+										textAlign: 'center',
+										maxWidth: 50,
+										minWidth: 50,
+									}}
 								>
-									{e.employee.name || e.employee.email_address}
-								</Typography>
-							</Box>
-						))}
+									<Avatar
+										alt="avatar image"
+										sx={{
+											width: 45,
+											height: 45,
+											minWidth: 45,
+											minHeight: 45,
+											textTransform: 'capitalize',
+											bgcolor: deepPurple[500],
+										}}
+										src={index === 0 ? ownerSignedUrl || '' : e.employee?.signedUrl || ''}
+									>
+										{e.name ? e.name[0] : e.employee.name ? e.employee.name[0] : e.employee.email_address[0]}
+									</Avatar>
+									<Box sx={{ position: 'absolute', right: 4, top: 30 }}>
+										<img
+											style={{ width: 20, height: 20 }}
+											src={`/static/icons/${
+												// eslint-disable-next-line no-nested-ternary
+												index === 0
+													? 'owner.svg'
+													: e.status === ApprovalStatus.Planned
+													? 'pending.svg'
+													: e.status === ApprovalStatus.Approved
+													? 'approve.svg'
+													: 'reject.svg'
+											}`}
+											alt="icon"
+										/>
+									</Box>
+									<Typography
+										variant="body2"
+										fontWeight={600}
+										mt={'5px'}
+										sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}
+									>
+										{e.name || e.employee.name || e.employee.email_address}
+									</Typography>
+								</Box>
+							))}
 					</Stack>
 				</Box>
 
@@ -262,17 +279,21 @@ export default function ApprovalRequest() {
 					<Box mt={1} sx={{ padding: '3px 12px' }}>
 						<Stack direction="row" gap={1} alignItems={'center'} mt={'3px'}>
 							<Iconify icon="pepicons-pop:ruler-off" sx={{ minWidth: 18, minHeight: 18, paddingLeft: '5px' }} />
-							<Typography variant="body2">{project?.title}</Typography>
+							<Typography variant="body2" fontWeight={600}>
+								{project?.title}
+							</Typography>
 						</Stack>
 
 						<Stack direction="row" gap={1} alignItems={'center'} mt={'3px'}>
 							<Iconify icon="grommet-icons:form-attachment" sx={{ minWidth: 22, minHeight: 22 }} />
-							<Typography variant="body2">{getNameApprovalStatus[from_page]}</Typography>
+							<Typography variant="body2" fontWeight={600}>
+								{getNameApprovalStatus[from_page]}
+							</Typography>
 						</Stack>
 
 						<Stack direction="row" gap={1} alignItems={'center'} mt={'3px'}>
 							<Iconify icon="mdi:timer-sand" sx={{ minWidth: 16, minHeight: 16, paddingLeft: '3px' }} />
-							<Typography variant="body2">
+							<Typography variant="body2" fontWeight={600}>
 								{fDateLocale(start)} - {fDateLocale(end)}
 							</Typography>
 						</Stack>
@@ -320,7 +341,16 @@ export default function ApprovalRequest() {
 								>
 									<Box>
 										<Stack direction={'row'} alignItems={'center'} gap={'6px'}>
-											<Avatar alt="emp image" sx={{ width: 28, height: 28, textTransform: 'capitalize' }}>
+											<Avatar
+												alt="emp image"
+												sx={{
+													width: 28,
+													height: 28,
+													textTransform: 'capitalize',
+													bgcolor: deepPurple[500],
+												}}
+												src={c.employee?.signedUrl || ''}
+											>
 												{c.employee.name ? c.employee.name[0] : c.employee.email_address[0]}
 											</Avatar>
 
@@ -440,7 +470,7 @@ export default function ApprovalRequest() {
 									value={commentText}
 									onChange={(e) => setcommentText(e.target.value)}
 									fullWidth
-									label="Text here"
+									label={t('text_here')}
 									multiline
 									onKeyPress={(e) => {
 										if (e.key === 'Enter') {
@@ -452,20 +482,26 @@ export default function ApprovalRequest() {
 										endAdornment: (
 											<InputAdornment position="end">
 												{!!commentText && (
-													<Button
-														onClick={saveComment}
-														sx={{
-															background: '#8D99FF',
-															padding: '4px 0',
-															float: 'right',
-															minWidth: 22,
-															minHeight: 22,
-															borderRadius: 5,
-														}}
-														disabled={false}
-													>
-														<Iconify icon="formkit:arrowup" sx={{ color: 'white' }} width={15} height={15} />
-													</Button>
+													<>
+														{commentLoading ? (
+															<CircularProgress size={17} fontSize="inherit" />
+														) : (
+															<Button
+																onClick={saveComment}
+																sx={{
+																	background: '#8D99FF',
+																	padding: '4px 0',
+																	float: 'right',
+																	minWidth: 22,
+																	minHeight: 22,
+																	borderRadius: 5,
+																}}
+																disabled={false}
+															>
+																<Iconify icon="formkit:arrowup" sx={{ color: 'white' }} width={15} height={15} />
+															</Button>
+														)}
+													</>
 												)}
 											</InputAdornment>
 										),
