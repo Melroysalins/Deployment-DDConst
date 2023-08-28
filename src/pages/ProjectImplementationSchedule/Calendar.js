@@ -69,7 +69,6 @@ function App() {
 	React.useEffect(() => {
 		;(async function () {
 			listAllTasksByProject(project).then((data) => {
-				console.log(data?.data, '<--data?.data')
 				handleSetEvent(data?.data)
 				handlesetMyResources(data?.data)
 			})

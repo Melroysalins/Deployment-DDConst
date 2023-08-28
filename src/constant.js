@@ -14,3 +14,33 @@ export const certificateColors = {
 	C: '#8CCC67',
 	S: '#8D99FF',
 }
+
+export const approvalStatus = [
+	{ id: 'weekly_plan', name: 'Weekly Process Planning' },
+	{ id: 'travel_expenses', name: 'Travel Expenses' },
+	{ id: 'project', name: 'Project' },
+]
+
+export const getNameApprovalStatus = {
+	weekly_plan: 'Weekly Process Planning',
+	travel_expenses: 'Travel Expenses',
+	project: 'Project',
+}
+
+export const ApprovalStatus = {
+	Approved: 'Approved',
+	Planned: 'Planned',
+	Rejected: 'Rejected',
+}
+
+export const WeekName = {
+	Current: 'Current',
+	Next: 'Next',
+	Previous: 'Previous',
+}
+
+export const BucketName = {
+	Profile_Images: 'profile_images',
+	Avatars: 'avatars',
+	Files: 'files',
+}

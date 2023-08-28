@@ -1,12 +1,12 @@
-import * as React from 'react'
-import { Breadcrumbs, Link, Stack, Menu, MenuItem, Typography, Button as MuiButton } from '@mui/material'
-import { useNavigate, useLocation } from 'react-router-dom'
-import _ from 'lodash'
-import { styled, alpha } from '@mui/material/styles'
 import { KeyboardArrowDown as KeyboardArrowDownIcon } from '@mui/icons-material'
+import { Breadcrumbs, Link, Menu, MenuItem, Button as MuiButton, Stack, Typography } from '@mui/material'
+import { alpha, styled } from '@mui/material/styles'
 import Iconify from 'components/Iconify'
+import _ from 'lodash'
 import useMain from 'pages/context/context'
 import { MainActionType } from 'pages/context/types'
+import * as React from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 export default function CustomSeparator(props) {
 	const { state, dispatch } = useMain()
@@ -59,15 +59,15 @@ export default function CustomSeparator(props) {
 
 const titles = (name) => {
 	switch (name) {
-		case 'add':
-			return 'Add New Project'
+		// case 'add':
+		// 	return 'Add New Project'
 		case 'list':
 			return 'Projects'
-		case 'empadd':
+		case 'add':
 			return 'Add New Employee'
-		case 'empedit':
+		case 'edit':
 			return 'Edit Employee'
-		case 'empview':
+		case 'view':
 			return 'View Employee'
 		case 'emplist':
 			return 'Employees'
@@ -79,6 +79,8 @@ const titles = (name) => {
 			return 'View Team'
 		case 'teamlist':
 			return 'Teams'
+		case 'weekly-plan':
+			return 'Weekly Process Planning'
 		default:
 			return 'View Project'
 	}
@@ -131,6 +133,21 @@ function CustomizedMenus({ option, typeName }) {
 		setAnchorEl(null)
 	}
 
+	if (option === 'weekly-plan')
+		return (
+			<Typography
+				display="flex"
+				direction="row"
+				alignItems="center"
+				key="3"
+				color="text.primary"
+				label="Accessories"
+				onClick={handleClick}
+			>
+				{titles(option)}
+				<KeyboardArrowDownIcon />
+			</Typography>
+		)
 	return (
 		<div>
 			<Typography

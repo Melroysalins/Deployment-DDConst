@@ -1,4 +1,6 @@
+import { BucketName } from 'constant'
 import { supabase } from 'lib/api'
+import { getFile } from 'supabaseClient'
 
 export const listAllEmployees = async () => {
 	const res = await supabase.from('employees').select('*')
@@ -48,4 +50,12 @@ export const listEmployeesByTeam = async (team) => {
      id, name
   `)
 	return res?.data
+}
+
+export const getEmployeeByUser = async (user) => {
+	const res = await supabase.from('employees').select('*').eq('user', user).single()
+	if (res.data?.profile) {
+		res.data.signedUrl = await getFile(res.data?.profile, BucketName.Profile_Images)
+	}
+	return res
 }

@@ -1,0 +1,73 @@
+import { ApprovalStatus, BucketName } from 'constant'
+import { supabase } from 'lib/api'
+import { getFile } from 'supabaseClient'
+
+export const createApproval = async (data) => {
+	const res = await supabase.from('approval').insert(data).select('*')
+	return res
+}
+
+export const createApprovers = async (data) => {
+	const res = await supabase.from('approvers').insert(data)
+	return res
+}
+
+export const getApprovals = async () => {
+	const res = await supabase.from('approval').select(`*, project(id, title)`)
+	return res
+}
+
+export const getApproversByApproval = async (approval) => {
+	const res = await supabase
+		.from('approvers')
+		.select('*')
+		.eq('approval', approval)
+		.select(`*, employee(id, name, email_address, profile)`)
+	// fetch image
+	const promises = res.data?.map(async (emp) => {
+		if (emp.employee.profile) {
+			emp.employee.signedUrl = await getFile(emp.employee.profile, BucketName.Profile_Images)
+		}
+	})
+	await Promise.all(promises)
+	return res
+}
+
+export const getApproversDetailByEmployee = async (employee) => {
+	const res = await supabase
+		.from('approvers')
+		.select('*')
+		.select(
+			`*, employee(id, name, email_address), approval(*,  project(id, title), owner(id, name, email_address, profile))`
+		)
+	const currentApprover = res.data.filter((a) => a.employee.id === employee)
+	const rejectedApprovers = res.data.filter(
+		(a) => a.approval.owner.id === employee && a.status === ApprovalStatus.Rejected
+	)
+	return [...currentApprover, ...rejectedApprovers]
+}
+
+export const getApprovalsByProject = async (projectId) => {
+	const res = await supabase.from('approval').select(`*`).eq('project', projectId)
+	return res
+}
+
+export const deleteApproval = async (id) => {
+	const res = await supabase.from('approval').delete().eq('id', id)
+	return res
+}
+
+export const deleteApprovers = async (id) => {
+	const res = await supabase.from('approvers').delete().eq('id', id)
+	return res
+}
+
+export const updateApproval = async (data, id) => {
+	const res = await supabase.from('approval').update(data).eq('id', id).select('*')
+	return res
+}
+
+export const updateApprovers = async (data, id) => {
+	const res = await supabase.from('approvers').update(data).eq('id', id).select('*')
+	return res
+}

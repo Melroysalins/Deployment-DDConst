@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
+import { useQuery } from 'react-query'
 import { useNavigate } from 'react-router-dom'
+import { getEmployeeByUser } from 'supabase'
 import { supabase } from '../supabaseClient'
 
 export default function useAuthentication() {
@@ -7,6 +9,11 @@ export default function useAuthentication() {
 	const [userLoading, setuserLoading] = useState(true)
 	const [event, setevent] = useState(null)
 	const navigate = useNavigate()
+
+	const { data: currentEmployee } = useQuery(['EmployeeByUser'], () => getEmployeeByUser(user.id), {
+		enabled: !!user?.id,
+		select: (r) => r.data,
+	})
 
 	const getSession = async () => {
 		const {
@@ -52,5 +59,6 @@ export default function useAuthentication() {
 		getSession,
 		user,
 		userLoading,
+		currentEmployee,
 	}
 }

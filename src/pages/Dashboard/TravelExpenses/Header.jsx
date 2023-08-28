@@ -1,9 +1,9 @@
 import { Button as MuiButton, Stack } from '@mui/material';
-import { Logs } from 'components';
 import Iconify from 'components/Iconify';
 import React from 'react';
 
 import Filters from './Filters';
+import BasicTabs from 'components/Drawer/BasicTabs';
 
 // components
 const Header = () => {
@@ -34,7 +34,7 @@ const Header = () => {
       >
         Pending
       </MuiButton>
-      {isDrawerOpen &&  <Logs open={isDrawerOpen} setopen={setisDrawerOpen} />}
+      {isDrawerOpen &&  <BasicTabs open={isDrawerOpen} setopen={setisDrawerOpen} />}
      
     </Stack>
   );

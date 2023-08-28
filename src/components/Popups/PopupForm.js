@@ -1,92 +1,110 @@
-import PropTypes from 'prop-types';
-import Iconify from 'components/Iconify';
+import PropTypes from 'prop-types'
+import Iconify from 'components/Iconify'
 // @mui
-import { Box, Button, Divider, Typography, IconButton, Stack } from '@mui/material';
+import { Box, Button, Divider, Typography, Stack } from '@mui/material'
 // utils
 // components
-import MenuPopover from 'components/MenuPopover';
+import MenuPopover from 'components/MenuPopover'
+import { useTranslation } from 'react-i18next'
 
 // ----------------------------------------------------------------------
 
 PopupForm.propTypes = {
-  title: PropTypes.string.isRequired,
-  variant: PropTypes.string,
-  handleSubmit: PropTypes.func.isRequired,
-  handleClose: PropTypes.func.isRequired,
-  anchor: PropTypes.any.isRequired,
-};
+	title: PropTypes.string.isRequired,
+	variant: PropTypes.string,
+	handleSubmit: PropTypes.func.isRequired,
+	handleClose: PropTypes.func.isRequired,
+	anchor: PropTypes.any.isRequired,
+	handleDelete: PropTypes.func,
+	marginTop: PropTypes.number,
+	children: PropTypes.node,
+}
 
 export default function PopupForm(props) {
-  const { title, variant = 'primary', handleSubmit, anchor, handleClose } = props;
+	const { t } = useTranslation()
+	const { title, variant = 'primary', handleSubmit, anchor, handleClose, handleDelete, marginTop = 1.5 } = props
 
-  return (
-    <>
-      <MenuPopover
-        open={Boolean(anchor)}
-        anchorEl={anchor}
-        onClose={handleClose}
-        sx={{ width: 400, p: 0, mt: 1.5, ml: 0.75 }}
-      >
-        {title ? (
-          <Box
-            sx={{ display: 'flex', alignItems: 'center', py: 2, px: 2.5, background: (theme) => color(variant, theme) }}
-          >
-            <Typography variant="subtitle1">{title}</Typography>
-          </Box>
-        ) : (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              py: 0.75,
-              px: 2.5,
-              background: (theme) => color(variant, theme),
-            }}
-          />
-        )}
+	return (
+		<>
+			<MenuPopover
+				open={Boolean(anchor)}
+				anchorEl={anchor}
+				onClose={handleClose}
+				sx={{ width: 400, p: 0, mt: marginTop, ml: 0.75 }}
+			>
+				{title ? (
+					<Box
+						sx={{ display: 'flex', alignItems: 'center', py: 2, px: 2.5, background: (theme) => color(variant, theme) }}
+					>
+						<Typography variant="subtitle1">{title}</Typography>
+					</Box>
+				) : (
+					<Box
+						sx={{
+							display: 'flex',
+							alignItems: 'center',
+							py: 0.75,
+							px: 2.5,
+							background: (theme) => color(variant, theme),
+						}}
+					/>
+				)}
 
-        {props.children}
+				{props.children}
 
-        <Divider sx={{ borderStyle: 'dashed' }} />
+				<Divider sx={{ borderStyle: 'dashed' }} />
 
-        {/* <Scrollbar sx={{ height: { xs: 30, sm: 'auto' } }}></Scrollbar> */}
+				{/* <Scrollbar sx={{ height: { xs: 30, sm: 'auto' } }}></Scrollbar> */}
 
-        <Divider sx={{ borderStyle: 'dashed' }} />
+				<Divider sx={{ borderStyle: 'dashed' }} />
 
-        <Stack flexDirection="row" justifyContent="space-between" sx={{ p: 1 }}>
-          <Button
-            startIcon={<Iconify icon="material-symbols:close-rounded" width={15} height={15} />}
-            size="small"
-            color="inherit"
-            onClick={handleClose}
-          >
-            Close
-          </Button>
-          <Button
-            sx={{ color: (theme) => color(variant, theme) }}
-            startIcon={<Iconify icon="ph:check-bold" width={15} height={15} />}
-            size="small"
-            onClick={handleSubmit}
-          >
-            Okay
-          </Button>
-        </Stack>
-      </MenuPopover>
-    </>
-  );
+				<Stack flexDirection="row" justifyContent="space-between" sx={{ p: 1 }}>
+					<Button
+						startIcon={<Iconify icon="material-symbols:close-rounded" width={15} height={15} />}
+						size="small"
+						color="inherit"
+						onClick={handleClose}
+					>
+						{t('close')}
+					</Button>
+					{handleDelete && (
+						<Button
+							sx={{ color: (theme) => theme.palette.colors[8] }}
+							startIcon={<Iconify icon="material-symbols:delete-outline" width={15} height={15} />}
+							size="small"
+							color="inherit"
+							onClick={handleDelete}
+						>
+							{t('delete')}
+						</Button>
+					)}
+					{handleSubmit && (
+						<Button
+							sx={{ color: (theme) => color(variant, theme) }}
+							startIcon={<Iconify icon="ph:check-bold" width={15} height={15} />}
+							size="small"
+							onClick={handleSubmit}
+						>
+							{t('okay')}
+						</Button>
+					)}
+				</Stack>
+			</MenuPopover>
+		</>
+	)
 }
 
 // ----------------------------------------------------------------------
 
 const color = (variant, theme) => {
-  switch (variant) {
-    case 'inherit':
-      return theme.palette.colors[4];
-    case 'primary':
-      return theme.palette.colors[8];
-    case 'secondary':
-      return theme.palette.colors[6];
-    default:
-      return theme.palette.colors[0];
-  }
-};
+	switch (variant) {
+		case 'inherit':
+			return theme.palette.colors[4]
+		case 'primary':
+			return theme.palette.colors[8]
+		case 'secondary':
+			return theme.palette.colors[6]
+		default:
+			return theme.palette.colors[0]
+	}
+}

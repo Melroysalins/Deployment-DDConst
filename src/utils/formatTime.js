@@ -1,21 +1,55 @@
-import { format, formatDistanceToNow } from 'date-fns';
+import { WeekName } from 'constant'
+import { format, formatDistanceToNow } from 'date-fns'
+import moment from 'moment'
 
 // ----------------------------------------------------------------------
 
 export function fDate(date) {
-  return format(new Date(date), 'dd MMMM yyyy');
+	return format(new Date(date), 'dd MMMM yyyy')
 }
 
 export function fDateTime(date) {
-  return format(new Date(date), 'dd/MM/yyyy HH:mm');
+	return format(new Date(date), 'dd/MM/yyyy HH:mm')
 }
 
 export function fDateTimeSuffix(date) {
-  return format(new Date(date), 'dd/MM/yyyy hh:mm p');
+	return format(new Date(date), 'dd/MM/yyyy hh:mm p')
+}
+
+export function fDateLocale(date) {
+	return format(new Date(date), 'dd/MM/yyyy')
+}
+export function fTimeLocale(date) {
+	return format(new Date(date), 'HH:mm')
 }
 
 export function fToNow(date) {
-  return formatDistanceToNow(new Date(date), {
-    addSuffix: true,
-  });
+	return formatDistanceToNow(new Date(date), {
+		addSuffix: true,
+	})
+}
+
+export function getDateTimeEngKorean(currentDate, isEng = true) {
+	// Format the current date using Intl.DateTimeFormat
+	return new Intl.DateTimeFormat(isEng ? 'en-US' : 'ko-KR', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: 'numeric',
+		hour12: true,
+	}).format(new Date(currentDate))
+}
+
+export function getWeekName(date) {
+	const currentDate = moment().startOf('week')
+	const inputDate = moment(date).startOf('week')
+
+	if (currentDate.isSame(inputDate, 'week')) {
+		return WeekName.Current
+	}
+	if (inputDate.isAfter(currentDate)) {
+		return WeekName.Next
+	}
+	return WeekName.Previous
 }

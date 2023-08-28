@@ -1,10 +1,9 @@
-import React from 'react'
 // @mui
-import { useLocation, Outlet } from 'react-router-dom'
 import { Box, Stack } from '@mui/material'
+import { Outlet, useLocation } from 'react-router-dom'
 // components
-import BreadCrumb from '../Dashboard/BreadCrumb'
 import { StoreProvider, useStore } from 'pages/Dashboard/store/Store'
+import BreadCrumb from '../Dashboard/BreadCrumb'
 
 // ----------------------------------------------------------------------
 
@@ -16,7 +15,7 @@ export default function MangeEmpLayout() {
 		case 'emplist':
 			selected = 'employeesList'
 			break
-		case 'empadd':
+		case 'add':
 			selected = 'addNewEmployee'
 			break
 		case 'teamlist':
