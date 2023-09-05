@@ -29,7 +29,6 @@ import useMain from 'pages/context/context'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from 'react-query'
 import { getEmployeeDetails } from 'supabase'
-import { getFile } from 'supabaseClient'
 import navConfig from './NavConfig'
 
 // ----------------------------------------------------------------------
@@ -140,14 +139,6 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 		}
 	)
 
-	const { data: profile_url } = useQuery(
-		['self profile', employee?.profile],
-		({ queryKey }) => getFile(queryKey[1], 'profile_images'),
-		{
-			enabled: !!employee,
-		}
-	)
-
 	const handleChangeLanguage = () => {
 		i18n.changeLanguage(isEng ? 'ko' : 'en')
 	}
@@ -179,7 +170,7 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 					<Stack alignItems="center" spacing={3} sx={{ pt: 5, position: 'relative', overflow: 'hidden' }}>
 						<Box component="a" href="/dashboard/profile" sx={{ width: 100, height: 100 }}>
 							<Avatar
-								src={profile_url}
+								src={employee?.profile}
 								alt={employee?.name}
 								sx={{ width: '100%', height: '100%', overflow: 'hidden' }}
 							/>
@@ -223,7 +214,7 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 
 					<Link underline="none" component={RouterLink} to="/dashboard/profile">
 						<AccountStyle>
-							<Avatar src={profile_url} alt="photoURL" />
+							<Avatar src={employee?.profile} alt="photoURL" />
 							{/* <Box sx={{ ml: 2 }}>
 							<Typography variant="subtitle2" sx={{ color: 'text.default' }}>
 								{user.email}

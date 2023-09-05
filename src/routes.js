@@ -4,6 +4,7 @@ import DashboardLayout from './layouts/dashboard'
 import LogoOnlyLayout from './layouts/LogoOnlyLayout'
 //
 import useMain from 'pages/context/context'
+import ForgotPassword from 'pages/ForgotPassword'
 import HrAdmin from 'pages/HrAdmin'
 import AddEmployee from 'pages/ManageEmps/Employee/AddEmployee'
 import EmployeeList from 'pages/ManageEmps/Employee/EmployeeList'
@@ -11,6 +12,7 @@ import EmployeeProfile from 'pages/ManageEmps/Employee/Profile'
 import MangeEmpLayout from 'pages/ManageEmps/MangeEmpLayout'
 import AddTeam from 'pages/ManageEmps/Team/AddTeam'
 import TeamList from 'pages/ManageEmps/Team/TeamList'
+import NewPassword from 'pages/NewPassword'
 import Blog from './pages/Blog'
 import { AddNewProject, ProjectDetails, Projects as ProjectList } from './pages/Dashboard'
 import ProjectLayout from './pages/Dashboard/ProjectLayout'
@@ -53,12 +55,21 @@ export default function Router() {
 				{ path: 'blog', element: <Blog /> },
 				{ path: 'hr-admin', element: <HrAdmin /> },
 				{ path: 'profile', element: <EmployeeProfile self /> },
+				{
+					path: 'new-password',
+					element: <NewPassword />,
+				},
 			],
 		},
 		{
 			path: 'login',
 			element: <Login />,
 		},
+		{
+			path: 'forgot-password',
+			element: <ForgotPassword />,
+		},
+
 		{
 			path: 'register',
 			element: <Register />,

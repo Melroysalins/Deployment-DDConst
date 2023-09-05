@@ -9,6 +9,7 @@ import {
 	Container,
 	Grid,
 	Input,
+	Link,
 	Snackbar,
 	Stack,
 	Typography,
@@ -18,9 +19,9 @@ import Page from 'components/Page'
 import useMain from 'pages/context/context'
 import React from 'react'
 import { useQuery } from 'react-query'
-import { useParams } from 'react-router-dom'
+import { Link as RouterLink, useParams } from 'react-router-dom'
 import { getEmployeeDetails, updateEmployee } from 'supabase'
-import { addFile, getFile } from 'supabaseClient'
+import { addFile } from 'supabaseClient'
 
 export default function EmployeeProfile({ self }) {
 	const [toast, setToast] = React.useState(null)
@@ -37,17 +38,6 @@ export default function EmployeeProfile({ self }) {
 		select: (r) => r.data,
 	})
 
-	const {
-		data: profile_url,
-		refetch: refetchProfile,
-		isLoading: isLoadingProfileUrl,
-	} = useQuery(
-		[`${self ? 'self' : 'employee'} profile`, employee?.profile],
-		({ queryKey }) => getFile(queryKey[1], 'profile_images'),
-		{
-			enabled: !!employee,
-		}
-	)
 	const handleClose = () => {
 		setToast(null)
 	}
@@ -58,10 +48,15 @@ export default function EmployeeProfile({ self }) {
 				const file = e.target.files[0]
 				const file_extension = file.name.split('.').pop()
 				const filename = `employee_profile_${employee?.id}.${file_extension}`
-				const { data, error } = await addFile(filename, file, 'profile_images')
-				if (data) await updateEmployee({ profile: filename }, employee?.id)
+				const bucket_name = 'profile_images'
+				const { data, error } = await addFile(filename, file, bucket_name)
+				console.log(data)
+				if (data)
+					await updateEmployee(
+						{ profile: `${process.env.REACT_APP_SUPABASE_URL}/storage/v1/object/public/${bucket_name}/${filename}` },
+						employee?.id
+					)
 				await refetch()
-				await refetchProfile()
 			}
 		} catch (err) {
 			console.log(err)
@@ -95,6 +90,23 @@ export default function EmployeeProfile({ self }) {
 								height: '100%',
 							}}
 						>
+							<Box position="absolute" top={10} right={10}>
+								<Typography variant="body2">
+									<Link
+										display="flex"
+										alignItems="center"
+										justifyContent="center"
+										underline="hover"
+										variant="subtitle2"
+										component={RouterLink}
+										to="/dashboard/new-password"
+										color="#fff"
+									>
+										Change Password
+									</Link>
+								</Typography>
+							</Box>
+
 							<Box position="absolute" left={24} bottom={12} display="flex" gap={3} xs={12} md={6} lg={6} zIndex={1}>
 								{/* <Badge
 								overlap="circular"
@@ -111,13 +123,12 @@ export default function EmployeeProfile({ self }) {
 									height={128}
 								>
 									<Avatar
-										src={profile_url}
+										src={employee?.profile}
 										alt={employee?.name}
 										sx={{ width: '100%', height: '100%', overflow: 'hidden' }}
 									/>
 
-									{isLoadingEmployee ||
-										(isLoadingProfileUrl && <CircularProgress sx={{ zIndex: 10 }} size={10} color="inherit" />)}
+									{isLoadingEmployee && <CircularProgress sx={{ zIndex: 10 }} size={10} color="inherit" />}
 									<Box
 										sx={{
 											position: 'absolute',

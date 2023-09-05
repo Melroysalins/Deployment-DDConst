@@ -19,6 +19,7 @@ export default function useAuthentication() {
 		const {
 			data: { session },
 		} = await supabase.auth.getSession()
+		console.log(session)
 		if (!session) setevent('SIGNED_OUT')
 		else setevent('SIGNED_IN')
 		setuser(session?.user)
@@ -42,18 +43,19 @@ export default function useAuthentication() {
 		return () => null
 	}, [])
 
-	useEffect(() => {
-		switch (event) {
-			// case 'SIGNED_IN':
-			//   navigate('/dashboard/projects/list', { replace: true });
-			//   break;
-			case 'SIGNED_OUT':
-				navigate('/login', { replace: true })
-				break
-			default:
-		}
-		return () => null
-	}, [event])
+	// useEffect(() => {
+	// 	switch (event) {
+	// 		// case 'SIGNED_IN':
+	// 		//   navigate('/dashboard/projects/list', { replace: true });
+	// 		//   break;
+	// 		case 'SIGNED_OUT':
+	// 			console.log('here')
+	// 			navigate('/login', { replace: true })
+	// 			break
+	// 		default:
+	// 	}
+	// 	return () => null
+	// }, [event])
 
 	return {
 		getSession,
