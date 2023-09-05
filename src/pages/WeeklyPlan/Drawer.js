@@ -2,6 +2,8 @@ import * as React from 'react'
 import { Box, Stack, Popper, Typography, Divider, Button, Fade, Paper } from '@mui/material'
 import Iconify from 'components/Iconify'
 import { styled } from '@mui/material/styles'
+import { colorApprovalSubTask, colorApprovalTask } from './WeeklyPlan'
+import { ApprovalStatus } from 'constant'
 
 const FilledBox = styled(Box, {
 	shouldForwardProp: (prop) => prop !== 'color',
@@ -45,12 +47,12 @@ export default function Drawer() {
 								</Typography>
 
 								<Typography sx={{ display: 'flex', alignItems: 'center', marginRight: 3 }} variant="caption">
-									<FilledBox color="#BDB2E9" />
+									<FilledBox color={colorApprovalTask[ApprovalStatus.Planned]} />
 									&nbsp;Task
 								</Typography>
 
 								<Typography sx={{ display: 'flex', alignItems: 'center', marginRight: 3 }} variant="caption">
-									<FilledBox color="#919EAB" />
+									<FilledBox color={colorApprovalSubTask[ApprovalStatus.Planned]} />
 									&nbsp;SubTask
 								</Typography>
 
@@ -59,22 +61,16 @@ export default function Drawer() {
 									Status:
 								</Typography>
 								<Typography sx={{ display: 'flex', alignItems: 'center', marginRight: 3 }} variant="caption">
-									<FilledBox color="#ABB8C6" />
+									<FilledBox color={colorApprovalTask[ApprovalStatus.Approved]} />
 									&nbsp;Done / Approved
 								</Typography>
 								<Typography sx={{ display: 'flex', alignItems: 'center', marginRight: 3 }} variant="caption">
-									<Box
-										sx={{ width: '12px', height: '12px', border: '2px solid #ABB8C6', borderRadius: '4px' }}
-										color="#ABB8C6"
-									/>
+									<FilledBox color={colorApprovalTask[ApprovalStatus.Planned]} />
 									&nbsp;Plan / Pending
 								</Typography>
 
 								<Typography sx={{ display: 'flex', alignItems: 'center', marginRight: 3 }} variant="caption">
-									<Box
-										sx={{ width: '12px', height: '12px', border: '2px solid #ABB8C6', borderRadius: '4px' }}
-										color="#ABB8C6"
-									/>
+									<FilledBox color={colorApprovalTask[ApprovalStatus.Rejected]} />
 									&nbsp;Revision / Reject
 								</Typography>
 							</Stack>

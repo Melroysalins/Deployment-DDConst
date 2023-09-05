@@ -78,7 +78,9 @@
    "intance_type_date":"인스턴스 유형, 직원, 날짜",
    "save":"구하다",
 
-   "continue_later":"나중에 저장하고 계속하기",
+   "reject_btn":"거절",
+   "approve_btn":"승인",
+   "continue_later":"저장 후 나가기",
    "pay_attention":"주의",
    "continue_later_text":"승인 검토를 종료하고 나중에 계속하시겠습니까?",
    "yes_continue_btn":"예, 저장하고 계속합니다",

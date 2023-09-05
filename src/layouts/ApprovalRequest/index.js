@@ -21,17 +21,15 @@ import PayAttention from './Dialogs/PayAttention'
 import Rejection from './Dialogs/Rejection'
 import { useQuery } from 'react-query'
 import { getApproversByApproval, updateApproval, updateApprovers } from 'supabase/approval'
-import { fDateLocale, getDateTimeEngKorean } from 'utils/formatTime'
-import { ApprovalStatus, BucketName, getNameApprovalStatus } from 'constant'
+import { fDateLocale, getDateEngKorean, getDateTimeEngKorean } from 'utils/formatTime'
+import { ApprovalStatus, getNameApprovalStatus } from 'constant'
 import { useTranslation } from 'react-i18next'
 import { colorApprovalTask } from 'pages/WeeklyPlan/WeeklyPlan'
 import { createComment, getCommentsByApproval } from 'supabase'
 import { deepPurple } from '@mui/material/colors'
-import { getFile } from 'supabaseClient'
 
 export default function ApprovalRequest() {
-	const { t, i18n } = useTranslation()
-	const isEng = i18n.language === 'en'
+	const { t } = useTranslation()
 	const {
 		openaccoutReview,
 		setopenaccoutReview,
@@ -46,6 +44,8 @@ export default function ApprovalRequest() {
 		handleCommentTask,
 		currentEmployee,
 		setcommentTasks,
+		setisDrawerOpen,
+		setapprovalIdDrawerRight,
 	} = useMain()
 	const { approval, employee } = currentApproval || {}
 	const { project, from_page, start, end } = approval || {}
@@ -56,14 +56,7 @@ export default function ApprovalRequest() {
 	const [commentText, setcommentText] = useState('')
 	const [commentLoading, setcommentLoading] = useState(false)
 	const messagesEndRef = useRef(null)
-
-	const { data: ownerSignedUrl } = useQuery(
-		['OwnerImage'],
-		() => getFile(approval.owner?.profile, BucketName.Profile_Images),
-		{
-			enabled: !!approval.owner?.profile,
-		}
-	)
+	const ownerSignedUrl = approval.owner?.profile
 
 	const { data: approvers } = useQuery(['Approvers'], () => getApproversByApproval(approval.id), {
 		select: (r) => r.data.sort((a, b) => a.order - b.order),
@@ -82,7 +75,7 @@ export default function ApprovalRequest() {
 		},
 	})
 
-	const currentApproverStatus = approvers?.find((e) => e.employee.id === employee.id)?.status
+	const currentApproverStatus = employee && approvers?.find((e) => e.employee.id === employee.id)?.status
 
 	const handleCloseDrawer = () => {
 		setcurrentApproval(null)
@@ -112,6 +105,7 @@ export default function ApprovalRequest() {
 			{
 				status,
 				rejection_comment,
+				updated_at: new Date(),
 			},
 			currentApproval.id
 		)
@@ -173,6 +167,11 @@ export default function ApprovalRequest() {
 		setaddComment(false)
 	}
 
+	const openRightDrawer = () => {
+		setapprovalIdDrawerRight(approval.id)
+		setisDrawerOpen(true)
+	}
+
 	return (
 		<>
 			<LeftDrawer
@@ -186,7 +185,7 @@ export default function ApprovalRequest() {
 				}}
 				headerRightSide={
 					<Typography sx={{ color: '#FF6B00', fontSize: '0.8rem' }}>
-						{t('deadline')}: {fDateLocale(approval.deadline)}
+						{t('deadline')}: {getDateEngKorean(approval.deadline)}
 					</Typography>
 				}
 			>
@@ -199,7 +198,9 @@ export default function ApprovalRequest() {
 								fontSize: '0.8rem',
 								display: 'flex',
 								alignItems: 'center',
+								cursor: 'pointer',
 							}}
+							onClick={openRightDrawer}
 						>
 							{t('detail_history')}
 							<Iconify icon={'ic:round-arrow-forward'} width={15} height={15} />
@@ -242,7 +243,7 @@ export default function ApprovalRequest() {
 											textTransform: 'capitalize',
 											bgcolor: deepPurple[500],
 										}}
-										src={index === 0 ? ownerSignedUrl || '' : e.employee?.signedUrl || ''}
+										src={index === 0 ? ownerSignedUrl || '' : e.employee?.profile || ''}
 									>
 										{e.name ? e.name[0] : e.employee.name ? e.employee.name[0] : e.employee.email_address[0]}
 									</Avatar>
@@ -294,7 +295,7 @@ export default function ApprovalRequest() {
 						<Stack direction="row" gap={1} alignItems={'center'} mt={'3px'}>
 							<Iconify icon="mdi:timer-sand" sx={{ minWidth: 16, minHeight: 16, paddingLeft: '3px' }} />
 							<Typography variant="body2" fontWeight={600}>
-								{fDateLocale(start)} - {fDateLocale(end)}
+								{getDateEngKorean(start)} - {getDateEngKorean(end)}
 							</Typography>
 						</Stack>
 					</Box>
@@ -308,7 +309,7 @@ export default function ApprovalRequest() {
 
 						<Box
 							sx={{
-								height: '37vh',
+								height: '40vh',
 								overflowY: 'auto',
 								'&::-webkit-scrollbar': {
 									width: '0.1rem',
@@ -349,16 +350,14 @@ export default function ApprovalRequest() {
 													textTransform: 'capitalize',
 													bgcolor: deepPurple[500],
 												}}
-												src={c.employee?.signedUrl || ''}
+												src={c.employee?.profile || ''}
 											>
 												{c.employee.name ? c.employee.name[0] : c.employee.email_address[0]}
 											</Avatar>
 
 											<Typography variant="body2" sx={{ fontSize: '12px' }} fontWeight={600}>
 												{c.employee?.name || c.employee?.email_address},{' '}
-												<span style={{ color: '#919EAB', fontWeight: 400 }}>
-													{getDateTimeEngKorean(c.created_at, isEng)}
-												</span>
+												<span style={{ color: '#919EAB', fontWeight: 400 }}>{getDateTimeEngKorean(c.created_at)}</span>
 											</Typography>
 										</Stack>
 										{!!c.project_task && (
@@ -527,28 +526,46 @@ export default function ApprovalRequest() {
 
 					{currentApproverStatus === ApprovalStatus.Planned ? (
 						<>
-							<Stack direction={'row'} justifyContent={'space-between'} mt={1} gap={2}>
+							<Stack direction={'row'} justifyContent={'space-between'} mt={1} pb={1} gap={1}>
 								<Button
 									variant="contained"
-									size="small"
+									size="medium"
 									color="inherit"
 									sx={{ border: '1px solid #FF6B00', color: '#FF6B00', flex: 1 }}
 									startIcon={
 										isUpdating ? (
 											<CircularProgress size={17} sx={{ color: '#FF6B00' }} />
 										) : (
-											<Iconify icon="carbon:close" width={17} height={17} />
+											<Iconify icon="carbon:close" width={18} height={18} />
 										)
 									}
 									onClick={handleRejectionDialogOpen}
 									disabled={isUpdating}
 								>
-									{t('reject')}
+									{t('reject_btn')}
 								</Button>
 
 								<Button
 									variant="contained"
-									size="small"
+									size="medium"
+									color="inherit"
+									sx={{ border: '1px solid #8D99FF', color: '#8D99FF' }}
+									onClick={handleSaveDialogOpen}
+									disabled={isUpdating}
+									startIcon={
+										isUpdating ? (
+											<CircularProgress size={17} sx={{ color: '#FF6B00' }} />
+										) : (
+											<Iconify icon="solar:download-outline" width={17} height={16} />
+										)
+									}
+								>
+									{t('continue_later')}
+								</Button>
+
+								<Button
+									variant="contained"
+									size="medium"
 									color="inherit"
 									sx={{
 										border: '1px solid #8CCC67',
@@ -568,27 +585,15 @@ export default function ApprovalRequest() {
 									onClick={() => handleApproveReject(ApprovalStatus.Approved)}
 									disabled={isUpdating}
 								>
-									{t('approve')}
+									{t('approve_btn')}
 								</Button>
 							</Stack>
-
-							<Box sx={{ margin: 'auto', width: '100%', textAlign: 'center' }}>
-								<Button
-									size="small"
-									color="inherit"
-									sx={{ margin: '5px' }}
-									onClick={handleSaveDialogOpen}
-									disabled={isUpdating}
-								>
-									{t('continue_later')}
-								</Button>
-							</Box>
 						</>
 					) : (
 						!!currentApproverStatus && (
-							<Box sx={{ margin: 'auto', width: '100%', textAlign: 'center' }} pt={2} pb={3}>
+							<Box sx={{ margin: 'auto', width: '100%', textAlign: 'center' }} pt={1} pb={2}>
 								<Typography variant="h5" sx={{ color: colorApprovalTask[currentApproverStatus] }}>
-									{t('status')} {currentApproverStatus === ApprovalStatus.Approved ? 'Approved' : 'Rejected'}
+									{t('status')} {currentApproverStatus === ApprovalStatus.Approved ? t('approved') : t('rejected')}
 								</Typography>
 							</Box>
 						)

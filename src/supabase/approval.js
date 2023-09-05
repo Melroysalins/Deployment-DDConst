@@ -1,6 +1,5 @@
-import { ApprovalStatus, BucketName } from 'constant'
+import { ApprovalStatus } from 'constant'
 import { supabase } from 'lib/api'
-import { getFile } from 'supabaseClient'
 
 export const createApproval = async (data) => {
 	const res = await supabase.from('approval').insert(data).select('*')
@@ -23,13 +22,6 @@ export const getApproversByApproval = async (approval) => {
 		.select('*')
 		.eq('approval', approval)
 		.select(`*, employee(id, name, email_address, profile)`)
-	// fetch image
-	const promises = res.data?.map(async (emp) => {
-		if (emp.employee.profile) {
-			emp.employee.signedUrl = await getFile(emp.employee.profile, BucketName.Profile_Images)
-		}
-	})
-	await Promise.all(promises)
 	return res
 }
 
@@ -49,6 +41,19 @@ export const getApproversDetailByEmployee = async (employee) => {
 
 export const getApprovalsByProject = async (projectId) => {
 	const res = await supabase.from('approval').select(`*`).eq('project', projectId)
+	return res
+}
+
+export const getApprovalsByProjectDetail = async (projectId) => {
+	const res = await supabase
+		.from('approval')
+		.select(`*,  project(id, title), owner(id, name, email_address, profile))`)
+		.eq('project', projectId)
+	const promises = await res.data?.map(async (approval) => {
+		const approvers = await getApproversByApproval(approval.id)
+		approval.approvers = approvers?.data || []
+	})
+	await Promise.all(promises)
 	return res
 }
 

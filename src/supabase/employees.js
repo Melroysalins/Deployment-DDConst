@@ -54,8 +54,5 @@ export const listEmployeesByTeam = async (team) => {
 
 export const getEmployeeByUser = async (user) => {
 	const res = await supabase.from('employees').select('*').eq('user', user).single()
-	if (res.data?.profile) {
-		res.data.signedUrl = await getFile(res.data?.profile, BucketName.Profile_Images)
-	}
 	return res
 }

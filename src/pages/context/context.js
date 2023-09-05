@@ -29,11 +29,15 @@ export const MainProvider = ({ children }) => {
 	const [currentApproval, setcurrentApproval] = useState(null)
 	const [refetchApprovals, setrefetchApprovals] = useState(false)
 	const [refetchtaskProjects, setrefetchtaskProjects] = useState(false)
+	// for right side approvals log info
+	const [isDrawerOpen, setisDrawerOpen] = useState(false)
+	const [approvalIdDrawerRight, setapprovalIdDrawerRight] = useState(null)
 
 	useEffect(() => {
 		if (!openRequestApproval) {
 			setallowTaskCursor(false)
 			setcommentTasks([])
+			setapprovalIdDrawerRight(null)
 		}
 	}, [openRequestApproval])
 
@@ -78,6 +82,10 @@ export const MainProvider = ({ children }) => {
 				commentTasks,
 				setcommentTasks,
 				handleCommentTask,
+				isDrawerOpen,
+				setisDrawerOpen,
+				approvalIdDrawerRight,
+				setapprovalIdDrawerRight,
 			}}
 		>
 			{userLoading ? <></> : children}

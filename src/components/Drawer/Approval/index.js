@@ -434,6 +434,7 @@ function Approval({ setopen, isLeftMenu }) {
 														rating: e.rating,
 														email_address: e.email_address,
 														user: e.user,
+														profile: e.profile,
 													})}
 												>
 													{e.name || e.email_address}

@@ -1,7 +1,7 @@
 import { WeekName } from 'constant'
 import { format, formatDistanceToNow } from 'date-fns'
 import moment from 'moment'
-
+import i18n from './locales/i18n'
 // ----------------------------------------------------------------------
 
 export function fDate(date) {
@@ -29,16 +29,25 @@ export function fToNow(date) {
 	})
 }
 
-export function getDateTimeEngKorean(currentDate, isEng = true) {
-	// Format the current date using Intl.DateTimeFormat
+export function getDateTimeEngKorean(date) {
+	const isEng = i18n.language === 'en'
 	return new Intl.DateTimeFormat(isEng ? 'en-US' : 'ko-KR', {
 		year: 'numeric',
-		month: 'long',
+		month: isEng ? 'short' : 'long',
 		day: 'numeric',
 		hour: 'numeric',
 		minute: 'numeric',
 		hour12: true,
-	}).format(new Date(currentDate))
+	}).format(new Date(date))
+}
+
+export function getDateEngKorean(date) {
+	const isEng = i18n.language === 'en'
+	return new Intl.DateTimeFormat(isEng ? 'en-US' : 'ko-KR', {
+		year: 'numeric',
+		month: isEng ? 'short' : 'long',
+		day: 'numeric',
+	}).format(new Date(date))
 }
 
 export function getWeekName(date) {

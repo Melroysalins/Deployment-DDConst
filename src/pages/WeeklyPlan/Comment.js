@@ -127,7 +127,7 @@ export default function Comment({ data, handleSetEvent }) {
 					)}
 					{comments?.map((val) => (
 						<Stack direction="row" mb={2} mr={1} key={val.id} sx={{ position: 'relative' }}>
-							<Avatar sx={{ bgcolor: deepPurple[500] }} src={val.employee?.signedUrl || ''}>
+							<Avatar sx={{ bgcolor: deepPurple[500] }} src={val.employee?.profile || ''}>
 								{val.employee.name?.[0]}
 							</Avatar>
 							<Box pl={1} sx={{ lineBreak: 'anywhere' }}>
@@ -220,7 +220,7 @@ export default function Comment({ data, handleSetEvent }) {
 				mr={1}
 				style={{ alignItems: 'center', justifyContent: 'center', display: 'flex' }}
 			>
-				<Avatar sx={{ bgcolor: deepPurple[500] }} src={currentEmployee?.signedUrl || account.photoURL} alt="photoURL" />
+				<Avatar sx={{ bgcolor: deepPurple[500] }} src={currentEmployee?.profile || account.photoURL} alt="photoURL" />
 				<TextField
 					multiline
 					variant="outlined"

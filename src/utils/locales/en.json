@@ -78,7 +78,9 @@
    "intance_type_date":"Instanse type, Employee, Date",
    "save":"Save",
 
-   "continue_later":"Save & Continue Later",
+   "reject_btn":"Reject",
+   "approve_btn":"Approve",
+   "continue_later":"Save",
    "pay_attention":"Pay Attention",
    "continue_later_text":"Would you like to leave the approval review and continue later?",
    "yes_continue_btn":"Yes, save and continu",

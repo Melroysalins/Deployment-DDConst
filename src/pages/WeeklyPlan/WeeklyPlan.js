@@ -65,7 +65,7 @@ const colorHeading = {
 	Pending: '#8D99FF',
 	Rejected: 'red',
 }
-const colorApprovalSubTask = {
+export const colorApprovalSubTask = {
 	Approved: '#6AC750',
 	Planned: '#BDB2E9',
 	Rejected: '#FF6B00',
@@ -85,8 +85,10 @@ function WeeklyPlan() {
 		setopenRequestApproval,
 		allowTaskCursor,
 		handleCommentTask,
+		isDrawerOpen,
+		setisDrawerOpen,
+		setapprovalIdDrawerRight,
 	} = useMain()
-	const [isDrawerOpen, setisDrawerOpen] = React.useState(false)
 	const [myEvents, setMyEvents] = React.useState([])
 	const [isOpen, setOpen] = React.useState(false)
 	const [isEdit, setEdit] = React.useState(false)
@@ -105,6 +107,9 @@ function WeeklyPlan() {
 
 	useEffect(() => {
 		setopenRequestApproval(false)
+		return () => {
+			setisDrawerOpen(false)
+		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
@@ -459,7 +464,10 @@ function WeeklyPlan() {
 						{t('request_approval')}
 					</MuiButton>
 					<MuiButton
-						onClick={() => setisDrawerOpen(true)}
+						onClick={() => {
+							setapprovalIdDrawerRight(null)
+							setisDrawerOpen(true)
+						}}
 						variant="contained"
 						size="medium"
 						color="inherit"

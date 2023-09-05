@@ -1,4 +1,5 @@
 import { Box, Stack, Avatar } from '@mui/material'
+import { deepPurple } from '@mui/material/colors'
 import Iconify from 'components/Iconify'
 import PropTypes from 'prop-types'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
@@ -50,7 +51,11 @@ function DragList({ addedEmp, setaddedEmp, handleEmployeeRemove }) {
 											>
 												<Stack direction={'row'} gap={2} alignItems={'center'}>
 													<img src={'/static/icons/Drag.svg'} alt={'drag'} />
-													<Avatar alt="avatar image" sx={{ width: 46, height: 46 }}>
+													<Avatar
+														alt="avatar image"
+														sx={{ width: 46, height: 46, bgcolor: deepPurple[500] }}
+														src={e.profile || ''}
+													>
 														{e.name ? e.name[0] : e.email_address[0]}
 													</Avatar>
 													<Box>

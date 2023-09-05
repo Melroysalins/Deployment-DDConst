@@ -33,7 +33,7 @@ function SimpleDialog(props) {
 						size="small"
 						name="instanse"
 						disabled
-						value={`${employee.name || employee.email}, ${new Date(approval.created_at).toLocaleDateString()}`}
+						value={`${employee?.name || employee?.email}, ${new Date(approval.created_at).toLocaleDateString()}`}
 						fullWidth
 						label={t('intance_type_date')}
 						InputProps={{
