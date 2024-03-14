@@ -1,23 +1,73 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 // @mui
-import { Alert, Box, Button, Card, CardContent, CardHeader, Grid, Snackbar, Typography } from '@mui/material'
+import {
+	Alert,
+	Box,
+	Button,
+	Card,
+	CardContent,
+	CardHeader,
+	Grid,
+	Snackbar,
+	Stack,
+	Typography,
+	useMediaQuery,
+	useTheme,
+} from '@mui/material'
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress'
 import { styled } from '@mui/material/styles'
 import Iconify from 'components/Iconify'
 import PropTypes from 'prop-types'
 import { listAllProjects } from 'supabase/projects'
 import Skeleton from './ProjectSkelation'
+import { useTranslation } from 'react-i18next'
+import BasicTabs from '../Drawer/BasicTabs'
+import useMain from 'pages/context/context'
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 
-export default function ProjectList(props) {
+export default function ProjectList() {
 	const [loader, setLoader] = React.useState(true)
 	const [data, setData] = React.useState([])
+	const [filterData, setfilterData] = React.useState([])
 	const [toast, setToast] = React.useState(null)
+	const [rightDrawer, setrightDrawer] = useState(false)
+	const { t } = useTranslation()
+	const { currentEmployee, mainFilters } = useMain()
+	const theme = useTheme()
+	const matchUpMd = useMediaQuery(theme.breakpoints.up('md'))
 
-	React.useEffect(() => {
+	useEffect(() => {
 		fetchData()
 		return () => null
 	}, [])
+
+	useEffect(() => {
+		if (mainFilters && data.length) {
+			if (mainFilters.started_from) {
+				mainFilters.started_from = new Date(mainFilters.started_from)
+			}
+			if (mainFilters.completed_till) {
+				mainFilters.completed_till = new Date(mainFilters.completed_till)
+			}
+			// Filter projects based on the filters
+			const filteredProjects = data.filter((project) => {
+				if (!mainFilters.organizations?.includes(project.id)) {
+					return false
+				}
+				if (
+					(mainFilters.started_from && new Date(project.start) < mainFilters.started_from) ||
+					(mainFilters.completed_till && new Date(project.end) > mainFilters.completed_till)
+				) {
+					return false
+				}
+				return true
+			})
+			setfilterData(filteredProjects)
+		} else {
+			setfilterData(data)
+		}
+	}, [data, mainFilters])
 
 	const fetchData = async () => {
 		setLoader(true)
@@ -27,6 +77,7 @@ export default function ProjectList(props) {
 				setToast({ severity: 'danger', message: 'Something went wrong!' })
 			} else if (Array.isArray(res.data)) {
 				setData(res.data)
+				setfilterData(res.data)
 			}
 		} catch (err) {
 			setToast({ severity: 'danger', message: 'Something went wrong!' })
@@ -40,21 +91,84 @@ export default function ProjectList(props) {
 
 	return (
 		<>
-			<Box sx={{ position: 'absolute', top: '24px', right: '40px' }}>
-				<Button
-					variant="outlined"
-					href="/dashboard/projects/add"
-					startIcon={<Iconify icon={'fluent:add-16-filled'} sx={{ width: 16, height: 16, ml: 1 }} />}
-					sx={{
-						color: (theme) => theme.palette.text.default,
-						border: '1px solid rgba(0, 0, 0, 0.1)',
-						boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
-						borderRadius: '8px',
-					}}
-				>
-					Add New Project
-				</Button>
-			</Box>
+			<Stack
+				direction={'row'}
+				alignItems={'center'}
+				justifyContent={'space-between'}
+				sx={{
+					position: 'fixed',
+					top: 0,
+					left: matchUpMd ? 75 : 0,
+					background: '#F3F3F5',
+					width: '100%',
+					padding: 1,
+					height: '56px',
+					zIndex: 1000,
+				}}
+			>
+				<Stack direction={'row'}>
+					<Typography sx={{ fontSize: 18, fontWeight: 600, color: '#212B36' }} pl={3}>
+						{t('hello')}, {currentEmployee?.name}
+					</Typography>
+					<ArrowDropDownIcon color="#212B36" />
+				</Stack>
+
+				<Stack direction={'row'} gap={'7px'} alignItems={'center'} pr={matchUpMd ? 13 : 4}>
+					<Typography sx={{ fontSize: 14, fontWeight: 600 }}>{t('status_2023')}:</Typography>
+					<>
+						<img style={{ width: 16, height: 16 }} src={`/static/icons/Progress_main.svg`} alt="icon" />
+						<Typography sx={{ fontSize: 12 }}>65 {t('projects_progress')}</Typography>
+					</>
+					<>
+						<img style={{ width: 16, height: 16 }} src={`/static/icons/tick_main.svg`} alt="icon" />
+						<Typography sx={{ fontSize: 12 }}>145 {t('projects_completed')}</Typography>
+					</>
+					<>
+						<img style={{ width: 16, height: 16 }} src={`/static/icons/Pay_main.svg`} alt="icon" />
+						<Typography sx={{ fontSize: 12 }}>2,100 {t('revenue')}</Typography>
+					</>
+					<>
+						<img style={{ width: 16, height: 16 }} src={`/static/icons/zigzag_main.svg`} alt="icon" />
+						<Typography sx={{ fontSize: 12 }}>22,100 {t('profit')}</Typography>
+					</>
+					<>
+						<img style={{ width: 16, height: 16 }} src={`/static/icons/Margin_main.svg`} alt="icon" />
+						<Typography sx={{ fontSize: 12 }}>19.6% {t('margin')}</Typography>
+					</>
+
+					<Button
+						variant="outlined"
+						href="/dashboard/projects/add"
+						startIcon={<Iconify icon={'fluent:add-16-filled'} sx={{ width: 16, height: 16, ml: 1 }} />}
+						sx={{
+							color: (theme) => theme.palette.text.default,
+							border: '1px solid rgba(0, 0, 0, 0.1)',
+							boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
+							borderRadius: '8px',
+						}}
+					>
+						{t('add_new_project')}
+					</Button>
+					<Button
+						onClick={() => {
+							setrightDrawer(true)
+						}}
+						variant="contained"
+						size="medium"
+						color="inherit"
+						sx={{
+							background: '#8D99FF',
+							minWidth: 35,
+							width: 35,
+							padding: '5px 0',
+							height: '100%',
+							borderRadius: '5px',
+						}}
+					>
+						<Iconify icon="uil:bars" width={25} height={25} color="white" />
+					</Button>
+				</Stack>
+			</Stack>
 
 			<Snackbar
 				open={toast}
@@ -68,12 +182,19 @@ export default function ProjectList(props) {
 			</Snackbar>
 			<Grid container spacing={3}>
 				{loader && <Skeleton />}
-				{data.map((project, index) => (
+				{!loader && !filterData.length && (
+					<Typography align="center" width={'100%'} mt={5} variant="h5">
+						{t('no_project')}
+					</Typography>
+				)}
+				{filterData.map((project, index) => (
 					<Grid key={index} item xs={12} sm={6} md={3}>
 						<ProjectItem data={project} />
 					</Grid>
 				))}
 			</Grid>
+
+			<BasicTabs open={rightDrawer} setopen={setrightDrawer} />
 		</>
 	)
 }

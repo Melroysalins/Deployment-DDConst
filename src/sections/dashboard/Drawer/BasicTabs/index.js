@@ -3,11 +3,13 @@ import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
-import { Drawer, Logs } from 'components'
-import Info from '../Info'
+import { Drawer } from 'components'
 import PropTypes from 'prop-types'
 import { useTranslation } from 'react-i18next'
-import Approvals from '../Approval/Approvals'
+import FilterListIcon from '@mui/icons-material/FilterList'
+import TuneIcon from '@mui/icons-material/Tune'
+import Filters from '../Filters'
+import Settings from '../Settings'
 
 TabPanel.propTypes = {
 	children: PropTypes.node,
@@ -35,20 +37,13 @@ function TabPanel(props) {
 	)
 }
 
-function a11yProps(index) {
-	return {
-		id: `simple-tab-${index}`,
-		'aria-controls': `simple-tabpanel-${index}`,
-	}
-}
-
 BasicTabs.propTypes = {
 	open: PropTypes.bool,
 	setopen: PropTypes.func,
 }
 
 export default function BasicTabs({ open, setopen }) {
-	const [value, setValue] = React.useState(2)
+	const [value, setValue] = React.useState(0)
 	const { t } = useTranslation()
 	const handleChange = (event, newValue) => {
 		setValue(newValue)
@@ -63,27 +58,24 @@ export default function BasicTabs({ open, setopen }) {
 							'.MuiTabs-flexContainer': {
 								justifyContent: 'space-evenly',
 							},
+							'.MuiButtonBase-root': {
+								minHeight: 'auto',
+							},
 						}}
 						value={value}
 						onChange={handleChange}
 						textColor="secondary"
 						indicatorColor="secondary"
 					>
-						<Tab label={t('info')} {...a11yProps(0)} />
-						<Tab label={t('logs')} {...a11yProps(1)} />
-						<Tab label={t('approvals')} />
-						{/* icon={<SettingsOutlinedIcon sx={{ width: 18 }} />} iconPosition="end" */}
+						<Tab label={t('filters')} icon={<FilterListIcon sx={{ width: 18 }} />} iconPosition="start" />
+						<Tab label={t('settings')} icon={<TuneIcon sx={{ width: 18 }} />} iconPosition="start" />
 					</Tabs>
 				</Box>
 				<TabPanel value={value} index={0}>
-					<Info />
+					<Filters setopen={setopen} />
 				</TabPanel>
 				<TabPanel value={value} index={1}>
-					<Logs />
-				</TabPanel>
-				<TabPanel value={value} index={2}>
-					{/* <Approval setopen={setopen} /> */}
-					<Approvals setopen={setopen} />
+					<Settings />
 				</TabPanel>
 			</Box>
 		</Drawer>

@@ -23,25 +23,26 @@ import { useTranslation } from 'react-i18next'
 
 const currentDate = moment()
 const groupObjectsByDate = (approvals) => {
-	const today = []
-	const yesterday = []
-	const older = []
+	const [today, last7Days, yesterday, older] = [[], [], [], []]
 
 	approvals.sort((a, b) => moment(b.approval.created_at) - moment(a.approval.created_at))
 
 	approvals.forEach((obj) => {
 		const objDate = moment(obj.approval.created_at)
+		const daysAgo = currentDate.diff(objDate, 'days')
 
-		if (objDate.isSame(currentDate, 'day')) {
+		if (daysAgo === 0) {
 			today.push(obj)
-		} else if (objDate.isSame(currentDate.clone().subtract(1, 'days'), 'day')) {
+		} else if (daysAgo === 1) {
 			yesterday.push(obj)
+		} else if (daysAgo <= 7) {
+			last7Days.push(obj)
 		} else {
 			older.push(obj)
 		}
 	})
 
-	return { today, yesterday, older }
+	return { today, yesterday, last7Days, older }
 }
 
 export default function Messages() {
@@ -72,10 +73,24 @@ export default function Messages() {
 						</Box>
 					) : null}
 				</Box>
-
 				{approvalsArr.yesterday?.map((notification) => (
 					<TaskNotification key={notification.id} notification={notification} />
 				))}
+
+				<Box>
+					<Typography variant="body1" sx={{ fontWeight: 600 }}>
+						{t('last7days')}
+					</Typography>
+					{!approvalsArr.last7Days?.length ? (
+						<Box sx={{ fontWeight: 600, marginBottom: 3 }} align="center" mt={2}>
+							{isFetching ? <CircularProgress size={22} fontSize="inherit" /> : t('no_notification')}
+						</Box>
+					) : null}
+				</Box>
+				{approvalsArr.last7Days?.map((notification) => (
+					<TaskNotification key={notification.id} notification={notification} />
+				))}
+
 				<Box>
 					<Typography variant="body2" sx={{ fontWeight: 600 }}>
 						{t('older')}
