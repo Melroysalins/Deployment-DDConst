@@ -7,7 +7,7 @@ import './calendar.scss'
 
 import { Loader, getHolidays } from 'reusables'
 import { useParams } from 'react-router'
-import { listAllTasksByProject } from 'supabase'
+import { listAllTasksByProject, updateNestedTasks, updateTask } from 'supabase'
 import { differenceInDays } from 'utils/formatTime'
 
 setOptions({
@@ -60,10 +60,11 @@ function App() {
 
 	const handleSetEvent = (data) => {
 		const newData = data.flatMap((event) => {
-			const mainEvent = { ...event, resource: event.task_group }
+			const mainEvent = { ...event, resource: event.task_group, overlap: false }
 			const nestedEvents = event.nested_tasks.map((nestedTask) => ({
 				...nestedTask,
-				resource: event.task_group, // Assuming you want to use the same resource as the parent event
+				resource: event.task_group,
+				overlap: false,
 			}))
 			return [mainEvent, ...nestedEvents]
 		})
@@ -77,13 +78,15 @@ function App() {
 		setMyResources(unique.map((e) => ({ id: e.task_group, task_group: e.task_group })))
 	}
 
+	const createEventsByProject = () => {
+		listAllTasksByProject(project).then((data) => {
+			handleSetEvent(data?.data)
+			handlesetMyResources(data?.data)
+		})
+	}
+
 	React.useEffect(() => {
-		;(async function () {
-			listAllTasksByProject(project).then((data) => {
-				handleSetEvent(data?.data)
-				handlesetMyResources(data?.data)
-			})
-		})()
+		createEventsByProject()
 		return () => {}
 	}, [])
 
@@ -125,7 +128,7 @@ function App() {
 		let title = event.title
 		const { nested_tasks, start, end } = event.original
 		if (nested_tasks) {
-			const last = nested_tasks[nested_tasks.length - 1]?.title.split('-')[1].trim()
+			const last = nested_tasks[nested_tasks.length - 1]?.title.split('-')[1]
 			title += ` (${differenceInDays(start, end)} DAYS, ${last} WORK DAYS)`
 		}
 		return (
@@ -240,6 +243,15 @@ function App() {
 		if (data) setHolidays((prev) => [...defaultHolidays, ...data])
 	}
 
+	const handleDrag = async (event) => {
+		const { nested_tasks, start, end, id } = event
+		if (nested_tasks) {
+			await updateNestedTasks([new Date(start).toISOString(), new Date(end).toISOString()], id)
+			await updateTask(event, id)
+			createEventsByProject()
+		}
+	}
+
 	return (
 		<>
 			<Loader open={loader} setOpen={setLoader} />
@@ -255,6 +267,8 @@ function App() {
 				clickToCreate="double"
 				dragToCreate={false}
 				dragTimeStep={30}
+				onEventDragEnd={({ event }) => handleDrag(event)}
+				dragToResize={true}
 				// selectedDate={mySelectedDate}
 				// onSelectedDateChange={onSelectedDateChange}
 				// onEventClick={onEventClick}

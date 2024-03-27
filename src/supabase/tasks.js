@@ -31,7 +31,8 @@ export const listFilteredTasks = async (task_group, project) => {
 }
 
 export const updateTask = async (data, id) => {
-	const res = await supabase.from('project_tasks').update(data).eq('id', id).select()
+	const { nested_tasks, allDay, comments, overlap, resource, ...rest } = data
+	const res = await supabase.from('project_tasks').update(rest).eq('id', id).select()
 	return res
 }
 export const deleteTask = async (id) => {
