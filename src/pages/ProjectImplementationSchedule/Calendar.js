@@ -58,7 +58,17 @@ function App() {
 	const [holidays, setHolidays] = React.useState(defaultHolidays)
 
 	const handleSetEvent = (data) => {
-		setMyEvents(data.map((e) => ({ ...e, resource: e.task_group })))
+		const newData = data.flatMap((event) => {
+			const mainEvent = { ...event, resource: event.task_group }
+			const nestedEvents = event.nested_tasks.map((nestedTask) => ({
+				...nestedTask,
+				resource: event.task_group, // Assuming you want to use the same resource as the parent event
+			}))
+			return [mainEvent, ...nestedEvents]
+		})
+		// setMyEvents(data.map((e) => ({ ...e, resource: e.task_group })))
+		// console.log(newData, 'newData')
+		setMyEvents(newData)
 	}
 
 	const handlesetMyResources = (data) => {
@@ -108,8 +118,8 @@ function App() {
 	const renderMyResource = (resource) => <div>{resource.task_group}</div>
 
 	const renderScheduleEvent = (event) => {
-		const bg = '#5ac8fa'
-		const color = '#000'
+		const bg = event.original?.project_task ? '#FF6B00' : '#5ac8fa'
+		const color = event.original?.project_task ? 'white' : '#000'
 		const border = null
 		return (
 			<div className="timeline-event" style={{ background: bg, color, border }}>

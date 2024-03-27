@@ -1,4 +1,5 @@
 import { supabase } from 'lib/api'
+import { deleteByTaskId } from './nestedTasks'
 
 export const createNewTasks = async (data) => {
 	const res = await supabase.from('project_tasks').insert(data)
@@ -17,7 +18,8 @@ export const listAllTasksByProject = async (project) => {
 			`*,
               comments (
                 *
-              )`
+              ),
+			  nested_tasks (*)`
 		)
 		.eq('project', project)
 	return res
@@ -33,6 +35,7 @@ export const updateTask = async (data, id) => {
 	return res
 }
 export const deleteTask = async (id) => {
+	await deleteByTaskId(id)
 	const res = await supabase.from('project_tasks').delete().eq('id', id)
 	return res
 }
