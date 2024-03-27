@@ -22,7 +22,7 @@ function splitDatesByWeekend(data, project_task) {
 
 		const daysDifference = (tempEndDate - startDate) / (1000 * 3600 * 24) // Difference in days
 		const formattedTitle = `${title + 1}-${title + daysDifference}` // Adding 1 to include both start and end dates
-		title += daysDifference + 1
+		title += daysDifference
 		result.push({ title: formattedTitle, start: formatDate(startDate), end: formatDate(tempEndDate), project_task })
 
 		// Move startDate to the next Monday or the day after tempEndDate, whichever comes first
