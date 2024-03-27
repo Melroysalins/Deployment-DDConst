@@ -252,7 +252,7 @@ function App() {
 			await updateTask(event, id)
 			createEventsByProject()
 		} else {
-			// createEventsByProject()
+			createEventsByProject()
 		}
 	}
 
