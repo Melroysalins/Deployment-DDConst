@@ -35,7 +35,7 @@ function splitDatesByWeekend(data, project_task) {
 }
 
 function formatDate(date) {
-	return date.toISOString().split('T')[0]
+	return date.toLocaleDateString()
 }
 
 export const updateNestedTasks = async (data, project_task) => {

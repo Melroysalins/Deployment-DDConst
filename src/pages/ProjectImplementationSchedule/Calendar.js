@@ -60,11 +60,10 @@ function App() {
 
 	const handleSetEvent = (data) => {
 		const newData = data.flatMap((event) => {
-			const mainEvent = { ...event, resource: event.task_group, overlap: false }
+			const mainEvent = { ...event, resource: event.task_group }
 			const nestedEvents = event.nested_tasks.map((nestedTask) => ({
 				...nestedTask,
 				resource: event.task_group,
-				overlap: false,
 			}))
 			return [mainEvent, ...nestedEvents]
 		})
@@ -246,7 +245,9 @@ function App() {
 	const handleDrag = async (event) => {
 		const { nested_tasks, start, end, id } = event
 		if (nested_tasks) {
-			await updateNestedTasks([new Date(start).toISOString(), new Date(end).toISOString()], id)
+			event.start = start.toLocaleDateString()
+			event.end = end.toLocaleDateString()
+			await updateNestedTasks([event.start, event.end], id)
 			await updateTask(event, id)
 			createEventsByProject()
 		}
