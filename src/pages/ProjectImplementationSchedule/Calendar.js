@@ -60,15 +60,18 @@ function App() {
 
 	const handleSetEvent = (data) => {
 		const newData = data.flatMap((event) => {
+			event.start = new Date(event.start)
+			event.end = new Date(event.end)
 			const mainEvent = { ...event, resource: event.task_group }
 			const nestedEvents = event.nested_tasks.map((nestedTask) => ({
 				...nestedTask,
+				start: new Date(nestedTask.start),
+				end: new Date(nestedTask.end),
 				resource: event.task_group,
 			}))
 			return [mainEvent, ...nestedEvents]
 		})
 		// setMyEvents(data.map((e) => ({ ...e, resource: e.task_group })))
-		// console.log(newData, 'newData')
 		setMyEvents(newData)
 	}
 
@@ -128,7 +131,7 @@ function App() {
 		const { nested_tasks, start, end } = event.original
 		if (nested_tasks) {
 			const last = nested_tasks[nested_tasks.length - 1]?.title.split('-')[1]
-			title += ` (${differenceInDays(start, end)} DAYS, ${last} WORK DAYS)`
+			title += ` (${differenceInDays(start, end) + 1} DAYS, ${last} WORK DAYS)`
 		}
 		return (
 			<div className="timeline-event" style={{ background: bg, color, border }}>
@@ -243,13 +246,13 @@ function App() {
 	}
 
 	const handleDrag = async (event) => {
-		const { nested_tasks, start, end, id } = event
+		const { nested_tasks, id } = event
 		if (nested_tasks) {
-			event.start = start.toLocaleDateString()
-			event.end = end.toLocaleDateString()
 			await updateNestedTasks([event.start, event.end], id)
 			await updateTask(event, id)
 			createEventsByProject()
+		} else {
+			// createEventsByProject()
 		}
 	}
 
