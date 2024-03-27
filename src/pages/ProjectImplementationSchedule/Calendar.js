@@ -8,6 +8,7 @@ import './calendar.scss'
 import { Loader, getHolidays } from 'reusables'
 import { useParams } from 'react-router'
 import { listAllTasksByProject } from 'supabase'
+import { differenceInDays } from 'utils/formatTime'
 
 setOptions({
 	theme: 'ios',
@@ -118,12 +119,18 @@ function App() {
 	const renderMyResource = (resource) => <div>{resource.task_group}</div>
 
 	const renderScheduleEvent = (event) => {
-		const bg = event.original?.project_task ? '#FF6B00' : '#5ac8fa'
-		const color = event.original?.project_task ? 'white' : '#000'
+		const bg = event.original?.project_task ? '#8D99FF' : '#BDB2E9'
+		const color = 'white'
 		const border = null
+		let title = event.title
+		const { nested_tasks, start, end } = event.original
+		if (nested_tasks) {
+			const last = nested_tasks[nested_tasks.length - 1]?.title.split('-')[1].trim()
+			title += ` (${differenceInDays(start, end)} DAYS, ${last} WORK DAYS)`
+		}
 		return (
 			<div className="timeline-event" style={{ background: bg, color, border }}>
-				{event.title}
+				{title}
 			</div>
 		)
 	}
