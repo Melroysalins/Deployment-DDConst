@@ -291,10 +291,14 @@ function App() {
 	)
 
 	const renderCustomDay = (args) => {
+		const date = args.date
 		return (
 			<Stack p="8px" justifyContent="center" alignItems="center" className="custom-day-border">
 				<Typography variant="body2" className="">
-					{formatDate('DD', args.date)}
+					{formatDate('DD', date)}
+				</Typography>
+				<Typography variant="caption" className="">
+					{formatDate('DDD', date).substring(0, 1)}
 				</Typography>
 			</Stack>
 		)
@@ -305,7 +309,7 @@ function App() {
 			<Legends />
 			<Loader open={loader} setOpen={setLoader} />
 			<Eventcalendar
-				cssClass="mbsc-calendar-schedule"
+				cssClass="mbsc-calendar-schedule md-timeline-height"
 				renderResourceHeader={renderResourceHeader}
 				view={viewSettings}
 				data={myEvents}

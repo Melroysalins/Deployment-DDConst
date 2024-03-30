@@ -141,14 +141,28 @@ function App() {
 			//   setMyResources(data);
 			// });
 
-			listAllEmployees().then((data) => {
-				setMyResources(data?.data)
-			})
 			listAllEvents(filters).then((data) => handleSetEvent(data))
 
 			listAllProjects().then((data) => {
-				console.log(data, 'data')
 				data = data?.data.map((item) => ({ text: item.title, value: item.id }))
+
+				listAllEmployees().then((dataEmp) => {
+					const groupedEmployees = {}
+					dataEmp.data.forEach((employee) => {
+						const projectId = employee.project || 'No Project'
+						if (!groupedEmployees[projectId]) {
+							groupedEmployees[projectId] = {
+								id: projectId,
+								name: data.find((project) => project.value === projectId)?.text || 'Unknown Project',
+								collapsed: false,
+								eventCreation: false,
+								children: [],
+							}
+						}
+						groupedEmployees[projectId].children.push(employee)
+					})
+					setMyResources(Object.values(groupedEmployees))
+				})
 				setLoader(false)
 				setProjectSites(data)
 			})
@@ -208,8 +222,8 @@ function App() {
 		const parent = resource.children
 		return (
 			<Stack direction={'row'} gap={2} alignItems={'center'}>
-				<Rating rating={resource.rating}>{resource.rating}</Rating>
-				<div className={parent ? 'md-shift-resource' : ''} style={{ color: parent ? '#1dab2f' : '' }}>
+				{!parent && <Rating rating={resource.rating}>{resource.rating}</Rating>}
+				<div className={parent ? 'md-shift-resource' : ''} style={{ color: parent ? '#212B36' : '' }}>
 					{resource.name}
 				</div>
 
@@ -414,7 +428,6 @@ function App() {
 						extendDefaultEvent={extendDefaultEvent}
 						colors={holidays}
 						renderDay={renderCustomDay}
-						dayNamesMin={['S', 'M', 'T', 'W', 'T', 'F', 'S']}
 					/>
 
 					<Popup
