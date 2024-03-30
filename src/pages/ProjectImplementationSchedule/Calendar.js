@@ -272,7 +272,7 @@ function App() {
 
 	const renderResourceHeader = () => (
 		<Stack width="100%" flexDirection="row" justifyContent="space-between">
-			<Typography textAlign="center" variant="h6">
+			<Typography textAlign="center" variant="subtitle1">
 				Work / Team
 			</Typography>
 		</Stack>

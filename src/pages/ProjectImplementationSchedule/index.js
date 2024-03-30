@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { getProjectDetails } from 'supabase'
 import { useParams } from 'react-router'
 import EventHeader from 'components/EventHeader'
+import Page from 'components/Page'
 
 const ProjectIntro = styled(Box)(({ theme }) => ({
 	backgroundColor: theme.palette.background.paper,
@@ -54,10 +55,12 @@ const ProjectImplementationSchedule = () => {
 				</ProjectIntro> 
 			</Box> */}
 
-			<EventHeader title={data?.title} breadcrumbElements={breadcrumbElements} />
-			<Stack px={2} mt={7}>
-				<Calendar />
-			</Stack>
+			<Page title="PS">
+				<EventHeader title={data?.title} breadcrumbElements={breadcrumbElements} />
+				<Stack px={2} mt={7}>
+					<Calendar />
+				</Stack>
+			</Page>
 		</div>
 	)
 }

@@ -89,7 +89,7 @@ export default function Projects() {
 			icon: <Iconify width={40} height={40} color="#8D99FF" icon="ph:users-light" />,
 			title: 'Daily Workforce Planning',
 			description: 'Installation team, Connection Team 1, Connection Team 2',
-			redirect: '/dashboard/workforce-planning',
+			redirect: `/dashboard/${id}/workforce-planning`,
 		},
 		{
 			icon: <Iconify width={40} height={40} color="#FFA58D" icon="heroicons-outline:calendar" />,
