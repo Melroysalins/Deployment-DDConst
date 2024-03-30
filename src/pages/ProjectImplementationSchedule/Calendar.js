@@ -1,7 +1,19 @@
 /* eslint-disable func-names */
 import React from 'react'
 import '@mobiscroll/react/dist/css/mobiscroll.min.css'
-import { Eventcalendar, setOptions, Popup, Button, Input, Datepicker, momentTimezone } from '@mobiscroll/react'
+import {
+	Eventcalendar,
+	setOptions,
+	Popup,
+	Button,
+	Input,
+	Datepicker,
+	momentTimezone,
+	CalendarPrev,
+	CalendarNext,
+	CalendarNav,
+	formatDate,
+} from '@mobiscroll/react'
 import moment from 'moment-timezone'
 import './calendar.scss'
 
@@ -9,6 +21,8 @@ import { Loader, getHolidays } from 'reusables'
 import { useParams } from 'react-router'
 import { listAllTasksByProject, updateNestedTasks, updateTask } from 'supabase'
 import { differenceInDays } from 'utils/formatTime'
+import { Stack, Typography, Button as MuiButton } from '@mui/material'
+import Legends from './Legends'
 
 setOptions({
 	theme: 'ios',
@@ -256,10 +270,43 @@ function App() {
 		}
 	}
 
+	const renderResourceHeader = () => (
+		<Stack width="100%" flexDirection="row" justifyContent="space-between">
+			<Typography textAlign="center" variant="h6">
+				Work / Team
+			</Typography>
+		</Stack>
+	)
+
+	const renderHeader = () => (
+		<Stack sx={{ color: 'black' }} flexDirection="row" justifyContent="space-between" width="100%">
+			<MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 0, minWidth: 0 }}>
+				<CalendarPrev className="cal-header-prev" />
+			</MuiButton>
+			<CalendarNav className="cal-header-nav" />
+			<MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 0, minWidth: 0 }}>
+				<CalendarNext className="cal-header-next" />
+			</MuiButton>
+		</Stack>
+	)
+
+	const renderCustomDay = (args) => {
+		return (
+			<Stack p="8px" justifyContent="center" alignItems="center" className="custom-day-border">
+				<Typography variant="body2" className="">
+					{formatDate('DD', args.date)}
+				</Typography>
+			</Stack>
+		)
+	}
+
 	return (
 		<>
+			<Legends />
 			<Loader open={loader} setOpen={setLoader} />
 			<Eventcalendar
+				cssClass="mbsc-calendar-schedule"
+				renderResourceHeader={renderResourceHeader}
 				view={viewSettings}
 				data={myEvents}
 				displayTimezone="local"
@@ -268,18 +315,20 @@ function App() {
 				renderResource={renderMyResource}
 				renderScheduleEvent={renderScheduleEvent}
 				resources={myResources}
-				clickToCreate="double"
 				dragToCreate={false}
 				dragTimeStep={30}
 				onEventDragEnd={({ event }) => handleDrag(event)}
 				dragToResize={true}
+				renderHeader={renderHeader}
+				colors={holidays}
+				renderDay={renderCustomDay}
 				// selectedDate={mySelectedDate}
 				// onSelectedDateChange={onSelectedDateChange}
 				// onEventClick={onEventClick}
 				// onEventCreated={onEventCreated}
 				// onEventDeleted={onEventDeleted}
 				// extendDefaultEvent={extendDefaultEvent}
-				colors={holidays}
+				// clickToCreate="double"
 			/>
 			{/* <Popup
 				display="bottom"
