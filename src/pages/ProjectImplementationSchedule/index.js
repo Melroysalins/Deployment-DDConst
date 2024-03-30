@@ -1,18 +1,24 @@
 // material
 import { styled } from '@mui/material/styles'
-import { Box, Stack } from '@mui/material'
+import { Box, Stack, Typography } from '@mui/material'
 
 import Calendar from './Calendar'
 import { useState, useEffect } from 'react'
 import { getProjectDetails } from 'supabase'
 import { useParams } from 'react-router'
-import Header from './Header'
+import EventHeader from 'components/EventHeader'
 
 const ProjectIntro = styled(Box)(({ theme }) => ({
 	backgroundColor: theme.palette.background.paper,
 	padding: 24,
 	marginTop: 24,
 }))
+
+const breadcrumbElements = [
+	<Typography key="4" color="text.primary">
+		Implementation Schedule
+	</Typography>,
+]
 
 const ProjectImplementationSchedule = () => {
 	const { project } = useParams()
@@ -48,7 +54,7 @@ const ProjectImplementationSchedule = () => {
 				</ProjectIntro> 
 			</Box> */}
 
-			<Header title={data?.title} />
+			<EventHeader title={data?.title} breadcrumbElements={breadcrumbElements} />
 			<Stack px={2} mt={7}>
 				<Calendar />
 			</Stack>

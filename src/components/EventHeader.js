@@ -11,26 +11,27 @@ import {
 import Iconify from 'components/Iconify'
 import React from 'react'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import useMain from 'pages/context/context'
+import BasicTabs from './Drawer/BasicTabs'
 
 // components
-const Header = ({ title }) => {
+const EventHeader = ({ title, breadcrumbElements }) => {
 	const theme = useTheme()
+	const { isDrawerOpen, setisDrawerOpen, setapprovalIdDrawerRight } = useMain()
 	const matchUpMd = useMediaQuery(theme.breakpoints.up('md'))
 	const MainPath = `/dashboard/projects/list`
 
 	const breadcrumbs = [
-		<Link underline="hover" key="1" color="inherit" href={MainPath}>
+		<Link underline="hover" key="Main" color="inherit" href={MainPath}>
 			Main
 		</Link>,
-		<Link underline="hover" key="2" color="inherit" href={MainPath}>
+		<Link underline="hover" key="Projects" color="inherit" href={MainPath}>
 			Projects
 		</Link>,
-		<Typography key="3" color="text.primary">
+		<Typography key={title || 'title'} color="text.primary">
 			{title}
 		</Typography>,
-		<Typography key="3" color="text.primary">
-			Implementation Schedule
-		</Typography>,
+		...breadcrumbElements,
 	]
 
 	return (
@@ -61,6 +62,10 @@ const Header = ({ title }) => {
 						<Iconify icon="material-symbols:download-rounded" width={20} height={20} />
 					</MuiButton>
 					<Button
+						onClick={() => {
+							setapprovalIdDrawerRight(null)
+							setisDrawerOpen(true)
+						}}
 						variant="contained"
 						size="medium"
 						color="inherit"
@@ -77,8 +82,10 @@ const Header = ({ title }) => {
 					</Button>
 				</Stack>
 			</Stack>
+
+			{isDrawerOpen && <BasicTabs open={isDrawerOpen} setopen={setisDrawerOpen} />}
 		</>
 	)
 }
 
-export default Header
+export default EventHeader
