@@ -7,15 +7,11 @@ function splitDatesByWeekend(data, project_task) {
 	let title = 0
 	while (startDate <= endDate) {
 		// Skip weekends (Saturday and Sunday)
-		while (
-			(startDate.getDay() === 0 || startDate.getDay() === 6) &&
-			!(startDate.getDay() === 0 && endDate.getDay() === 1)
-		) {
+		while ((startDate.getDay() === 0 || startDate.getDay() === 6) && startDate < endDate) {
 			startDate.setDate(startDate.getDate() + 1)
 		}
 
 		const tempEndDate = new Date(startDate)
-		// Move tempEndDate to the next Friday or endDate, whichever comes first
 		while (tempEndDate.getDay() !== 5 && tempEndDate < endDate) {
 			tempEndDate.setDate(tempEndDate.getDate() + 1)
 			if (tempEndDate.getDay() === 0) {
@@ -23,11 +19,13 @@ function splitDatesByWeekend(data, project_task) {
 			}
 		}
 
-		const daysDifference = (tempEndDate - startDate) / (1000 * 3600 * 24)
-		title += 1
-		const formattedTitle = `${title}-${title + daysDifference}`
-		title += daysDifference
-		result.push({ title: formattedTitle, start: formatDate(startDate), end: formatDate(tempEndDate), project_task })
+		if (tempEndDate.getDay() !== 0 && tempEndDate.getDay() !== 6) {
+			const daysDifference = (tempEndDate - startDate) / (1000 * 3600 * 24)
+			title += 1
+			const formattedTitle = `${title}-${title + daysDifference}`
+			title += daysDifference
+			result.push({ title: formattedTitle, start: formatDate(startDate), end: formatDate(tempEndDate), project_task })
+		}
 
 		startDate.setDate(tempEndDate.getDate() + 1)
 		if (startDate.getDay() === 0) {
