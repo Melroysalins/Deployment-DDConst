@@ -25,7 +25,7 @@ import { getProjectDetails, listAllProjects } from 'supabase/projects'
 
 import Page from '../../components/Page'
 import EventHeader from 'components/EventHeader'
-import { Stack, Typography, Button as MuiButton } from '@mui/material'
+import { Stack, Typography, Button as MuiButton, styled, Avatar } from '@mui/material'
 import { useParams } from 'react-router-dom'
 
 setOptions({
@@ -61,6 +61,37 @@ const breadcrumbElements = [
 		Daily workforce planning
 	</Typography>,
 ]
+
+export const Rating = styled(Avatar, {
+	shouldForwardProp: (prop) => prop !== 'rating',
+})(({ theme, rating }) => {
+	let color = null
+	switch (rating) {
+		case 'S':
+			color = theme.palette.chart.violet[0]
+			break
+		case 'A':
+			color = theme.palette.chart.red[0]
+			break
+		case 'B':
+			color = theme.palette.chart.yellow[0]
+			break
+		case 'C':
+			color = theme.palette.chart.green[0]
+			break
+
+		default:
+			color = theme.palette.grey[500]
+			break
+	}
+	return {
+		height: 20,
+		width: 20,
+		fontSize: 11,
+		marginLeft: 11,
+		backgroundColor: color,
+	}
+})
 
 function App() {
 	const [myEvents, setMyEvents] = React.useState([])
@@ -116,6 +147,7 @@ function App() {
 			listAllEvents(filters).then((data) => handleSetEvent(data))
 
 			listAllProjects().then((data) => {
+				console.log(data, 'data')
 				data = data?.data.map((item) => ({ text: item.title, value: item.id }))
 				setLoader(false)
 				setProjectSites(data)
@@ -175,9 +207,29 @@ function App() {
 	const renderMyResource = (resource) => {
 		const parent = resource.children
 		return (
-			<div className={parent ? 'md-shift-resource' : ''} style={{ color: parent ? '#1dab2f' : '' }}>
-				{resource.name}
-			</div>
+			<Stack direction={'row'} gap={2} alignItems={'center'}>
+				<Rating rating={resource.rating}>{resource.rating}</Rating>
+				<div className={parent ? 'md-shift-resource' : ''} style={{ color: parent ? '#1dab2f' : '' }}>
+					{resource.name}
+				</div>
+
+				{resource.team_lead && (
+					<Typography
+						style={{
+							borderRadius: 3,
+							background: '#FF6B00',
+							color: 'white',
+							fontSize: 8,
+							height: 15,
+							paddingInline: 5,
+							paddingBlock: 1,
+						}}
+						variant={'caption'}
+					>
+						TEAM LEAD
+					</Typography>
+				)}
+			</Stack>
 		)
 	}
 
