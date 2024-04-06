@@ -1,137 +1,111 @@
-import React from 'react'
+import { InputLabel, Box, FormControl, MenuItem, Select } from '@mui/material'
+import React, { useState } from 'react'
 import ReactFlow, { useNodesState, useEdgesState, Handle, Position } from 'reactflow'
 import 'reactflow/dist/style.css'
 
-const initialNodes = [
+const generateNodes = ({ id, boxes, y, minX, maxX, imageUrl, namePrefix }) => {
+	const nodes = []
+	const interval = (maxX - minX) / (boxes - 1)
+	for (let i = 0; i < boxes; i += 1) {
+		const x = minX + interval * i
+		const nodeId = `${id}.${i + 1}`
+		const nodeName = namePrefix ? `${namePrefix}#${i + 1}` : ``
+		const position = { x, y }
+		const data = { imageUrl, name: nodeName }
+		nodes.push({ id: nodeId, type: 'image', data, position })
+	}
+	return nodes
+}
+
+const generateEdges = (startId, count) => {
+	const edges = []
+	edges.push({
+		id: `${startId}.start-${startId}.1`,
+		source: `${startId}.start`,
+		target: `${startId}.1`,
+		style: { stroke: '#FFA58D' },
+	})
+	for (let i = 1; i <= count; i += 1) {
+		const source = `${startId}.${i}`
+		const target = `${startId}.${i + 1}`
+		const edgeId = `e${i}-${i + 1}`
+		const style = { stroke: '#FFA58D' }
+		edges.push({ id: edgeId, source, target, style })
+	}
+	edges.push({
+		id: `${startId}.${count}-end`,
+		source: `${startId}.${count}`,
+		target: `${startId}.end`,
+		style: { stroke: '#FFA58D' },
+	})
+
+	return edges
+}
+
+const defaultNodes = [
 	{
-		id: '1',
+		id: '1.start',
 		type: 'image',
-		data: { imageUrl: '/static/images/flowD1.png', name: 'Power' },
+		data: { imageUrl: '/static/images/flowTriangle.png', name: 'S/S' },
 		position: { x: 100, y: 50 },
 	},
 	{
-		id: '2',
+		id: '1.end',
 		type: 'image',
-		data: { imageUrl: '/static/images/flowD2.png', name: 'J/B#1' },
-		position: { x: 200, y: 100 },
-	},
-	{
-		id: '3',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD2.png', name: 'J/B#2' },
-		position: { x: 400, y: 100 },
-	},
-	{
-		id: '4',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD2.png', name: 'J/B#3' },
-		position: { x: 600, y: 100 },
-	},
-	{
-		id: '5',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD1.png' },
+		data: { imageUrl: '/static/images/flowTriangle.png' },
 		position: { x: 720, y: 50 },
 	},
 	{
-		id: '2-1',
+		id: '2.start',
 		type: 'image',
 		data: { imageUrl: '/static/images/flowD1.png' },
 		position: { x: 5, y: 50 },
 	},
 	{
-		id: '2-2',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD2.png' },
-		position: { x: 200, y: 160 },
-	},
-	{
-		id: '2-3',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD2.png' },
-		position: { x: 400, y: 160 },
-	},
-	{
-		id: '2-4',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD2.png' },
-		position: { x: 600, y: 160 },
-	},
-	{
-		id: '2-5',
+		id: '2.end',
 		type: 'image',
 		data: { imageUrl: '/static/images/flowD1.png' },
 		position: { x: 800, y: 50 },
 	},
 
 	{
-		id: '2TL-1',
+		id: '3.start',
 		type: 'image',
-		data: { imageUrl: '/static/images/flowD1.png', name: '2T/L' },
+		data: { imageUrl: '/static/images/flowD1.png', name: 'T/L' },
 		position: { x: 100, y: 250 },
 	},
+	...generateNodes({
+		id: '3',
+		boxes: 4,
+		y: 300,
+		minX: 200,
+		maxX: 600,
+		imageUrl: '/static/images/flowD2.png',
+		namePrefix: 'M/H',
+	}),
 	{
-		id: '2TL-2',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD2.png', name: 'J/B#1' },
-		position: { x: 200, y: 300 },
-	},
-	{
-		id: '2TL-3',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD2.png', name: 'J/B#2' },
-		position: { x: 360, y: 300 },
-	},
-	{
-		id: '2TL-4',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD2.png', name: 'J/B#3' },
-		position: { x: 480, y: 300 },
-	},
-	{
-		id: '2TL-5',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD2.png', name: 'J/B#4' },
-		position: { x: 600, y: 300 },
-	},
-	{
-		id: '2TL-6',
+		id: '3.end',
 		type: 'image',
 		data: { imageUrl: '/static/images/flowD1.png' },
 		position: { x: 720, y: 250 },
 	},
 	{
-		id: '2TL-2-1',
+		id: '4.start',
 		type: 'image',
 		data: { imageUrl: '/static/images/flowD1.png' },
 		position: { x: 5, y: 250 },
 	},
+	...generateNodes({
+		id: '4',
+		boxes: 4,
+		y: 350,
+		minX: 200,
+		maxX: 600,
+		imageUrl: '/static/images/flowD2.png',
+		namePrefix: '',
+	}),
 	{
-		id: '2TL-2-2',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD2.png' },
-		position: { x: 200, y: 350 },
-	},
-	{
-		id: '2TL-2-3',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD2.png' },
-		position: { x: 360, y: 350 },
-	},
-	{
-		id: '2TL-2-4',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD2.png' },
-		position: { x: 480, y: 350 },
-	},
-	{
-		id: '2TL-2-5',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD2.png' },
-		position: { x: 600, y: 350 },
-	},
-	{
-		id: '2TL-2-6',
+		id: '4.end',
 		type: 'image',
 		data: { imageUrl: '/static/images/flowD1.png' },
 		position: { x: 800, y: 250 },
@@ -140,7 +114,7 @@ const initialNodes = [
 		id: 'new',
 		type: 'nodeHeading',
 		data: { name: 'New CV Section (Installation)' },
-		position: { x: 300, y: 10 },
+		position: { x: 300, y: 15 },
 	},
 	{
 		id: 'old',
@@ -150,27 +124,31 @@ const initialNodes = [
 	},
 ]
 
-const initialEdges = [
-	{ id: 'e1-2', source: '1', target: '2', style: { stroke: '#FFA58D' } },
-	{ id: 'e2-3', source: '2', target: '3', style: { stroke: '#FFA58D' } },
-	{ id: 'e3-4', source: '3', target: '4', style: { stroke: '#FFA58D' } },
-	{ id: 'e4-5', source: '4', target: '5', style: { stroke: '#FFA58D' } },
-	{ id: 'e2-1-2', source: '2-1', target: '2-2', style: { stroke: '#FFA58D' } },
-	{ id: 'e2-2-3', source: '2-2', target: '2-3', style: { stroke: '#FFA58D' } },
-	{ id: 'e2-3-4', source: '2-3', target: '2-4', style: { stroke: '#FFA58D' } },
-	{ id: 'e2-4-5', source: '2-4', target: '2-5', style: { stroke: '#FFA58D' } },
-
-	{ id: 'e2TL-1-2', source: '2TL-1', target: '2TL-2', style: { stroke: '#FFA58D' } },
-	{ id: 'e2TL-2-3', source: '2TL-2', target: '2TL-3', style: { stroke: '#FFA58D' } },
-	{ id: 'e2TL-3-4', source: '2TL-3', target: '2TL-4', style: { stroke: '#FFA58D' } },
-	{ id: 'e2TL-4-5', source: '2TL-4', target: '2TL-5', style: { stroke: '#FFA58D' } },
-	{ id: 'e2TL-5-6', source: '2TL-5', target: '2TL-6', style: { stroke: '#FFA58D' } },
-	{ id: 'e2TL-2-1-2', source: '2TL-2-1', target: '2TL-2-2', style: { stroke: '#FFA58D' } },
-	{ id: 'e2TL-2-2-3', source: '2TL-2-2', target: '2TL-2-3', style: { stroke: '#FFA58D' } },
-	{ id: 'e2TL-2-3-4', source: '2TL-2-3', target: '2TL-2-4', style: { stroke: '#FFA58D' } },
-	{ id: 'e2TL-2-4-5', source: '2TL-2-4', target: '2TL-2-5', style: { stroke: '#FFA58D' } },
-	{ id: 'e2TL-2-5-6', source: '2TL-2-5', target: '2TL-2-6', style: { stroke: '#FFA58D' } },
+const initialNodes = [
+	...defaultNodes,
+	...generateNodes({
+		id: '1',
+		boxes: 3,
+		y: 100,
+		minX: 200,
+		maxX: 600,
+		imageUrl: '/static/images/flowD2.png',
+		namePrefix: 'J/B',
+	}),
+	...generateNodes({
+		id: '2',
+		boxes: 3,
+		y: 160,
+		minX: 200,
+		maxX: 600,
+		imageUrl: '/static/images/flowD2.png',
+		namePrefix: '',
+	}),
 ]
+
+const defaultEdges = [...generateEdges('3', 4), ...generateEdges('4', 4)]
+
+const initialEdges = [...defaultEdges, ...generateEdges('1', 3), ...generateEdges('2', 3)]
 
 const nodeTypes = {
 	image: ({ data }) => (
@@ -215,9 +193,38 @@ const nodeTypes = {
 const App = () => {
 	const [nodes, setNodes] = useNodesState(initialNodes)
 	const [edges, setEdges] = useEdgesState(initialEdges)
+	const [selectedValue, setSelectedValue] = useState('3')
+
+	// Function to handle change in dropdown value
+	const handleDropdownChange = (event) => {
+		const value = event.target.value
+		setSelectedValue(value)
+		setNodes([
+			...defaultNodes,
+			...generateNodes({
+				id: '1',
+				boxes: value,
+				y: 100,
+				minX: 200,
+				maxX: 600,
+				imageUrl: '/static/images/flowD2.png',
+				namePrefix: 'J/B',
+			}),
+			...generateNodes({
+				id: '2',
+				boxes: value,
+				y: 160,
+				minX: 200,
+				maxX: 600,
+				imageUrl: '/static/images/flowD2.png',
+				namePrefix: '',
+			}),
+		])
+		setEdges([...defaultEdges, ...generateEdges('1', value), ...generateEdges('2', value)])
+	}
 
 	return (
-		<div style={{ height: 500, overflow: 'hidden' }}>
+		<div style={{ height: 550, overflow: 'hidden' }}>
 			<div style={{ display: 'flex', justifyContent: 'space-between' }}>
 				<div
 					style={{
@@ -258,6 +265,18 @@ const App = () => {
 					Unconstructed: <span style={{ color: '#919EAB' }}>BLACK</span>
 				</div>
 			</div>
+
+			<Box sx={{ display: 'flex', marginTop: 2, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+				<div style={{ fontWeight: 'bold' }}>Select J/B</div>
+				<FormControl style={{ width: 200 }}>
+					<InputLabel>J/B</InputLabel>
+					<Select size="small" value={selectedValue} label="J/B" onChange={handleDropdownChange}>
+						<MenuItem value={2}>2</MenuItem>
+						<MenuItem value={3}>3</MenuItem>
+						<MenuItem value={4}>4</MenuItem>
+					</Select>
+				</FormControl>
+			</Box>
 			<ReactFlow
 				nodes={nodes}
 				edges={edges}
