@@ -223,6 +223,24 @@ const App = () => {
 		setEdges([...defaultEdges, ...generateEdges('1', value), ...generateEdges('2', value)])
 	}
 
+	const DDD = () => {
+		return (
+			<ReactFlow
+				nodes={nodes}
+				edges={edges}
+				nodeTypes={nodeTypes}
+				minZoom={1} // Disable zooming out
+				maxZoom={1} // Disable zooming in
+				interactionProps={{
+					zoomOnScroll: false,
+					panOnDrag: false,
+				}}
+				nodesDraggable={false} // Disable node dragging
+				nodesConnectable={false}
+			/>
+		)
+	}
+
 	return (
 		<div style={{ height: 550, overflow: 'hidden' }}>
 			<div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -277,19 +295,7 @@ const App = () => {
 					</Select>
 				</FormControl>
 			</Box>
-			<ReactFlow
-				nodes={nodes}
-				edges={edges}
-				nodeTypes={nodeTypes}
-				minZoom={1} // Disable zooming out
-				maxZoom={1} // Disable zooming in
-				interactionProps={{
-					zoomOnScroll: false,
-					panOnDrag: false,
-				}}
-				nodesDraggable={false} // Disable node dragging
-				nodesConnectable={false}
-			/>
+			<DDD />
 		</div>
 	)
 }
