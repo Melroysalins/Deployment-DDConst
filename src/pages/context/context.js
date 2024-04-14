@@ -20,7 +20,7 @@ MainContext.displayName = 'MainContext'
 // eslint-disable-next-line react/prop-types
 export const MainProvider = ({ children }) => {
 	const [state, dispatch] = useReducer(mainReducer, initial_state)
-	const { getSession, user, userLoading, currentEmployee } = useAuthentication()
+	const { getSession, user, userLoading, currentEmployee, refetchCurrentEmployee } = useAuthentication()
 	const [openaccoutReview, setopenaccoutReview] = useState(false)
 	const [openNotification, setopenNotification] = useState(false)
 	const [openRequestApproval, setopenRequestApproval] = useState(false)
@@ -32,6 +32,7 @@ export const MainProvider = ({ children }) => {
 	// for right side approvals log info
 	const [isDrawerOpen, setisDrawerOpen] = useState(false)
 	const [approvalIdDrawerRight, setapprovalIdDrawerRight] = useState(null)
+	const [mainFilters, setmainFilters] = useState(null)
 
 	useEffect(() => {
 		if (!openRequestApproval) {
@@ -75,6 +76,7 @@ export const MainProvider = ({ children }) => {
 				refetchtaskProjects,
 				setrefetchtaskProjects,
 				currentEmployee,
+				refetchCurrentEmployee,
 				openRequestApproval,
 				setopenRequestApproval,
 				allowTaskCursor,
@@ -86,6 +88,8 @@ export const MainProvider = ({ children }) => {
 				setisDrawerOpen,
 				approvalIdDrawerRight,
 				setapprovalIdDrawerRight,
+				mainFilters,
+				setmainFilters,
 			}}
 		>
 			{userLoading ? <></> : children}

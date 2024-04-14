@@ -25,7 +25,15 @@ import PropTypes from 'prop-types'
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { useQuery } from 'react-query'
 import { useParams } from 'react-router'
-import { createNewTasks, deleteTask, deleteTasks, listAllTeams, listFilteredTasks, updateTask } from 'supabase'
+import {
+	createNewTasks,
+	deleteTask,
+	deleteTasks,
+	listAllTeams,
+	listFilteredTasks,
+	updateTask,
+	updateNestedTasks,
+} from 'supabase'
 import TimeRangeEditor from './TimeRangeEditor'
 
 setOptions({
@@ -348,6 +356,9 @@ const Task = ({ task_group }) => {
 		newItem[field] = newValue
 		const { id } = newItem
 		if (typeof id !== 'string') {
+			if (newItem.task_period[0] && newItem.task_period[1]) {
+				updateNestedTasks(newItem.task_period, newItem.id)
+			}
 			updateTask(
 				{
 					title: newItem.title,

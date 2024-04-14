@@ -6,17 +6,19 @@ import _ from 'lodash'
 import useMain from 'pages/context/context'
 import { MainActionType } from 'pages/context/types'
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 export default function CustomSeparator(props) {
 	const { state, dispatch } = useMain()
 	const { isfilterOpen } = state.filters || {}
-
+	const { t } = useTranslation()
 	const { selected, typeName } = props
 	const history = useNavigate()
 	const { pathname } = useLocation()
 	const pathnames = pathname.split('/').filter((x) => x)
 	const basePath = `/${pathnames.slice(0, 2).join('/')}`
+	const MainPath = `${basePath}/list`
 	pathnames.splice(0, 2)
 
 	const openFilter = () => {
@@ -26,32 +28,42 @@ export default function CustomSeparator(props) {
 	return (
 		<Stack padding={1} spacing={2}>
 			<Breadcrumbs separator="›" aria-label="breadcrumb">
-				<MuiButton
-					size="small"
-					variant="contained"
-					color={`${isfilterOpen ? 'secondary' : 'inherit'}`}
-					sx={{ padding: 1, minWidth: 0, width: 35 }}
-					onClick={openFilter}
-				>
-					<Iconify icon="heroicons-funnel" width={20} height={20} />
-				</MuiButton>
-				{pathnames.length > 0 ? <Link onClick={() => history(basePath)}>Main</Link> : <Typography> Main </Typography>}
-				{pathnames.map((name, index) => {
-					const routeTo = `${basePath}+/${pathnames.slice(0, index + 1).join('/')}`
-					const isLast = index === pathnames.length - 1
-					if (index === 0) return <CustomizedMenus key={2} option={name} typeName={typeName} />
-					if (isLast)
-						return (
-							<Typography fontWeight="600" key={name}>
-								{_.startCase(name)}
-							</Typography>
-						)
-					return (
-						<Link key={name} onClick={() => history(routeTo)}>
-							{name}
-						</Link>
-					)
-				})}
+				{pathname.includes('travel-expenses') && (
+					<MuiButton
+						size="small"
+						variant="contained"
+						color={`${isfilterOpen ? 'secondary' : 'inherit'}`}
+						sx={{ padding: 1, minWidth: 0, width: 35 }}
+						onClick={openFilter}
+					>
+						<Iconify icon="heroicons-funnel" width={20} height={20} />
+					</MuiButton>
+				)}
+				{pathname !== MainPath && (
+					<Stack direction={'row'} spacing={1}>
+						{pathnames.length > 0 ? (
+							<Link onClick={() => history(MainPath)}>Main</Link>
+						) : (
+							<Typography> Main </Typography>
+						)}
+						{pathnames.map((name, index) => {
+							const routeTo = `${basePath}+/${pathnames.slice(0, index + 1).join('/')}`
+							const isLast = index === pathnames.length - 1
+							if (index === 0) return <CustomizedMenus key={2} option={name} typeName={typeName} />
+							if (isLast)
+								return (
+									<Typography fontWeight="600" key={name}>
+										{_.startCase(name)}
+									</Typography>
+								)
+							return (
+								<Link key={name} onClick={() => history(routeTo)}>
+									{name}
+								</Link>
+							)
+						})}
+					</Stack>
+				)}
 			</Breadcrumbs>
 		</Stack>
 	)

@@ -1,13 +1,28 @@
 /* eslint-disable func-names */
 import React from 'react'
 import '@mobiscroll/react/dist/css/mobiscroll.min.css'
-import { Eventcalendar, setOptions, Popup, Button, Input, Datepicker, momentTimezone } from '@mobiscroll/react'
+import {
+	Eventcalendar,
+	setOptions,
+	Popup,
+	Button,
+	Input,
+	Datepicker,
+	momentTimezone,
+	CalendarPrev,
+	CalendarNext,
+	CalendarNav,
+	formatDate,
+} from '@mobiscroll/react'
 import moment from 'moment-timezone'
 import './calendar.scss'
 
 import { Loader, getHolidays } from 'reusables'
 import { useParams } from 'react-router'
-import { listAllTasksByProject } from 'supabase'
+import { listAllTasksByProject, updateNestedTasks, updateTask } from 'supabase'
+import { differenceInDays } from 'utils/formatTime'
+import { Stack, Typography, Button as MuiButton } from '@mui/material'
+import Legends from './Legends'
 
 setOptions({
 	theme: 'ios',
@@ -58,7 +73,20 @@ function App() {
 	const [holidays, setHolidays] = React.useState(defaultHolidays)
 
 	const handleSetEvent = (data) => {
-		setMyEvents(data.map((e) => ({ ...e, resource: e.task_group })))
+		const newData = data.flatMap((event) => {
+			event.start = new Date(event.start)
+			event.end = new Date(event.end)
+			const mainEvent = { ...event, resource: event.task_group }
+			const nestedEvents = event.nested_tasks.map((nestedTask) => ({
+				...nestedTask,
+				start: new Date(nestedTask.start),
+				end: new Date(nestedTask.end),
+				resource: event.task_group,
+			}))
+			return [mainEvent, ...nestedEvents]
+		})
+		// setMyEvents(data.map((e) => ({ ...e, resource: e.task_group })))
+		setMyEvents(newData)
 	}
 
 	const handlesetMyResources = (data) => {
@@ -66,13 +94,15 @@ function App() {
 		setMyResources(unique.map((e) => ({ id: e.task_group, task_group: e.task_group })))
 	}
 
+	const createEventsByProject = () => {
+		listAllTasksByProject(project).then((data) => {
+			handleSetEvent(data?.data)
+			handlesetMyResources(data?.data)
+		})
+	}
+
 	React.useEffect(() => {
-		;(async function () {
-			listAllTasksByProject(project).then((data) => {
-				handleSetEvent(data?.data)
-				handlesetMyResources(data?.data)
-			})
-		})()
+		createEventsByProject()
 		return () => {}
 	}, [])
 
@@ -108,12 +138,18 @@ function App() {
 	const renderMyResource = (resource) => <div>{resource.task_group}</div>
 
 	const renderScheduleEvent = (event) => {
-		const bg = '#5ac8fa'
-		const color = '#000'
+		const bg = event.original?.project_task ? '#8D99FF' : '#BDB2E9'
+		const color = 'white'
 		const border = null
+		let title = event.title
+		const { nested_tasks, start, end } = event.original
+		if (nested_tasks) {
+			const last = nested_tasks[nested_tasks.length - 1]?.title.split('-')[1]
+			title += ` (${differenceInDays(start, end) + 1} DAYS, ${last} WORK DAYS)`
+		}
 		return (
 			<div className="timeline-event" style={{ background: bg, color, border }}>
-				{event.title}
+				{title}
 			</div>
 		)
 	}
@@ -223,10 +259,58 @@ function App() {
 		if (data) setHolidays((prev) => [...defaultHolidays, ...data])
 	}
 
+	const handleDrag = async (event) => {
+		const { nested_tasks, id } = event
+		if (nested_tasks) {
+			await updateNestedTasks([event.start, event.end], id)
+			await updateTask(event, id)
+			createEventsByProject()
+		} else {
+			createEventsByProject()
+		}
+	}
+
+	const renderResourceHeader = () => (
+		<Stack width="100%" flexDirection="row" justifyContent="space-between">
+			<Typography textAlign="center" variant="subtitle1">
+				Work / Team
+			</Typography>
+		</Stack>
+	)
+
+	const renderHeader = () => (
+		<Stack sx={{ color: 'black' }} flexDirection="row" justifyContent="space-between" width="100%">
+			<MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 0, minWidth: 0 }}>
+				<CalendarPrev className="cal-header-prev" />
+			</MuiButton>
+			<CalendarNav className="cal-header-nav" />
+			<MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 0, minWidth: 0 }}>
+				<CalendarNext className="cal-header-next" />
+			</MuiButton>
+		</Stack>
+	)
+
+	const renderCustomDay = (args) => {
+		const date = args.date
+		return (
+			<Stack p="8px" justifyContent="center" alignItems="center" className="custom-day-border">
+				<Typography variant="body2" className="">
+					{formatDate('DD', date)}
+				</Typography>
+				<Typography variant="caption" className="">
+					{formatDate('DDD', date).substring(0, 1)}
+				</Typography>
+			</Stack>
+		)
+	}
+
 	return (
 		<>
+			<Legends />
 			<Loader open={loader} setOpen={setLoader} />
 			<Eventcalendar
+				cssClass="mbsc-calendar-schedule md-timeline-height"
+				renderResourceHeader={renderResourceHeader}
 				view={viewSettings}
 				data={myEvents}
 				displayTimezone="local"
@@ -235,16 +319,20 @@ function App() {
 				renderResource={renderMyResource}
 				renderScheduleEvent={renderScheduleEvent}
 				resources={myResources}
-				clickToCreate="double"
 				dragToCreate={false}
 				dragTimeStep={30}
+				onEventDragEnd={({ event }) => handleDrag(event)}
+				dragToResize={true}
+				renderHeader={renderHeader}
+				colors={holidays}
+				renderDay={renderCustomDay}
 				// selectedDate={mySelectedDate}
 				// onSelectedDateChange={onSelectedDateChange}
 				// onEventClick={onEventClick}
 				// onEventCreated={onEventCreated}
 				// onEventDeleted={onEventDeleted}
 				// extendDefaultEvent={extendDefaultEvent}
-				colors={holidays}
+				// clickToCreate="double"
 			/>
 			{/* <Popup
 				display="bottom"

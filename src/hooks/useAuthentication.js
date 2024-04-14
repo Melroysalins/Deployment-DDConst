@@ -10,16 +10,19 @@ export default function useAuthentication() {
 	const [event, setevent] = useState(null)
 	const navigate = useNavigate()
 
-	const { data: currentEmployee } = useQuery(['EmployeeByUser'], () => getEmployeeByUser(user.id), {
-		enabled: !!user?.id,
-		select: (r) => r.data,
-	})
+	const { data: currentEmployee, refetch: refetchCurrentEmployee } = useQuery(
+		['EmployeeByUser'],
+		() => getEmployeeByUser(user.id),
+		{
+			enabled: !!user?.id,
+			select: (r) => r.data,
+		}
+	)
 
 	const getSession = async () => {
 		const {
 			data: { session },
 		} = await supabase.auth.getSession()
-		console.log(session)
 		if (!session) setevent('SIGNED_OUT')
 		else setevent('SIGNED_IN')
 		setuser(session?.user)
@@ -62,5 +65,6 @@ export default function useAuthentication() {
 		user,
 		userLoading,
 		currentEmployee,
+		refetchCurrentEmployee,
 	}
 }

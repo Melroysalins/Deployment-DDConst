@@ -53,3 +53,15 @@ export function calculateCompletedDays(startDate, endDate) {
 
 	return completedDays
 }
+
+export const countTruthyLengths = (array) =>
+	array
+		.filter(
+			(value) =>
+				value !== null &&
+				value !== undefined &&
+				value !== '' &&
+				value !== false &&
+				(Array.isArray(value) ? value.length !== 0 : true)
+		)
+		.map((value) => (typeof value === 'string' || (Array.isArray(value) && value.length !== 0) ? value.length : 0))

@@ -66,7 +66,7 @@ const navConfig = [
 		icon: getIcon('material-symbols:logout'),
 	},
 	{
-		title: 'Manage EmpLoyees',
+		title: 'Manage Employees',
 		path: '/manageEmp/employee/emplist',
 		icon: getIcon('pepicons-pop:persons'),
 	},
