@@ -1,4 +1,4 @@
-import { InputLabel, Box, FormControl, MenuItem, Select } from '@mui/material'
+import { InputLabel, Box, FormControl, MenuItem, Select, Button } from '@mui/material'
 import React, { useState } from 'react'
 import ReactFlow, { useNodesState, useEdgesState, Handle, Position } from 'reactflow'
 import 'reactflow/dist/style.css'
@@ -17,26 +17,45 @@ const generateNodes = ({ id, boxes, y, minX, maxX, imageUrl, namePrefix }) => {
 	return nodes
 }
 
-const generateEdges = (startId, count) => {
+const generateStartEndNode = ({ seqNumber, yPos, name = 'T/L', startX = 100, endX = 730, imageUrl }) => {
+	imageUrl = `/static/svg/${imageUrl}.svg`
+	const nodes = [
+		{
+			id: `${seqNumber}.start`,
+			type: 'image',
+			data: { imageUrl, name: `${name}#${seqNumber}` },
+			position: { x: startX, y: yPos - 30 },
+		},
+		{
+			id: `${seqNumber}.end`,
+			type: 'image',
+			data: { imageUrl, name: `${name}#${seqNumber}` },
+			position: { x: endX, y: yPos - 30 },
+		},
+	]
+	return nodes
+}
+
+const generateEdges = (startId, count, stroke = '#FFA58D') => {
 	const edges = []
 	edges.push({
 		id: `${startId}.start-${startId}.1`,
 		source: `${startId}.start`,
 		target: `${startId}.1`,
-		style: { stroke: '#FFA58D' },
+		style: { stroke },
 	})
 	for (let i = 1; i <= count; i += 1) {
 		const source = `${startId}.${i}`
 		const target = `${startId}.${i + 1}`
 		const edgeId = `e${i}-${i + 1}`
-		const style = { stroke: '#FFA58D' }
+		const style = { stroke }
 		edges.push({ id: edgeId, source, target, style })
 	}
 	edges.push({
 		id: `${startId}.${count}-end`,
 		source: `${startId}.${count}`,
 		target: `${startId}.end`,
-		style: { stroke: '#FFA58D' },
+		style: { stroke },
 	})
 
 	return edges
@@ -46,109 +65,63 @@ const defaultNodes = [
 	{
 		id: '1.start',
 		type: 'image',
-		data: { imageUrl: '/static/images/flowTriangle.png', name: 'S/S' },
+		data: { imageUrl: '/static/svg/recTri-notStarted.svg', name: 'T/L' },
 		position: { x: 100, y: 50 },
 	},
+	...generateNodes({
+		id: '1',
+		boxes: 4,
+		y: 100,
+		minX: 200,
+		maxX: 600,
+		imageUrl: '/static/svg/mh-notStarted.svg',
+		namePrefix: 'M/H',
+	}),
 	{
 		id: '1.end',
 		type: 'image',
-		data: { imageUrl: '/static/images/flowTriangle.png' },
-		position: { x: 720, y: 50 },
+		data: { imageUrl: '/static/svg/recTri-notStarted.svg' },
+		position: { x: 730, y: 50 },
 	},
 	{
 		id: '2.start',
 		type: 'image',
-		data: { imageUrl: '/static/images/flowD1.png' },
+		data: { imageUrl: '/static/svg/recTri-notStarted.svg' },
 		position: { x: 5, y: 50 },
 	},
-	{
-		id: '2.end',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD1.png' },
-		position: { x: 800, y: 50 },
-	},
-
-	{
-		id: '3.start',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD1.png', name: 'T/L' },
-		position: { x: 100, y: 250 },
-	},
 	...generateNodes({
-		id: '3',
+		id: '2',
 		boxes: 4,
-		y: 300,
+		y: 150,
 		minX: 200,
 		maxX: 600,
-		imageUrl: '/static/images/flowD2.png',
-		namePrefix: 'M/H',
-	}),
-	{
-		id: '3.end',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD1.png' },
-		position: { x: 720, y: 250 },
-	},
-	{
-		id: '4.start',
-		type: 'image',
-		data: { imageUrl: '/static/images/flowD1.png' },
-		position: { x: 5, y: 250 },
-	},
-	...generateNodes({
-		id: '4',
-		boxes: 4,
-		y: 350,
-		minX: 200,
-		maxX: 600,
-		imageUrl: '/static/images/flowD2.png',
+		imageUrl: '/static/svg/mh-notStarted.svg',
 		namePrefix: '',
 	}),
 	{
-		id: '4.end',
+		id: '2.end',
 		type: 'image',
-		data: { imageUrl: '/static/images/flowD1.png' },
-		position: { x: 800, y: 250 },
+		data: { imageUrl: '/static/svg/recTri-notStarted.svg' },
+		position: { x: 800, y: 50 },
 	},
 	{
 		id: 'new',
 		type: 'nodeHeading',
 		data: { name: 'New CV Section (Installation)' },
-		position: { x: 300, y: 15 },
+		position: { x: 300, y: 200 },
 	},
 	{
 		id: 'old',
 		type: 'nodeHeading',
 		data: { name: 'Old OF Section (Demolition)' },
-		position: { x: 300, y: 220 },
+		position: { x: 300, y: 15 },
 	},
 ]
 
-const initialNodes = [
-	...defaultNodes,
-	...generateNodes({
-		id: '1',
-		boxes: 3,
-		y: 100,
-		minX: 200,
-		maxX: 600,
-		imageUrl: '/static/images/flowD2.png',
-		namePrefix: 'J/B',
-	}),
-	...generateNodes({
-		id: '2',
-		boxes: 3,
-		y: 160,
-		minX: 200,
-		maxX: 600,
-		imageUrl: '/static/images/flowD2.png',
-		namePrefix: '',
-	}),
-]
+const initialNodes = [...defaultNodes]
 
-const defaultEdges = [...generateEdges('3', 4), ...generateEdges('4', 4)]
-
-const initialEdges = [...defaultEdges, ...generateEdges('1', 3), ...generateEdges('2', 3)]
+const defaultEdges = [...generateEdges('1', 4), ...generateEdges('2', 4)]
+const initialEdges = [...defaultEdges]
 
 const nodeTypes = {
 	image: ({ data }) => (
@@ -165,7 +138,7 @@ const nodeTypes = {
 			<div>
 				<Handle type="target" position={Position.Left} isConnectable={false} />
 				<div>
-					<img src={data.imageUrl} alt="Custom Node" />
+					<img src={data.imageUrl} alt="Custom Node" style={{ fill: 'blue' }} />
 				</div>
 				<Handle type="source" position={Position.Right} id="a" isConnectable={false} />
 			</div>
@@ -190,38 +163,18 @@ const nodeTypes = {
 	),
 }
 
+const STROKE_COLOR = {
+	notStarted: '#FFA58D',
+	inProgress: '#8D99FF',
+	completed: '#919EAB',
+}
+
+const defaultNewObj = { boxType: 'recTri', joinType: 'J/B', status: 'notStarted', nodes: 2 }
 const App = () => {
 	const [nodes, setNodes] = useNodesState(initialNodes)
 	const [edges, setEdges] = useEdgesState(initialEdges)
-	const [selectedValue, setSelectedValue] = useState('3')
-
-	// Function to handle change in dropdown value
-	const handleDropdownChange = (event) => {
-		const value = event.target.value
-		setSelectedValue(value)
-		setNodes([
-			...defaultNodes,
-			...generateNodes({
-				id: '1',
-				boxes: value,
-				y: 100,
-				minX: 200,
-				maxX: 600,
-				imageUrl: '/static/images/flowD2.png',
-				namePrefix: 'J/B',
-			}),
-			...generateNodes({
-				id: '2',
-				boxes: value,
-				y: 160,
-				minX: 200,
-				maxX: 600,
-				imageUrl: '/static/images/flowD2.png',
-				namePrefix: '',
-			}),
-		])
-		setEdges([...defaultEdges, ...generateEdges('1', value), ...generateEdges('2', value)])
-	}
+	const [seqNumber, setseqNumber] = useState(3)
+	const [newObj, setnewObj] = useState(defaultNewObj)
 
 	const DDD = () => {
 		return (
@@ -241,8 +194,33 @@ const App = () => {
 		)
 	}
 
+	const handleNewObjChange = (e, type) => {
+		setnewObj({ ...newObj, [type]: e })
+	}
+
+	const handleAdd = () => {
+		console.log('newObj', newObj)
+		const yPos = seqNumber * 100 - 50
+		setNodes([
+			...nodes,
+			...generateNodes({
+				id: seqNumber,
+				boxes: newObj.nodes,
+				y: yPos,
+				minX: 200,
+				maxX: 600,
+				imageUrl: `/static/svg/${newObj.boxType === 'J/B' ? 'jb' : 'mh'}-${newObj.status}.svg`,
+				namePrefix: newObj.joinType,
+			}),
+			...generateStartEndNode({ seqNumber, yPos, imageUrl: `${newObj.boxType}-${newObj.status}` }),
+		])
+		setEdges([...edges, ...generateEdges(seqNumber, newObj.nodes, STROKE_COLOR[newObj.status])])
+		setnewObj(defaultNewObj)
+		setseqNumber(seqNumber + 1)
+	}
+
 	return (
-		<div style={{ height: 550, overflow: 'hidden' }}>
+		<div style={{ height: seqNumber * 150, overflow: 'hidden' }}>
 			<div style={{ display: 'flex', justifyContent: 'space-between' }}>
 				<div
 					style={{
@@ -284,17 +262,92 @@ const App = () => {
 				</div>
 			</div>
 
-			<Box sx={{ display: 'flex', marginTop: 2, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-				<div style={{ fontWeight: 'bold' }}>Select J/B</div>
-				<FormControl style={{ width: 200 }}>
-					<InputLabel>J/B</InputLabel>
-					<Select size="small" value={selectedValue} label="J/B" onChange={handleDropdownChange}>
-						<MenuItem value={2}>2</MenuItem>
-						<MenuItem value={3}>3</MenuItem>
-						<MenuItem value={4}>4</MenuItem>
-					</Select>
-				</FormControl>
+			<Box
+				sx={{
+					display: 'flex',
+					marginTop: 2,
+					alignItems: 'flex-end',
+					justifyContent: 'center',
+					gap: 1,
+					flexWrap: 'wrap',
+				}}
+				mb={2}
+			>
+				<div>
+					<FormControl style={{ width: 200 }}>
+						<InputLabel>Endbox Type</InputLabel>
+						<Select
+							size="small"
+							value={newObj.boxType}
+							label="Endbox Type"
+							onChange={(e) => handleNewObjChange(e.target.value, 'boxType')}
+						>
+							<MenuItem value={'square'}>Square</MenuItem>
+							<MenuItem value={'recTri'}>Square w/ Triangle</MenuItem>
+						</Select>
+					</FormControl>
+				</div>
+
+				<div>
+					<FormControl style={{ width: 200 }}>
+						<InputLabel>Join Type</InputLabel>
+						<Select
+							size="small"
+							value={newObj.joinType}
+							label="Join Type"
+							onChange={(e) => handleNewObjChange(e.target.value, 'joinType')}
+						>
+							<MenuItem value={'J/B'}>J/B</MenuItem>
+							<MenuItem value={'M/H'}>M/H</MenuItem>
+						</Select>
+					</FormControl>
+				</div>
+
+				<div>
+					<FormControl style={{ width: 200 }}>
+						<InputLabel>Seq Number</InputLabel>
+						<Select size="small" value={seqNumber} label="Seq Number" disabled>
+							<MenuItem value={seqNumber}>{seqNumber}</MenuItem>
+						</Select>
+					</FormControl>
+				</div>
+
+				<div>
+					<FormControl style={{ width: 200 }}>
+						<InputLabel>Status</InputLabel>
+						<Select
+							size="small"
+							value={newObj.status}
+							label="Status"
+							onChange={(e) => handleNewObjChange(e.target.value, 'status')}
+						>
+							<MenuItem value={'notStarted'}>Not Started</MenuItem>
+							<MenuItem value={'inProgress'}>In Progress</MenuItem>
+							<MenuItem value={'completed'}>Completed</MenuItem>
+						</Select>
+					</FormControl>
+				</div>
+
+				<div>
+					<FormControl style={{ width: 200 }}>
+						<InputLabel>Nodes</InputLabel>
+						<Select
+							size="small"
+							value={newObj.nodes}
+							label="Nodes"
+							onChange={(e) => handleNewObjChange(e.target.value, 'nodes')}
+						>
+							<MenuItem value={2}>2</MenuItem>
+							<MenuItem value={3}>3</MenuItem>
+							<MenuItem value={4}>4</MenuItem>
+						</Select>
+					</FormControl>
+				</div>
+				<Button variant="contained" sx={{ marginLeft: 3 }} onClick={handleAdd}>
+					Add New
+				</Button>
 			</Box>
+
 			<DDD />
 		</div>
 	)
