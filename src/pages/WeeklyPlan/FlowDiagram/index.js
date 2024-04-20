@@ -209,7 +209,7 @@ const App = () => {
 				y: yPos,
 				minX: 200,
 				maxX: 600,
-				imageUrl: `/static/svg/${newObj.boxType === 'J/B' ? 'jb' : 'mh'}-${newObj.status}.svg`,
+				imageUrl: `/static/svg/${newObj.joinType === 'J/B' ? 'jb' : 'mh'}-${newObj.status}.svg`,
 				namePrefix: newObj.joinType,
 			}),
 			...generateStartEndNode({ seqNumber, yPos, imageUrl: `${newObj.boxType}-${newObj.status}` }),
