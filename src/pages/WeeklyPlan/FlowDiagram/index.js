@@ -1,7 +1,7 @@
-import { InputLabel, Box, FormControl, MenuItem, Select, Button } from '@mui/material'
 import React, { useState } from 'react'
 import ReactFlow, { useNodesState, useEdgesState, Handle, Position } from 'reactflow'
 import 'reactflow/dist/style.css'
+import FormDiagram, { CABLE_TYPE, JUNCTION_BOX, NAMYUNG } from './FormDiagram'
 
 const generateNodes = ({ id, boxes, y, minX, maxX, imageUrl, namePrefix, status }) => {
 	const nodes = []
@@ -17,19 +17,20 @@ const generateNodes = ({ id, boxes, y, minX, maxX, imageUrl, namePrefix, status 
 	return nodes
 }
 
-const generateStartEndNode = ({ seqNumber, yPos, name = 'T/L', startX = 100, endX = 730, boxType, status }) => {
-	const imageUrl = `/static/svg/${boxType}-${status}.svg`
+const generateStartEndNode = ({ seqNumber, yPos, name = 'T/L', startX = 100, endX = 730, start, end, status }) => {
+	start = `/static/svg/${start}-${status}.svg`
+	end = `/static/svg/${end}-${status}.svg`
 	const nodes = [
 		{
 			id: `${seqNumber}.start`,
 			type: 'image',
-			data: { imageUrl, name: `${name}#${seqNumber}`, isEndbox: true, status },
+			data: { imageUrl: start, name: `${name}#${seqNumber}`, isEndbox: true, status },
 			position: { x: startX, y: yPos - 30 },
 		},
 		{
 			id: `${seqNumber}.end`,
 			type: 'image',
-			data: { imageUrl, name: `${name}#${seqNumber}`, isEndbox: true, status },
+			data: { imageUrl: end, name: `${name}#${seqNumber}`, isEndbox: true, status },
 			position: { x: endX, y: yPos - 30 },
 		},
 	]
@@ -132,8 +133,18 @@ const STROKE_COLOR = {
 	completed: '#919EAB',
 }
 
-const defaultNewObj = { boxType: 'recTri', joinType: 'J/B', status: 'notStarted', nodes: 2 }
-const App = () => {
+const defaultNewObj = {
+	start: JUNCTION_BOX[0].value,
+	end: JUNCTION_BOX[0].value,
+	joinType: 'J/B',
+	status: 'notStarted',
+	nodes: 2,
+	pmj: 'IJ',
+	cableType: CABLE_TYPE[0],
+	namyang: NAMYUNG[0],
+	length: 600,
+}
+const FlowDiagram = () => {
 	const [nodes, setNodes] = useNodesState(initialNodes)
 	const [edges, setEdges] = useEdgesState(initialEdges)
 	const [seqNumber, setseqNumber] = useState(3)
@@ -230,12 +241,19 @@ const App = () => {
 				boxes: newObj.nodes,
 				y: yPos,
 				minX: 200,
-				maxX: 600,
+				maxX: newObj.length || 600,
 				imageUrl: `/static/svg/${newObj.joinType === 'J/B' ? 'jb' : 'mh'}-${newObj.status}.svg`,
 				namePrefix: newObj.joinType,
 				status: newObj.status,
 			}),
-			...generateStartEndNode({ seqNumber, yPos, boxType: newObj.boxType, status: newObj.status }),
+			...generateStartEndNode({
+				seqNumber,
+				yPos,
+				start: newObj.start,
+				end: newObj.end,
+				status: newObj.status,
+				endX: newObj.length ? +newObj.length + 130 : 730,
+			}),
 		])
 		setEdges([...edges, ...generateEdges(seqNumber, newObj.nodes, STROKE_COLOR[newObj.status])])
 		setnewObj(defaultNewObj)
@@ -243,137 +261,59 @@ const App = () => {
 	}
 
 	return (
-		<div style={{ height: seqNumber * 150, overflow: 'hidden' }}>
-			<div style={{ display: 'flex', justifyContent: 'space-between' }}>
-				<div
-					style={{
-						border: '2px solid #DA4C57',
-						width: '100%',
-						textAlign: 'center',
-						borderRight: 0,
-						padding: 2,
-						borderTopLeftRadius: 10,
-						borderBottomLeftRadius: 10,
-					}}
-				>
-					Complex Const section: <span style={{ color: '#DA4C57' }}>RED</span>
+		<>
+			<FormDiagram
+				handleNewObjChange={handleNewObjChange}
+				handleAdd={handleAdd}
+				newObj={newObj}
+				seqNumber={seqNumber}
+			/>
+			<div style={{ height: seqNumber * 150, overflow: 'hidden' }}>
+				<div style={{ display: 'flex', justifyContent: 'space-between' }}>
+					<div
+						style={{
+							border: '2px solid #DA4C57',
+							width: '100%',
+							textAlign: 'center',
+							borderRight: 0,
+							padding: 2,
+							borderTopLeftRadius: 10,
+							borderBottomLeftRadius: 10,
+						}}
+					>
+						Complex Const section: <span style={{ color: '#DA4C57' }}>RED</span>
+					</div>
+					<div
+						style={{
+							border: '2px solid #8D99FF',
+							width: '100%',
+							textAlign: 'center',
+							borderRight: 0,
+							borderLeft: 0,
+							padding: 2,
+						}}
+					>
+						Const Section in progress: <span style={{ color: '#8D99FF' }}>BLUE</span>
+					</div>
+					<div
+						style={{
+							border: '2px solid #919EAB',
+							width: '100%',
+							textAlign: 'center',
+							borderLeft: 0,
+							padding: 2,
+							borderTopRightRadius: 10,
+							borderBottomRightRadius: 10,
+						}}
+					>
+						Unconstructed: <span style={{ color: '#919EAB' }}>BLACK</span>
+					</div>
 				</div>
-				<div
-					style={{
-						border: '2px solid #8D99FF',
-						width: '100%',
-						textAlign: 'center',
-						borderRight: 0,
-						borderLeft: 0,
-						padding: 2,
-					}}
-				>
-					Const Section in progress: <span style={{ color: '#8D99FF' }}>BLUE</span>
-				</div>
-				<div
-					style={{
-						border: '2px solid #919EAB',
-						width: '100%',
-						textAlign: 'center',
-						borderLeft: 0,
-						padding: 2,
-						borderTopRightRadius: 10,
-						borderBottomRightRadius: 10,
-					}}
-				>
-					Unconstructed: <span style={{ color: '#919EAB' }}>BLACK</span>
-				</div>
+
+				<DDD />
 			</div>
-
-			<Box
-				sx={{
-					display: 'flex',
-					marginTop: 2,
-					alignItems: 'flex-end',
-					justifyContent: 'center',
-					gap: 1,
-					flexWrap: 'wrap',
-				}}
-				mb={2}
-			>
-				<div>
-					<FormControl style={{ width: 200 }}>
-						<InputLabel>Endbox Type</InputLabel>
-						<Select
-							size="small"
-							value={newObj.boxType}
-							label="Endbox Type"
-							onChange={(e) => handleNewObjChange(e.target.value, 'boxType')}
-						>
-							<MenuItem value={'square'}>Square</MenuItem>
-							<MenuItem value={'recTri'}>Square w/ Triangle</MenuItem>
-						</Select>
-					</FormControl>
-				</div>
-
-				<div>
-					<FormControl style={{ width: 200 }}>
-						<InputLabel>Join Type</InputLabel>
-						<Select
-							size="small"
-							value={newObj.joinType}
-							label="Join Type"
-							onChange={(e) => handleNewObjChange(e.target.value, 'joinType')}
-						>
-							<MenuItem value={'J/B'}>J/B</MenuItem>
-							<MenuItem value={'M/H'}>M/H</MenuItem>
-						</Select>
-					</FormControl>
-				</div>
-
-				<div>
-					<FormControl style={{ width: 200 }}>
-						<InputLabel>Seq Number</InputLabel>
-						<Select size="small" value={seqNumber} label="Seq Number" disabled>
-							<MenuItem value={seqNumber}>{seqNumber}</MenuItem>
-						</Select>
-					</FormControl>
-				</div>
-
-				<div>
-					<FormControl style={{ width: 200 }}>
-						<InputLabel>Status</InputLabel>
-						<Select
-							size="small"
-							value={newObj.status}
-							label="Status"
-							onChange={(e) => handleNewObjChange(e.target.value, 'status')}
-						>
-							<MenuItem value={'notStarted'}>Not Started</MenuItem>
-							<MenuItem value={'inProgress'}>In Progress</MenuItem>
-							<MenuItem value={'completed'}>Completed</MenuItem>
-						</Select>
-					</FormControl>
-				</div>
-
-				<div>
-					<FormControl style={{ width: 200 }}>
-						<InputLabel>Nodes</InputLabel>
-						<Select
-							size="small"
-							value={newObj.nodes}
-							label="Nodes"
-							onChange={(e) => handleNewObjChange(e.target.value, 'nodes')}
-						>
-							<MenuItem value={2}>2</MenuItem>
-							<MenuItem value={3}>3</MenuItem>
-							<MenuItem value={4}>4</MenuItem>
-						</Select>
-					</FormControl>
-				</div>
-				<Button variant="contained" sx={{ marginLeft: 3 }} onClick={handleAdd}>
-					Add New
-				</Button>
-			</Box>
-
-			<DDD />
-		</div>
+		</>
 	)
 }
 
-export default App
+export default FlowDiagram
