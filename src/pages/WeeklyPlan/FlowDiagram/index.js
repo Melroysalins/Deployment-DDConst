@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import ReactFlow, { useNodesState, useEdgesState, Handle, Position } from 'reactflow'
 import 'reactflow/dist/style.css'
 
-const generateNodes = ({ id, boxes, y, minX, maxX, imageUrl, namePrefix }) => {
+const generateNodes = ({ id, boxes, y, minX, maxX, imageUrl, namePrefix, status }) => {
 	const nodes = []
 	const interval = (maxX - minX) / (boxes - 1)
 	for (let i = 0; i < boxes; i += 1) {
@@ -11,25 +11,25 @@ const generateNodes = ({ id, boxes, y, minX, maxX, imageUrl, namePrefix }) => {
 		const nodeId = `${id}.${i + 1}`
 		const nodeName = namePrefix ? `${namePrefix}#${i + 1}` : ``
 		const position = { x, y }
-		const data = { imageUrl, name: nodeName }
+		const data = { imageUrl, name: nodeName, status }
 		nodes.push({ id: nodeId, type: 'image', data, position })
 	}
 	return nodes
 }
 
-const generateStartEndNode = ({ seqNumber, yPos, name = 'T/L', startX = 100, endX = 730, imageUrl }) => {
-	imageUrl = `/static/svg/${imageUrl}.svg`
+const generateStartEndNode = ({ seqNumber, yPos, name = 'T/L', startX = 100, endX = 730, boxType, status }) => {
+	const imageUrl = `/static/svg/${boxType}-${status}.svg`
 	const nodes = [
 		{
 			id: `${seqNumber}.start`,
 			type: 'image',
-			data: { imageUrl, name: `${name}#${seqNumber}` },
+			data: { imageUrl, name: `${name}#${seqNumber}`, isEndbox: true, status },
 			position: { x: startX, y: yPos - 30 },
 		},
 		{
 			id: `${seqNumber}.end`,
 			type: 'image',
-			data: { imageUrl, name: `${name}#${seqNumber}` },
+			data: { imageUrl, name: `${name}#${seqNumber}`, isEndbox: true, status },
 			position: { x: endX, y: yPos - 30 },
 		},
 	]
@@ -65,7 +65,7 @@ const defaultNodes = [
 	{
 		id: '1.start',
 		type: 'image',
-		data: { imageUrl: '/static/svg/recTri-notStarted.svg', name: 'T/L' },
+		data: { imageUrl: '/static/svg/recTri-notStarted.svg', name: 'T/L', isEndbox: true, status: 'notStarted' },
 		position: { x: 100, y: 50 },
 	},
 	...generateNodes({
@@ -76,17 +76,19 @@ const defaultNodes = [
 		maxX: 600,
 		imageUrl: '/static/svg/mh-notStarted.svg',
 		namePrefix: 'M/H',
+		status: 'notStarted',
 	}),
 	{
 		id: '1.end',
 		type: 'image',
-		data: { imageUrl: '/static/svg/recTri-notStarted.svg' },
+		data: { imageUrl: '/static/svg/recTri-notStarted.svg', isEndbox: true, status: 'notStarted' },
 		position: { x: 730, y: 50 },
+		isEndbox: true,
 	},
 	{
 		id: '2.start',
 		type: 'image',
-		data: { imageUrl: '/static/svg/recTri-notStarted.svg' },
+		data: { imageUrl: '/static/svg/recTri-notStarted.svg', isEndbox: true, status: 'notStarted' },
 		position: { x: 5, y: 50 },
 	},
 	...generateNodes({
@@ -97,11 +99,12 @@ const defaultNodes = [
 		maxX: 600,
 		imageUrl: '/static/svg/mh-notStarted.svg',
 		namePrefix: '',
+		status: 'notStarted',
 	}),
 	{
 		id: '2.end',
 		type: 'image',
-		data: { imageUrl: '/static/svg/recTri-notStarted.svg' },
+		data: { imageUrl: '/static/svg/recTri-notStarted.svg', isEndbox: true, status: 'notStarted' },
 		position: { x: 800, y: 50 },
 	},
 	{
@@ -123,46 +126,6 @@ const initialNodes = [...defaultNodes]
 const defaultEdges = [...generateEdges('1', 4), ...generateEdges('2', 4)]
 const initialEdges = [...defaultEdges]
 
-const nodeTypes = {
-	image: ({ data }) => (
-		<>
-			{data.name && (
-				<div style={{ position: 'absolute', top: -30 }}>
-					<span
-						style={{ padding: '5px 10px', border: '1px solid #EDEDEF', borderRadius: 7, marginLeft: 20, fontSize: 12 }}
-					>
-						{data.name}
-					</span>
-				</div>
-			)}
-			<div>
-				<Handle type="target" position={Position.Left} isConnectable={false} />
-				<div>
-					<img src={data.imageUrl} alt="Custom Node" style={{ fill: 'blue' }} />
-				</div>
-				<Handle type="source" position={Position.Right} id="a" isConnectable={false} />
-			</div>
-		</>
-	),
-	nodeHeading: ({ data }) => (
-		<>
-			<div>
-				<span
-					style={{
-						padding: '5px 10px',
-						border: '1px solid #EDEDEF',
-						borderRadius: 7,
-						marginLeft: 20,
-						fontWeight: 500,
-					}}
-				>
-					{data.name}
-				</span>
-			</div>
-		</>
-	),
-}
-
 const STROKE_COLOR = {
 	notStarted: '#FFA58D',
 	inProgress: '#8D99FF',
@@ -176,30 +139,89 @@ const App = () => {
 	const [seqNumber, setseqNumber] = useState(3)
 	const [newObj, setnewObj] = useState(defaultNewObj)
 
-	const DDD = () => {
-		return (
-			<ReactFlow
-				nodes={nodes}
-				edges={edges}
-				nodeTypes={nodeTypes}
-				minZoom={1} // Disable zooming out
-				maxZoom={1} // Disable zooming in
-				interactionProps={{
-					zoomOnScroll: false,
-					panOnDrag: false,
-				}}
-				nodesDraggable={false} // Disable node dragging
-				nodesConnectable={false}
-			/>
+	const handleImageChange = (data) => {
+		const { isEndbox, status } = data.data
+		const type = data.data.imageUrl.split('svg/')[1].split('-')[0]
+		if (isEndbox) {
+			const image = type === 'recTri' ? 'square' : 'recTri'
+			data.data.imageUrl = `/static/svg/${image}-${status}.svg`
+		} else {
+			const image = type === 'jb' ? 'mh' : 'jb'
+			data.data.imageUrl = `/static/svg/${image}-${status}.svg`
+		}
+		setNodes((prevNodes) =>
+			prevNodes.map((node) => (node.id === data.id ? { ...node, data: { ...node.data, ...data.data } } : node))
 		)
 	}
+
+	const nodeTypes = {
+		image: (data) => (
+			<div>
+				{data.data.name && (
+					<div style={{ position: 'absolute', top: -30 }}>
+						<span
+							style={{
+								padding: '5px 10px',
+								border: '1px solid #EDEDEF',
+								borderRadius: 7,
+								marginLeft: 20,
+								fontSize: 12,
+							}}
+						>
+							{data.data.name}
+						</span>
+					</div>
+				)}
+				<div>
+					<Handle type="target" position={Position.Left} isConnectable={false} />
+					{/* eslint-disable-next-line */}
+					<div onClick={() => handleImageChange(data)}>
+						<img src={data.data.imageUrl} alt="Custom Node" style={{ fill: 'blue' }} />
+					</div>
+					<Handle type="source" position={Position.Right} id="a" isConnectable={false} />
+				</div>
+			</div>
+		),
+		nodeHeading: ({ data }) => (
+			<>
+				<div>
+					<span
+						style={{
+							padding: '5px 10px',
+							border: '1px solid #EDEDEF',
+							borderRadius: 7,
+							marginLeft: 20,
+							fontWeight: 500,
+						}}
+					>
+						{data.name}
+					</span>
+				</div>
+			</>
+		),
+	}
+
+	const DDD = () => (
+		<ReactFlow
+			nodes={nodes}
+			edges={edges}
+			nodeTypes={nodeTypes}
+			minZoom={1} // Disable zooming out
+			maxZoom={1} // Disable zooming in
+			interactionProps={{
+				zoomOnScroll: false,
+				panOnDrag: false,
+			}}
+			nodesDraggable={false} // Disable node dragging
+			nodesConnectable={false}
+		/>
+	)
 
 	const handleNewObjChange = (e, type) => {
 		setnewObj({ ...newObj, [type]: e })
 	}
 
 	const handleAdd = () => {
-		console.log('newObj', newObj)
 		const yPos = seqNumber * 100 - 50
 		setNodes([
 			...nodes,
@@ -211,8 +233,9 @@ const App = () => {
 				maxX: 600,
 				imageUrl: `/static/svg/${newObj.joinType === 'J/B' ? 'jb' : 'mh'}-${newObj.status}.svg`,
 				namePrefix: newObj.joinType,
+				status: newObj.status,
 			}),
-			...generateStartEndNode({ seqNumber, yPos, imageUrl: `${newObj.boxType}-${newObj.status}` }),
+			...generateStartEndNode({ seqNumber, yPos, boxType: newObj.boxType, status: newObj.status }),
 		])
 		setEdges([...edges, ...generateEdges(seqNumber, newObj.nodes, STROKE_COLOR[newObj.status])])
 		setnewObj(defaultNewObj)
