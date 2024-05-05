@@ -18,9 +18,9 @@ export const STATUS = [
 	{ label: 'Completed', value: 'completed' },
 ]
 
-export default function FormDiagram({ handleNewObjChange, newObj, handleAdd, handleAddConnection }) {
+export default function FormDiagram({ handleNewObjChange, newObj, handleAddConnection }) {
 	return (
-		<div>
+		<>
 			<>
 				<Typography variant="h4" mb={1}>
 					Endpoints :
@@ -229,10 +229,7 @@ export default function FormDiagram({ handleNewObjChange, newObj, handleAdd, han
 						)}
 					</Box>
 				))}
-				<Button variant="contained" size="small" sx={{ margin: '-5px 0 10px' }} onClick={handleAdd}>
-					Apply
-				</Button>
 			</>
-		</div>
+		</>
 	)
 }

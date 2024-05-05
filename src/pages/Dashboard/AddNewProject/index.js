@@ -118,7 +118,7 @@ const AddNewProject = ({ edit = false }) => {
 						<Iconify sx={{ color: '#FF6B00' }} icon="raphael:diagram" width={20} height={20} /> Diagram Builder
 					</Stack>
 				</AccordionSummary>
-				<AccordionDetails>{edit && tab === '4' && <FlowDiagram />}</AccordionDetails>
+				<AccordionDetails>{edit && tab === '4' && <FlowDiagram isEditable={true} />}</AccordionDetails>
 			</Accordion>
 		</div>
 	)

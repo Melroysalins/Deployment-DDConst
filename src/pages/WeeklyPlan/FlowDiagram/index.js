@@ -1,7 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactFlow, { useNodesState, useEdgesState, Handle, Position } from 'reactflow'
 import 'reactflow/dist/style.css'
 import FormDiagram, { CABLE_TYPE, JB_TYPE, JUNCTION_BOX, MIN_X, NAMYUNG, PMJ, STATUS } from './FormDiagram'
+import { createNewProjectDiagram, getDiagramByProject, updateProjectDiagram } from 'supabase/project_diagram'
+import { useParams } from 'react-router-dom'
+import { Button } from '@mui/material'
+import { LoadingButton } from '@mui/lab'
 
 const generateNodesFromConnections = ({ id, connections, yPos, length = 600 }) => {
 	const nodes = []
@@ -71,8 +75,8 @@ const defaultNodes = [
 	{
 		id: 'new',
 		type: 'nodeHeading',
-		data: { name: 'Diagram Section' },
-		position: { x: 500, y: 15 },
+		data: { name: 'Flow Diagram' },
+		position: { x: 550, y: 15 },
 	},
 ]
 const initialNodes = [...defaultNodes]
@@ -99,11 +103,14 @@ const defaultNewObj = {
 	status: STATUS[0].value,
 }
 
-const FlowDiagram = () => {
+const FlowDiagram = ({ isEditable }) => {
 	const [nodes, setNodes] = useNodesState(initialNodes)
 	const [edges, setEdges] = useEdgesState(initialEdges)
 	const [seqNumber, setseqNumber] = useState(1)
 	const [newObj, setnewObj] = useState(defaultNewObj)
+	const { id } = useParams()
+	const [loading, setloading] = useState(false)
+	const [hasDiagram, sethasDiagram] = useState(false)
 
 	const handleImageChange = (data) => {
 		const { isEndbox, status } = data.data
@@ -183,8 +190,22 @@ const FlowDiagram = () => {
 		/>
 	)
 
+	const getDiagram = async () => {
+		const { data } = await getDiagramByProject(id)
+		if (data) {
+			setNodes(data.nodes)
+			setEdges(data.edges)
+			setseqNumber(data.seqNumber)
+			sethasDiagram(true)
+		}
+	}
+
+	useEffect(() => {
+		getDiagram()
+	}, [])
+
 	const handleNewObjChange = (value, field, index) => {
-		if (!index) {
+		if (index === undefined) {
 			setnewObj({ ...newObj, [field]: value })
 		} else {
 			const updatedConnections = [...newObj.connections]
@@ -198,6 +219,16 @@ const FlowDiagram = () => {
 			...newObj,
 			connections: [...newObj.connections, { ...defaultConnection }],
 		})
+	}
+
+	const handleSave = async () => {
+		setloading(true)
+		const _obj = { project: id, nodes, edges, seqNumber }
+		const { data } = hasDiagram ? await updateProjectDiagram(_obj, id) : await createNewProjectDiagram(_obj)
+		if (data) {
+			sethasDiagram(true)
+		}
+		setloading(false)
 	}
 
 	const handleAdd = () => {
@@ -221,12 +252,34 @@ const FlowDiagram = () => {
 
 	return (
 		<>
-			<FormDiagram
-				handleNewObjChange={handleNewObjChange}
-				handleAdd={handleAdd}
-				newObj={newObj}
-				handleAddConnection={handleAddConnection}
-			/>
+			{isEditable && (
+				<>
+					<FormDiagram
+						handleNewObjChange={handleNewObjChange}
+						handleAdd={handleAdd}
+						newObj={newObj}
+						handleAddConnection={handleAddConnection}
+						handleSave={handleSave}
+						seqNumber={seqNumber}
+					/>
+
+					<Button variant="contained" size="small" sx={{ margin: '-5px 0 10px' }} onClick={handleAdd}>
+						Apply
+					</Button>
+					{seqNumber > 1 && (
+						<LoadingButton
+							variant="contained"
+							loading={loading}
+							size="small"
+							sx={{ margin: '-5px 5px 10px' }}
+							onClick={handleSave}
+						>
+							{hasDiagram ? 'Update' : 'Save'}
+						</LoadingButton>
+					)}
+				</>
+			)}
+
 			<div style={{ height: seqNumber * 150, overflow: 'hidden' }}>
 				<div style={{ display: 'flex', justifyContent: 'space-between' }}>
 					<div
