@@ -1,19 +1,24 @@
 import React, { useState } from 'react'
 import ReactFlow, { useNodesState, useEdgesState, Handle, Position } from 'reactflow'
 import 'reactflow/dist/style.css'
-import FormDiagram, { CABLE_TYPE, JUNCTION_BOX, NAMYUNG } from './FormDiagram'
+import FormDiagram, { CABLE_TYPE, JB_TYPE, JUNCTION_BOX, MIN_X, NAMYUNG, PMJ, STATUS } from './FormDiagram'
 
-const generateNodes = ({ id, boxes, y, minX, maxX, imageUrl, namePrefix, status }) => {
+const generateNodesFromConnections = ({ id, connections, yPos, length = 600 }) => {
 	const nodes = []
-	const interval = (maxX - minX) / (boxes - 1)
-	for (let i = 0; i < boxes; i += 1) {
-		const x = minX + interval * i
-		const nodeId = `${id}.${i + 1}`
-		const nodeName = namePrefix ? `${namePrefix}#${i + 1}` : ``
-		const position = { x, y }
+	const step = (length - MIN_X) / connections.length
+	connections.forEach((connection, index) => {
+		const { joinType, status } = connection
+		const imageUrl = `/static/svg/${joinType === 'J/B' ? 'jb' : 'mh'}-${status}.svg`
+
+		const start = MIN_X + index * step
+		const x = (start + (start + step)) / 2
+		const nodeId = `${id}.${index + 1}`
+		const nodeName = `${joinType}#${index + 1}`
+		const position = { x, y: yPos }
 		const data = { imageUrl, name: nodeName, status }
 		nodes.push({ id: nodeId, type: 'image', data, position })
-	}
+	})
+
 	return nodes
 }
 
@@ -64,68 +69,14 @@ const generateEdges = (startId, count, stroke = '#FFA58D') => {
 
 const defaultNodes = [
 	{
-		id: '1.start',
-		type: 'image',
-		data: { imageUrl: '/static/svg/recTri-notStarted.svg', name: 'T/L', isEndbox: true, status: 'notStarted' },
-		position: { x: 100, y: 50 },
-	},
-	...generateNodes({
-		id: '1',
-		boxes: 4,
-		y: 100,
-		minX: 200,
-		maxX: 600,
-		imageUrl: '/static/svg/mh-notStarted.svg',
-		namePrefix: 'M/H',
-		status: 'notStarted',
-	}),
-	{
-		id: '1.end',
-		type: 'image',
-		data: { imageUrl: '/static/svg/recTri-notStarted.svg', isEndbox: true, status: 'notStarted' },
-		position: { x: 730, y: 50 },
-		isEndbox: true,
-	},
-	{
-		id: '2.start',
-		type: 'image',
-		data: { imageUrl: '/static/svg/recTri-notStarted.svg', isEndbox: true, status: 'notStarted' },
-		position: { x: 5, y: 50 },
-	},
-	...generateNodes({
-		id: '2',
-		boxes: 4,
-		y: 150,
-		minX: 200,
-		maxX: 600,
-		imageUrl: '/static/svg/mh-notStarted.svg',
-		namePrefix: '',
-		status: 'notStarted',
-	}),
-	{
-		id: '2.end',
-		type: 'image',
-		data: { imageUrl: '/static/svg/recTri-notStarted.svg', isEndbox: true, status: 'notStarted' },
-		position: { x: 800, y: 50 },
-	},
-	{
 		id: 'new',
 		type: 'nodeHeading',
-		data: { name: 'New CV Section (Installation)' },
-		position: { x: 300, y: 200 },
-	},
-	{
-		id: 'old',
-		type: 'nodeHeading',
-		data: { name: 'Old OF Section (Demolition)' },
-		position: { x: 300, y: 15 },
+		data: { name: 'Diagram Section' },
+		position: { x: 500, y: 15 },
 	},
 ]
-
 const initialNodes = [...defaultNodes]
-
-const defaultEdges = [...generateEdges('1', 4), ...generateEdges('2', 4)]
-const initialEdges = [...defaultEdges]
+const initialEdges = []
 
 const STROKE_COLOR = {
 	notStarted: '#FFA58D',
@@ -133,28 +84,32 @@ const STROKE_COLOR = {
 	completed: '#919EAB',
 }
 
+const defaultConnection = {
+	joinType: JB_TYPE[0],
+	pmj: PMJ[0],
+	status: STATUS[0].value,
+}
 const defaultNewObj = {
 	start: JUNCTION_BOX[0].value,
 	end: JUNCTION_BOX[0].value,
-	joinType: 'J/B',
-	status: 'notStarted',
-	nodes: 2,
-	pmj: 'IJ',
+	connections: [defaultConnection],
 	cableType: CABLE_TYPE[0],
 	namyang: NAMYUNG[0],
 	length: 600,
+	status: STATUS[0].value,
 }
+
 const FlowDiagram = () => {
 	const [nodes, setNodes] = useNodesState(initialNodes)
 	const [edges, setEdges] = useEdgesState(initialEdges)
-	const [seqNumber, setseqNumber] = useState(3)
+	const [seqNumber, setseqNumber] = useState(1)
 	const [newObj, setnewObj] = useState(defaultNewObj)
 
 	const handleImageChange = (data) => {
 		const { isEndbox, status } = data.data
 		const type = data.data.imageUrl.split('svg/')[1].split('-')[0]
 		if (isEndbox) {
-			const image = type === 'recTri' ? 'square' : 'recTri'
+			const image = type === JUNCTION_BOX[0].value ? JUNCTION_BOX[1].value : JUNCTION_BOX[0].value
 			data.data.imageUrl = `/static/svg/${image}-${status}.svg`
 		} else {
 			const image = type === 'jb' ? 'mh' : 'jb'
@@ -228,24 +183,28 @@ const FlowDiagram = () => {
 		/>
 	)
 
-	const handleNewObjChange = (e, type) => {
-		setnewObj({ ...newObj, [type]: e })
+	const handleNewObjChange = (value, field, index) => {
+		if (!index) {
+			setnewObj({ ...newObj, [field]: value })
+		} else {
+			const updatedConnections = [...newObj.connections]
+			updatedConnections[index][field] = value
+			setnewObj({ ...newObj, connections: updatedConnections })
+		}
+	}
+
+	const handleAddConnection = () => {
+		setnewObj({
+			...newObj,
+			connections: [...newObj.connections, { ...defaultConnection }],
+		})
 	}
 
 	const handleAdd = () => {
-		const yPos = seqNumber * 100 - 50
+		const yPos = seqNumber * 100
 		setNodes([
 			...nodes,
-			...generateNodes({
-				id: seqNumber,
-				boxes: newObj.nodes,
-				y: yPos,
-				minX: 200,
-				maxX: newObj.length || 600,
-				imageUrl: `/static/svg/${newObj.joinType === 'J/B' ? 'jb' : 'mh'}-${newObj.status}.svg`,
-				namePrefix: newObj.joinType,
-				status: newObj.status,
-			}),
+			...generateNodesFromConnections({ id: seqNumber, connections: newObj.connections, yPos, length: newObj.length }),
 			...generateStartEndNode({
 				seqNumber,
 				yPos,
@@ -255,7 +214,7 @@ const FlowDiagram = () => {
 				endX: newObj.length ? +newObj.length + 130 : 730,
 			}),
 		])
-		setEdges([...edges, ...generateEdges(seqNumber, newObj.nodes, STROKE_COLOR[newObj.status])])
+		setEdges([...edges, ...generateEdges(seqNumber, newObj.connections.length, STROKE_COLOR[newObj.status])])
 		setnewObj(defaultNewObj)
 		setseqNumber(seqNumber + 1)
 	}
@@ -266,7 +225,7 @@ const FlowDiagram = () => {
 				handleNewObjChange={handleNewObjChange}
 				handleAdd={handleAdd}
 				newObj={newObj}
-				seqNumber={seqNumber}
+				handleAddConnection={handleAddConnection}
 			/>
 			<div style={{ height: seqNumber * 150, overflow: 'hidden' }}>
 				<div style={{ display: 'flex', justifyContent: 'space-between' }}>

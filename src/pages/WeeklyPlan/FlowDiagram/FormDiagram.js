@@ -1,16 +1,24 @@
 /* eslint-disable react/prop-types */
 import { InputLabel, Box, FormControl, MenuItem, Select, Button, Typography, TextField } from '@mui/material'
+import Iconify from 'components/Iconify'
 import React from 'react'
 
+export const MIN_X = 200
 export const NAMYUNG = ['XLPE', 'OF', 'Other']
 export const CABLE_TYPE = ['154kV', '345kV', '746kV']
-export const PMJ = ['XLPE', 'OF', 'Other']
 export const JUNCTION_BOX = [
 	{ label: 'T/R', value: 'recTri' },
 	{ label: 'S/S', value: 'square' },
 ]
+export const JB_TYPE = ['J/B', 'M/H']
+export const PMJ = ['IJ', 'NJ', 'Pass']
+export const STATUS = [
+	{ label: 'Not Started', value: 'notStarted' },
+	{ label: 'In Progress', value: 'inProgress' },
+	{ label: 'Completed', value: 'completed' },
+]
 
-export default function FormDiagram({ handleNewObjChange, newObj, seqNumber, handleAdd }) {
+export default function FormDiagram({ handleNewObjChange, newObj, handleAdd, handleAddConnection }) {
 	return (
 		<div>
 			<>
@@ -118,61 +126,6 @@ export default function FormDiagram({ handleNewObjChange, newObj, seqNumber, han
 							</Select>
 						</FormControl>
 					</div>
-				</Box>
-			</>
-			<>
-				<Typography variant="h4" mb={1}>
-					Connection :
-				</Typography>
-				<Box
-					sx={{
-						display: 'flex',
-						marginTop: 2,
-						alignItems: 'center',
-						gap: 1,
-						flexWrap: 'wrap',
-					}}
-					mb={2}
-				>
-					<div>
-						<FormControl style={{ width: 200 }}>
-							<InputLabel>Jb Type</InputLabel>
-							<Select
-								size="small"
-								value={newObj.joinType}
-								label="Jb Type"
-								onChange={(e) => handleNewObjChange(e.target.value, 'joinType')}
-							>
-								<MenuItem value={'J/B'}>J/B</MenuItem>
-								<MenuItem value={'M/H'}>M/H</MenuItem>
-							</Select>
-						</FormControl>
-					</div>
-
-					<div>
-						<FormControl style={{ width: 200 }}>
-							<InputLabel>PMJ</InputLabel>
-							<Select
-								size="small"
-								value={newObj.pmj}
-								label="PMJ"
-								// onChange={(e) => handleNewObjChange(e.target.value, 'joinType')}
-							>
-								<MenuItem value={'IJ'}>IJ</MenuItem>
-								<MenuItem value={'NJ'}>NJ</MenuItem>
-								<MenuItem value={'Pass'}>Pass</MenuItem>
-							</Select>
-						</FormControl>
-					</div>
-
-					<div>
-						<FormControl style={{ width: 200 }}>
-							<InputLabel>Seq Number</InputLabel>
-							<Select size="small" value={seqNumber} label="Seq Number" disabled>
-								<MenuItem value={seqNumber}>{seqNumber}</MenuItem>
-							</Select>
-						</FormControl>
-					</div>
 
 					<div>
 						<FormControl style={{ width: 200 }}>
@@ -183,33 +136,102 @@ export default function FormDiagram({ handleNewObjChange, newObj, seqNumber, han
 								label="Status"
 								onChange={(e) => handleNewObjChange(e.target.value, 'status')}
 							>
-								<MenuItem value={'notStarted'}>Not Started</MenuItem>
-								<MenuItem value={'inProgress'}>In Progress</MenuItem>
-								<MenuItem value={'completed'}>Completed</MenuItem>
+								{STATUS.map((e) => (
+									<MenuItem value={e.value} key={e.value}>
+										{e.label}
+									</MenuItem>
+								))}
 							</Select>
 						</FormControl>
 					</div>
-
-					<div>
-						<FormControl style={{ width: 200 }}>
-							<InputLabel>Nodes</InputLabel>
-							<Select
-								size="small"
-								value={newObj.nodes}
-								label="Nodes"
-								onChange={(e) => handleNewObjChange(e.target.value, 'nodes')}
-							>
-								<MenuItem value={2}>2</MenuItem>
-								<MenuItem value={3}>3</MenuItem>
-								<MenuItem value={4}>4</MenuItem>
-								<MenuItem value={5}>5</MenuItem>
-							</Select>
-						</FormControl>
-					</div>
-					<Button variant="contained" size="small" sx={{ marginLeft: 3 }} onClick={handleAdd}>
-						Apply
-					</Button>
 				</Box>
+			</>
+			<>
+				<Typography variant="h4" mb={1}>
+					Connection :
+				</Typography>
+				{newObj.connections.map((connection, index) => (
+					// eslint-disable-next-line react/jsx-key
+					<Box
+						sx={{
+							display: 'flex',
+							marginTop: 2,
+							alignItems: 'center',
+							gap: 1,
+							flexWrap: 'wrap',
+						}}
+						mb={2}
+					>
+						<div>
+							<FormControl style={{ width: 200 }}>
+								<InputLabel>Jb Type</InputLabel>
+								<Select
+									size="small"
+									value={connection.joinType}
+									label="Jb Type"
+									onChange={(e) => handleNewObjChange(e.target.value, 'joinType', index)}
+								>
+									{JB_TYPE.map((e) => (
+										<MenuItem value={e} key={e}>
+											{e}
+										</MenuItem>
+									))}
+								</Select>
+							</FormControl>
+						</div>
+
+						<div>
+							<FormControl style={{ width: 200 }}>
+								<InputLabel>PMJ</InputLabel>
+								<Select
+									size="small"
+									value={connection.pmj}
+									label="PMJ"
+									onChange={(e) => handleNewObjChange(e.target.value, 'pmj', index)}
+								>
+									{PMJ.map((e) => (
+										<MenuItem value={e} key={e}>
+											{e}
+										</MenuItem>
+									))}
+								</Select>
+							</FormControl>
+						</div>
+
+						<div>
+							<FormControl style={{ width: 200 }}>
+								<InputLabel>Seq Number</InputLabel>
+								<Select size="small" value={index + 1} label="Seq Number" disabled>
+									<MenuItem value={index + 1}>{index + 1}</MenuItem>
+								</Select>
+							</FormControl>
+						</div>
+
+						<div>
+							<FormControl style={{ width: 200 }}>
+								<InputLabel>Status</InputLabel>
+								<Select
+									size="small"
+									value={connection.status}
+									label="Status"
+									onChange={(e) => handleNewObjChange(e.target.value, 'status', index)}
+								>
+									{STATUS.map((e) => (
+										<MenuItem value={e.value} key={e.value}>
+											{e.label}
+										</MenuItem>
+									))}
+								</Select>
+							</FormControl>
+						</div>
+						{index + 1 === newObj.connections.length && (
+							<Iconify icon="gridicons:add-outline" width={25} height={25} onClick={handleAddConnection} />
+						)}
+					</Box>
+				))}
+				<Button variant="contained" size="small" sx={{ margin: '-5px 0 10px' }} onClick={handleAdd}>
+					Apply
+				</Button>
 			</>
 		</div>
 	)
