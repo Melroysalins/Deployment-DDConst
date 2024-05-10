@@ -32,6 +32,7 @@ import { getApprovalsByProject } from 'supabase/approval'
 import { ApprovalStatus, WeekName } from 'constant'
 import { fDateLocale, getWeekName } from 'utils/formatTime'
 import RequestApproval from 'layouts/RequestApproval'
+import FlowDiagram from './FlowDiagram'
 
 setOptions({
 	theme: 'ios',
@@ -531,7 +532,8 @@ function WeeklyPlan() {
 						<ProgressRate />
 					</Grid>
 					<Grid item sm={12} md={9}>
-						<img src={'/static/images/Weekly-HardCode.png'} alt={'weekly'} />
+						<FlowDiagram />
+						{/* <img src={'/static/images/Weekly-HardCode.png'} alt={'weekly'} /> */}
 					</Grid>
 				</Grid>
 			</Container>

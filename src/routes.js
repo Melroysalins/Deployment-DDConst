@@ -48,7 +48,7 @@ export default function Router() {
 						{ path: ':id/weekly-plan', element: <WeeklyPlan /> },
 					],
 				},
-				{ path: 'workforce-planning', element: <WorkforcePlanning /> },
+				{ path: ':project/workforce-planning', element: <WorkforcePlanning /> },
 				{ path: 'project-schedule/:project', element: <ProjectImplementationSchedule /> },
 				{ path: 'user', element: <User /> },
 				{ path: 'products', element: <Products /> },

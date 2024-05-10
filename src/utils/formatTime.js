@@ -62,3 +62,10 @@ export function getWeekName(date) {
 	}
 	return WeekName.Previous
 }
+
+export function differenceInDays(start, end) {
+	const startDate = new Date(start)
+	const endDate = new Date(end)
+	const differenceInMilliseconds = endDate - startDate
+	return differenceInMilliseconds / (1000 * 60 * 60 * 24)
+}
