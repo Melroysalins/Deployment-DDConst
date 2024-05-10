@@ -17,6 +17,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import Contract from './Contract'
 import ExecutionBudget from './ExcecutionBudget'
 import Tasks from './Tasks/Tasks'
+import FlowDiagram from 'pages/WeeklyPlan/FlowDiagram'
 
 const Accordion = styled((props) => <MuiAccordion disableGutters elevation={0} square {...props} />)(() => ({
 	background: 'transparent',
@@ -106,6 +107,18 @@ const AddNewProject = ({ edit = false }) => {
 				<AccordionDetails sx={{ background: (theme) => theme.palette.background.default }}>
 					{edit && tab === '3' && <ExecutionBudget />}
 				</AccordionDetails>
+			</Accordion>
+			<Accordion expanded={tab === '4'} onChange={handleChange(4)}>
+				<AccordionSummary
+					expandIcon={<Iconify icon="material-symbols:expand-more-rounded" width={20} height={20} />}
+					aria-controls="panel2a-content"
+					id="panel2a-header"
+				>
+					<Stack gap={2} direction="row" alignItems="center">
+						<Iconify sx={{ color: '#FF6B00' }} icon="raphael:diagram" width={20} height={20} /> Diagram Builder
+					</Stack>
+				</AccordionSummary>
+				<AccordionDetails>{edit && tab === '4' && <FlowDiagram isEditable={true} />}</AccordionDetails>
 			</Accordion>
 		</div>
 	)
