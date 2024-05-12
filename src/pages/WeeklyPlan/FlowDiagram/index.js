@@ -1,10 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import ReactFlow, { useNodesState, useEdgesState, Handle, Position } from 'reactflow'
 import 'reactflow/dist/style.css'
-import FormDiagram, { CABLE_TYPE, JB_TYPE, JUNCTION_BOX, MIN_X, NAMYUNG, PMJ, STATUS } from './FormDiagram'
+import FormDiagram, {
+	CABLE_TYPE,
+	JB_TYPE,
+	JB_TYPE_MAP,
+	JUNCTION_BOX,
+	JUNCTION_BOX_MAP,
+	MIN_X,
+	NAMYUNG,
+	PMJ,
+	STATUS,
+} from './FormDiagram'
 import { createNewProjectDiagram, getDiagramByProject, updateProjectDiagram } from 'supabase/project_diagram'
 import { useParams } from 'react-router-dom'
-import { Button } from '@mui/material'
+import { Box, Button, Dialog, DialogTitle, FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 
 const generateNodesFromConnections = ({ id, connections, yPos, length = 600 }) => {
@@ -12,12 +22,12 @@ const generateNodesFromConnections = ({ id, connections, yPos, length = 600 }) =
 	const step = (length - MIN_X) / connections.length
 	connections.forEach((connection, index) => {
 		const { joinType, status } = connection
-		const imageUrl = `/static/svg/${joinType === 'J/B' ? 'jb' : 'mh'}-${status}.svg`
+		const imageUrl = `/static/svg/${joinType}-${status}.svg`
 
 		const start = MIN_X + index * step
 		const x = (start + (start + step)) / 2
 		const nodeId = `${id}.${index + 1}`
-		const nodeName = `${joinType}#${index + 1}`
+		const nodeName = `${JB_TYPE_MAP[joinType]}#${index + 1}`
 		const position = { x, y: yPos }
 		const data = { imageUrl, name: nodeName, status }
 		nodes.push({ id: nodeId, type: 'image', data, position })
@@ -26,60 +36,72 @@ const generateNodesFromConnections = ({ id, connections, yPos, length = 600 }) =
 	return nodes
 }
 
-const generateStartEndNode = ({ seqNumber, yPos, name = 'T/L', startX = 100, endX = 730, start, end, status }) => {
-	start = `/static/svg/${start}-${status}.svg`
-	end = `/static/svg/${end}-${status}.svg`
+const generateStartEndNode = ({
+	seqNumber,
+	yPos,
+	startName,
+	endName,
+	startX = 100,
+	endX = 730,
+	start,
+	end,
+	startStatus,
+	endStatus,
+}) => {
+	start = `/static/svg/${start}-${startStatus}.svg`
+	end = `/static/svg/${end}-${endStatus}.svg`
 	const nodes = [
 		{
 			id: `${seqNumber}.start`,
 			type: 'image',
-			data: { imageUrl: start, name: `${name}#${seqNumber}`, isEndbox: true, status },
+			data: { imageUrl: start, name: `${startName}#${seqNumber}`, isEndbox: true, status: startStatus },
 			position: { x: startX, y: yPos - 30 },
 		},
 		{
 			id: `${seqNumber}.end`,
 			type: 'image',
-			data: { imageUrl: end, name: `${name}#${seqNumber}`, isEndbox: true, status },
+			data: { imageUrl: end, name: `${endName}#${seqNumber}`, isEndbox: true, status: endStatus },
 			position: { x: endX, y: yPos - 30 },
 		},
 	]
 	return nodes
 }
 
-const generateEdges = (startId, count, stroke = '#FFA58D') => {
+const generateEdges = (startId, newObj) => {
+	const count = newObj.connections.length
 	const edges = []
 	edges.push({
-		id: `${startId}.start-${startId}.1`,
+		id: `${startId}.start`,
 		source: `${startId}.start`,
 		target: `${startId}.1`,
-		style: { stroke },
+		style: { stroke: STROKE_COLOR[newObj.startStatus] },
 	})
 	for (let i = 1; i <= count; i += 1) {
 		const source = `${startId}.${i}`
 		const target = `${startId}.${i + 1}`
 		const edgeId = `e${i}-${i + 1}`
-		const style = { stroke }
+		const style = { stroke: STROKE_COLOR[newObj.connections[i - 1].status] }
 		edges.push({ id: edgeId, source, target, style })
 	}
 	edges.push({
-		id: `${startId}.${count}-end`,
+		id: `${startId}-end`,
 		source: `${startId}.${count}`,
 		target: `${startId}.end`,
-		style: { stroke },
+		style: { stroke: STROKE_COLOR[newObj.endStatus] },
 	})
 
 	return edges
 }
 
-const defaultNodes = [
-	{
-		id: 'new',
-		type: 'nodeHeading',
-		data: { name: 'Flow Diagram' },
-		position: { x: 550, y: 15 },
-	},
-]
-const initialNodes = [...defaultNodes]
+// const defaultNodes = [
+// 	{
+// 		id: 'new',
+// 		type: 'nodeHeading',
+// 		data: { name: 'Flow Diagram' },
+// 		position: { x: 550, y: 15 },
+// 	},
+// ]
+const initialNodes = [] // [...defaultNodes]
 const initialEdges = []
 
 const STROKE_COLOR = {
@@ -89,7 +111,7 @@ const STROKE_COLOR = {
 }
 
 const defaultConnection = {
-	joinType: JB_TYPE[0],
+	joinType: JB_TYPE[0].value,
 	pmj: PMJ[0],
 	status: STATUS[0].value,
 }
@@ -100,7 +122,8 @@ const defaultNewObj = {
 	cableType: CABLE_TYPE[0],
 	namyang: NAMYUNG[0],
 	length: 600,
-	status: STATUS[0].value,
+	startStatus: STATUS[0].value,
+	endStatus: STATUS[0].value,
 }
 
 const FlowDiagram = ({ isEditable }) => {
@@ -111,21 +134,118 @@ const FlowDiagram = ({ isEditable }) => {
 	const { id } = useParams()
 	const [loading, setloading] = useState(false)
 	const [hasDiagram, sethasDiagram] = useState(false)
+	const [showEditModal, setshowEditModal] = useState(false)
+	const [editImageObj, seteditImageObj] = useState(null)
 
-	const handleImageChange = (data) => {
-		const { isEndbox, status } = data.data
-		const type = data.data.imageUrl.split('svg/')[1].split('-')[0]
-		if (isEndbox) {
-			const image = type === JUNCTION_BOX[0].value ? JUNCTION_BOX[1].value : JUNCTION_BOX[0].value
-			data.data.imageUrl = `/static/svg/${image}-${status}.svg`
-		} else {
-			const image = type === 'jb' ? 'mh' : 'jb'
-			data.data.imageUrl = `/static/svg/${image}-${status}.svg`
-		}
+	const applyImageChanges = () => {
+		const { status, type, name, isEndbox } = editImageObj
+		editImageObj.imageUrl = `/static/svg/${type}-${status}.svg`
+		const _getCount = name.split('#')[1]
+		editImageObj.name = isEndbox ? `${JUNCTION_BOX_MAP[type]}#${_getCount}` : `${JB_TYPE_MAP[type]}#${_getCount}`
+		delete editImageObj.isEndbox
 		setNodes((prevNodes) =>
-			prevNodes.map((node) => (node.id === data.id ? { ...node, data: { ...node.data, ...data.data } } : node))
+			prevNodes.map((node) =>
+				node.id === editImageObj.id ? { ...node, data: { ...node.data, ...editImageObj } } : node
+			)
 		)
+
+		setEdges((prevEdges) =>
+			prevEdges.map((edge) =>
+				edge.source === editImageObj.id ? { ...edge, style: { stroke: STROKE_COLOR[status] } } : edge
+			)
+		)
+
+		handleEditingImageCancel()
 	}
+
+	const handleSelectChange = (value, key) => {
+		const updatedData = {
+			...editImageObj,
+			[key]: value,
+		}
+		seteditImageObj(updatedData)
+	}
+
+	// Edit Image Modal
+	const handleEditingImageCancel = () => {
+		setshowEditModal(false)
+		seteditImageObj(null)
+	}
+	const handleEditingImage = (data) => {
+		setshowEditModal(true)
+		const { isEndbox, name, status } = data.data
+		const type = data.data.imageUrl.split('svg/')[1].split('-')[0]
+		seteditImageObj({ id: data.id, isEndbox, name, status, type })
+	}
+
+	const UpdateImageView = () => (
+		<Dialog onClose={handleEditingImageCancel} open={showEditModal}>
+			{editImageObj && (
+				<Box
+					sx={{ minWidth: 400, margin: 'auto', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 2 }}
+				>
+					<DialogTitle>Update {editImageObj.name}</DialogTitle>
+					<FormControl style={{ width: 200 }}>
+						<InputLabel>Status</InputLabel>
+						<Select
+							size="small"
+							value={editImageObj?.status}
+							label="Status"
+							onChange={(e) => handleSelectChange(e.target.value, 'status')}
+						>
+							{STATUS.map((e) => (
+								<MenuItem value={e.value} key={e.value}>
+									{e.label}
+								</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+					{editImageObj.isEndbox ? (
+						<FormControl style={{ width: 200 }}>
+							<InputLabel>Junction Type</InputLabel>
+							<Select
+								size="small"
+								value={editImageObj.type}
+								label="Junction box"
+								onChange={(e) => handleSelectChange(e.target.value, 'type')}
+							>
+								{JUNCTION_BOX.map((e) => (
+									<MenuItem value={e.value} key={e.value}>
+										{e.label}
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+					) : (
+						<FormControl style={{ width: 200 }}>
+							<InputLabel>Jb Type</InputLabel>
+							<Select
+								size="small"
+								value={editImageObj.type}
+								label="Jb Type"
+								onChange={(e) => handleSelectChange(e.target.value, 'type')}
+							>
+								{JB_TYPE.map((e) => (
+									<MenuItem value={e.value} key={e}>
+										{e.label}
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+					)}
+
+					<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }} mb={2}>
+						<Button size="small" variant="outlined" onClick={handleEditingImageCancel}>
+							Cancel
+						</Button>
+						<Button size="small" variant="contained" onClick={applyImageChanges}>
+							Apply
+						</Button>
+					</Box>
+				</Box>
+			)}
+		</Dialog>
+	)
 
 	const nodeTypes = {
 		image: (data) => (
@@ -148,7 +268,7 @@ const FlowDiagram = ({ isEditable }) => {
 				<div>
 					<Handle type="target" position={Position.Left} isConnectable={false} />
 					{/* eslint-disable-next-line */}
-					<div onClick={() => handleImageChange(data)}>
+					<div onClick={() => handleEditingImage(data)}>
 						<img src={data.data.imageUrl} alt="Custom Node" style={{ fill: 'blue' }} />
 					</div>
 					<Handle type="source" position={Position.Right} id="a" isConnectable={false} />
@@ -233,6 +353,7 @@ const FlowDiagram = ({ isEditable }) => {
 
 	const handleAdd = () => {
 		const yPos = seqNumber * 100
+
 		setNodes([
 			...nodes,
 			...generateNodesFromConnections({ id: seqNumber, connections: newObj.connections, yPos, length: newObj.length }),
@@ -240,12 +361,16 @@ const FlowDiagram = ({ isEditable }) => {
 				seqNumber,
 				yPos,
 				start: newObj.start,
+				startName: JUNCTION_BOX_MAP[newObj.start],
 				end: newObj.end,
-				status: newObj.status,
+				endName: JUNCTION_BOX_MAP[newObj.end],
+				startStatus: newObj.startStatus,
+				endStatus: newObj.endStatus,
 				endX: newObj.length ? +newObj.length + 130 : 730,
 			}),
 		])
-		setEdges([...edges, ...generateEdges(seqNumber, newObj.connections.length, STROKE_COLOR[newObj.status])])
+
+		setEdges([...edges, ...generateEdges(seqNumber, newObj)])
 		setnewObj(defaultNewObj)
 		setseqNumber(seqNumber + 1)
 	}
@@ -322,6 +447,7 @@ const FlowDiagram = ({ isEditable }) => {
 					</div>
 				</div>
 
+				{UpdateImageView()}
 				<DDD />
 			</div>
 		</>

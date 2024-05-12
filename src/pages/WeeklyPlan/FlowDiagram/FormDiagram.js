@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { InputLabel, Box, FormControl, MenuItem, Select, Button, Typography, TextField } from '@mui/material'
+import { InputLabel, Box, FormControl, MenuItem, Select, Typography, TextField, Divider } from '@mui/material'
 import Iconify from 'components/Iconify'
 import React from 'react'
 
@@ -10,13 +10,25 @@ export const JUNCTION_BOX = [
 	{ label: 'T/R', value: 'recTri' },
 	{ label: 'S/S', value: 'square' },
 ]
-export const JB_TYPE = ['J/B', 'M/H']
+export const JB_TYPE = [
+	{ label: 'J/B', value: 'jb' },
+	{ label: 'M/H', value: 'mh' },
+]
 export const PMJ = ['IJ', 'NJ', 'Pass']
 export const STATUS = [
 	{ label: 'Not Started', value: 'notStarted' },
 	{ label: 'In Progress', value: 'inProgress' },
 	{ label: 'Completed', value: 'completed' },
 ]
+
+export const JB_TYPE_MAP = {
+	jb: 'J/B',
+	mh: 'M/H',
+}
+export const JUNCTION_BOX_MAP = {
+	recTri: 'T/R',
+	square: 'S/S',
+}
 
 export default function FormDiagram({ handleNewObjChange, newObj, handleAddConnection }) {
 	return (
@@ -111,6 +123,26 @@ export default function FormDiagram({ handleNewObjChange, newObj, handleAddConne
 					</div>
 					<div>
 						<FormControl style={{ width: 200 }}>
+							<InputLabel>Status</InputLabel>
+							<Select
+								size="small"
+								value={newObj.startStatus}
+								label="Status"
+								onChange={(e) => handleNewObjChange(e.target.value, 'startStatus')}
+							>
+								{STATUS.map((e) => (
+									<MenuItem value={e.value} key={e.value}>
+										{e.label}
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+					</div>
+
+					<Divider sx={{ fontWeight: 700 }} orientation="vertical" flexItem />
+
+					<div>
+						<FormControl style={{ width: 200 }}>
 							<InputLabel>End</InputLabel>
 							<Select
 								size="small"
@@ -132,9 +164,9 @@ export default function FormDiagram({ handleNewObjChange, newObj, handleAddConne
 							<InputLabel>Status</InputLabel>
 							<Select
 								size="small"
-								value={newObj.status}
+								value={newObj.endStatus}
 								label="Status"
-								onChange={(e) => handleNewObjChange(e.target.value, 'status')}
+								onChange={(e) => handleNewObjChange(e.target.value, 'endStatus')}
 							>
 								{STATUS.map((e) => (
 									<MenuItem value={e.value} key={e.value}>
@@ -172,8 +204,8 @@ export default function FormDiagram({ handleNewObjChange, newObj, handleAddConne
 									onChange={(e) => handleNewObjChange(e.target.value, 'joinType', index)}
 								>
 									{JB_TYPE.map((e) => (
-										<MenuItem value={e} key={e}>
-											{e}
+										<MenuItem value={e.value} key={e}>
+											{e.label}
 										</MenuItem>
 									))}
 								</Select>
