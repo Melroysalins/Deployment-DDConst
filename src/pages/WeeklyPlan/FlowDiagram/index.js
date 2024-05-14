@@ -110,6 +110,11 @@ const STROKE_COLOR = {
 	completed: '#919EAB',
 }
 
+export function getStrokeStatusByColor(color) {
+	const entry = Object.entries(STROKE_COLOR).find(([_, value]) => value === color)
+	return entry ? entry[0] : null
+}
+
 const defaultConnection = {
 	joinType: JB_TYPE[0].value,
 	pmj: PMJ[0],
@@ -136,6 +141,26 @@ const FlowDiagram = ({ isEditable }) => {
 	const [hasDiagram, sethasDiagram] = useState(false)
 	const [showEditModal, setshowEditModal] = useState(false)
 	const [editImageObj, seteditImageObj] = useState(null)
+	// Edge Modal
+	const [showEdgeModal, setshowEdgeModal] = useState(false)
+	const [editEdgeObj, seteditEdgeObj] = useState(null)
+	const [isUpdateStarted, setisUpdateStarted] = useState(false)
+
+	const handleSave = async () => {
+		setloading(true)
+		const _obj = { project: id, nodes, edges, seqNumber }
+		const { data } = hasDiagram ? await updateProjectDiagram(_obj, id) : await createNewProjectDiagram(_obj)
+		if (data) {
+			sethasDiagram(true)
+		}
+		setloading(false)
+	}
+
+	useEffect(() => {
+		if (!isUpdateStarted) return
+		handleSave()
+		setisUpdateStarted(false)
+	}, [isUpdateStarted])
 
 	const applyImageChanges = () => {
 		const { status, type, name, isEndbox } = editImageObj
@@ -148,13 +173,7 @@ const FlowDiagram = ({ isEditable }) => {
 				node.id === editImageObj.id ? { ...node, data: { ...node.data, ...editImageObj } } : node
 			)
 		)
-
-		setEdges((prevEdges) =>
-			prevEdges.map((edge) =>
-				edge.source === editImageObj.id ? { ...edge, style: { stroke: STROKE_COLOR[status] } } : edge
-			)
-		)
-
+		setisUpdateStarted(true)
 		handleEditingImageCancel()
 	}
 
@@ -164,6 +183,14 @@ const FlowDiagram = ({ isEditable }) => {
 			[key]: value,
 		}
 		seteditImageObj(updatedData)
+	}
+
+	const handleEdgeChanges = (value, key) => {
+		const updatedData = {
+			...editEdgeObj,
+			[key]: value,
+		}
+		seteditEdgeObj(updatedData)
 	}
 
 	// Edit Image Modal
@@ -176,6 +203,20 @@ const FlowDiagram = ({ isEditable }) => {
 		const { isEndbox, name, status } = data.data
 		const type = data.data.imageUrl.split('svg/')[1].split('-')[0]
 		seteditImageObj({ id: data.id, isEndbox, name, status, type })
+	}
+
+	const handleEditingEdgeCancel = () => {
+		setshowEdgeModal(false)
+		seteditEdgeObj(null)
+	}
+
+	const applyEdgeChanges = () => {
+		const { status, source } = editEdgeObj
+		setEdges((prevEdges) =>
+			prevEdges.map((edge) => (edge.source === source ? { ...edge, style: { stroke: STROKE_COLOR[status] } } : edge))
+		)
+		setisUpdateStarted(true)
+		handleEditingEdgeCancel()
 	}
 
 	const UpdateImageView = () => (
@@ -247,6 +288,42 @@ const FlowDiagram = ({ isEditable }) => {
 		</Dialog>
 	)
 
+	const UpdateEdgeView = () => (
+		<Dialog onClose={handleEditingEdgeCancel} open={showEdgeModal}>
+			{editEdgeObj && (
+				<Box
+					sx={{ minWidth: 400, margin: 'auto', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 2 }}
+				>
+					<DialogTitle>Update Edge # {editEdgeObj.id}</DialogTitle>
+					<FormControl style={{ width: 200 }}>
+						<InputLabel>Status</InputLabel>
+						<Select
+							size="small"
+							value={editEdgeObj?.status}
+							label="Status"
+							onChange={(e) => handleEdgeChanges(e.target.value, 'status')}
+						>
+							{STATUS.map((e) => (
+								<MenuItem value={e.value} key={e.value}>
+									{e.label}
+								</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+
+					<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }} mb={2}>
+						<Button size="small" variant="outlined" onClick={handleEditingEdgeCancel}>
+							Cancel
+						</Button>
+						<Button size="small" variant="contained" onClick={applyEdgeChanges}>
+							Apply
+						</Button>
+					</Box>
+				</Box>
+			)}
+		</Dialog>
+	)
+
 	const nodeTypes = {
 		image: (data) => (
 			<div>
@@ -294,6 +371,14 @@ const FlowDiagram = ({ isEditable }) => {
 		),
 	}
 
+	const onEdgeClick = (_, edge) => {
+		const {
+			style: { stroke },
+		} = edge
+		setshowEdgeModal(true)
+		seteditEdgeObj({ ...edge, status: getStrokeStatusByColor(stroke) })
+	}
+
 	const DDD = () => (
 		<ReactFlow
 			nodes={nodes}
@@ -307,6 +392,7 @@ const FlowDiagram = ({ isEditable }) => {
 			}}
 			nodesDraggable={false} // Disable node dragging
 			nodesConnectable={false}
+			onEdgeClick={onEdgeClick}
 		/>
 	)
 
@@ -339,16 +425,6 @@ const FlowDiagram = ({ isEditable }) => {
 			...newObj,
 			connections: [...newObj.connections, { ...defaultConnection }],
 		})
-	}
-
-	const handleSave = async () => {
-		setloading(true)
-		const _obj = { project: id, nodes, edges, seqNumber }
-		const { data } = hasDiagram ? await updateProjectDiagram(_obj, id) : await createNewProjectDiagram(_obj)
-		if (data) {
-			sethasDiagram(true)
-		}
-		setloading(false)
 	}
 
 	const handleAdd = () => {
@@ -448,6 +524,7 @@ const FlowDiagram = ({ isEditable }) => {
 				</div>
 
 				{UpdateImageView()}
+				{UpdateEdgeView()}
 				<DDD />
 			</div>
 		</>
