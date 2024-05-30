@@ -1,534 +1,491 @@
-import React, { useEffect, useState } from 'react'
-import ReactFlow, { useNodesState, useEdgesState, Handle, Position } from 'reactflow'
-import 'reactflow/dist/style.css'
-import FormDiagram, {
-	CABLE_TYPE,
-	JB_TYPE,
-	JB_TYPE_MAP,
-	JUNCTION_BOX,
-	JUNCTION_BOX_MAP,
-	MIN_X,
-	NAMYUNG,
-	PMJ,
-	STATUS,
-} from './FormDiagram'
-import { createNewProjectDiagram, getDiagramByProject, updateProjectDiagram } from 'supabase/project_diagram'
-import { useParams } from 'react-router-dom'
-import { Box, Button, Dialog, DialogTitle, FormControl, InputLabel, MenuItem, Select } from '@mui/material'
-import { LoadingButton } from '@mui/lab'
+import { useState } from "react";
+import {
+	AccordionDetails as MuiAccordionDetails, 
+	Accordion as MuiAccordion, 
+	AccordionSummary as MuiAccordionSummary, 
+	Button,
+	Box, 
+	Stack,
+	FormControlLabel,
+	Switch,
+	Typography,
+} from "@mui/material"; 
+import { styled } from "@mui/system";
+import PropTypes from 'prop-types';
+import Iconify from 'components/Iconify';
+import Diagram from "./Diagram";
+import FormDiagram from "./FormDiagram";
 
-const generateNodesFromConnections = ({ id, connections, yPos, length = 600 }) => {
-	const nodes = []
-	const step = (length - MIN_X) / connections.length
-	connections.forEach((connection, index) => {
-		const { joinType, status } = connection
-		const imageUrl = `/static/svg/${joinType}-${status}.svg`
+const StyledButtonContainer = styled(Box)({
+alignSelf: "stretch",
+display: "flex",
+flexDirection: "column",
+alignItems: "flex-start",
+justifyContent: "flex-start",
+gap: "10px",
+padding: "24px",
+maxWidth: "1752px",
+});
 
-		const start = MIN_X + index * step
-		const x = (start + (start + step)) / 2
-		const nodeId = `${id}.${index + 1}`
-		const nodeName = `${JB_TYPE_MAP[joinType]}#${index + 1}`
-		const position = { x, y: yPos }
-		const data = { imageUrl, name: nodeName, status }
-		nodes.push({ id: nodeId, type: 'image', data, position })
-	})
+const Container1 = styled('div')({
+	alignSelf: 'stretch',
+	flex: 1,
+	display: 'flex',
+	flexDirection: 'column',
+	alignItems: 'center',
+	justifyContent: 'center',
+  });
 
-	return nodes
-}
+const StyledButtonRow = styled(Box)({
+display: "flex",
+flexDirection: "row",
+alignItems: "flex-start",
+justifyContent: "flex-start",
+minWidth: "293px",
+height: "48px",
+gap: "8px",
+});
 
-const generateStartEndNode = ({
-	seqNumber,
-	yPos,
-	startName,
-	endName,
-	startX = 100,
-	endX = 730,
-	start,
-	end,
-	startStatus,
-	endStatus,
+const LeftContent = styled(Box)({
+	maxWidth: "1339px",
+	gap: "16px",
+	display: "flex",
+	flexDirection: "row",
+	alignItems: "center",
+	fontFamily: "Manrope",
+	"@media (max-width: 1440px)": {
+		maxWidth: "1119px",
+	},
+});
+
+const CableContent = styled(Box)({
+	height: "48px",
+	display: "flex",
+	flexDirection: "row",
+	alignItems: "center",
+	justifyContent: "flex-start",
+	gap: "8px",
+	minWidth: "354px",
+	maxWidth: "100%",
+	fontSize: "18px",
+	fontFamily: "Manrope",
+	fontWeight: "500",
+	"@media (max-width: 1440px)": {
+		minWidth: "294px",
+		fontSize: "14px",
+	},
+});
+
+const RightContent = styled(Box)({
+	display: "flex",
+	flexDirection: "row",
+	alignItems: "flex-start",
+	justifyContent: "flex-end",
+	gap: "8px",
+	fontFamily: "Manrope",
+	"@media (max-width: 1440px)": {
+		gap: "6px",
+	},
+});
+
+const StyledButton = styled(Button)({
+	minWidth: "79px",
+	height: "48px",
+	borderRadius: "8px",
+	padding: "12px 16px 12px 16px",
+	border: "1px solid rgba(0, 0, 0, 0.1)",
+	flex: "1",
+	gap: "8px",
+	fontFamily: "Manrope",
+	"@media (max-width: 1440px)": {
+		minWidth: "50px",
+		height: "35px",
+		padding: "8px 12px 8px 12px",
+		fontSize: "10px",
+	},
+});
+
+const CustomButtonRoot = styled(Button)({
+textDecoration: "none",
+borderRadius: "8px",
+backgroundColor: "white",
+border: "1px solid rgba(0, 0, 0, 0.1)",
+boxSizing: "border-box",
+Width: "1664px",
+overflow: "hidden",
+display: "flex",
+flexDirection: "column",
+alignItems: "flex-start",
+justifyContent: "flex-start",
+position: "relative",
+gap: "10px",
+fontFamily: "Manrope",
+});
+
+const CustomButton = styled(CustomButtonRoot)({
+display: "flex",
+flexDirection: "row",
+alignItems: "center",
+justifyContent: "flex-start",
+padding: "0px 24px",
+position: "relative",
+gap: "16px",
+width: "100%",
+height: "64px",
+fontSize: "18px",
+fontFamily: "Manrope",
+});
+
+const CustomButtonText = styled('span')({
+flex: "1",
+position: "relative",
+lineHeight: "24px",
+fontWeight: "600",
+color: "#919eab",
+zIndex: "2",
+textAlign: "left",
+fontFamily: "Manrope",
+});
+
+const DiagramParent = styled('div')({
+	borderRadius: 8,
+	backgroundColor: '#fff',
+	border: '1px solid rgba(0, 0, 0, 0.1)',
+	boxSizing: 'border-box',
+	height: '100%',
+	display: 'flex',
+	flexDirection: 'column',
+	alignItems: 'center',
+	justifyContent: 'center',
+	width: '41.5%',
+});
+
+const TableParent = styled('div')({
+	width: '58%',
+	height: '100%',
+	display: 'flex',
+	flexDirection: 'column',
+	alignItems: 'flex-end',
+	justifyContent: 'flex-start',
+	"@media (max-width: 1440px)": {
+	},
+});
+
+const Content = styled('div')({
+	width: '1632px',
+	height: '584.41px',
+	display: 'flex',
+	flexDirection: 'row',
+	alignItems: 'flex-start',
+	justifyContent: 'flex-start',
+	gap: '16px',
+	"@media (max-width: 1440px)": {
+		width: '100%',
+		height: '450.41px',
+	},
+	});
+  
+const ContentParentRoot = styled('div')({
+	maxWidth: '100%',
+	display: 'flex',
+	flexDirection: 'row',
+	alignItems: 'flex-start',
+	justifyContent: 'flex-start',
+	textAlign: 'left',
+	fontSize: '14px',
+	color: '#fff',
+	fontFamily: 'Manrope',
+  });
+  
+const DiagramHeader = styled('Box')({
+	display: 'flex',
+	flexDirection: 'row',
+	alignItems: 'flex-start',
+	justifyContent: 'flex-end',
+	width: '671px',
+	height: '44px',
+	padding: '12px 12px 0px',
+	boxSizing: 'border-box',
+	"@media (max-width: 1440px)": {
+		width: '100%',
+		height: '30.14px',
+		padding: '8px 8px 0px',
+	},
+});
+
+const Tables = styled('div')({
+	alignSelf: 'stretch',
+	display: 'flex',
+	flexDirection: 'column',
+	alignItems: 'flex-end',
+	justifyContent: 'flex-start',
+});
+
+const ConnectionInstallationTable = styled('div')({
+	alignSelf: 'stretch',
+	display: 'flex',
+	flexDirection: 'row',
+	alignItems: 'flex-start',
+	justifyContent: 'flex-start',
+	gap: '16px',
+	borderRadius: '8px',
+	backgroundColor: '#fff',
+	boxSizing: 'border-box',
+});
+
+const Accordion = styled((props) => (
+	<MuiAccordion disableGutters elevation={0} square {...props} />
+))(({ theme }) => ({
+	backgroundColor: theme.palette.background.paper,
+	border: "1px solid rgba(0, 0, 0, 0.1)",
+	overflow: "hidden",
+	borderRadius: "12px",
+	width: "1704px",
+	padding: "24px 16px 24px 16px",
+	gap: "16px",
+	"&:not(:last-child)": {
+		borderBottom: "1px solid rgba(0, 0, 0, 0.1)",
+	},
+	fontFamily: "Manrope",
+	"@media (max-width: 1440px)": {
+		padding: "14px 10px 14px 10px",
+	},
+}));
+
+const AccordionSummary = styled((props) => (
+	<MuiAccordionSummary {...props} />
+))(({ theme }) => ({
+	backgroundColor: theme.palette.background.paper,
+	"& .Mui-expanded": {
+		borderTopLeftRadius: "8px",
+		borderTopRightRadius: "8px",
+	},
+	"& .MuiAccordionSummary-expandIconWrapper": {
+		position: "absolute",
+		left: "0",
+		marginLeft: "0",
+	},
+	fontFamily: "Manrope",
+	height: "48px",
+	padding: "0px",
+}));
+
+const AccordionDetails = styled((props) => (
+	<MuiAccordionDetails {...props} />
+))(({ theme }) => ({
+	backgroundColor: theme.palette.background.paper,
+	padding: "0px",
+	fontFamily: "Manrope",
+}));
+
+const Tasks = ({
+	edit = false,
+	cancel = true,
+	delete1 = true,
+	save = true,
 }) => {
-	start = `/static/svg/${start}-${startStatus}.svg`
-	end = `/static/svg/${end}-${endStatus}.svg`
-	const nodes = [
-		{
-			id: `${seqNumber}.start`,
-			type: 'image',
-			data: { imageUrl: start, name: `${startName}#${seqNumber}`, isEndbox: true, status: startStatus },
-			position: { x: startX, y: yPos - 30 },
-		},
-		{
-			id: `${seqNumber}.end`,
-			type: 'image',
-			data: { imageUrl: end, name: `${endName}#${seqNumber}`, isEndbox: true, status: endStatus },
-			position: { x: endX, y: yPos - 30 },
-		},
-	]
-	return nodes
-}
 
-const generateEdges = (startId, newObj) => {
-	const count = newObj.connections.length
-	const edges = []
-	edges.push({
-		id: `${startId}.start`,
-		source: `${startId}.start`,
-		target: `${startId}.1`,
-		style: { stroke: STROKE_COLOR[newObj.startStatus] },
-	})
-	for (let i = 1; i <= count; i += 1) {
-		const source = `${startId}.${i}`
-		const target = `${startId}.${i + 1}`
-		const edgeId = `e${i}-${i + 1}`
-		const style = { stroke: STROKE_COLOR[newObj.connections[i - 1].status] }
-		edges.push({ id: edgeId, source, target, style })
-	}
-	edges.push({
-		id: `${startId}-end`,
-		source: `${startId}.${count}`,
-		target: `${startId}.end`,
-		style: { stroke: STROKE_COLOR[newObj.endStatus] },
-	})
+const isEditable = true;	
 
-	return edges
-}
+const [expanded, setExpanded] = useState('panel1');
+const [panels, setPanels] = useState([1]);
 
-// const defaultNodes = [
-// 	{
-// 		id: 'new',
-// 		type: 'nodeHeading',
-// 		data: { name: 'Flow Diagram' },
-// 		position: { x: 550, y: 15 },
-// 	},
-// ]
-const initialNodes = [] // [...defaultNodes]
-const initialEdges = []
+const handleChange = (panel) => (event, isExpanded) => {
+	setExpanded(isExpanded ? panel : false);
+};
 
-const STROKE_COLOR = {
-	notStarted: '#FFA58D',
-	inProgress: '#8D99FF',
-	completed: '#919EAB',
-}
+const addPanel = () => {
+	setPanels(prevPanels => [...prevPanels, prevPanels.length + 1]);
+	setExpanded(`panel${panels.length + 1}`);
+};
 
-export function getStrokeStatusByColor(color) {
-	const entry = Object.entries(STROKE_COLOR).find(([_, value]) => value === color)
-	return entry ? entry[0] : null
-}
+const handleCancelButtonClick = (event) => {
+	event.stopPropagation();
+};
 
-const defaultConnection = {
-	joinType: JB_TYPE[0].value,
-	pmj: PMJ[0],
-	status: STATUS[0].value,
-}
-const defaultNewObj = {
-	start: JUNCTION_BOX[0].value,
-	end: JUNCTION_BOX[0].value,
-	connections: [defaultConnection],
-	cableType: CABLE_TYPE[0],
-	namyang: NAMYUNG[0],
-	length: 600,
-	startStatus: STATUS[0].value,
-	endStatus: STATUS[0].value,
-}
+const handleDeleteButtonClick = (event) => {
+	event.stopPropagation();
+};
 
-const FlowDiagram = ({ isEditable }) => {
-	const [nodes, setNodes] = useNodesState(initialNodes)
-	const [edges, setEdges] = useEdgesState(initialEdges)
-	const [seqNumber, setseqNumber] = useState(1)
-	const [newObj, setnewObj] = useState(defaultNewObj)
-	const { id } = useParams()
-	const [loading, setloading] = useState(false)
-	const [hasDiagram, sethasDiagram] = useState(false)
-	const [showEditModal, setshowEditModal] = useState(false)
-	const [editImageObj, seteditImageObj] = useState(null)
-	// Edge Modal
-	const [showEdgeModal, setshowEdgeModal] = useState(false)
-	const [editEdgeObj, seteditEdgeObj] = useState(null)
-	const [isUpdateStarted, setisUpdateStarted] = useState(false)
+const handleSaveButtonClick = (event) => {
+	event.stopPropagation();
+};
 
-	const handleSave = async () => {
-		setloading(true)
-		const _obj = { project: id, nodes, edges, seqNumber }
-		const { data } = hasDiagram ? await updateProjectDiagram(_obj, id) : await createNewProjectDiagram(_obj)
-		if (data) {
-			sethasDiagram(true)
-		}
-		setloading(false)
-	}
+return (
+	<StyledButtonContainer>
+		{panels.map((panel, index) => (
+			<ContentParentRoot key={index}>
+				<Accordion expanded={expanded === `panel${panel}`} onChange={handleChange(`panel${panel}`)} key={index}>
+					<AccordionSummary
+						expandIcon={<Iconify icon="material-symbols:expand-more-rounded" width={20} height={20} />}
+						aria-controls={`panel${panel}-content`}
+						id={`panel${panel}-header`}
+					>
+						<Stack gap={2} direction="row" alignItems="center" sx={{ width: "100%"}} justifyContent={ "space-between" }>
+							<LeftContent sx={{ position: 'relative', left: '2rem', textAlign: 'center'}}>
+								<CableContent >Cable Name:<span style={{ fontWeight: '600'}}>154kV Namyang - Yeonsu T/L</span></CableContent>					
+								<CableContent >Cable Name:<span>154kV Namyang - Yeonsu T/L</span></CableContent>					
+							</LeftContent>
+							<RightContent>
+								{cancel && (
+									<StyledButton
+										onClick={handleCancelButtonClick}
+										style={{ boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.04)" }}
+										variant="outlined"
+										sx={{ 
+											borderRadius: "8px", 
+											backgroundColor: "#FFFFFF",
+										}}
+									>
+										Cancel
+									</StyledButton>
+								)}
+								{delete1 && (
+									<StyledButton
+										onClick={handleDeleteButtonClick}
+										style={{ boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.04)" }}
+										variant="outlined"
+										sx={{ 
+											borderRadius: "8px", 
+											backgroundColor: "#FFFFFF",
+										}}
+									>
+										<Stack gap={1} direction="row" alignItems="center">
+											<Iconify icon="mi:delete" width={20} height={20} />
+											Delete
+										</Stack>
+									</StyledButton>
+								)}
+								{save && (
+									<StyledButton
+										onClick={handleSaveButtonClick}
+										style={{ boxShadow: "0px 8px 16px rgba(141, 153, 255, 0.24)" }}
+										variant="contained"
+										sx={{ 
+											borderRadius: "8px", 
+											backgroundColor: "#8D99FF",
+										}}
+									>
+										<Iconify icon="heroicons-outline:save" width={20} height={20} />
+										Save
+									</StyledButton>
+								)}
+								<img
+									sx={{
+										width: "40px",
+										borderRadius: "8px",
+										height: "96px",
+										objectFit: "contain",
+									}}
+									alt=""
+									src="/button@2x.png"
+								/>
 
-	useEffect(() => {
-		if (!isUpdateStarted) return
-		handleSave()
-		setisUpdateStarted(false)
-	}, [isUpdateStarted])
+							</RightContent>
+						</Stack>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Content>
+							<DiagramParent>
+								<DiagramHeader>
+									<Button sx={{ backgroundColor: '#F3F3F5', color: "#596570", display: "flex", gap: "4px", padding: "0px 12px 0px 12px", height: "32px" }}>
+									<Iconify icon="ic:baseline-cached" width={16} height={16} />
+									Update
+									</Button>
+								</DiagramHeader>
+								<Container1>
+									<Diagram />
+								</Container1>
+							</DiagramParent>
+							<TableParent>
+								<Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', padding: '8px 0px' }}>
+									<FormControlLabel control={<Switch color="primary" />} label="Demolition" sx={{ color: 'black', fontFamily: 'Manrope, sans-serif' }} />
+								</Box>
+								<Tables>
+									<ConnectionInstallationTable>
+									{isEditable && (
+										<>
+											<FormDiagram
+											/>
+										</>
+									)}
 
-	const applyImageChanges = () => {
-		const { status, type, name, isEndbox } = editImageObj
-		editImageObj.imageUrl = `/static/svg/${type}-${status}.svg`
-		const _getCount = name.split('#')[1]
-		editImageObj.name = isEndbox ? `${JUNCTION_BOX_MAP[type]}#${_getCount}` : `${JB_TYPE_MAP[type]}#${_getCount}`
-		delete editImageObj.isEndbox
-		setNodes((prevNodes) =>
-			prevNodes.map((node) =>
-				node.id === editImageObj.id ? { ...node, data: { ...node.data, ...editImageObj } } : node
-			)
-		)
-		setisUpdateStarted(true)
-		handleEditingImageCancel()
-	}
-
-	const handleSelectChange = (value, key) => {
-		const updatedData = {
-			...editImageObj,
-			[key]: value,
-		}
-		seteditImageObj(updatedData)
-	}
-
-	const handleEdgeChanges = (value, key) => {
-		const updatedData = {
-			...editEdgeObj,
-			[key]: value,
-		}
-		seteditEdgeObj(updatedData)
-	}
-
-	// Edit Image Modal
-	const handleEditingImageCancel = () => {
-		setshowEditModal(false)
-		seteditImageObj(null)
-	}
-	const handleEditingImage = (data) => {
-		setshowEditModal(true)
-		const { isEndbox, name, status } = data.data
-		const type = data.data.imageUrl.split('svg/')[1].split('-')[0]
-		seteditImageObj({ id: data.id, isEndbox, name, status, type })
-	}
-
-	const handleEditingEdgeCancel = () => {
-		setshowEdgeModal(false)
-		seteditEdgeObj(null)
-	}
-
-	const applyEdgeChanges = () => {
-		const { status, source } = editEdgeObj
-		setEdges((prevEdges) =>
-			prevEdges.map((edge) => (edge.source === source ? { ...edge, style: { stroke: STROKE_COLOR[status] } } : edge))
-		)
-		setisUpdateStarted(true)
-		handleEditingEdgeCancel()
-	}
-
-	const UpdateImageView = () => (
-		<Dialog onClose={handleEditingImageCancel} open={showEditModal}>
-			{editImageObj && (
+									</ConnectionInstallationTable>
+								</Tables>
+							</TableParent>
+						</Content>
+					</AccordionDetails>
 				<Box
-					sx={{ minWidth: 400, margin: 'auto', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 2 }}
-				>
-					<DialogTitle>Update {editImageObj.name}</DialogTitle>
-					<FormControl style={{ width: 200 }}>
-						<InputLabel>Status</InputLabel>
-						<Select
-							size="small"
-							value={editImageObj?.status}
-							label="Status"
-							onChange={(e) => handleSelectChange(e.target.value, 'status')}
-						>
-							{STATUS.map((e) => (
-								<MenuItem value={e.value} key={e.value}>
-									{e.label}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
-					{editImageObj.isEndbox ? (
-						<FormControl style={{ width: 200 }}>
-							<InputLabel>Junction Type</InputLabel>
-							<Select
-								size="small"
-								value={editImageObj.type}
-								label="Junction box"
-								onChange={(e) => handleSelectChange(e.target.value, 'type')}
-							>
-								{JUNCTION_BOX.map((e) => (
-									<MenuItem value={e.value} key={e.value}>
-										{e.label}
-									</MenuItem>
-								))}
-							</Select>
-						</FormControl>
-					) : (
-						<FormControl style={{ width: 200 }}>
-							<InputLabel>Jb Type</InputLabel>
-							<Select
-								size="small"
-								value={editImageObj.type}
-								label="Jb Type"
-								onChange={(e) => handleSelectChange(e.target.value, 'type')}
-							>
-								{JB_TYPE.map((e) => (
-									<MenuItem value={e.value} key={e}>
-										{e.label}
-									</MenuItem>
-								))}
-							</Select>
-						</FormControl>
-					)}
-
-					<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }} mb={2}>
-						<Button size="small" variant="outlined" onClick={handleEditingImageCancel}>
-							Cancel
-						</Button>
-						<Button size="small" variant="contained" onClick={applyImageChanges}>
-							Apply
-						</Button>
-					</Box>
-				</Box>
-			)}
-		</Dialog>
-	)
-
-	const UpdateEdgeView = () => (
-		<Dialog onClose={handleEditingEdgeCancel} open={showEdgeModal}>
-			{editEdgeObj && (
-				<Box
-					sx={{ minWidth: 400, margin: 'auto', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 2 }}
-				>
-					<DialogTitle>Update Edge # {editEdgeObj.id}</DialogTitle>
-					<FormControl style={{ width: 200 }}>
-						<InputLabel>Status</InputLabel>
-						<Select
-							size="small"
-							value={editEdgeObj?.status}
-							label="Status"
-							onChange={(e) => handleEdgeChanges(e.target.value, 'status')}
-						>
-							{STATUS.map((e) => (
-								<MenuItem value={e.value} key={e.value}>
-									{e.label}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
-
-					<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }} mb={2}>
-						<Button size="small" variant="outlined" onClick={handleEditingEdgeCancel}>
-							Cancel
-						</Button>
-						<Button size="small" variant="contained" onClick={applyEdgeChanges}>
-							Apply
-						</Button>
-					</Box>
-				</Box>
-			)}
-		</Dialog>
-	)
-
-	const nodeTypes = {
-		image: (data) => (
-			<div>
-				{data.data.name && (
-					<div style={{ position: 'absolute', top: -30 }}>
-						<span
-							style={{
-								padding: '5px 10px',
-								border: '1px solid #EDEDEF',
-								borderRadius: 7,
-								marginLeft: 20,
-								fontSize: 12,
+					sx={{
+						position: "absolute",
+						top: "0",
+						left: "0",
+						width: "4px",
+						height: "100%",
+						zIndex: "0",
+						backgroundColor: "#8D99FF",
+						borderTopLeftRadius: "8px",
+						borderBottomLeftRadius: "8px",
+					}} 
+				/>
+				</Accordion>
+				{expanded === `panel${panel}` && (
+					<Box
+						sx={{
+							minHeight: '96px',
+							width: '100%',
+							maxWidth: '28px', 
+							borderRadius: '0px 8px 8px 0px',
+							backgroundColor: '#ffa58d',
+							display: 'flex',
+							alignItems: 'center', 
+							justifyContent: 'center', 
+							padding: '16px 2px',
+							boxSizing: 'border-box',
+						}}
+					>
+						<Typography
+							sx={{
+							writingMode: 'vertical-rl', 
+							fontWeight: '600',
+							color: '#fff',
 							}}
 						>
-							{data.data.name}
-						</span>
-					</div>
+							Summary
+						</Typography>
+					</Box>
 				)}
-				<div>
-					<Handle type="target" position={Position.Left} isConnectable={false} />
-					{/* eslint-disable-next-line */}
-					<div onClick={() => handleEditingImage(data)}>
-						<img src={data.data.imageUrl} alt="Custom Node" style={{ fill: 'blue' }} />
-					</div>
-					<Handle type="source" position={Position.Right} id="a" isConnectable={false} />
-				</div>
-			</div>
-		),
-		nodeHeading: ({ data }) => (
-			<>
-				<div>
-					<span
-						style={{
-							padding: '5px 10px',
-							border: '1px solid #EDEDEF',
-							borderRadius: 7,
-							marginLeft: 20,
-							fontWeight: 500,
-						}}
-					>
-						{data.name}
-					</span>
-				</div>
-			</>
-		),
-	}
+			</ContentParentRoot>
+		))}
+		<CustomButton onClick={addPanel}>
+			<Iconify icon="ic:round-plus" width={20} height={20} />
+			<CustomButtonText>Add Diagram</CustomButtonText>
+		</CustomButton>
+		<StyledButtonRow sx={{ paddingTop: '8px'}}>
+			<StyledButton
+				variant="contained"
+				sx={{ marginRight: "16px", borderRadius: "8px", backgroundColor: "#8D99FF", width: "200px", height: "40px" }}
+			>
+				<Iconify icon="heroicons-outline:save" width={20} height={20} />
+				Save
+			</StyledButton>
+			<StyledButton
+				variant="contained"
+				sx={{ borderRadius: "8px", backgroundColor: "#FFA58D", width: "200px", height: "40px"}}
+			>
+				Continue
+				<Iconify icon="lucide:arrow-right" width={20} height={20} />
+			</StyledButton>
+		</StyledButtonRow>
+	</StyledButtonContainer>
+);
+};
 
-	const onEdgeClick = (_, edge) => {
-		const {
-			style: { stroke },
-		} = edge
-		setshowEdgeModal(true)
-		seteditEdgeObj({ ...edge, status: getStrokeStatusByColor(stroke) })
-	}
+Tasks.propTypes = {
+edit: PropTypes.bool,
+cancel: PropTypes.bool,
+delete1: PropTypes.bool,
+save: PropTypes.bool,
+};
 
-	const DDD = () => (
-		<ReactFlow
-			nodes={nodes}
-			edges={edges}
-			nodeTypes={nodeTypes}
-			minZoom={1} // Disable zooming out
-			maxZoom={1} // Disable zooming in
-			interactionProps={{
-				zoomOnScroll: false,
-				panOnDrag: false,
-			}}
-			nodesDraggable={false} // Disable node dragging
-			nodesConnectable={false}
-			onEdgeClick={onEdgeClick}
-		/>
-	)
-
-	const getDiagram = async () => {
-		const { data } = await getDiagramByProject(id)
-		if (data) {
-			setNodes(data.nodes)
-			setEdges(data.edges)
-			setseqNumber(data.seqNumber)
-			sethasDiagram(true)
-		}
-	}
-
-	useEffect(() => {
-		getDiagram()
-	}, [])
-
-	const handleNewObjChange = (value, field, index) => {
-		if (index === undefined) {
-			setnewObj({ ...newObj, [field]: value })
-		} else {
-			const updatedConnections = [...newObj.connections]
-			updatedConnections[index][field] = value
-			setnewObj({ ...newObj, connections: updatedConnections })
-		}
-	}
-
-	const handleAddConnection = () => {
-		setnewObj({
-			...newObj,
-			connections: [...newObj.connections, { ...defaultConnection }],
-		})
-	}
-
-	const handleAdd = () => {
-		const yPos = seqNumber * 100
-
-		setNodes([
-			...nodes,
-			...generateNodesFromConnections({ id: seqNumber, connections: newObj.connections, yPos, length: newObj.length }),
-			...generateStartEndNode({
-				seqNumber,
-				yPos,
-				start: newObj.start,
-				startName: JUNCTION_BOX_MAP[newObj.start],
-				end: newObj.end,
-				endName: JUNCTION_BOX_MAP[newObj.end],
-				startStatus: newObj.startStatus,
-				endStatus: newObj.endStatus,
-				endX: newObj.length ? +newObj.length + 130 : 730,
-			}),
-		])
-
-		setEdges([...edges, ...generateEdges(seqNumber, newObj)])
-		setnewObj(defaultNewObj)
-		setseqNumber(seqNumber + 1)
-	}
-
-	return (
-		<>
-			{isEditable && (
-				<>
-					<FormDiagram
-						handleNewObjChange={handleNewObjChange}
-						handleAdd={handleAdd}
-						newObj={newObj}
-						handleAddConnection={handleAddConnection}
-						handleSave={handleSave}
-						seqNumber={seqNumber}
-					/>
-
-					<Button variant="contained" size="small" sx={{ margin: '-5px 0 10px' }} onClick={handleAdd}>
-						Apply
-					</Button>
-					{seqNumber > 1 && (
-						<LoadingButton
-							variant="contained"
-							loading={loading}
-							size="small"
-							sx={{ margin: '-5px 5px 10px' }}
-							onClick={handleSave}
-						>
-							{hasDiagram ? 'Update' : 'Save'}
-						</LoadingButton>
-					)}
-				</>
-			)}
-
-			<div style={{ height: seqNumber * 150, overflow: 'hidden' }}>
-				<div style={{ display: 'flex', justifyContent: 'space-between' }}>
-					<div
-						style={{
-							border: '2px solid #DA4C57',
-							width: '100%',
-							textAlign: 'center',
-							borderRight: 0,
-							padding: 2,
-							borderTopLeftRadius: 10,
-							borderBottomLeftRadius: 10,
-						}}
-					>
-						Complex Const section: <span style={{ color: '#DA4C57' }}>RED</span>
-					</div>
-					<div
-						style={{
-							border: '2px solid #8D99FF',
-							width: '100%',
-							textAlign: 'center',
-							borderRight: 0,
-							borderLeft: 0,
-							padding: 2,
-						}}
-					>
-						Const Section in progress: <span style={{ color: '#8D99FF' }}>BLUE</span>
-					</div>
-					<div
-						style={{
-							border: '2px solid #919EAB',
-							width: '100%',
-							textAlign: 'center',
-							borderLeft: 0,
-							padding: 2,
-							borderTopRightRadius: 10,
-							borderBottomRightRadius: 10,
-						}}
-					>
-						Unconstructed: <span style={{ color: '#919EAB' }}>BLACK</span>
-					</div>
-				</div>
-
-				{UpdateImageView()}
-				{UpdateEdgeView()}
-				<DDD />
-			</div>
-		</>
-	)
-}
-
-export default FlowDiagram
+export default Tasks;

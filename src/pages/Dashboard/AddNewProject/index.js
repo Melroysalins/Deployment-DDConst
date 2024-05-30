@@ -7,6 +7,7 @@ import Contract from './Contract'
 import ExecutionBudget from './ExcecutionBudget'
 import Tasks from './Tasks/Tasks'
 import FlowDiagram from 'pages/WeeklyPlan/FlowDiagram'
+import FlowDiagram2 from 'pages/WeeklyPlan/FlowDiagram2'
 import { styled } from '@mui/material/styles'
 
 const StyledBox = styled(Box)({
@@ -30,7 +31,7 @@ const AddNewProject = ({ edit = false }) => {
 	}
 
 	return (
-		<Box border={1} borderColor={'lightgrey'} borderRadius={1} marginLeft={4} marginRight={4} sx={{ overflow: "hidden"}}>
+		<Box border={1} borderColor={'lightgrey'} borderRadius={1} sx={{ overflow: "hidden"}}>
 			<Tabs
 				value={selectedTab}
 				onChange={handleChange}
@@ -84,12 +85,23 @@ const AddNewProject = ({ edit = false }) => {
 					disabled={!edit}
 					sx={{  borderRight: 1, borderColor: 'divider' }}
 				/>
+				<Tab
+					value="5"
+					label={
+						<Stack gap={2} direction="row" alignItems="center" sx={{ fontFamily: 'manrope', fontWeight: 600 }}>
+							<Iconify color={selectedTab === '5' ? '#FF6B00' : undefined} icon="raphael:diagram" width={20} height={20} /> Old Diagram Builder
+						</Stack>
+					}
+					disabled={!edit}
+					sx={{  borderRight: 1, borderColor: 'divider' }}
+				/>
 			</Tabs>
 			<Box>
 				{selectedTab === '1' && (<StyledBox ><Contract edit={edit} /></StyledBox>)}
 				{selectedTab === '2' && edit && (<StyledBox ><Tasks /></StyledBox>)}
 				{selectedTab === '3' && edit && (<StyledBox ><ExecutionBudget /></StyledBox>)}
 				{selectedTab === '4' && edit && (<StyledBox ><FlowDiagram isEditable={true} /></StyledBox>)}
+				{selectedTab === '5' && edit && (<StyledBox ><FlowDiagram2 isEditable={true} /></StyledBox>)}
 			</Box>
 		</Box>
 	)
