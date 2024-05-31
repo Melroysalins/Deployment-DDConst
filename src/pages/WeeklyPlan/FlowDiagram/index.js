@@ -219,12 +219,14 @@ const Tables = styled('div')({
 	flexDirection: 'column',
 	alignItems: 'flex-end',
 	justifyContent: 'flex-start',
+	overflow: 'scroll',
 });
 
 const ConnectionInstallationTable = styled('div')({
 	alignSelf: 'stretch',
 	display: 'flex',
 	flexDirection: 'row',
+	flexWrap: 'wrap',
 	alignItems: 'flex-start',
 	justifyContent: 'flex-start',
 	gap: '16px',
