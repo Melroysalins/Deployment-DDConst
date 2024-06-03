@@ -1,9 +1,7 @@
-import { TableContainer, FormHelperText, InputLabel, Box, FormControl as MuiFormControl, MenuItem, Select as MuiSelect, Typography, TextField, Divider, Table, TableHead, TableBody, TableRow, TableCell } from '@mui/material'
-import { useState , React } from 'react'
+import { Box, Typography } from '@mui/material'
+import { useState , React, useCallback } from 'react'
 import { styled } from '@mui/material/styles';
-import IconButton from '@mui/material/IconButton';
-import AddIcon from '@mui/icons-material/Add';
-import Iconify from 'components/Iconify';
+
 import ConnectionTable from './ConnectionTable';
 import InstallationTable from './InstallationTable';
 
@@ -91,7 +89,15 @@ const StyledTypography = styled(Typography)({
 });
 
 export default function FormDiagram() {
-	const [newObj, setnewObj] = useState(defaultNewObj);
+    const [installations, setInstallations] = useState([]);
+
+    const handleAddInstallation = useCallback(() => {
+        setInstallations(prevInstallations => [...prevInstallations, prevInstallations.length + 1]);
+    }, []);
+
+    const handleCloseInstallation = useCallback(() => {
+        setInstallations(prevInstallations => [...prevInstallations, 'YonsooS/S']);
+    }, []);
 
 	return (
 		<>
@@ -159,7 +165,7 @@ export default function FormDiagram() {
                         </StyledTypography>
                     </Box>
                 </Box>
-				<ConnectionTable />
+				<ConnectionTable handleAddInstallation={handleAddInstallation} handleCloseInstallation={handleCloseInstallation}/>
             </StyledConnection>
             <StyledInstallation>
                 <Box
@@ -228,7 +234,7 @@ export default function FormDiagram() {
                         </StyledTypography>
                     </Box>
                 </Box>
-                <InstallationTable />
+                <InstallationTable installations={installations} />
             </StyledInstallation>
         </>
     );
