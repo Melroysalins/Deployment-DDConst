@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, InputLabel, FormControl, FormHelperText, Typography, IconButton, MenuItem, Select, Table, TableBody, TableContainer, TableHead, TableCell, TableRow } from '@mui/material';
+import { Box, InputLabel, FormControl, FormHelperText, Typography, IconButton, MenuItem, Select, Table, TableBody, TableContainer, TableHead, TableCell, TableRow, Collapse } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import Iconify from 'components/Iconify';
 import style from './ConnectionTable.module.scss';
@@ -279,11 +279,9 @@ const ConnectionTable = ({ handleAddInstallation, handleCloseInstallation }) => 
                                         </Box>
                                         <Table sx={{ border: '1px solid lightgrey' }} >
                                                 <TableBody>
-                                                        {isExpanded ? (
-                                                                <>
-                                                                        {midPoints.map((midPoint, index) => renderTableRow(index))}
-                                                                </>
-                                                        ) : renderTableRow(0)}
+                                                        <Collapse in={isExpanded} collapsedSize={65}>
+                                                                {midPoints.map((midPoint, index) => renderTableRow(index))}
+                                                        </Collapse>
                                                         <Box
                                                                 sx={{
                                                                         position: "absolute",
