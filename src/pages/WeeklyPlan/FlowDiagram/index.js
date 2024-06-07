@@ -172,7 +172,7 @@ const TableParent = styled('div')({
 });
 
 const Content = styled('div')({
-	width: '1632px',
+	width: '100%',
 	height: '584.41px',
 	display: 'flex',
 	flexDirection: 'row',
@@ -223,8 +223,9 @@ const Tables = styled('div')({
 });
 
 const ConnectionInstallationTable = styled('div')({
-	alignSelf: 'stretch',
+	alignSelf: 'auto',
 	display: 'flex',
+	flex: '1 1 auto',
 	flexDirection: 'row',
 	flexWrap: 'wrap',
 	alignItems: 'flex-start',
@@ -291,6 +292,7 @@ const isEditable = true;
 
 const [expanded, setExpanded] = useState('panel1');
 const [panels, setPanels] = useState([1]);
+const [showDemolitionTable, setShowDemolitionTable] = useState(false);
 
 const handleChange = (panel) => (event, isExpanded) => {
 	setExpanded(isExpanded ? panel : false);
@@ -401,13 +403,14 @@ return (
 							</DiagramParent>
 							<TableParent>
 								<Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', padding: '8px 0px' }}>
-									<FormControlLabel control={<Switch color="primary" />} label="Demolition" sx={{ color: 'black', fontFamily: 'Manrope, sans-serif' }} />
+									<FormControlLabel control={<Switch checked={showDemolitionTable} onChange={() => setShowDemolitionTable(prev => !prev)} color="primary" />} label="Demolition" sx={{ color: 'black', fontFamily: 'Manrope, sans-serif' }} />
 								</Box>
 								<Tables>
 									<ConnectionInstallationTable>
 									{isEditable && (
 										<>
 											<FormDiagram
+												showDemolitionTable={showDemolitionTable}
 											/>
 										</>
 									)}

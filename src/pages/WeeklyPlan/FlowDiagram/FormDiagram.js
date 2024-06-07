@@ -1,9 +1,10 @@
 import { Box, Typography } from '@mui/material'
 import { useState , React, useCallback } from 'react'
 import { styled } from '@mui/material/styles';
-
 import ConnectionTable from './ConnectionTable';
 import InstallationTable from './InstallationTable';
+import DemolitionTable from './DemolitionTable';
+import PropTypes from 'prop-types';
 
 export const MIN_X = 200
 export const NAMYUNG = ['XLPE', 'OF', 'Other']
@@ -50,8 +51,6 @@ const defaultNewObj = {
 }
 
 const StyledConnection = styled(Box)({
-    borderRadius: '8px',
-    backgroundColor: '#fff',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
@@ -61,6 +60,7 @@ const StyledConnection = styled(Box)({
 });
 
 const StyledInstallation = styled(Box)({
+    flex: '1 1 auto',
     alignSelf: 'stretch',
     borderRadius: '8px',
     overflow: 'hidden',
@@ -71,6 +71,19 @@ const StyledInstallation = styled(Box)({
     fontSize: '14px',
     color: '#596570',
     gap: '8px',
+
+});
+
+const StyledDemolition = styled(Box)({
+    flex: '1 1 auto',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-end',
+    gap: '8px',
+    borderRadius: '8px',
+    backgroundColor: '#fff',
+    alignSelf: 'auto',
 });
 
 const StyledTypography = styled(Typography)({
@@ -88,7 +101,73 @@ const StyledTypography = styled(Typography)({
     },
 });
 
-export default function FormDiagram() {
+const HeaderText = ({ title, color }) => (
+    <Box
+        sx={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "flex-end",
+            justifyContent: "flex-start",
+            padding: "0px 0px 0px 28px",
+            gap: "4px",
+            fontSize: "18px",
+            color: { color },
+            fontFamily: "Manrope",
+            '@media (max-width: 1440px)': {
+                fontSize: '14px',
+            },
+        }}
+    >
+        <Box
+            sx={{
+                position: "relative",
+                lineHeight: "24px",
+                fontWeight: "600",
+            }}
+        >
+            {title}
+        </Box>
+        <Box
+            sx={{
+                flex: "1",
+                position: "relative",
+                fontSize: "16px",
+                color: "#596570",
+                display: "flex",
+                alignItems: "center",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                height: "22px",
+                '@media (max-width: 1440px)': {
+                    fontSize: '10px',
+                },
+            }}>
+            <StyledTypography>
+                <StyledTypography
+                    sx={{ lineHeight: "28px", fontWeight: "600" }}
+                    component="span"
+                >
+                    14 Points
+                </StyledTypography>
+                <StyledTypography
+                    sx={{ lineHeight: "26px" }}
+                    component="span"
+                >{` (IJ 5 Points + NJ 2 Points) x `}</StyledTypography>
+                <StyledTypography
+                    sx={{ lineHeight: "28px", fontWeight: "600" }}
+                    component="span"
+                >
+                    2 Lines
+                </StyledTypography>
+                <StyledTypography sx={{ lineHeight: "26px" }} component="span">
+                    (aka T/L)
+                </StyledTypography>
+            </StyledTypography>
+        </Box>
+    </Box>
+);
+
+export default function FormDiagram({ showDemolitionTable }) {
     const [installations, setInstallations] = useState([]);
 
     const handleAddInstallation = useCallback(() => {
@@ -99,143 +178,26 @@ export default function FormDiagram() {
         setInstallations(prevInstallations => [...prevInstallations, 'YonsooS/S']);
     }, []);
 
-	return (
-		<>
-			<StyledConnection>
-                <Box
-                    sx={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "flex-end",
-                        justifyContent: "flex-start",
-                        padding: "0px 0px 0px 28px",
-                        gap: "4px",
-                        fontSize: "18px",
-                        color: "#ffa58d",
-                        fontFamily: "Manrope",
-                        '@media (max-width: 1440px)': {
-                            fontSize: '14px',
-                        },
-                    }}
-                >
-                    <Box
-                        sx={{
-                            position: "relative",
-                            lineHeight: "24px",
-                            fontWeight: "600",
-                        }}
-                    >
-                        Connection
-                    </Box>
-                    <Box
-                        sx={{
-                            flex: "1",
-                            position: "relative",
-                            fontSize: "16px",
-                            color: "#596570",
-                            display: "flex",
-                            alignItems: "center",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            height: "22px",
-                            '@media (max-width: 1440px)': {
-                                fontSize: '10px',
-                            },
-                        }}>
-                        <StyledTypography>
-                            <StyledTypography
-                                sx={{ lineHeight: "28px", fontWeight: "600" }}
-                                component="span"
-                            >
-                                14 Points
-                            </StyledTypography>
-                            <StyledTypography
-                                sx={{ lineHeight: "26px" }}
-                                component="span"
-                            >{` (IJ 5 Points + NJ 2 Points) x `}</StyledTypography>
-                            <StyledTypography
-                                sx={{ lineHeight: "28px", fontWeight: "600" }}
-                                component="span"
-                            >
-                                2 Lines
-                            </StyledTypography>
-                            <StyledTypography sx={{ lineHeight: "26px" }} component="span">
-                                (aka T/L)
-                            </StyledTypography>
-                        </StyledTypography>
-                    </Box>
-                </Box>
-				<ConnectionTable handleAddInstallation={handleAddInstallation} handleCloseInstallation={handleCloseInstallation}/>
+    return (
+        <>
+            <StyledConnection>
+                <HeaderText title="Connection" color="#ffa58d" />
+                <ConnectionTable handleAddInstallation={handleAddInstallation} handleCloseInstallation={handleCloseInstallation}/>
             </StyledConnection>
             <StyledInstallation>
-                <Box
-                    sx={{
-                        alignSelf: "stretch",
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "flex-end",
-                        justifyContent: "center",
-                        gap: "4px",
-                        textAlign: "left",
-                        fontSize: "18px",
-                        color: "#6ac79b",
-                        fontFamily: "Manrope",
-                        marginLeft: "25px",
-                        '@media (max-width: 1440px)': {
-                            fontSize: '14px',
-                        },
-                    }}
-                >
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            justifyContent: "flex-start",
-                        }}
-                    >
-                        <Box
-                            sx={{
-                                position: "relative",
-                                lineHeight: "24px",
-                                fontWeight: "600",
-                            }}
-                        >
-                            Installation
-                        </Box>
-                    </Box>
-                    <Box
-                        sx={{
-                            flex: "1",
-                            position: "relative",
-                            fontSize: "16px",
-                            color: "#596570",
-                            display: "flex",
-                            alignItems: "center",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            height: "22px",
-                            '@media (max-width: 1440px)': {
-                                fontSize: '10px',
-                            },
-                        }}
-                    >
-                        <StyledTypography>
-                            <StyledTypography
-                                sx={{ lineHeight: "28px", fontWeight: "600" }}
-                                component="span"
-                            >
-                                16 Sections
-                            </StyledTypography>
-                            <StyledTypography sx={{ lineHeight: "26px" }} component="span">
-                                {" "}
-                                (8 Sections) x 2 Lines
-                            </StyledTypography>
-                        </StyledTypography>
-                    </Box>
-                </Box>
+                <HeaderText title="Installation" color="#6ac79b" />
                 <InstallationTable installations={installations} />
             </StyledInstallation>
+            {showDemolitionTable && (
+                <StyledDemolition>
+                    <HeaderText title="Demolition" color="#7FBCFE" />
+                    <DemolitionTable />
+                </StyledDemolition>
+            )}
         </>
     );
 }
+
+FormDiagram.propTypes = {
+    showDemolitionTable: PropTypes.bool.isRequired,
+};

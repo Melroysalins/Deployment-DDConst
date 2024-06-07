@@ -22,7 +22,7 @@ const renderTableRow = (section) => {
                                         placeholder="320"
                                 />
                         </TableCell>
-                        <TableCell className={style.TableCell} sx={{ padding: "12px 8px", width: '130px'}}>
+                        <TableCell className={style.TableCell} sx={{ padding: "12px 8px", width: '100%'}}>
                                 <Select
                                         value="Completed"
                                         variant="outlined"
@@ -40,8 +40,8 @@ const renderTableRow = (section) => {
 
 const InstallationTable = ({ installations }) => {
         return (
-                <TableContainer sx={{ width: "max-content", overflow: "hidden", marginLeft: '25px' }}>
-                        <Table sx={{ border: '1px solid lightgrey'}}>
+                <TableContainer sx={{ border: '1px solid lightgrey', width: "max-content", marginLeft: '25px', borderRadius: '8px' }}>
+                        <Table sx={{ overflow: "hidden" }}>
                                 <TableHead>
                                         <TableRow style={{ backgroundColor: "#f9f9fa" }}>
                                                 {renderTableCell("T/L Section")}
