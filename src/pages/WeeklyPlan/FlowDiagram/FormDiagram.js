@@ -5,6 +5,7 @@ import ConnectionTable from './ConnectionTable';
 import InstallationTable from './InstallationTable';
 import DemolitionTable from './DemolitionTable';
 import PropTypes from 'prop-types';
+import { set } from 'lodash';
 
 export const MIN_X = 200
 export const NAMYUNG = ['XLPE', 'OF', 'Other']
@@ -167,7 +168,7 @@ const HeaderText = ({ title, color }) => (
     </Box>
 );
 
-export default function FormDiagram({ showDemolitionTable }) {
+export default function FormDiagram({ showDemolitionTable, isEdit, setIsEditing }) {
     const [installations, setInstallations] = useState([]);
 
     const handleAddInstallation = useCallback(() => {
@@ -176,22 +177,23 @@ export default function FormDiagram({ showDemolitionTable }) {
 
     const handleCloseInstallation = useCallback(() => {
         setInstallations(prevInstallations => [...prevInstallations, 'YonsooS/S']);
+        setIsEditing(false);
     }, []);
 
     return (
         <>
             <StyledConnection>
                 <HeaderText title="Connection" color="#ffa58d" />
-                <ConnectionTable handleAddInstallation={handleAddInstallation} handleCloseInstallation={handleCloseInstallation}/>
+                <ConnectionTable isEdit={isEdit} handleAddInstallation={handleAddInstallation} handleCloseInstallation={handleCloseInstallation}/>
             </StyledConnection>
             <StyledInstallation>
                 <HeaderText title="Installation" color="#6ac79b" />
-                <InstallationTable installations={installations} />
+                <InstallationTable installations={installations} isEdit={isEdit} />
             </StyledInstallation>
             {showDemolitionTable && (
                 <StyledDemolition>
                     <HeaderText title="Demolition" color="#7FBCFE" />
-                    <DemolitionTable />
+                    <DemolitionTable isEdit={isEdit} />
                 </StyledDemolition>
             )}
         </>
@@ -200,4 +202,6 @@ export default function FormDiagram({ showDemolitionTable }) {
 
 FormDiagram.propTypes = {
     showDemolitionTable: PropTypes.bool.isRequired,
+    isEdit: PropTypes.bool,
+    setIsEditing: PropTypes.func,
 };

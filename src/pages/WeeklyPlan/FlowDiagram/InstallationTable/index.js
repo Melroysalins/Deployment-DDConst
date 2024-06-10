@@ -11,17 +11,24 @@ const renderTableCell = (text) => {
         )
 }
 
-const renderTableRow = (section) => {
+const renderTableRow = (section, isEdit) => {
+
+        console.log(isEdit)
         return (
                 <TableRow>
                         {renderTableCell(section)}
                         <TableCell className={style.TableCell} sx={{ padding: "12px 8px", width: '100%'}}>
-                                <TextField
-                                        variant="outlined"
-                                        sx={{ width: "70px", "& .MuiInputBase-root": { height: 32 } }}
-                                        placeholder="320"
-                                />
+                                {isEdit ? (
+                                        <TextField
+                                                variant="outlined"
+                                                sx={{ width: "70px", "& .MuiInputBase-root": { height: 32 } }}
+                                                placeholder="320"
+                                        />
+                                ) : (
+                                        <Typography variant="body1" sx={{ padding: "0px", fontSize: "14px", textAlign: "center" }} className={style.Typography}>320</Typography>
+                                )}
                         </TableCell>
+
                         <TableCell className={style.TableCell} sx={{ padding: "12px 8px", width: '100%'}}>
                                 <Select
                                         value="Completed"
@@ -35,10 +42,11 @@ const renderTableRow = (section) => {
                                 </Select>
                         </TableCell>
                 </TableRow>
-        )
-}
+        );
+};
 
-const InstallationTable = ({ installations }) => {
+const InstallationTable = ({ installations, isEdit }) => {
+        
         return (
                 <TableContainer sx={{ border: '1px solid lightgrey', width: "max-content", marginLeft: '25px', borderRadius: '8px' }}>
                         <Table sx={{ overflow: "hidden" }}>
@@ -50,12 +58,12 @@ const InstallationTable = ({ installations }) => {
                                         </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                        {renderTableRow(`NamyangS/S~M/H#1`)}
+                                        {renderTableRow(`NamyangS/S~M/H#1`, isEdit)}
                                         {installations && (
                                                 installations.map((installation, index) => (
                                                         installation === "YonsooS/S"
-                                                        ? renderTableRow(`M/H#${index + 1}~YonsooS/S`) 
-                                                        : renderTableRow(`M/H#${index + 1}~M/H#${index + 2}`)
+                                                        ? renderTableRow(`M/H#${index + 1}~YonsooS/S`, isEdit) 
+                                                        : renderTableRow(`M/H#${index + 1}~M/H#${index + 2}`, isEdit)
                                                 ))
                                         )}
                                 </TableBody>
@@ -65,7 +73,8 @@ const InstallationTable = ({ installations }) => {
 }
 
 InstallationTable.propTypes = {
-        installations: PropTypes.array.isRequired
+        installations: PropTypes.array.isRequired,
+        isEdit: PropTypes.bool.isRequired,
 }
 
 export default InstallationTable

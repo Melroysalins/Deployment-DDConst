@@ -96,7 +96,6 @@ const StyledButton = styled(Button)({
 	border: "1px solid rgba(0, 0, 0, 0.1)",
 	flex: "1",
 	gap: "8px",
-	fontFamily: "Manrope",
 	"@media (max-width: 1440px)": {
 		minWidth: "50px",
 		height: "35px",
@@ -202,7 +201,7 @@ const DiagramHeader = styled('Box')({
 	flexDirection: 'row',
 	alignItems: 'flex-start',
 	justifyContent: 'flex-end',
-	width: '671px',
+	width: '100%',
 	height: '44px',
 	padding: '12px 12px 0px',
 	boxSizing: 'border-box',
@@ -282,17 +281,17 @@ const AccordionDetails = styled((props) => (
 }));
 
 const Tasks = ({
-	edit = false,
+	isEditable,
 	cancel = true,
 	delete1 = true,
 	save = true,
 }) => {
 
-const isEditable = true;	
 
 const [expanded, setExpanded] = useState('panel1');
 const [panels, setPanels] = useState([1]);
 const [showDemolitionTable, setShowDemolitionTable] = useState(false);
+const [isEditing, setIsEditing] = useState(false);
 
 const handleChange = (panel) => (event, isExpanded) => {
 	setExpanded(isExpanded ? panel : false);
@@ -305,6 +304,7 @@ const addPanel = () => {
 
 const handleCancelButtonClick = (event) => {
 	event.stopPropagation();
+	setIsEditing(false);
 };
 
 const handleDeleteButtonClick = (event) => {
@@ -314,6 +314,12 @@ const handleDeleteButtonClick = (event) => {
 const handleSaveButtonClick = (event) => {
 	event.stopPropagation();
 };
+
+const handleEditButtonClick = (event) => {
+	event.stopPropagation();
+  	setIsEditing(true);
+};
+
 
 return (
 	<StyledButtonContainer>
@@ -331,48 +337,78 @@ return (
 								<CableContent >Cable Name:<span>154kV Namyang - Yeonsu T/L</span></CableContent>					
 							</LeftContent>
 							<RightContent>
-								{cancel && (
-									<StyledButton
-										onClick={handleCancelButtonClick}
-										style={{ boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.04)" }}
-										variant="outlined"
-										sx={{ 
-											borderRadius: "8px", 
-											backgroundColor: "#FFFFFF",
-										}}
-									>
-										Cancel
-									</StyledButton>
-								)}
-								{delete1 && (
-									<StyledButton
-										onClick={handleDeleteButtonClick}
-										style={{ boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.04)" }}
-										variant="outlined"
-										sx={{ 
-											borderRadius: "8px", 
-											backgroundColor: "#FFFFFF",
-										}}
-									>
-										<Stack gap={1} direction="row" alignItems="center">
-											<Iconify icon="mi:delete" width={20} height={20} />
-											Delete
-										</Stack>
-									</StyledButton>
-								)}
-								{save && (
-									<StyledButton
-										onClick={handleSaveButtonClick}
-										style={{ boxShadow: "0px 8px 16px rgba(141, 153, 255, 0.24)" }}
-										variant="contained"
-										sx={{ 
-											borderRadius: "8px", 
-											backgroundColor: "#8D99FF",
-										}}
-									>
-										<Iconify icon="heroicons-outline:save" width={20} height={20} />
-										Save
-									</StyledButton>
+								{isEditing ? (
+									<>
+										<StyledButton
+											onClick={handleCancelButtonClick}
+											style={{ boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.04)" }}
+											variant="outlined"
+											sx={{ 
+												borderRadius: "8px", 
+												backgroundColor: "#FFFFFF",
+											}}
+										>
+											Cancel
+										</StyledButton>
+										<StyledButton
+											onClick={handleDeleteButtonClick}
+											style={{ boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.04)" }}
+											variant="outlined"
+											sx={{ 
+												borderRadius: "8px", 
+												backgroundColor: "#FFFFFF",
+											}}
+										>
+											<Stack gap={1} direction="row" alignItems="center">
+												<Iconify icon="mi:delete" width={20} height={20} />
+												Delete
+											</Stack>
+										</StyledButton>
+										<StyledButton
+											onClick={handleSaveButtonClick}
+											style={{ boxShadow: "0px 8px 16px rgba(141, 153, 255, 0.24)" }}
+											variant="contained"
+											sx={{ 
+												borderRadius: "8px", 
+												backgroundColor: "#8D99FF",
+											}}
+										>
+											<Iconify icon="heroicons-outline:save" width={20} height={20} />
+											Save
+										</StyledButton>
+									</>
+								) : (
+									<>
+										<StyledButton
+											onClick={handleDeleteButtonClick}
+											style={{ boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.04)" }}
+											variant="outlined"
+											sx={{ 
+												borderRadius: "8px", 
+												backgroundColor: "#FFFFFF",
+											}}
+										>
+											<Stack gap={1} direction="row" alignItems="center">
+												<Iconify icon="mi:delete" width={20} height={20} />
+												Delete
+											</Stack>
+										</StyledButton>
+										<StyledButton
+											onClick={handleEditButtonClick}
+											style={{ boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.04)" }}
+											variant="outlined"
+											sx={{ 
+												width: "150px",
+												borderRadius: "8px", 
+												backgroundColor: "#FFFFFF",
+											}}
+										>
+											<Stack gap={1} direction="row" alignItems="center">
+												<Iconify icon="mi:delete" width={20} height={20} />
+												Edit Diagram
+											</Stack>
+										</StyledButton>
+									</>
 								)}
 								<img
 									sx={{
@@ -407,13 +443,15 @@ return (
 								</Box>
 								<Tables>
 									<ConnectionInstallationTable>
-									{isEditable && (
-										<>
-											<FormDiagram
-												showDemolitionTable={showDemolitionTable}
-											/>
-										</>
-									)}
+										{isEditable && (
+											<>
+												<FormDiagram
+													showDemolitionTable={showDemolitionTable}
+													isEdit={isEditing}
+													setIsEditing={setIsEditing}
+												/>
+											</>
+										)}
 
 									</ConnectionInstallationTable>
 								</Tables>
@@ -487,7 +525,7 @@ return (
 };
 
 Tasks.propTypes = {
-edit: PropTypes.bool,
+isEditable: PropTypes.bool,
 cancel: PropTypes.bool,
 delete1: PropTypes.bool,
 save: PropTypes.bool,
