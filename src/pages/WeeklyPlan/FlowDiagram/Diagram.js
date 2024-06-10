@@ -1,94 +1,280 @@
-import { Handle, Position, ReactFlow } from 'reactflow';
-import { Box, Button, Container, FormControl, TextField } from '@mui/material';
-import 'reactflow/dist/style.css';
-import styled from '@emotion/styled';
+import { Handle, Position, ReactFlow } from 'reactflow'
+import { Box, Button, Container, Dialog, DialogTitle, FormControl, InputLabel, MenuItem, Select } from '@mui/material'
+import 'reactflow/dist/style.css'
+import styled from '@emotion/styled'
+import PropTypes from 'prop-types'
+import { useState } from 'react'
+import {
+	JB_TYPE,
+	JB_TYPE_MAP,
+	JUNCTION_BOX,
+	JUNCTION_BOX_MAP,
+	STATUS,
+	STROKE_COLOR,
+	getStrokeStatusByColor,
+} from './diagramHelper'
 
-const Section = Box;
-const Row = styled(Box)({
-  display: 'flex',
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  gap: '20px',
-  height: 'auto',
-});
-const StyledButton = Button;
+const Section = Box
 
-const CustomNode1 = ({ data }) => {
-  return (
-    <>
-      <Box sx={{ padding: '3px 3px', border: '1px solid black', borderRadius: '20px' }}>
-        {data.label}
-      </Box>
+function Diagram({ nodes, edges, setNodes, setEdges, seqNumber }) {
+	const [showEditModal, setshowEditModal] = useState(false)
+	const [editImageObj, seteditImageObj] = useState(null)
+	const [showEdgeModal, setshowEdgeModal] = useState(false)
+	const [editEdgeObj, seteditEdgeObj] = useState(null)
 
-      <Handle type="target" position={Position.Bottom} />
-      <Handle type="source" position={Position.Bottom} />
-    </>
-  );
-};
+	const applyImageChanges = () => {
+		const { status, type, name, isEndbox } = editImageObj
+		editImageObj.imageUrl = `/static/svg/${type}-${status}.svg`
+		const _getCount = name.split('#')[1]
+		editImageObj.name = isEndbox ? `${JUNCTION_BOX_MAP[type]}#${_getCount}` : `${JB_TYPE_MAP[type]}#${_getCount}`
+		delete editImageObj.isEndbox
+		setNodes((prevNodes) =>
+			prevNodes.map((node) =>
+				node.id === editImageObj.id ? { ...node, data: { ...node.data, ...editImageObj } } : node
+			)
+		)
+		handleEditingImageCancel()
+	}
 
-const CustomNode2 = ({ data }) => {
-  return (
-    <>
-      <Box sx={{ padding: '3px 15px', border: '1px solid black', borderRadius: '10px' }}>
-        {data.label}
-      </Box>
+	const handleSelectChange = (value, key) => {
+		const updatedData = {
+			...editImageObj,
+			[key]: value,
+		}
+		seteditImageObj(updatedData)
+	}
 
-      <Handle type="target" position={Position.Left} />
-      <Handle type="source" position={Position.Right} />
-    </>
-  );
-};
+	const handleEdgeChanges = (value, key) => {
+		const updatedData = {
+			...editEdgeObj,
+			[key]: value,
+		}
+		seteditEdgeObj(updatedData)
+	}
 
-const nodeTypes = { custom1: CustomNode1, custom2: CustomNode2 };
+	// Edit Image Modal
+	const handleEditingImageCancel = () => {
+		setshowEditModal(false)
+		seteditImageObj(null)
+	}
+	const handleEditingImage = (data) => {
+		setshowEditModal(true)
+		const { isEndbox, name, status } = data.data
+		const type = data.data.imageUrl.split('svg/')[1].split('-')[0]
+		seteditImageObj({ id: data.id, isEndbox, name, status, type })
+	}
 
-const initialNodes = [
-  { id: '1', type: 'custom1', position: { x: 0, y: 0 }, data: { label: '1' } },
-  { id: '2', type: 'custom2', position: { x: 100, y: 100 }, data: { label: '2' } },
-  { id: '3', type: 'custom2', position: { x: 200, y: 100 }, data: { label: '3' } },
-  { id: '4', type: 'custom1', position: { x: 300, y: 0 }, data: { label: '4' } },
-];
-const initialEdges = [
-  { type: 'step', id: 'e1-2', source: '1', target: '2' },
-  { type: 'step', id: 'e2-3', source: '2', target: '3' },
-  { type: 'step', id: 'e3-4', source: '3', target: '4' },
-];
+	const handleEditingEdgeCancel = () => {
+		setshowEdgeModal(false)
+		seteditEdgeObj(null)
+	}
 
-function Diagram() {
-  return (
-    <Container>
-      <Section>
-        <Row>
-          <StyledButton>
-            <FormControl>
-              <TextField id="power-ss-input" label="Power S/S" size="small" sx={{ width: '100%', '& .MuiInputBase-root': {
-                height: '20px',
-                width: '100%',
-              }, }} autoComplete="off" />
-            </FormControl>
-          </StyledButton>
-          <StyledButton>
-            <FormControl>
-              <TextField id="new-cv-section-input" label="New CV Section (Installation)" size="small" sx={{ width: '100%', '& .MuiInputBase-root': {
-                height: '20px',
-                width: '100%',
-              }, }} autoComplete="off" />
-            </FormControl>
-          </StyledButton>
-          <StyledButton>
-            <FormControl>
-              <TextField id="tr-input" label="T/R" size="small" sx={{ width: '100%', '& .MuiInputBase-root': {
-                height: '20px',
-                width: '100%',
-              }, }} autoComplete="off" />
-            </FormControl>
-          </StyledButton>
-        </Row>
-        <Box sx={{ alignSelf: 'stretch', height: '177px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start' }}>
-          <ReactFlow nodes={initialNodes} edges={initialEdges} nodeTypes={nodeTypes} />
-        </Box>
-      </Section>
-    </Container>
-  );
+	const applyEdgeChanges = () => {
+		const { status, source } = editEdgeObj
+		setEdges((prevEdges) =>
+			prevEdges.map((edge) => (edge.source === source ? { ...edge, style: { stroke: STROKE_COLOR[status] } } : edge))
+		)
+		handleEditingEdgeCancel()
+	}
+
+	const UpdateImageView = () => (
+		<Dialog onClose={handleEditingImageCancel} open={showEditModal}>
+			{editImageObj && (
+				<Box
+					sx={{ minWidth: 400, margin: 'auto', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 2 }}
+				>
+					<DialogTitle>Update {editImageObj.name}</DialogTitle>
+					<FormControl style={{ width: 200 }}>
+						<InputLabel>Status</InputLabel>
+						<Select
+							size="small"
+							value={editImageObj?.status}
+							label="Status"
+							onChange={(e) => handleSelectChange(e.target.value, 'status')}
+						>
+							{STATUS.map((e) => (
+								<MenuItem value={e.value} key={e.value}>
+									{e.label}
+								</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+					{editImageObj.isEndbox ? (
+						<FormControl style={{ width: 200 }}>
+							<InputLabel>Junction Type</InputLabel>
+							<Select
+								size="small"
+								value={editImageObj.type}
+								label="Junction box"
+								onChange={(e) => handleSelectChange(e.target.value, 'type')}
+							>
+								{JUNCTION_BOX.map((e) => (
+									<MenuItem value={e.value} key={e.value}>
+										{e.label}
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+					) : (
+						<FormControl style={{ width: 200 }}>
+							<InputLabel>Jb Type</InputLabel>
+							<Select
+								size="small"
+								value={editImageObj.type}
+								label="Jb Type"
+								onChange={(e) => handleSelectChange(e.target.value, 'type')}
+							>
+								{JB_TYPE.map((e) => (
+									<MenuItem value={e.value} key={e}>
+										{e.label}
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+					)}
+
+					<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }} mb={2}>
+						<Button size="small" variant="outlined" onClick={handleEditingImageCancel}>
+							Cancel
+						</Button>
+						<Button size="small" variant="contained" onClick={applyImageChanges}>
+							Apply
+						</Button>
+					</Box>
+				</Box>
+			)}
+		</Dialog>
+	)
+	const UpdateEdgeView = () => (
+		<Dialog onClose={handleEditingEdgeCancel} open={showEdgeModal}>
+			{editEdgeObj && (
+				<Box
+					sx={{ minWidth: 400, margin: 'auto', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 2 }}
+				>
+					<DialogTitle>Update Edge # {editEdgeObj.id}</DialogTitle>
+					<FormControl style={{ width: 200 }}>
+						<InputLabel>Status</InputLabel>
+						<Select
+							size="small"
+							value={editEdgeObj?.status}
+							label="Status"
+							onChange={(e) => handleEdgeChanges(e.target.value, 'status')}
+						>
+							{STATUS.map((e) => (
+								<MenuItem value={e.value} key={e.value}>
+									{e.label}
+								</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+
+					<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }} mb={2}>
+						<Button size="small" variant="outlined" onClick={handleEditingEdgeCancel}>
+							Cancel
+						</Button>
+						<Button size="small" variant="contained" onClick={applyEdgeChanges}>
+							Apply
+						</Button>
+					</Box>
+				</Box>
+			)}
+		</Dialog>
+	)
+
+	const nodeTypes = {
+		image: (data) => (
+			<div>
+				{data.data.name && (
+					<div style={{ position: 'absolute', top: -30 }}>
+						<span
+							style={{
+								padding: '5px 10px',
+								border: '1px solid #EDEDEF',
+								borderRadius: 7,
+								marginLeft: 20,
+								fontSize: 12,
+							}}
+						>
+							{data.data.name}
+						</span>
+					</div>
+				)}
+				<div>
+					<Handle type="target" position={Position.Left} isConnectable={false} />
+					{/* eslint-disable-next-line */}
+					<div onClick={() => handleEditingImage(data)}>
+						<img src={data.data.imageUrl} alt="Custom Node" style={{ fill: 'blue' }} />
+					</div>
+					<Handle type="source" position={Position.Right} id="a" isConnectable={false} />
+				</div>
+			</div>
+		),
+		nodeHeading: ({ data }) => (
+			<>
+				<div>
+					<span
+						style={{
+							padding: '5px 10px',
+							border: '1px solid #EDEDEF',
+							borderRadius: 7,
+							marginLeft: 20,
+							fontWeight: 500,
+						}}
+					>
+						{data.name}
+					</span>
+				</div>
+			</>
+		),
+	}
+
+	const onEdgeClick = (_, edge) => {
+		const {
+			style: { stroke },
+		} = edge
+		setshowEdgeModal(true)
+		seteditEdgeObj({ ...edge, status: getStrokeStatusByColor(stroke) })
+	}
+	return (
+		<Container>
+			<Section>
+				<Box
+					sx={{
+						alignSelf: 'stretch',
+						height: 500,
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						justifyContent: 'flex-start',
+					}}
+				>
+					{UpdateImageView()}
+					{UpdateEdgeView()}
+					<ReactFlow
+						nodes={nodes}
+						edges={edges}
+						nodeTypes={nodeTypes}
+						minZoom={1} // Disable zooming out
+						maxZoom={1} // Disable zooming in
+						interactionProps={{
+							zoomOnScroll: false,
+							panOnDrag: false,
+						}}
+						nodesDraggable={false} // Disable node dragging
+						nodesConnectable={false}
+						onEdgeClick={onEdgeClick}
+					/>
+				</Box>
+			</Section>
+		</Container>
+	)
+}
+Diagram.propTypes = {
+	nodes: PropTypes.object.isRequired,
+	edges: PropTypes.object.isRequired,
+	setNodes: PropTypes.func.isRequired,
+	setEdges: PropTypes.func.isRequired,
+	seqNumber: PropTypes.number,
 }
 
-export default Diagram;
+export default Diagram
