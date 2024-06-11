@@ -85,6 +85,7 @@ const StyledDemolition = styled(Box)({
     borderRadius: '8px',
     backgroundColor: '#fff',
     alignSelf: 'auto',
+    zIndex: 0,
 });
 
 const StyledTypography = styled(Typography)({
@@ -168,7 +169,7 @@ const HeaderText = ({ title, color }) => (
     </Box>
 );
 
-export default function FormDiagram({ showDemolitionTable, isEdit, setIsEditing }) {
+export default function FormDiagram({ showDemolitionTable, isEdit, setPanelStates, panel }) {
     const [installations, setInstallations] = useState([]);
 
     const handleAddInstallation = useCallback(() => {
@@ -177,8 +178,8 @@ export default function FormDiagram({ showDemolitionTable, isEdit, setIsEditing 
 
     const handleCloseInstallation = useCallback(() => {
         setInstallations(prevInstallations => [...prevInstallations, 'YonsooS/S']);
-        setIsEditing(false);
-    }, []);
+        setPanelStates(prevStates => ({ ...prevStates, [panel]: { ...prevStates[panel], isEditing: false } }));
+    }, [setPanelStates, panel]);
 
     return (
         <>
@@ -203,5 +204,6 @@ export default function FormDiagram({ showDemolitionTable, isEdit, setIsEditing 
 FormDiagram.propTypes = {
     showDemolitionTable: PropTypes.bool.isRequired,
     isEdit: PropTypes.bool,
-    setIsEditing: PropTypes.func,
+    setPanelStates: PropTypes.func,
+    panel: PropTypes.string,
 };

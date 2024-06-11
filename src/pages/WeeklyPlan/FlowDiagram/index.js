@@ -1,15 +1,5 @@
 import { useState } from "react";
-import {
-	AccordionDetails as MuiAccordionDetails, 
-	Accordion as MuiAccordion, 
-	AccordionSummary as MuiAccordionSummary, 
-	Button,
-	Box, 
-	Stack,
-	FormControlLabel,
-	Switch,
-	Typography,
-} from "@mui/material"; 
+import { AccordionDetails as MuiAccordionDetails, Accordion as MuiAccordion, AccordionSummary as MuiAccordionSummary, Button, Box, Stack, FormControlLabel, Switch, Typography } from "@mui/material"; 
 import { styled } from "@mui/system";
 import PropTypes from 'prop-types';
 import Iconify from 'components/Iconify';
@@ -290,8 +280,7 @@ const Tasks = ({
 
 const [expanded, setExpanded] = useState('panel1');
 const [panels, setPanels] = useState([1]);
-const [showDemolitionTable, setShowDemolitionTable] = useState(false);
-const [isEditing, setIsEditing] = useState(false);
+const [panelStates, setPanelStates] = useState({});
 
 const handleChange = (panel) => (event, isExpanded) => {
 	setExpanded(isExpanded ? panel : false);
@@ -302,9 +291,13 @@ const addPanel = () => {
 	setExpanded(`panel${panels.length + 1}`);
 };
 
-const handleCancelButtonClick = (event) => {
+const handleDemolitionSwitchChange = (panel) => {
+	setPanelStates(prevStates => ({ ...prevStates, [panel]: { ...prevStates[panel], showDemolitionTable: !prevStates[panel]?.showDemolitionTable } }));
+};
+
+const handleCancelButtonClick = (panel) => (event) => {
 	event.stopPropagation();
-	setIsEditing(false);
+	setPanelStates(prevStates => ({ ...prevStates, [panel]: { ...prevStates[panel], isEditing: false } }));
 };
 
 const handleDeleteButtonClick = (event) => {
@@ -315,11 +308,12 @@ const handleSaveButtonClick = (event) => {
 	event.stopPropagation();
 };
 
-const handleEditButtonClick = (event) => {
+const handleEditButtonClick = (panel) => (event) => {
 	event.stopPropagation();
-  	setIsEditing(true);
+	setPanelStates(prevStates => ({ ...prevStates, [panel]: { ...prevStates[panel], isEditing: true } }));
 };
 
+console.log(panelStates);
 
 return (
 	<StyledButtonContainer>
@@ -337,10 +331,10 @@ return (
 								<CableContent >Cable Name:<span>154kV Namyang - Yeonsu T/L</span></CableContent>					
 							</LeftContent>
 							<RightContent>
-								{isEditing ? (
+								{panelStates[`panel${panel}`]?.isEditing ? (
 									<>
 										<StyledButton
-											onClick={handleCancelButtonClick}
+											onClick={handleCancelButtonClick(`panel${panel}`)}
 											style={{ boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.04)" }}
 											variant="outlined"
 											sx={{ 
@@ -394,7 +388,7 @@ return (
 											</Stack>
 										</StyledButton>
 										<StyledButton
-											onClick={handleEditButtonClick}
+											onClick={handleEditButtonClick(`panel${panel}`)}
 											style={{ boxShadow: "0px 8px 16px rgba(0, 0, 0, 0.04)" }}
 											variant="outlined"
 											sx={{ 
@@ -439,16 +433,17 @@ return (
 							</DiagramParent>
 							<TableParent>
 								<Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', padding: '8px 0px' }}>
-									<FormControlLabel control={<Switch checked={showDemolitionTable} onChange={() => setShowDemolitionTable(prev => !prev)} color="primary" />} label="Demolition" sx={{ color: 'black', fontFamily: 'Manrope, sans-serif' }} />
+									<FormControlLabel control={<Switch checked={panelStates[`panel${panel}`]?.showDemolitionTable} onChange={() => handleDemolitionSwitchChange(`panel${panel}`)} color="primary" />} label="Demolition" sx={{ color: 'black', fontFamily: 'Manrope, sans-serif' }} />
 								</Box>
 								<Tables>
 									<ConnectionInstallationTable>
 										{isEditable && (
 											<>
 												<FormDiagram
-													showDemolitionTable={showDemolitionTable}
-													isEdit={isEditing}
-													setIsEditing={setIsEditing}
+													showDemolitionTable={panelStates[`panel${panel}`]?.showDemolitionTable}
+													isEdit={panelStates[`panel${panel}`]?.isEditing}
+													setPanelStates={setPanelStates}
+													panel={panel}
 												/>
 											</>
 										)}

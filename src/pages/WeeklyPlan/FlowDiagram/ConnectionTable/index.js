@@ -170,7 +170,7 @@ const ConnectionTable = ({ handleAddInstallation, handleCloseInstallation, isEdi
                                 </Box>
                                 <TableContainer sx={{ width: "max-content", borderRadius: '0px 0px 8px 0px', border: '1px solid lightgrey' }}>
                                         <Box sx={{ overflow: 'hidden' }}>
-                                                <Table sx={{ }} >
+                                                <Table >
                                                         <TableBody>
                                                                 <Collapse in={isExpanded} collapsedSize={midPoints.length < 7 ? midPoints.length * 65 : 390}>
                                                                         <Box sx={{ maxHeight: isExpanded ? 'none' : '390px', overflow: 'auto' }}>
