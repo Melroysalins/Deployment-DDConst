@@ -67,13 +67,13 @@ export const generateStartEndNode = ({
 			id: `${seqNumber}.start`,
 			type: 'image',
 			data: { imageUrl: start, name: `${startName}#${seqNumber}`, isEndbox: true, status: startStatus },
-			position: { x: startX, y: yPos - 30 },
+			position: { x: startX, y: yPos - 10 },
 		},
 		{
 			id: `${seqNumber}.end`,
 			type: 'image',
 			data: { imageUrl: end, name: `${endName}#${seqNumber}`, isEndbox: true, status: endStatus },
-			position: { x: endX, y: yPos - 30 },
+			position: { x: endX, y: yPos - 10 },
 		},
 	]
 	return nodes
@@ -82,24 +82,27 @@ export const generateStartEndNode = ({
 export const generateEdges = (startId, newObj) => {
 	const count = newObj.connections.length
 	const edges = []
+	const type = 'step'
 	edges.push({
 		id: `${startId}.start`,
 		source: `${startId}.start`,
 		target: `${startId}.1`,
 		style: { stroke: STROKE_COLOR[newObj.startStatus] },
+		type,
 	})
 	for (let i = 1; i <= count; i += 1) {
 		const source = `${startId}.${i}`
 		const target = `${startId}.${i + 1}`
 		const edgeId = `e${i}-${i + 1}`
 		const style = { stroke: STROKE_COLOR[newObj.connections[i - 1].status] }
-		edges.push({ id: edgeId, source, target, style })
+		edges.push({ id: edgeId, source, target, style, type })
 	}
 	edges.push({
 		id: `${startId}-end`,
 		source: `${startId}.${count}`,
 		target: `${startId}.end`,
 		style: { stroke: STROKE_COLOR[newObj.endStatus] },
+		type,
 	})
 
 	return edges
@@ -131,7 +134,7 @@ export const defaultNewObj = {
 	connections: [defaultConnection],
 	cableType: CABLE_TYPE[0],
 	namyang: NAMYUNG[0],
-	length: 500,
+	length: 600,
 	startStatus: STATUS[0].value,
 	endStatus: STATUS[0].value,
 	startConnector: CONNECTORS[0].value,

@@ -102,12 +102,12 @@ const HeaderText = ({ title, color, newObj }) => (
 		>
 			<StyledTypography>
 				<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
-					{newObj?.connections.length} Points
+					{newObj?.currentObj?.connections.length} Points
 				</StyledTypography>
 				<StyledTypography sx={{ lineHeight: '26px' }} component="span">{`(J/B ${
-					newObj?.connections.filter((e) => e.joinType === JB_TYPE[0].value).length
+					newObj?.currentObj?.connections.filter((e) => e.joinType === JB_TYPE[0].value).length
 				} Points + M/H ${
-					newObj?.connections.filter((e) => e.joinType === JB_TYPE[1].value).length
+					newObj?.currentObj?.connections.filter((e) => e.joinType === JB_TYPE[1].value).length
 				} Points) x `}</StyledTypography>
 				<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
 					2 Lines

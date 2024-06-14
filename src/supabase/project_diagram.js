@@ -14,7 +14,17 @@ export const getProjectDiagram = async (id) => {
 	return res
 }
 
+export const getDiagramsByProject = async (project) => {
+	const res = await supabase.from('project_diagrams').select('*').eq('project', project)
+	return res
+}
+
 export const getDiagramByProject = async (project) => {
 	const res = await supabase.from('project_diagrams').select(`*`).eq('project', project).single()
+	return res
+}
+
+export const deleteDiagramById = async (id) => {
+	const res = await supabase.from('project_diagrams').delete().eq('id', id)
 	return res
 }

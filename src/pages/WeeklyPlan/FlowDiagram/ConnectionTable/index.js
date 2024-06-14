@@ -22,7 +22,7 @@ import style from './ConnectionTable.module.scss'
 import PropTypes from 'prop-types'
 import { CONNECTORS, JB_TYPE, JUNCTION_BOX, PMJ, STATUS } from '../diagramHelper'
 
-const renderTableRow = (connection, index, handleNewObjChange) => (
+const renderTableRow = (connection, index, handleNewObjChange, objId) => (
 	<TableRow key={index}>
 		<TableCell className={style.TableCell} sx={{ padding: '6px 10px', width: '92px' }}>
 			<Typography
@@ -42,7 +42,7 @@ const renderTableRow = (connection, index, handleNewObjChange) => (
 					sx={{ height: '32px' }}
 					value={connection.joinType}
 					label="Jb Type"
-					onChange={(e) => handleNewObjChange(e.target.value, 'joinType', index)}
+					onChange={(e) => handleNewObjChange(e.target.value, 'joinType', objId, index)}
 					disableUnderline
 					displayEmpty
 				>
@@ -67,7 +67,7 @@ const renderTableRow = (connection, index, handleNewObjChange) => (
 					sx={{ height: '32px' }}
 					value={connection.pmj}
 					label="PMJ"
-					onChange={(e) => handleNewObjChange(e.target.value, 'pmj', index)}
+					onChange={(e) => handleNewObjChange(e.target.value, 'pmj', objId, index)}
 					disableUnderline
 					displayEmpty
 				>
@@ -82,31 +82,34 @@ const renderTableRow = (connection, index, handleNewObjChange) => (
 		</TableCell>
 
 		<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '130px' }}>
-			<Select
-				className={style.StyledSelect}
-				value={connection.status}
-				label="Status"
-				onChange={(e) => handleNewObjChange(e.target.value, 'status', index)}
-				variant="outlined"
-				size="small"
-			>
-				{STATUS.map((e) => (
-					<MenuItem value={e.value} key={e.value}>
-						{e.label}
-					</MenuItem>
-				))}
-			</Select>
+			<FormControl>
+				<InputLabel className={style.InputLabel} color="primary">
+					Status
+				</InputLabel>
+				<Select
+					className={style.StyledSelect}
+					value={connection.status}
+					label="Status"
+					onChange={(e) => handleNewObjChange(e.target.value, 'status', objId, index)}
+					variant="outlined"
+					size="small"
+				>
+					{STATUS.map((e) => (
+						<MenuItem value={e.value} key={e.value}>
+							{e.label}
+						</MenuItem>
+					))}
+				</Select>
+			</FormControl>
 		</TableCell>
 	</TableRow>
 )
 
 const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleNewObjChange, newObj }) => {
-	// const [midPoints, setMidPoints] = useState([1])
 	const [isExpanded, setIsExpanded] = useState(false)
 
 	const addPanel = () => {
-		// setMidPoints((prevMidPoints) => [...prevMidPoints, prevMidPoints.length + 1])
-		handleAddConnection()
+		handleAddConnection(newObj.id)
 	}
 
 	const toggleExpand = () => {
@@ -215,9 +218,9 @@ const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleN
 											className={style.Select}
 											color="primary"
 											sx={{ height: '32px' }}
-											value={newObj.start}
+											value={newObj.currentObj.start}
 											label="Start"
-											onChange={(e) => handleNewObjChange(e.target.value, 'start')}
+											onChange={(e) => handleNewObjChange(e.target.value, 'start', newObj.id)}
 											size="small"
 											disableUnderline
 											displayEmpty
@@ -245,8 +248,8 @@ const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleN
 											color="primary"
 											sx={{ height: '32px' }}
 											label="Connector"
-											value={newObj.startConnector}
-											onChange={(e) => handleNewObjChange(e.target.value, 'startConnector')}
+											value={newObj.currentObj.startConnector}
+											onChange={(e) => handleNewObjChange(e.target.value, 'startConnector', newObj.id)}
 											disableUnderline
 											displayEmpty
 										>
@@ -260,20 +263,25 @@ const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleN
 									</FormControl>
 								</TableCell>
 								<TableCell className={style.TableCell} sx={{ padding: '6px 10px', width: '130px' }}>
-									<Select
-										className={style.StyledSelect}
-										label="Status"
-										value={newObj.startStatus}
-										onChange={(e) => handleNewObjChange(e.target.value, 'startStatus')}
-										variant="outlined"
-										size="small"
-									>
-										{STATUS.map((e) => (
-											<MenuItem value={e.value} key={e.value}>
-												{e.label}
-											</MenuItem>
-										))}
-									</Select>
+									<FormControl>
+										<InputLabel className={style.InputLabel} color="primary">
+											Status
+										</InputLabel>
+										<Select
+											className={style.StyledSelect}
+											label="Status"
+											value={newObj.currentObj.startStatus}
+											onChange={(e) => handleNewObjChange(e.target.value, 'startStatus', newObj.id)}
+											variant="outlined"
+											size="small"
+										>
+											{STATUS.map((e) => (
+												<MenuItem value={e.value} key={e.value}>
+													{e.label}
+												</MenuItem>
+											))}
+										</Select>
+									</FormControl>
 								</TableCell>
 							</TableRow>
 							<TableRow>
@@ -299,9 +307,9 @@ const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleN
 											className={style.Select}
 											color="primary"
 											sx={{ height: '32px' }}
-											value={newObj.end}
+											value={newObj.currentObj.end}
 											label="End"
-											onChange={(e) => handleNewObjChange(e.target.value, 'end')}
+											onChange={(e) => handleNewObjChange(e.target.value, 'end', newObj.id)}
 											disableUnderline
 											displayEmpty
 										>
@@ -328,8 +336,8 @@ const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleN
 											color="primary"
 											sx={{ height: '32px' }}
 											label="Connector"
-											value={newObj.endConnector}
-											onChange={(e) => handleNewObjChange(e.target.value, 'endConnector')}
+											value={newObj.currentObj.endConnector}
+											onChange={(e) => handleNewObjChange(e.target.value, 'endConnector', newObj.id)}
 											disableUnderline
 											displayEmpty
 										>
@@ -343,20 +351,25 @@ const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleN
 									</FormControl>
 								</TableCell>
 								<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '130px' }}>
-									<Select
-										className={style.StyledSelect}
-										label="Status"
-										value={newObj.endStatus}
-										onChange={(e) => handleNewObjChange(e.target.value, 'endStatus')}
-										variant="outlined"
-										size="small"
-									>
-										{STATUS.map((e) => (
-											<MenuItem value={e.value} key={e.value}>
-												{e.label}
-											</MenuItem>
-										))}
-									</Select>
+									<FormControl>
+										<InputLabel className={style.InputLabel} color="primary">
+											Status
+										</InputLabel>
+										<Select
+											className={style.StyledSelect}
+											label="Status"
+											value={newObj.currentObj.endStatus}
+											onChange={(e) => handleNewObjChange(e.target.value, 'endStatus', newObj.id)}
+											variant="outlined"
+											size="small"
+										>
+											{STATUS.map((e) => (
+												<MenuItem value={e.value} key={e.value}>
+													{e.label}
+												</MenuItem>
+											))}
+										</Select>
+									</FormControl>
 								</TableCell>
 							</TableRow>
 						</TableBody>
@@ -395,7 +408,7 @@ const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleN
 						}}
 						className={style.Typography}
 					>
-						Mid {newObj.connections.length > 1 ? 'point' : ''}
+						Mid {newObj.currentObj.connections.length > 1 ? 'point' : ''}
 					</Typography>
 				</Box>
 				<TableContainer sx={{ width: 'max-content', borderRadius: '0px 0px 8px 0px', border: '1px solid lightgrey' }}>
@@ -404,11 +417,13 @@ const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleN
 							<TableBody>
 								<Collapse
 									in={isExpanded}
-									collapsedSize={newObj.connections.length < 7 ? newObj.connections.length * 65 : 390}
+									collapsedSize={
+										newObj.currentObj.connections.length < 7 ? newObj.currentObj.connections.length * 65 : 390
+									}
 								>
 									<Box sx={{ maxHeight: isExpanded ? 'none' : '390px', overflow: 'auto' }}>
-										{newObj.connections.map((connection, index) => (
-											<>{renderTableRow(connection, index, handleNewObjChange)}</>
+										{newObj.currentObj.connections.map((connection, index) => (
+											<>{renderTableRow(connection, index, handleNewObjChange, newObj.id)}</>
 										))}
 									</Box>
 								</Collapse>
@@ -453,7 +468,7 @@ const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleN
 										<Iconify icon="ic:round-check" width={16} height={16} sx={{ color: '#6ac78b' }} />
 									</IconButton>
 								</Box>
-								{newObj.connections.length > 6 && (
+								{newObj.currentObj.connections.length > 6 && (
 									<IconButton
 										style={{
 											border: '1px solid rgba(0, 0, 0, 0.1)',

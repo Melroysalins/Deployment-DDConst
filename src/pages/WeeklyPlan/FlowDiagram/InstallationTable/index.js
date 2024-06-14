@@ -35,15 +35,15 @@ const renderTableRow = (connection, index, handleNewObjChange, displayName, newO
 				variant="outlined"
 				sx={{ width: '70px', '& .MuiInputBase-root': { height: 32 } }}
 				placeholder="320"
-				onChange={(e) => handleNewObjChange(e.target.value, 'length')}
-				value={newObj.length}
+				onChange={(e) => handleNewObjChange(e.target.value, 'length', newObj.id)}
+				value={newObj.currentObj.length}
 			/>
 		</TableCell>
 		<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
 			<Select
 				value={connection.status}
 				label="Status"
-				onChange={(e) => handleNewObjChange(e.target.value, 'status', index)}
+				onChange={(e) => handleNewObjChange(e.target.value, 'status', newObj.id, index)}
 				variant="outlined"
 				className={style.StyledSelect}
 				size="small"
@@ -71,14 +71,16 @@ const InstallationTable = ({ handleNewObjChange, newObj }) => (
 			<TableBody>
 				{/* {renderTableRow(`NamyangS/S~M/H#1`)} */}
 				{/* M/H#${index + 1}~M/H#${index + 2} */}
-				{newObj.connections.map((connection, index) => {
+				{newObj.currentObj.connections.map((connection, index) => {
 					let status = ''
 					if (index === 0) {
-						status = `Namyang${JUNCTION_BOX_MAP[newObj.start]}~${JB_TYPE_MAP[connection.joinType]}#${index + 1}`
-					} else if (index === newObj.connections.length) {
-						status = `${JB_TYPE_MAP[connection.joinType]}#${index + 1}~Yeonsu${JUNCTION_BOX_MAP[newObj.end]}`
+						status = `Namyang${JUNCTION_BOX_MAP[newObj.currentObj.start]}~${JB_TYPE_MAP[connection.joinType]}#${
+							index + 1
+						}`
+					} else if (index === newObj.currentObj.connections.length) {
+						status = `${JB_TYPE_MAP[connection.joinType]}#${index + 1}~Yeonsu${JUNCTION_BOX_MAP[newObj.currentObj.end]}`
 					} else {
-						status = `${JB_TYPE_MAP[newObj.connections[index - 1].joinType]}#${index + 1}~${
+						status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1].joinType]}#${index + 1}~${
 							JB_TYPE_MAP[connection.joinType]
 						}#${index + 2}`
 					}

@@ -16,7 +16,7 @@ import {
 
 const Section = Box
 
-function Diagram({ nodes, edges, setNodes, setEdges, seqNumber }) {
+function Diagram({ nodes, edges, currentObj, objId, setCurrentObj }) {
 	const [showEditModal, setshowEditModal] = useState(false)
 	const [editImageObj, seteditImageObj] = useState(null)
 	const [showEdgeModal, setshowEdgeModal] = useState(false)
@@ -28,11 +28,29 @@ function Diagram({ nodes, edges, setNodes, setEdges, seqNumber }) {
 		const _getCount = name.split('#')[1]
 		editImageObj.name = isEndbox ? `${JUNCTION_BOX_MAP[type]}#${_getCount}` : `${JB_TYPE_MAP[type]}#${_getCount}`
 		delete editImageObj.isEndbox
-		setNodes((prevNodes) =>
-			prevNodes.map((node) =>
-				node.id === editImageObj.id ? { ...node, data: { ...node.data, ...editImageObj } } : node
-			)
+		const updatedNodes = nodes.map((node) =>
+			node.id === editImageObj.id ? { ...node, data: { ...node.data, ...editImageObj } } : node
 		)
+
+		let updatedCurrentObj = { ...currentObj }
+		if (isEndbox) {
+			// Start
+			if (editImageObj.id.split('.')[1] === 'start') {
+				updatedCurrentObj.startStatus = status
+				updatedCurrentObj.start = type
+			} else {
+				// End
+				updatedCurrentObj.endStatus = status
+				updatedCurrentObj.end = type
+			}
+		} else {
+			const connections = currentObj.connections.map((connection, index) => ({
+				...connection,
+				...(editImageObj.id.split('.')[1] === `${index + 1}` && { joinType: type, status }),
+			}))
+			updatedCurrentObj = { ...currentObj, connections }
+		}
+		setCurrentObj({ objId, currentObj: updatedCurrentObj, nodes: updatedNodes, edges })
 		handleEditingImageCancel()
 	}
 
@@ -71,9 +89,12 @@ function Diagram({ nodes, edges, setNodes, setEdges, seqNumber }) {
 
 	const applyEdgeChanges = () => {
 		const { status, source } = editEdgeObj
-		setEdges((prevEdges) =>
-			prevEdges.map((edge) => (edge.source === source ? { ...edge, style: { stroke: STROKE_COLOR[status] } } : edge))
+		const updatedEdges = edges.map((edge) =>
+			edge.source === source ? { ...edge, style: { stroke: STROKE_COLOR[status] } } : edge
 		)
+
+		const updatedCurrentObj = { ...currentObj }
+		setCurrentObj({ objId, currentObj: updatedCurrentObj, nodes, edges: updatedEdges })
 		handleEditingEdgeCancel()
 	}
 
@@ -200,12 +221,17 @@ function Diagram({ nodes, edges, setNodes, setEdges, seqNumber }) {
 					</div>
 				)}
 				<div>
-					<Handle type="target" position={Position.Left} isConnectable={false} />
+					<Handle type="target" position={data.data.isEndbox ? Position.Bottom : Position.Left} isConnectable={false} />
 					{/* eslint-disable-next-line */}
 					<div onClick={() => handleEditingImage(data)}>
 						<img src={data.data.imageUrl} alt="Custom Node" style={{ fill: 'blue' }} />
 					</div>
-					<Handle type="source" position={Position.Right} id="a" isConnectable={false} />
+					<Handle
+						type="source"
+						position={data.data.isEndbox ? Position.Bottom : Position.Right}
+						id="a"
+						isConnectable={false}
+					/>
 				</div>
 			</div>
 		),
@@ -241,7 +267,7 @@ function Diagram({ nodes, edges, setNodes, setEdges, seqNumber }) {
 				<Box
 					sx={{
 						alignSelf: 'stretch',
-						height: 500,
+						height: 270,
 						display: 'flex',
 						flexDirection: 'column',
 						alignItems: 'center',
@@ -272,9 +298,9 @@ function Diagram({ nodes, edges, setNodes, setEdges, seqNumber }) {
 Diagram.propTypes = {
 	nodes: PropTypes.object.isRequired,
 	edges: PropTypes.object.isRequired,
-	setNodes: PropTypes.func.isRequired,
-	setEdges: PropTypes.func.isRequired,
-	seqNumber: PropTypes.number,
+	setCurrentObj: PropTypes.func.isRequired,
+	objId: PropTypes.number.isRequired,
+	currentObj: PropTypes.object.isRequired,
 }
 
 export default Diagram

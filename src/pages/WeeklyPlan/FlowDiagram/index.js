@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
 	AccordionDetails as MuiAccordionDetails,
 	Accordion as MuiAccordion,
@@ -23,8 +23,14 @@ import {
 	generateStartEndNode,
 	defaultConnection,
 } from './diagramHelper'
-import { useEdgesState, useNodesState } from 'reactflow'
 import { useParams } from 'react-router-dom'
+import {
+	createNewProjectDiagram,
+	deleteDiagramById,
+	getDiagramsByProject,
+	updateProjectDiagram,
+} from 'supabase/project_diagram'
+import { LoadingButton } from '@mui/lab'
 
 const StyledButtonContainer = styled(Box)({
 	alignSelf: 'stretch',
@@ -99,6 +105,23 @@ const RightContent = styled(Box)({
 })
 
 const StyledButton = styled(Button)({
+	minWidth: '79px',
+	height: '48px',
+	borderRadius: '8px',
+	padding: '12px 16px 12px 16px',
+	border: '1px solid rgba(0, 0, 0, 0.1)',
+	flex: '1',
+	gap: '8px',
+	fontFamily: 'Manrope',
+	'@media (max-width: 1440px)': {
+		minWidth: '50px',
+		height: '35px',
+		padding: '8px 12px 8px 12px',
+		fontSize: '10px',
+	},
+})
+
+const StyledLoadingButton = styled(LoadingButton)({
 	minWidth: '79px',
 	height: '48px',
 	borderRadius: '8px',
@@ -286,88 +309,155 @@ const AccordionDetails = styled((props) => <MuiAccordionDetails {...props} />)((
 
 const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => {
 	const isEditable = true
-
+	const [loading, setloading] = useState(false)
 	const [expanded, setExpanded] = useState('panel1')
-	const [panels, setPanels] = useState([1])
 	const [showDemolitionTable, setShowDemolitionTable] = useState(false)
 
-	const handleChange = (panel) => (event, isExpanded) => {
-		setExpanded(isExpanded ? panel : false)
-	}
-
-	const addPanel = () => {
-		setPanels((prevPanels) => [...prevPanels, prevPanels.length + 1])
-		setExpanded(`panel${panels.length + 1}`)
-	}
-
-	const handleCancelButtonClick = (event) => {
-		event.stopPropagation()
-	}
-
-	const handleDeleteButtonClick = (event) => {
-		event.stopPropagation()
-	}
-
-	const handleSaveButtonClick = (event) => {
-		event.stopPropagation()
-	}
-
-	const [nodes, setNodes] = useNodesState([])
-	const [edges, setEdges] = useEdgesState([])
-	const [seqNumber, setseqNumber] = useState(1)
-	const [newObj, setnewObj] = useState(defaultNewObj)
+	const [objs, setObjs] = useState([{ currentObj: defaultNewObj, id: 1, nodes: [], edges: [] }])
+	const [seqNumber, setseqNumber] = useState(2)
 	const { id } = useParams()
 
-	const handleNewObjChange = (value, field, index) => {
-		if (index === undefined) {
-			setnewObj({ ...newObj, [field]: value })
-		} else {
-			const updatedConnections = [...newObj.connections]
-			updatedConnections[index][field] = value
-			setnewObj({ ...newObj, connections: updatedConnections })
+	const handleChange = (panel) => () => {
+		setExpanded(expanded !== panel ? panel : '')
+	}
+
+	const getDiagram = async () => {
+		const { data } = await getDiagramsByProject(id)
+		if (data?.length) {
+			const ids = data.map((diagram) => diagram.id)
+			setObjs(data)
+			const maxId = Math.max(...ids)
+			setseqNumber(maxId + 1)
+			const minId = Math.min(...ids)
+			setExpanded(`panel${minId}`)
 		}
 	}
 
-	const handleAddConnection = () => {
-		setnewObj({
-			...newObj,
-			connections: [...newObj.connections, { ...defaultConnection }],
+	useEffect(() => {
+		getDiagram()
+	}, [id])
+
+	const handleCancelButtonClick = () => {}
+
+	const handleDeleteButtonClick = (objId, hasProject) => {
+		setObjs(objs.filter((obj) => obj.id !== objId))
+		if (hasProject) {
+			deleteDiagramById(objId)
+		}
+	}
+
+	const handleSaveButtonClick = async (currentNewObj) => {
+		setloading(true)
+		const { nodes, edges, currentObj, project } = currentNewObj
+		const isEdit = project
+		const _obj = { project: id, nodes, edges, currentObj }
+		if (isEdit) {
+			await updateProjectDiagram(_obj, id)
+		} else {
+			const success = await createNewProjectDiagram(_obj)
+			if (success.data) {
+				setCurrentObj({ objId: currentNewObj.id, currentObj, nodes, edges, project: id })
+			}
+		}
+		setloading(false)
+	}
+
+	const handleNewObjChange = (value, field, objId, connIndex) => {
+		const updatedObjs = objs.map((obj) => {
+			if (obj.id !== objId) return obj
+
+			const updatedMainObj = { ...obj.currentObj }
+			if (connIndex === undefined) {
+				updatedMainObj[field] = value
+			} else {
+				const updatedConnections = updatedMainObj.connections.map((conn, index) =>
+					index === connIndex ? { ...conn, [field]: value } : conn
+				)
+				updatedMainObj.connections = updatedConnections
+			}
+			return { ...obj, currentObj: updatedMainObj }
 		})
+		setObjs(updatedObjs)
+	}
+
+	const handleAddConnection = (objId) => {
+		const updatedObjs = objs.map((obj) => {
+			if (obj.id !== objId) return obj
+
+			const updatedMainObj = {
+				...obj.currentObj,
+				connections: [...obj.currentObj.connections, { ...defaultConnection }],
+			}
+			return { ...obj, currentObj: updatedMainObj }
+		})
+		setObjs(updatedObjs)
 	}
 
 	const handleAdd = () => {
-		const yPos = seqNumber * 100
+		const updatedObjs = objs.map((obj) => {
+			const yPos = 220 // obj.id * 100
 
-		setNodes([
-			...nodes,
-			...generateNodesFromConnections({ id: seqNumber, connections: newObj.connections, yPos, length: newObj.length }),
-			...generateStartEndNode({
-				seqNumber,
-				yPos,
-				start: newObj.start,
-				startName: JUNCTION_BOX_MAP[newObj.start],
-				end: newObj.end,
-				endName: JUNCTION_BOX_MAP[newObj.end],
-				startStatus: newObj.startStatus,
-				endStatus: newObj.endStatus,
-				endX: newObj.length ? +newObj.length + 130 : 730,
-			}),
-		])
+			const objNodes = [
+				...generateNodesFromConnections({
+					id: obj.id,
+					connections: obj.currentObj.connections,
+					yPos,
+					length: obj.currentObj.length,
+				}),
+				...generateStartEndNode({
+					seqNumber: obj.id,
+					yPos: 50,
+					start: obj.currentObj.start,
+					startName: JUNCTION_BOX_MAP[obj.currentObj.start],
+					end: obj.currentObj.end,
+					endName: JUNCTION_BOX_MAP[obj.currentObj.end],
+					startStatus: obj.currentObj.startStatus,
+					endStatus: obj.currentObj.endStatus,
+					endX: obj.currentObj.length ? +obj.currentObj.length + 130 : 730,
+				}),
+			]
 
-		setEdges([...edges, ...generateEdges(seqNumber, newObj)])
-		setnewObj(defaultNewObj)
-		setseqNumber(seqNumber + 1)
+			const objEdges = generateEdges(obj.id, obj.currentObj)
+
+			return { ...obj, nodes: objNodes, edges: objEdges }
+		})
+
+		setObjs(updatedObjs)
+	}
+
+	const handleAddNewObj = () => {
+		const newObj = { currentObj: { ...defaultNewObj }, id: seqNumber, nodes: [], edges: [] }
+		setObjs([...objs, newObj])
+		setseqNumber((prev) => {
+			const newSeqNumber = prev + 1
+			setExpanded(`panel${newObj.id}`)
+			return newSeqNumber
+		})
+	}
+
+	const setCurrentObj = ({ objId, currentObj, nodes, edges, project = null }) => {
+		const updatedObjs = objs.map((obj) => {
+			if (obj.id === objId) {
+				return { ...obj, currentObj, nodes, edges, project }
+			}
+			return obj
+		})
+		setObjs(updatedObjs)
 	}
 
 	return (
 		<StyledButtonContainer>
-			{panels.map((panel, index) => (
+			{objs.map((newObj, index) => (
 				<ContentParentRoot key={index}>
-					<Accordion expanded={expanded === `panel${panel}`} onChange={handleChange(`panel${panel}`)} key={index}>
+					<Accordion
+						expanded={expanded === `panel${newObj.id}`}
+						onChange={handleChange(`panel${newObj.id}`)}
+						key={index}
+					>
 						<AccordionSummary
 							expandIcon={<Iconify icon="material-symbols:expand-more-rounded" width={20} height={20} />}
-							aria-controls={`panel${panel}-content`}
-							id={`panel${panel}-header`}
+							aria-controls={`panel${newObj.id}-content`}
+							id={`panel${newObj.id}-header`}
 						>
 							<Stack
 								gap={2}
@@ -384,7 +474,7 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 										Cable Name:<span>154kV Namyang - Yeonsu T/L</span>
 									</CableContent>
 								</LeftContent>
-								<RightContent>
+								<RightContent onClick={(event) => event.stopPropagation()}>
 									{cancel && (
 										<StyledButton
 											onClick={handleCancelButtonClick}
@@ -400,7 +490,8 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 									)}
 									{delete1 && (
 										<StyledButton
-											onClick={handleDeleteButtonClick}
+											disabled={!newObj.edges.length}
+											onClick={() => handleDeleteButtonClick(newObj.id, newObj.project)}
 											style={{ boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)' }}
 											variant="outlined"
 											sx={{
@@ -415,8 +506,10 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 										</StyledButton>
 									)}
 									{save && (
-										<StyledButton
-											onClick={handleSaveButtonClick}
+										<StyledLoadingButton
+											disabled={!newObj.edges.length}
+											loading={loading && expanded === `panel${newObj.id}`}
+											onClick={() => handleSaveButtonClick(newObj)}
 											style={{ boxShadow: '0px 8px 16px rgba(141, 153, 255, 0.24)' }}
 											variant="contained"
 											sx={{
@@ -425,8 +518,8 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 											}}
 										>
 											<Iconify icon="heroicons-outline:save" width={20} height={20} />
-											Save
-										</StyledButton>
+											{newObj.project ? 'Update' : 'Save'}
+										</StyledLoadingButton>
 									)}
 									<img
 										sx={{
@@ -462,11 +555,11 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 									</DiagramHeader>
 									<Container1>
 										<Diagram
-											nodes={nodes}
-											edges={edges}
-											seqNumber={seqNumber}
-											setEdges={setEdges}
-											setNodes={setNodes}
+											nodes={newObj.nodes}
+											edges={newObj.edges}
+											setCurrentObj={setCurrentObj}
+											currentObj={newObj.currentObj}
+											objId={newObj.id}
 										/>
 									</Container1>
 								</DiagramParent>
@@ -501,6 +594,7 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 														newObj={newObj}
 														handleNewObjChange={handleNewObjChange}
 														handleAddConnection={handleAddConnection}
+														index={index}
 													/>
 												</>
 											)}
@@ -523,7 +617,7 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 							}}
 						/>
 					</Accordion>
-					{expanded === `panel${panel}` && (
+					{expanded === `panel${newObj.id}` && (
 						<Box
 							sx={{
 								minHeight: '96px',
@@ -551,7 +645,7 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 					)}
 				</ContentParentRoot>
 			))}
-			<CustomButton onClick={addPanel}>
+			<CustomButton onClick={handleAddNewObj}>
 				<Iconify icon="ic:round-plus" width={20} height={20} />
 				<CustomButtonText>Add Diagram</CustomButtonText>
 			</CustomButton>
