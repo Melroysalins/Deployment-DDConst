@@ -234,7 +234,7 @@ const DiagramHeader = styled('Box')({
 	flexDirection: 'row',
 	alignItems: 'flex-start',
 	justifyContent: 'flex-end',
-	width: '671px',
+	width: '100%',
 	height: '44px',
 	padding: '12px 12px 0px',
 	boxSizing: 'border-box',
@@ -307,11 +307,11 @@ const AccordionDetails = styled((props) => <MuiAccordionDetails {...props} />)((
 	fontFamily: 'Manrope',
 }))
 
-const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => {
-	const isEditable = true
+const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	const [loading, setloading] = useState(false)
 	const [expanded, setExpanded] = useState('panel1')
 	const [showDemolitionTable, setShowDemolitionTable] = useState(false)
+	const [isEditing, setIsEditing] = useState(false)
 
 	const [objs, setObjs] = useState([{ currentObj: defaultNewObj, id: 1, nodes: [], edges: [] }])
 	const [seqNumber, setseqNumber] = useState(2)
@@ -319,6 +319,10 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 
 	const handleChange = (panel) => () => {
 		setExpanded(expanded !== panel ? panel : '')
+	}
+
+	const handleEditButtonClick = () => {
+		setIsEditing(true)
 	}
 
 	const getDiagram = async () => {
@@ -337,7 +341,9 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 		getDiagram()
 	}, [id])
 
-	const handleCancelButtonClick = () => {}
+	const handleCancelButtonClick = () => {
+		setIsEditing(false)
+	}
 
 	const handleDeleteButtonClick = (objId, hasProject) => {
 		setObjs(objs.filter((obj) => obj.id !== objId))
@@ -490,7 +496,6 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 									)}
 									{delete1 && (
 										<StyledButton
-											disabled={!newObj.edges.length}
 											onClick={() => handleDeleteButtonClick(newObj.id, newObj.project)}
 											style={{ boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)' }}
 											variant="outlined"
@@ -505,7 +510,7 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 											</Stack>
 										</StyledButton>
 									)}
-									{save && (
+									{save && (isEditing || !newObj.project) && (
 										<StyledLoadingButton
 											disabled={!newObj.edges.length}
 											loading={loading && expanded === `panel${newObj.id}`}
@@ -520,6 +525,23 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 											<Iconify icon="heroicons-outline:save" width={20} height={20} />
 											{newObj.project ? 'Update' : 'Save'}
 										</StyledLoadingButton>
+									)}
+									{isEditable && newObj.project && !isEditing && (
+										<StyledButton
+											onClick={handleEditButtonClick}
+											style={{ boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)' }}
+											variant="outlined"
+											sx={{
+												width: '150px',
+												borderRadius: '8px',
+												backgroundColor: '#FFFFFF',
+											}}
+										>
+											<Stack gap={1} direction="row" alignItems="center">
+												<Iconify icon="mi:edit" width={20} height={20} />
+												Edit
+											</Stack>
+										</StyledButton>
 									)}
 									<img
 										sx={{
@@ -595,6 +617,8 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 														handleNewObjChange={handleNewObjChange}
 														handleAddConnection={handleAddConnection}
 														index={index}
+														isEdit={isEditing && newObj.project}
+														setIsEditing={setIsEditing}
 													/>
 												</>
 											)}
@@ -670,10 +694,10 @@ const Tasks = ({ edit = false, cancel = true, delete1 = true, save = true }) => 
 }
 
 Tasks.propTypes = {
-	edit: PropTypes.bool,
 	cancel: PropTypes.bool,
 	delete1: PropTypes.bool,
 	save: PropTypes.bool,
+	isEditable: PropTypes.bool,
 }
 
 export default Tasks

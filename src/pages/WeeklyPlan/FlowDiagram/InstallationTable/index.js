@@ -27,38 +27,58 @@ const renderTableCell = (text) => (
 	</TableCell>
 )
 
-const renderTableRow = (connection, index, handleNewObjChange, displayName, newObj) => (
+const renderTableRow = (connection, index, handleNewObjChange, displayName, newObj, isEdit) => (
 	<TableRow>
 		{renderTableCell(`${displayName}`)}
 		<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
-			<TextField
-				variant="outlined"
-				sx={{ width: '70px', '& .MuiInputBase-root': { height: 32 } }}
-				placeholder="320"
-				onChange={(e) => handleNewObjChange(e.target.value, 'length', newObj.id)}
-				value={newObj.currentObj.length}
-			/>
+			{isEdit ? (
+				<TextField
+					variant="outlined"
+					sx={{ width: '70px', '& .MuiInputBase-root': { height: 32 } }}
+					placeholder="320"
+					onChange={(e) => handleNewObjChange(e.target.value, 'length', newObj.id)}
+					value={newObj.currentObj.length}
+				/>
+			) : (
+				<Typography
+					variant="body1"
+					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+					className={style.Typography}
+				>
+					{newObj.currentObj.length}
+				</Typography>
+			)}
 		</TableCell>
 		<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
-			<Select
-				value={connection.status}
-				label="Status"
-				onChange={(e) => handleNewObjChange(e.target.value, 'status', newObj.id, index)}
-				variant="outlined"
-				className={style.StyledSelect}
-				size="small"
-			>
-				{STATUS.map((e) => (
-					<MenuItem value={e.value} key={e.value}>
-						{e.label}
-					</MenuItem>
-				))}
-			</Select>
+			{isEdit ? (
+				<Select
+					value={connection.status}
+					label="Status"
+					onChange={(e) => handleNewObjChange(e.target.value, 'status', newObj.id, index)}
+					variant="outlined"
+					className={style.StyledSelect}
+					size="small"
+				>
+					{STATUS.map((e) => (
+						<MenuItem value={e.value} key={e.value}>
+							{e.label}
+						</MenuItem>
+					))}
+				</Select>
+			) : (
+				<Typography
+					variant="body1"
+					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+					className={style.Typography}
+				>
+					{connection.status}
+				</Typography>
+			)}
 		</TableCell>
 	</TableRow>
 )
 
-const InstallationTable = ({ handleNewObjChange, newObj }) => (
+const InstallationTable = ({ handleNewObjChange, newObj, isEdit }) => (
 	<TableContainer sx={{ border: '1px solid lightgrey', width: 'max-content', marginLeft: '25px', borderRadius: '8px' }}>
 		<Table sx={{ overflow: 'hidden' }}>
 			<TableHead>
@@ -69,23 +89,21 @@ const InstallationTable = ({ handleNewObjChange, newObj }) => (
 				</TableRow>
 			</TableHead>
 			<TableBody>
-				{/* {renderTableRow(`NamyangS/S~M/H#1`)} */}
-				{/* M/H#${index + 1}~M/H#${index + 2} */}
 				{newObj.currentObj.connections.map((connection, index) => {
 					let status = ''
 					if (index === 0) {
-						status = `Namyang${JUNCTION_BOX_MAP[newObj.currentObj.start]}~${JB_TYPE_MAP[connection.joinType]}#${
-							index + 1
-						}`
+						status = `Namyang${JUNCTION_BOX_MAP[newObj.currentObj.start]}#${index + 1}~${
+							JB_TYPE_MAP[connection.joinType]
+						}#${index + 1}`
 					} else if (index === newObj.currentObj.connections.length) {
 						status = `${JB_TYPE_MAP[connection.joinType]}#${index + 1}~Yeonsu${JUNCTION_BOX_MAP[newObj.currentObj.end]}`
 					} else {
-						status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1].joinType]}#${index + 1}~${
+						status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1].joinType]}#${index}~${
 							JB_TYPE_MAP[connection.joinType]
-						}#${index + 2}`
+						}#${index + 1}`
 					}
 
-					return <>{renderTableRow(connection, index, handleNewObjChange, status, newObj)}</>
+					return <>{renderTableRow(connection, index, handleNewObjChange, status, newObj, isEdit)}</>
 				})}
 			</TableBody>
 		</Table>
@@ -96,6 +114,7 @@ InstallationTable.propTypes = {
 	installations: PropTypes.array.isRequired,
 	handleNewObjChange: PropTypes.func.isRequired,
 	newObj: PropTypes.object.isRequired,
+	isEdit: PropTypes.bool.isRequired,
 }
 
 export default InstallationTable

@@ -20,9 +20,18 @@ import AddIcon from '@mui/icons-material/Add'
 import Iconify from 'components/Iconify'
 import style from './ConnectionTable.module.scss'
 import PropTypes from 'prop-types'
-import { CONNECTORS, JB_TYPE, JUNCTION_BOX, PMJ, STATUS } from '../diagramHelper'
+import {
+	CONNECTORS,
+	JB_TYPE,
+	JB_TYPE_MAP,
+	JUNCTION_BOX,
+	JUNCTION_BOX_MAP,
+	PMJ,
+	STATUS,
+	STATUS_MAP,
+} from '../diagramHelper'
 
-const renderTableRow = (connection, index, handleNewObjChange, objId) => (
+const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit) => (
 	<TableRow key={index}>
 		<TableCell className={style.TableCell} sx={{ padding: '6px 10px', width: '92px' }}>
 			<Typography
@@ -32,80 +41,110 @@ const renderTableRow = (connection, index, handleNewObjChange, objId) => (
 			>{`#${index + 1}`}</Typography>
 		</TableCell>
 		<TableCell className={style.TableCell} sx={{ padding: '6px 10px', width: '141.5px' }}>
-			<FormControl variant="outlined" sx={{ width: '121.5px', height: '32px' }} className={style.FormControl}>
-				<InputLabel className={style.InputLabel} color="primary">
-					Jb Type
-				</InputLabel>
-				<Select
-					className={style.Select}
-					color="primary"
-					sx={{ height: '32px' }}
-					value={connection.joinType}
-					label="Jb Type"
-					onChange={(e) => handleNewObjChange(e.target.value, 'joinType', objId, index)}
-					disableUnderline
-					displayEmpty
+			{isEdit ? (
+				<FormControl variant="outlined" sx={{ width: '121.5px', height: '32px' }} className={style.FormControl}>
+					<InputLabel className={style.InputLabel} color="primary">
+						Jb Type
+					</InputLabel>
+					<Select
+						className={style.Select}
+						color="primary"
+						sx={{ height: '32px' }}
+						value={connection.joinType}
+						label="Jb Type"
+						onChange={(e) => handleNewObjChange(e.target.value, 'joinType', objId, index)}
+						disableUnderline
+						displayEmpty
+					>
+						{JB_TYPE.map((e) => (
+							<MenuItem value={e.value} key={e}>
+								{e.label}
+							</MenuItem>
+						))}
+					</Select>
+					<FormHelperText />
+				</FormControl>
+			) : (
+				<Typography
+					className={style.Typography}
+					variant="body1"
+					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 				>
-					{JB_TYPE.map((e) => (
-						<MenuItem value={e.value} key={e}>
-							{e.label}
-						</MenuItem>
-					))}
-				</Select>
-				<FormHelperText />
-			</FormControl>
+					{JB_TYPE_MAP[connection.joinType]}
+				</Typography>
+			)}
 		</TableCell>
 
 		<TableCell className={style.TableCell} sx={{ padding: '6px 10px', width: '141.5px' }}>
-			<FormControl variant="outlined" sx={{ width: '121.5px', height: '32px' }} className={style.FormControl}>
-				<InputLabel className={style.InputLabel} color="primary">
-					PMJ
-				</InputLabel>
-				<Select
-					className={style.Select}
-					color="primary"
-					sx={{ height: '32px' }}
-					value={connection.pmj}
-					label="PMJ"
-					onChange={(e) => handleNewObjChange(e.target.value, 'pmj', objId, index)}
-					disableUnderline
-					displayEmpty
+			{isEdit ? (
+				<FormControl variant="outlined" sx={{ width: '121.5px', height: '32px' }} className={style.FormControl}>
+					<InputLabel className={style.InputLabel} color="primary">
+						PMJ
+					</InputLabel>
+					<Select
+						className={style.Select}
+						color="primary"
+						sx={{ height: '32px' }}
+						value={connection.pmj}
+						label="PMJ"
+						onChange={(e) => handleNewObjChange(e.target.value, 'pmj', objId, index)}
+						disableUnderline
+						displayEmpty
+					>
+						{PMJ.map((e) => (
+							<MenuItem value={e} key={e}>
+								{e}
+							</MenuItem>
+						))}
+					</Select>
+					<FormHelperText />
+				</FormControl>
+			) : (
+				<Typography
+					className={style.Typography}
+					variant="body1"
+					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 				>
-					{PMJ.map((e) => (
-						<MenuItem value={e} key={e}>
-							{e}
-						</MenuItem>
-					))}
-				</Select>
-				<FormHelperText />
-			</FormControl>
+					{connection.pmj}
+				</Typography>
+			)}
 		</TableCell>
 
 		<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '130px' }}>
-			<FormControl>
-				<InputLabel className={style.InputLabel} color="primary">
-					Status
-				</InputLabel>
-				<Select
-					className={style.StyledSelect}
-					value={connection.status}
-					label="Status"
-					onChange={(e) => handleNewObjChange(e.target.value, 'status', objId, index)}
-					variant="outlined"
-					size="small"
+			{isEdit ? (
+				<FormControl>
+					<InputLabel className={style.InputLabel} color="primary">
+						Status
+					</InputLabel>
+					<Select
+						className={style.StyledSelect}
+						value={connection.status}
+						label="Status"
+						onChange={(e) => handleNewObjChange(e.target.value, 'status', objId, index)}
+						variant="outlined"
+						size="small"
+					>
+						{STATUS.map((e) => (
+							<MenuItem value={e.value} key={e.value}>
+								{e.label}
+							</MenuItem>
+						))}
+					</Select>
+				</FormControl>
+			) : (
+				<Typography
+					className={style.Typography}
+					variant="body1"
+					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 				>
-					{STATUS.map((e) => (
-						<MenuItem value={e.value} key={e.value}>
-							{e.label}
-						</MenuItem>
-					))}
-				</Select>
-			</FormControl>
+					{STATUS_MAP[connection.status]}
+				</Typography>
+			)}
 		</TableCell>
 	</TableRow>
 )
 
-const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleNewObjChange, newObj }) => {
+const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleNewObjChange, newObj, isEdit }) => {
 	const [isExpanded, setIsExpanded] = useState(false)
 
 	const addPanel = () => {
@@ -206,82 +245,112 @@ const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleN
 									</Typography>
 								</TableCell>
 								<TableCell className={style.TableCell} sx={{ padding: '6px 10px', width: '141.5px' }}>
-									<FormControl
-										variant="outlined"
-										sx={{ width: '121.5px' }}
-										className={style.FormControl} // Add className here
-									>
-										<InputLabel className={style.InputLabel} color="primary">
-											Start
-										</InputLabel>
-										<Select
-											className={style.Select}
-											color="primary"
-											sx={{ height: '32px' }}
-											value={newObj.currentObj.start}
-											label="Start"
-											onChange={(e) => handleNewObjChange(e.target.value, 'start', newObj.id)}
-											size="small"
-											disableUnderline
-											displayEmpty
+									{isEdit ? (
+										<FormControl
+											variant="outlined"
+											sx={{ width: '121.5px' }}
+											className={style.FormControl} // Add className here
 										>
-											{JUNCTION_BOX.map((e) => (
-												<MenuItem value={e.value} key={e.value}>
-													{e.label}
-												</MenuItem>
-											))}
-										</Select>
-										<FormHelperText />
-									</FormControl>
+											<InputLabel className={style.InputLabel} color="primary">
+												Start
+											</InputLabel>
+											<Select
+												className={style.Select}
+												color="primary"
+												sx={{ height: '32px' }}
+												value={newObj.currentObj.start}
+												label="Start"
+												onChange={(e) => handleNewObjChange(e.target.value, 'start', newObj.id)}
+												size="small"
+												disableUnderline
+												displayEmpty
+											>
+												{JUNCTION_BOX.map((e) => (
+													<MenuItem value={e.value} key={e.value}>
+														{e.label}
+													</MenuItem>
+												))}
+											</Select>
+											<FormHelperText />
+										</FormControl>
+									) : (
+										<Typography
+											className={style.Typography}
+											variant="body1"
+											sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+										>
+											{JUNCTION_BOX_MAP[newObj.currentObj.start]}
+										</Typography>
+									)}
 								</TableCell>
 								<TableCell className={style.TableCell} sx={{ padding: '6px 10px', width: '141px' }}>
-									<FormControl
-										variant="outlined"
-										sx={{ width: '121.5px' }}
-										className={style.FormControl} // Add className here
-									>
-										<InputLabel className={style.InputLabel} color="primary">
-											Connector
-										</InputLabel>
-										<Select
-											className={style.Select}
-											color="primary"
-											sx={{ height: '32px' }}
-											label="Connector"
-											value={newObj.currentObj.startConnector}
-											onChange={(e) => handleNewObjChange(e.target.value, 'startConnector', newObj.id)}
-											disableUnderline
-											displayEmpty
+									{isEdit ? (
+										<FormControl
+											variant="outlined"
+											sx={{ width: '121.5px' }}
+											className={style.FormControl} // Add className here
 										>
-											{CONNECTORS.map((e) => (
-												<MenuItem value={e.value} key={e.value}>
-													{e.label}
-												</MenuItem>
-											))}
-										</Select>
-										<FormHelperText />
-									</FormControl>
+											<InputLabel className={style.InputLabel} color="primary">
+												Connector
+											</InputLabel>
+											<Select
+												className={style.Select}
+												color="primary"
+												sx={{ height: '32px' }}
+												label="Connector"
+												value={newObj.currentObj.startConnector}
+												onChange={(e) => handleNewObjChange(e.target.value, 'startConnector', newObj.id)}
+												disableUnderline
+												displayEmpty
+											>
+												{CONNECTORS.map((e) => (
+													<MenuItem value={e.value} key={e.value}>
+														{e.label}
+													</MenuItem>
+												))}
+											</Select>
+											<FormHelperText />
+										</FormControl>
+									) : (
+										<Typography
+											className={style.Typography}
+											variant="body1"
+											sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+										>
+											{newObj.currentObj.startConnector}
+										</Typography>
+									)}
 								</TableCell>
 								<TableCell className={style.TableCell} sx={{ padding: '6px 10px', width: '130px' }}>
-									<FormControl>
-										<InputLabel className={style.InputLabel} color="primary">
-											Status
-										</InputLabel>
-										<Select
-											className={style.StyledSelect}
-											label="Status"
-											value={newObj.currentObj.startStatus}
-											onChange={(e) => handleNewObjChange(e.target.value, 'startStatus', newObj.id)}
-											variant="outlined"
-											size="small"
+									{isEdit ? (
+										<FormControl>
+											<InputLabel className={style.InputLabel} color="primary">
+												Status
+											</InputLabel>
+											<Select
+												className={style.StyledSelect}
+												label="Status"
+												value={newObj.currentObj.startStatus}
+												onChange={(e) => handleNewObjChange(e.target.value, 'startStatus', newObj.id)}
+												variant="outlined"
+												size="small"
+											>
+												{STATUS.map((e) => (
+													<MenuItem value={e.value} key={e.value}>
+														{e.label}
+													</MenuItem>
+												))}
+											</Select>
+										</FormControl>
+									) : (
+										<Typography
+											className={style.Typography}
+											variant="body1"
+											sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 										>
-											{STATUS.map((e) => (
-												<MenuItem value={e.value} key={e.value}>
-													{e.label}
-												</MenuItem>
-											))}
-										</Select>
-									</FormControl>
+											{STATUS_MAP[newObj.currentObj.startStatus]}
+										</Typography>
+									)}
 								</TableCell>
 							</TableRow>
 							<TableRow>
@@ -295,81 +364,111 @@ const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleN
 									</Typography>
 								</TableCell>
 								<TableCell className={style.TableCell} sx={{ padding: '6px 10px', wiscssdth: '141px' }}>
-									<FormControl
-										variant="outlined"
-										sx={{ width: '121.5px', height: '32px' }}
-										className={style.FormControl} // Add className here
-									>
-										<InputLabel className={style.InputLabel} color="primary">
-											End
-										</InputLabel>
-										<Select
-											className={style.Select}
-											color="primary"
-											sx={{ height: '32px' }}
-											value={newObj.currentObj.end}
-											label="End"
-											onChange={(e) => handleNewObjChange(e.target.value, 'end', newObj.id)}
-											disableUnderline
-											displayEmpty
+									{isEdit ? (
+										<FormControl
+											variant="outlined"
+											sx={{ width: '121.5px', height: '32px' }}
+											className={style.FormControl} // Add className here
 										>
-											{JUNCTION_BOX.map((e) => (
-												<MenuItem value={e.value} key={e.value}>
-													{e.label}
-												</MenuItem>
-											))}
-										</Select>
-										<FormHelperText />
-									</FormControl>
+											<InputLabel className={style.InputLabel} color="primary">
+												End
+											</InputLabel>
+											<Select
+												className={style.Select}
+												color="primary"
+												sx={{ height: '32px' }}
+												value={newObj.currentObj.end}
+												label="End"
+												onChange={(e) => handleNewObjChange(e.target.value, 'end', newObj.id)}
+												disableUnderline
+												displayEmpty
+											>
+												{JUNCTION_BOX.map((e) => (
+													<MenuItem value={e.value} key={e.value}>
+														{e.label}
+													</MenuItem>
+												))}
+											</Select>
+											<FormHelperText />
+										</FormControl>
+									) : (
+										<Typography
+											className={style.Typography}
+											variant="body1"
+											sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+										>
+											{JUNCTION_BOX_MAP[newObj.currentObj.end]}
+										</Typography>
+									)}
 								</TableCell>
 								<TableCell className={style.TableCell} sx={{ padding: '6px 10px', width: '141px' }}>
-									<FormControl
-										variant="outlined"
-										sx={{ width: '121.5px', height: '32px' }}
-										className={style.FormControl} // Add className here
-									>
-										<InputLabel className={style.InputLabel} color="primary">
-											Connector
-										</InputLabel>
-										<Select
-											className={style.Select}
-											color="primary"
-											sx={{ height: '32px' }}
-											label="Connector"
-											value={newObj.currentObj.endConnector}
-											onChange={(e) => handleNewObjChange(e.target.value, 'endConnector', newObj.id)}
-											disableUnderline
-											displayEmpty
+									{isEdit ? (
+										<FormControl
+											variant="outlined"
+											sx={{ width: '121.5px', height: '32px' }}
+											className={style.FormControl} // Add className here
 										>
-											{CONNECTORS.map((e) => (
-												<MenuItem value={e.value} key={e.value}>
-													{e.label}
-												</MenuItem>
-											))}
-										</Select>
-										<FormHelperText />
-									</FormControl>
+											<InputLabel className={style.InputLabel} color="primary">
+												Connector
+											</InputLabel>
+											<Select
+												className={style.Select}
+												color="primary"
+												sx={{ height: '32px' }}
+												label="Connector"
+												value={newObj.currentObj.endConnector}
+												onChange={(e) => handleNewObjChange(e.target.value, 'endConnector', newObj.id)}
+												disableUnderline
+												displayEmpty
+											>
+												{CONNECTORS.map((e) => (
+													<MenuItem value={e.value} key={e.value}>
+														{e.label}
+													</MenuItem>
+												))}
+											</Select>
+											<FormHelperText />
+										</FormControl>
+									) : (
+										<Typography
+											className={style.Typography}
+											variant="body1"
+											sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+										>
+											{newObj.currentObj.endConnector}
+										</Typography>
+									)}
 								</TableCell>
 								<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '130px' }}>
-									<FormControl>
-										<InputLabel className={style.InputLabel} color="primary">
-											Status
-										</InputLabel>
-										<Select
-											className={style.StyledSelect}
-											label="Status"
-											value={newObj.currentObj.endStatus}
-											onChange={(e) => handleNewObjChange(e.target.value, 'endStatus', newObj.id)}
-											variant="outlined"
-											size="small"
+									{isEdit ? (
+										<FormControl>
+											<InputLabel className={style.InputLabel} color="primary">
+												Status
+											</InputLabel>
+											<Select
+												className={style.StyledSelect}
+												label="Status"
+												value={newObj.currentObj.endStatus}
+												onChange={(e) => handleNewObjChange(e.target.value, 'endStatus', newObj.id)}
+												variant="outlined"
+												size="small"
+											>
+												{STATUS.map((e) => (
+													<MenuItem value={e.value} key={e.value}>
+														{e.label}
+													</MenuItem>
+												))}
+											</Select>
+										</FormControl>
+									) : (
+										<Typography
+											className={style.Typography}
+											variant="body1"
+											sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 										>
-											{STATUS.map((e) => (
-												<MenuItem value={e.value} key={e.value}>
-													{e.label}
-												</MenuItem>
-											))}
-										</Select>
-									</FormControl>
+											{STATUS_MAP[newObj.currentObj.endStatus]}
+										</Typography>
+									)}
 								</TableCell>
 							</TableRow>
 						</TableBody>
@@ -423,7 +522,7 @@ const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleN
 								>
 									<Box sx={{ maxHeight: isExpanded ? 'none' : '390px', overflow: 'auto' }}>
 										{newObj.currentObj.connections.map((connection, index) => (
-											<>{renderTableRow(connection, index, handleNewObjChange, newObj.id)}</>
+											<>{renderTableRow(connection, index, handleNewObjChange, newObj.id, isEdit)}</>
 										))}
 									</Box>
 								</Collapse>
@@ -508,6 +607,7 @@ ConnectionTable.propTypes = {
 	handleCloseInstallation: PropTypes.func.isRequired,
 	handleNewObjChange: PropTypes.func.isRequired,
 	newObj: PropTypes.object.isRequired,
+	isEdit: PropTypes.bool,
 }
 
 export default ConnectionTable

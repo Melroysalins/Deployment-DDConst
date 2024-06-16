@@ -120,7 +120,7 @@ const HeaderText = ({ title, color, newObj }) => (
 	</Box>
 )
 
-export default function FormDiagram({ showDemolitionTable, handleNewObjChange, newObj, handleAddConnection }) {
+export default function FormDiagram({ showDemolitionTable, handleNewObjChange, newObj, handleAddConnection, isEdit }) {
 	const [installations, setInstallations] = useState([])
 
 	const handleCloseInstallation = useCallback(() => {
@@ -136,16 +136,22 @@ export default function FormDiagram({ showDemolitionTable, handleNewObjChange, n
 					handleCloseInstallation={handleCloseInstallation}
 					handleNewObjChange={handleNewObjChange}
 					newObj={newObj}
+					isEdit={isEdit}
 				/>
 			</StyledConnection>
 			<StyledInstallation>
 				<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
-				<InstallationTable installations={installations} handleNewObjChange={handleNewObjChange} newObj={newObj} />
+				<InstallationTable
+					installations={installations}
+					handleNewObjChange={handleNewObjChange}
+					newObj={newObj}
+					isEdit={isEdit}
+				/>
 			</StyledInstallation>
 			{showDemolitionTable && (
 				<StyledDemolition>
 					<HeaderText title="Demolition" color="#7FBCFE" newObj={newObj} />
-					<DemolitionTable />
+					<DemolitionTable isEdit={isEdit} />
 				</StyledDemolition>
 			)}
 		</>
@@ -157,4 +163,5 @@ FormDiagram.propTypes = {
 	handleNewObjChange: PropTypes.func.isRequired,
 	newObj: PropTypes.object.isRequired,
 	handleAddConnection: PropTypes.func.isRequired,
+	isEdit: PropTypes.bool,
 }

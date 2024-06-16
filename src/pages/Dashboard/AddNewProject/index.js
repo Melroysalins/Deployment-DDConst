@@ -16,7 +16,7 @@ const StyledBox = styled(Box)({
 
 const AddNewProject = ({ edit = false }) => {
 	const [searchParams] = useSearchParams()
-	const { pathname } = useLocation() 
+	const { pathname } = useLocation()
 	const navigate = useNavigate()
 
 	const tab = searchParams.get('tab')
@@ -31,77 +31,125 @@ const AddNewProject = ({ edit = false }) => {
 	}
 
 	return (
-		<Box border={1} borderColor={'lightgrey'} borderRadius={1} sx={{ overflow: "hidden"}}>
+		<Box border={1} borderColor={'lightgrey'} borderRadius={1} sx={{ overflow: 'hidden' }}>
 			<Tabs
 				value={selectedTab}
 				onChange={handleChange}
 				variant="fullWidth"
-				textColor='inherit'
-				sx={{ bgcolor: 'white'}}
+				textColor="inherit"
+				sx={{ bgcolor: 'white' }}
 				TabIndicatorProps={{ hidden: true }}
-				
 			>
 				<Tab
 					value="1"
 					label={
 						<Stack gap={2} direction="row" alignItems="center" sx={{ fontFamily: 'manrope', fontWeight: 600 }}>
 							{edit ? (
-								<Iconify color={selectedTab === '1' ? "#FF6B00" : undefined} icon="ic:outline-design-services" width={20} height={20} />
+								<Iconify
+									color={selectedTab === '1' ? '#FF6B00' : undefined}
+									icon="ic:outline-design-services"
+									width={20}
+									height={20}
+								/>
 							) : (
 								<img style={{ height: 15 }} src="/static/images/contract.svg" alt="" />
 							)}
 							Contract / Project Information
 						</Stack>
 					}
-					sx={{  borderRight: 1, borderColor: 'divider' }}
+					sx={{ borderRight: 1, borderColor: 'divider' }}
 				/>
 				<Tab
 					value="2"
 					label={
 						<Stack gap={2} direction="row" alignItems="center" sx={{ fontFamily: 'manrope', fontWeight: 600 }}>
-							<Iconify color={selectedTab === '2' ? '#FF6B00' : undefined} icon="tabler:clipboard-list" width={20} height={20} /> Tasks
+							<Iconify
+								color={selectedTab === '2' ? '#FF6B00' : undefined}
+								icon="tabler:clipboard-list"
+								width={20}
+								height={20}
+							/>{' '}
+							Tasks
 						</Stack>
 					}
 					disabled={!edit}
-					sx={{  borderRight: 1, borderColor: 'divider' }}
+					sx={{ borderRight: 1, borderColor: 'divider' }}
 				/>
 				<Tab
 					value="3"
 					label={
 						<Stack gap={2} direction="row" alignItems="center" sx={{ fontFamily: 'manrope', fontWeight: 600 }}>
-							<Iconify color={selectedTab === '3' ? '#FF6B00' : undefined} icon="heroicons-outline:calculator" width={20} height={20} /> Execution Budget
+							<Iconify
+								color={selectedTab === '3' ? '#FF6B00' : undefined}
+								icon="heroicons-outline:calculator"
+								width={20}
+								height={20}
+							/>{' '}
+							Execution Budget
 						</Stack>
 					}
 					disabled={!edit}
-					sx={{  borderRight: 1, borderColor: 'divider' }}
+					sx={{ borderRight: 1, borderColor: 'divider' }}
 				/>
 				<Tab
 					value="4"
 					label={
 						<Stack gap={2} direction="row" alignItems="center" sx={{ fontFamily: 'manrope', fontWeight: 600 }}>
-							<Iconify color={selectedTab === '4' ? '#FF6B00' : undefined} icon="raphael:diagram" width={20} height={20} /> Diagram Builder
+							<Iconify
+								color={selectedTab === '4' ? '#FF6B00' : undefined}
+								icon="raphael:diagram"
+								width={20}
+								height={20}
+							/>{' '}
+							Diagram Builder
 						</Stack>
 					}
 					disabled={!edit}
-					sx={{  borderRight: 1, borderColor: 'divider' }}
+					sx={{ borderRight: 1, borderColor: 'divider' }}
 				/>
 				<Tab
 					value="5"
 					label={
 						<Stack gap={2} direction="row" alignItems="center" sx={{ fontFamily: 'manrope', fontWeight: 600 }}>
-							<Iconify color={selectedTab === '5' ? '#FF6B00' : undefined} icon="raphael:diagram" width={20} height={20} /> Old Diagram Builder
+							<Iconify
+								color={selectedTab === '5' ? '#FF6B00' : undefined}
+								icon="raphael:diagram"
+								width={20}
+								height={20}
+							/>{' '}
+							Old Diagram Builder
 						</Stack>
 					}
 					disabled={!edit}
-					sx={{  borderRight: 1, borderColor: 'divider' }}
+					sx={{ borderRight: 1, borderColor: 'divider' }}
 				/>
 			</Tabs>
 			<Box>
-				{selectedTab === '1' && (<StyledBox ><Contract edit={edit} /></StyledBox>)}
-				{selectedTab === '2' && edit && (<StyledBox ><Tasks /></StyledBox>)}
-				{selectedTab === '3' && edit && (<StyledBox ><ExecutionBudget /></StyledBox>)}
-				{selectedTab === '4' && edit && (<StyledBox ><FlowDiagram isEditable={true} /></StyledBox>)}
-				{selectedTab === '5' && edit && (<StyledBox ><FlowDiagram2 isEditable={true} /></StyledBox>)}
+				{selectedTab === '1' && (
+					<StyledBox>
+						<Contract edit={edit} />
+					</StyledBox>
+				)}
+				{selectedTab === '2' && edit && (
+					<StyledBox>
+						<Tasks isEditable={true} />
+					</StyledBox>
+				)}
+				{selectedTab === '3' && edit && (
+					<StyledBox>
+						<ExecutionBudget />
+					</StyledBox>
+				)}
+				{selectedTab === '4' && edit && (
+					<StyledBox>
+						<FlowDiagram isEditable={true} />
+					</StyledBox>
+				)}
+				{selectedTab === '5' && edit && (
+					<StyledBox>
+						<FlowDiagram2 isEditable={true} />
+					</StyledBox>
+				)}
 			</Box>
 		</Box>
 	)

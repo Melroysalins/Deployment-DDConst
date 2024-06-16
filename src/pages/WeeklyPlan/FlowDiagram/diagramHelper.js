@@ -29,6 +29,12 @@ export const JUNCTION_BOX_MAP = {
 	square: 'S/S',
 }
 
+export const STATUS_MAP = {
+	notStarted: 'Not Started',
+	inProgress: 'In Progress',
+	completed: 'Completed',
+}
+
 export const generateNodesFromConnections = ({ id, connections, yPos, length = 600 }) => {
 	const nodes = []
 	const step = (length - MIN_X) / connections.length
@@ -62,17 +68,18 @@ export const generateStartEndNode = ({
 }) => {
 	start = `/static/svg/${start}-${startStatus}.svg`
 	end = `/static/svg/${end}-${endStatus}.svg`
+	const nameNumber = 1
 	const nodes = [
 		{
 			id: `${seqNumber}.start`,
 			type: 'image',
-			data: { imageUrl: start, name: `${startName}#${seqNumber}`, isEndbox: true, status: startStatus },
+			data: { imageUrl: start, name: `${startName}#${nameNumber}`, isEndbox: true, status: startStatus },
 			position: { x: startX, y: yPos - 10 },
 		},
 		{
 			id: `${seqNumber}.end`,
 			type: 'image',
-			data: { imageUrl: end, name: `${endName}#${seqNumber}`, isEndbox: true, status: endStatus },
+			data: { imageUrl: end, name: `${endName}#${nameNumber}`, isEndbox: true, status: endStatus },
 			position: { x: endX, y: yPos - 10 },
 		},
 	]
