@@ -348,6 +348,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			const updatedData = data.map((diagram) => ({
 				...diagram,
 				isEditing: false,
+				isEnd: true,
 			}))
 
 			const ids = data.map((diagram) => diagram.id)
