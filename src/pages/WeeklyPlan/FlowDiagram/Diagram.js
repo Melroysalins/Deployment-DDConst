@@ -50,7 +50,7 @@ function Diagram({ nodes, edges, currentObj, objId, setCurrentObj }) {
 			}))
 			updatedCurrentObj = { ...currentObj, connections }
 		}
-		setCurrentObj({ objId, currentObj: updatedCurrentObj, nodes: updatedNodes, edges })
+		setCurrentObj({ objId, currentObj: updatedCurrentObj, nodes: updatedNodes, edges, isEditing: currentObj.isEditing })
 		handleEditingImageCancel()
 	}
 
@@ -94,7 +94,7 @@ function Diagram({ nodes, edges, currentObj, objId, setCurrentObj }) {
 		)
 
 		const updatedCurrentObj = { ...currentObj }
-		setCurrentObj({ objId, currentObj: updatedCurrentObj, nodes, edges: updatedEdges })
+		setCurrentObj({ objId, currentObj: updatedCurrentObj, nodes, edges: updatedEdges, isEditing: currentObj.isEditing })
 		handleEditingEdgeCancel()
 	}
 

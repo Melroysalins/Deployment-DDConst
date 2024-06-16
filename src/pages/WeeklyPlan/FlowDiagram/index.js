@@ -307,12 +307,14 @@ const AccordionDetails = styled((props) => <MuiAccordionDetails {...props} />)((
 	fontFamily: 'Manrope',
 }))
 
+const defaultWholeObj = { currentObj: defaultNewObj, id: 1, nodes: [], edges: [], isEnd: false, isEditing: true }
+
 const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	const [loading, setloading] = useState(false)
 	const [expanded, setExpanded] = useState('panel1')
 	const [showDemolitionTable, setShowDemolitionTable] = useState(false)
 
-	const [objs, setObjs] = useState([{ currentObj: defaultNewObj, id: 1, nodes: [], edges: [] }])
+	const [objs, setObjs] = useState([{ ...defaultWholeObj }])
 	const [seqNumber, setseqNumber] = useState(2)
 	const { id } = useParams()
 
@@ -324,6 +326,16 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id === objId) {
 				return { ...obj, isEditing: !obj.isEditing }
+			}
+			return obj
+		})
+		setObjs(updatedObjs)
+	}
+
+	const handleCloseInstallation = (objId) => {
+		const updatedObjs = objs.map((obj) => {
+			if (obj.id === objId) {
+				return { ...obj, isEnd: true }
 			}
 			return obj
 		})
@@ -368,7 +380,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		} else {
 			const success = await createNewProjectDiagram(_obj)
 			if (success.data) {
-				setCurrentObj({ objId: currentNewObj.id, currentObj, nodes, edges, project: id })
+				setCurrentObj({ objId: currentNewObj.id, currentObj, nodes, edges, project: id, isEditing: false })
 			}
 		}
 		setloading(false)
@@ -400,7 +412,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				...obj.currentObj,
 				connections: [...obj.currentObj.connections, { ...defaultConnection }],
 			}
-			return { ...obj, currentObj: updatedMainObj }
+			return { ...obj, currentObj: updatedMainObj, isEnd: false }
 		})
 		setObjs(updatedObjs)
 	}
@@ -438,7 +450,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	}
 
 	const handleAddNewObj = () => {
-		const newObj = { currentObj: { ...defaultNewObj }, id: seqNumber, nodes: [], edges: [] }
+		const newObj = { ...defaultWholeObj }
 		setObjs([...objs, newObj])
 		setseqNumber((prev) => {
 			const newSeqNumber = prev + 1
@@ -447,10 +459,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		})
 	}
 
-	const setCurrentObj = ({ objId, currentObj, nodes, edges, project = null }) => {
+	const setCurrentObj = ({ objId, currentObj, nodes, edges, project = null, isEditing }) => {
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id === objId) {
-				return { ...obj, currentObj, nodes, edges, project }
+				return { ...obj, currentObj, nodes, edges, project, isEditing }
 			}
 			return obj
 		})
@@ -487,7 +499,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 									</CableContent>
 								</LeftContent>
 								<RightContent onClick={(event) => event.stopPropagation()}>
-									{cancel && newObj.isEditing && (
+									{cancel && newObj.isEditing && newObj.project && (
 										<StyledButton
 											onClick={() => handleEditButtonClick(newObj.id)}
 											style={{ boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)' }}
@@ -617,18 +629,15 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 									</Box>
 									<Tables>
 										<ConnectionInstallationTable>
-											{isEditable && (
-												<>
-													<FormDiagram
-														showDemolitionTable={showDemolitionTable}
-														newObj={newObj}
-														handleNewObjChange={handleNewObjChange}
-														handleAddConnection={handleAddConnection}
-														index={index}
-														isEdit={newObj.isEditing}
-													/>
-												</>
-											)}
+											<FormDiagram
+												showDemolitionTable={showDemolitionTable}
+												newObj={newObj}
+												handleNewObjChange={handleNewObjChange}
+												handleAddConnection={handleAddConnection}
+												index={index}
+												isEdit={newObj.isEditing}
+												handleCloseInstallation={handleCloseInstallation}
+											/>
 										</ConnectionInstallationTable>
 									</Tables>
 								</TableParent>

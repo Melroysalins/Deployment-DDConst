@@ -105,6 +105,21 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit }) => (
 
 					return <>{renderTableRow(connection, index, handleNewObjChange, status, newObj, isEdit)}</>
 				})}
+
+				{newObj.isEnd && (
+					<>
+						{renderTableRow(
+							newObj.currentObj.connections[newObj.currentObj.connections.length - 1],
+							newObj.currentObj.connections.length - 1,
+							handleNewObjChange,
+							`${JB_TYPE_MAP[newObj.currentObj.connections[newObj.currentObj.connections.length - 1].joinType]}#${
+								newObj.currentObj.connections.length
+							}~Yeonsu${JUNCTION_BOX_MAP[newObj.currentObj.end]}#1`,
+							newObj,
+							isEdit
+						)}
+					</>
+				)}
 			</TableBody>
 		</Table>
 	</TableContainer>

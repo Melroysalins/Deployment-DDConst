@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { Box, Typography } from '@mui/material'
-import { useState, React, useCallback } from 'react'
+import { React } from 'react'
 import { styled } from '@mui/material/styles'
 import ConnectionTable from './ConnectionTable'
 import InstallationTable from './InstallationTable'
@@ -120,9 +120,14 @@ const HeaderText = ({ title, color, newObj }) => (
 	</Box>
 )
 
-export default function FormDiagram({ showDemolitionTable, handleNewObjChange, newObj, handleAddConnection, isEdit }) {
-	const handleCloseInstallation = useCallback(() => {}, [])
-
+export default function FormDiagram({
+	showDemolitionTable,
+	handleNewObjChange,
+	newObj,
+	handleAddConnection,
+	isEdit,
+	handleCloseInstallation,
+}) {
 	return (
 		<>
 			<StyledConnection>
@@ -155,4 +160,5 @@ FormDiagram.propTypes = {
 	newObj: PropTypes.object.isRequired,
 	handleAddConnection: PropTypes.func.isRequired,
 	isEdit: PropTypes.bool,
+	handleCloseInstallation: PropTypes.func.isRequired,
 }
