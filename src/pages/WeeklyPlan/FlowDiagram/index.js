@@ -311,7 +311,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	const [loading, setloading] = useState(false)
 	const [expanded, setExpanded] = useState('panel1')
 	const [showDemolitionTable, setShowDemolitionTable] = useState(false)
-	const [isEditing, setIsEditing] = useState(false)
 
 	const [objs, setObjs] = useState([{ currentObj: defaultNewObj, id: 1, nodes: [], edges: [] }])
 	const [seqNumber, setseqNumber] = useState(2)
@@ -321,15 +320,26 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		setExpanded(expanded !== panel ? panel : '')
 	}
 
-	const handleEditButtonClick = () => {
-		setIsEditing(true)
+	const handleEditButtonClick = (objId) => {
+		const updatedObjs = objs.map((obj) => {
+			if (obj.id === objId) {
+				return { ...obj, isEditing: !obj.isEditing }
+			}
+			return obj
+		})
+		setObjs(updatedObjs)
 	}
 
 	const getDiagram = async () => {
 		const { data } = await getDiagramsByProject(id)
 		if (data?.length) {
+			const updatedData = data.map((diagram) => ({
+				...diagram,
+				isEditing: false,
+			}))
+
 			const ids = data.map((diagram) => diagram.id)
-			setObjs(data)
+			setObjs(updatedData)
 			const maxId = Math.max(...ids)
 			setseqNumber(maxId + 1)
 			const minId = Math.min(...ids)
@@ -340,10 +350,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	useEffect(() => {
 		getDiagram()
 	}, [id])
-
-	const handleCancelButtonClick = () => {
-		setIsEditing(false)
-	}
 
 	const handleDeleteButtonClick = (objId, hasProject) => {
 		setObjs(objs.filter((obj) => obj.id !== objId))
@@ -481,9 +487,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 									</CableContent>
 								</LeftContent>
 								<RightContent onClick={(event) => event.stopPropagation()}>
-									{cancel && (
+									{cancel && newObj.isEditing && (
 										<StyledButton
-											onClick={handleCancelButtonClick}
+											onClick={() => handleEditButtonClick(newObj.id)}
 											style={{ boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)' }}
 											variant="outlined"
 											sx={{
@@ -510,7 +516,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											</Stack>
 										</StyledButton>
 									)}
-									{save && (isEditing || !newObj.project) && (
+									{save && (!newObj.project || newObj.isEditing) && (
 										<StyledLoadingButton
 											disabled={!newObj.edges.length}
 											loading={loading && expanded === `panel${newObj.id}`}
@@ -526,9 +532,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											{newObj.project ? 'Update' : 'Save'}
 										</StyledLoadingButton>
 									)}
-									{isEditable && newObj.project && !isEditing && (
+									{isEditable && newObj.project && !newObj.isEditing && (
 										<StyledButton
-											onClick={handleEditButtonClick}
+											onClick={() => handleEditButtonClick(newObj.id)}
 											style={{ boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)' }}
 											variant="outlined"
 											sx={{
@@ -560,20 +566,22 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							<Content>
 								<DiagramParent>
 									<DiagramHeader>
-										<Button
-											onClick={handleAdd}
-											sx={{
-												backgroundColor: '#F3F3F5',
-												color: '#596570',
-												display: 'flex',
-												gap: '4px',
-												padding: '0px 12px 0px 12px',
-												height: '32px',
-											}}
-										>
-											<Iconify icon="ic:baseline-cached" width={16} height={16} />
-											Update
-										</Button>
+										{(newObj.isEditing || !newObj.project) && (
+											<Button
+												onClick={handleAdd}
+												sx={{
+													backgroundColor: '#F3F3F5',
+													color: '#596570',
+													display: 'flex',
+													gap: '4px',
+													padding: '0px 12px 0px 12px',
+													height: '32px',
+												}}
+											>
+												<Iconify icon="ic:baseline-cached" width={16} height={16} />
+												Update
+											</Button>
+										)}
 									</DiagramHeader>
 									<Container1>
 										<Diagram
@@ -617,8 +625,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 														handleNewObjChange={handleNewObjChange}
 														handleAddConnection={handleAddConnection}
 														index={index}
-														isEdit={isEditing && newObj.project}
-														setIsEditing={setIsEditing}
+														isEdit={newObj.isEditing}
 													/>
 												</>
 											)}

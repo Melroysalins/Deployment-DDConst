@@ -111,7 +111,6 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit }) => (
 )
 
 InstallationTable.propTypes = {
-	installations: PropTypes.array.isRequired,
 	handleNewObjChange: PropTypes.func.isRequired,
 	newObj: PropTypes.object.isRequired,
 	isEdit: PropTypes.bool.isRequired,

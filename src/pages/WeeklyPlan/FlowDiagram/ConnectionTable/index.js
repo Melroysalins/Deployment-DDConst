@@ -15,6 +15,7 @@ import {
 	TableCell,
 	TableRow,
 	Collapse,
+	Tooltip,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import Iconify from 'components/Iconify'
@@ -526,47 +527,50 @@ const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleN
 										))}
 									</Box>
 								</Collapse>
-								<Box
-									sx={{
-										position: 'absolute',
-										bottom: '-12px',
-										left: '40px',
-										display: 'flex',
-										flexDirection: 'row',
-										alignItems: 'center',
-										justifyContent: 'flex-start',
-										gap: '12px',
-										zIndex: 4,
-									}}
-								>
-									<IconButton
-										style={{
-											backgroundColor: '#ffa58d',
-											boxShadow: '0px 8px 16px rgba(255, 165, 141, 0.24)',
-											borderRadius: '32px',
-											width: '24px',
-											height: '24px',
+								{isEdit && (
+									<Box
+										sx={{
+											position: 'absolute',
+											bottom: '-12px',
+											left: '40px',
+											display: 'flex',
+											flexDirection: 'row',
+											alignItems: 'center',
+											justifyContent: 'flex-start',
+											gap: '12px',
+											zIndex: 4,
 										}}
-										onClick={addPanel} // Add onClick event handler here
 									>
-										<AddIcon sx={{ color: '#fff' }} />
-									</IconButton>
-									<IconButton
-										style={{
-											border: '1px solid #6ac79b',
-											backgroundColor: '#fff',
-											boxShadow: '0px 8px 16px rgba(152, 210, 195, 0.24)',
-											borderRadius: '32px',
-											padding: '0px',
-											width: '24px',
-											height: '24px',
-										}}
-										disabled
-										onClick={handleCloseInstallation} // Add onClick event handler here
-									>
-										<Iconify icon="ic:round-check" width={16} height={16} sx={{ color: '#6ac78b' }} />
-									</IconButton>
-								</Box>
+										<IconButton
+											style={{
+												backgroundColor: '#ffa58d',
+												boxShadow: '0px 8px 16px rgba(255, 165, 141, 0.24)',
+												borderRadius: '32px',
+												width: '24px',
+												height: '24px',
+											}}
+											onClick={addPanel} // Add onClick event handler here
+										>
+											<AddIcon sx={{ color: '#fff' }} />
+										</IconButton>
+										<Tooltip title="Done adding" arrow placement="right">
+											<IconButton
+												style={{
+													border: '1px solid #6ac79b',
+													backgroundColor: '#fff',
+													boxShadow: '0px 8px 16px rgba(152, 210, 195, 0.24)',
+													borderRadius: '32px',
+													padding: '0px',
+													width: '24px',
+													height: '24px',
+												}}
+												onClick={handleCloseInstallation} // Add onClick event handler here
+											>
+												<Iconify icon="ic:round-check" width={16} height={16} sx={{ color: '#6ac78b' }} />
+											</IconButton>
+										</Tooltip>
+									</Box>
+								)}
 								{newObj.currentObj.connections.length > 6 && (
 									<IconButton
 										style={{

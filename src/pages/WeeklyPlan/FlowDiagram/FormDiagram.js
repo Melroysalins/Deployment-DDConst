@@ -121,11 +121,7 @@ const HeaderText = ({ title, color, newObj }) => (
 )
 
 export default function FormDiagram({ showDemolitionTable, handleNewObjChange, newObj, handleAddConnection, isEdit }) {
-	const [installations, setInstallations] = useState([])
-
-	const handleCloseInstallation = useCallback(() => {
-		setInstallations((prevInstallations) => [...prevInstallations, 'YonsooS/S'])
-	}, [])
+	const handleCloseInstallation = useCallback(() => {}, [])
 
 	return (
 		<>
@@ -141,12 +137,7 @@ export default function FormDiagram({ showDemolitionTable, handleNewObjChange, n
 			</StyledConnection>
 			<StyledInstallation>
 				<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
-				<InstallationTable
-					installations={installations}
-					handleNewObjChange={handleNewObjChange}
-					newObj={newObj}
-					isEdit={isEdit}
-				/>
+				<InstallationTable handleNewObjChange={handleNewObjChange} newObj={newObj} isEdit={isEdit} />
 			</StyledInstallation>
 			{showDemolitionTable && (
 				<StyledDemolition>
