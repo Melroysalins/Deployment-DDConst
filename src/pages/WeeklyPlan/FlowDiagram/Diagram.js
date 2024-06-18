@@ -1,7 +1,6 @@
 import { Handle, Position, ReactFlow } from 'reactflow'
 import { Box, Button, Container, Dialog, DialogTitle, FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 import 'reactflow/dist/style.css'
-import styled from '@emotion/styled'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 import {
@@ -16,7 +15,7 @@ import {
 
 const Section = Box
 
-function Diagram({ nodes, edges, currentObj, objId, setCurrentObj }) {
+function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 	const [showEditModal, setshowEditModal] = useState(false)
 	const [editImageObj, seteditImageObj] = useState(null)
 	const [showEdgeModal, setshowEdgeModal] = useState(false)
@@ -32,10 +31,15 @@ function Diagram({ nodes, edges, currentObj, objId, setCurrentObj }) {
 			node.id === editImageObj.id ? { ...node, data: { ...node.data, ...editImageObj } } : node
 		)
 
+		const { currentObj } = newObj
 		let updatedCurrentObj = { ...currentObj }
+		let otherNodes = isDemolition ? newObj.nodes : newObj.nodes_demolition
 		if (isEndbox) {
-			// Start
+			otherNodes = otherNodes.map((node) =>
+				node.id === editImageObj.id ? { ...node, data: { ...node.data, ...editImageObj } } : node
+			)
 			if (editImageObj.id.split('.')[1] === 'start') {
+				// Start
 				updatedCurrentObj.startStatus = status
 				updatedCurrentObj.start = type
 			} else {
@@ -44,13 +48,19 @@ function Diagram({ nodes, edges, currentObj, objId, setCurrentObj }) {
 				updatedCurrentObj.end = type
 			}
 		} else {
-			const connections = currentObj.connections.map((connection, index) => ({
+			const connections = currentObj[isDemolition ? 'demolitions' : 'connections'].map((connection, index) => ({
 				...connection,
 				...(editImageObj.id.split('.')[1] === `${index + 1}` && { joinType: type, status }),
 			}))
-			updatedCurrentObj = { ...currentObj, connections }
+			updatedCurrentObj = { ...currentObj, ...(isDemolition ? { demolitions: connections } : { connections }) }
 		}
-		setCurrentObj({ objId, currentObj: updatedCurrentObj, nodes: updatedNodes, edges, isEditing: currentObj.isEditing })
+		setCurrentObj({
+			objId,
+			currentObj: updatedCurrentObj,
+			isEditing: true,
+			nodes: !isDemolition ? updatedNodes : otherNodes,
+			nodes_demolition: isDemolition ? updatedNodes : otherNodes,
+		})
 		handleEditingImageCancel()
 	}
 
@@ -92,9 +102,16 @@ function Diagram({ nodes, edges, currentObj, objId, setCurrentObj }) {
 		const updatedEdges = edges.map((edge) =>
 			edge.source === source ? { ...edge, style: { stroke: STROKE_COLOR[status] } } : edge
 		)
-
+		const { currentObj } = newObj
 		const updatedCurrentObj = { ...currentObj }
-		setCurrentObj({ objId, currentObj: updatedCurrentObj, nodes, edges: updatedEdges, isEditing: currentObj.isEditing })
+		const otherEdges = isDemolition ? newObj.edges : newObj.edges_demolition
+		setCurrentObj({
+			objId,
+			currentObj: updatedCurrentObj,
+			isEditing: true,
+			nodes: !isDemolition ? updatedEdges : otherEdges,
+			nodes_demolition: isDemolition ? updatedEdges : otherEdges,
+		})
 		handleEditingEdgeCancel()
 	}
 
@@ -220,7 +237,7 @@ function Diagram({ nodes, edges, currentObj, objId, setCurrentObj }) {
 						</span>
 					</div>
 				)}
-				<div>
+				<div key={`${data.data.name}${isDemolition}`}>
 					<Handle type="target" position={data.data.isEndbox ? Position.Bottom : Position.Left} isConnectable={false} />
 					{/* eslint-disable-next-line */}
 					<div onClick={() => handleEditingImage(data)}>
@@ -229,7 +246,6 @@ function Diagram({ nodes, edges, currentObj, objId, setCurrentObj }) {
 					<Handle
 						type="source"
 						position={data.data.isEndbox ? Position.Bottom : Position.Right}
-						id="a"
 						isConnectable={false}
 					/>
 				</div>
@@ -300,7 +316,8 @@ Diagram.propTypes = {
 	edges: PropTypes.object.isRequired,
 	setCurrentObj: PropTypes.func.isRequired,
 	objId: PropTypes.number.isRequired,
-	currentObj: PropTypes.object.isRequired,
+	isDemolition: PropTypes.bool,
+	newObj: PropTypes.object.isRequired,
 }
 
 export default Diagram

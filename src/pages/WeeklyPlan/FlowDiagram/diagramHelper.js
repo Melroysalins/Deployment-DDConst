@@ -86,8 +86,8 @@ export const generateStartEndNode = ({
 	return nodes
 }
 
-export const generateEdges = (startId, newObj) => {
-	const count = newObj.connections.length
+export const generateEdges = (startId, newObj, isDemolition) => {
+	const count = newObj[isDemolition ? 'demolitions' : 'connections'].length
 	const edges = []
 	const type = 'step'
 	edges.push({
@@ -101,7 +101,9 @@ export const generateEdges = (startId, newObj) => {
 		const source = `${startId}.${i}`
 		const target = `${startId}.${i + 1}`
 		const edgeId = `e${i}-${i + 1}`
-		const style = { stroke: STROKE_COLOR[newObj.connections[i - 1].status] }
+		const style = isDemolition
+			? { stroke: STROKE_COLOR[newObj.demolitions[i - 1].status] }
+			: { stroke: STROKE_COLOR[newObj.connections[i - 1].status] }
 		edges.push({ id: edgeId, source, target, style, type })
 	}
 	edges.push({
@@ -139,9 +141,11 @@ export const defaultNewObj = {
 	start: JUNCTION_BOX[0].value,
 	end: JUNCTION_BOX[0].value,
 	connections: [defaultConnection],
+	demolitions: [defaultConnection],
 	cableType: CABLE_TYPE[0],
 	namyang: NAMYUNG[0],
 	length: 600,
+	length_demolition: 600,
 	startStatus: STATUS[0].value,
 	endStatus: STATUS[0].value,
 	startConnector: CONNECTORS[0].value,

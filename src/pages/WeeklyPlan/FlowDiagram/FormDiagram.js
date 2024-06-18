@@ -58,14 +58,14 @@ const StyledTypography = styled(Typography)({
 	},
 })
 
-const HeaderText = ({ title, color, newObj }) => (
+const HeaderText = ({ title, color, newObj, isDemolition }) => (
 	<Box
 		sx={{
 			display: 'flex',
 			flexDirection: 'row',
 			alignItems: 'flex-end',
 			justifyContent: 'flex-start',
-			padding: '0px 0px 0px 28px',
+			padding: '0px 0px 0px 6px',
 			gap: '4px',
 			fontSize: '18px',
 			color: { color },
@@ -102,12 +102,16 @@ const HeaderText = ({ title, color, newObj }) => (
 		>
 			<StyledTypography>
 				<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
-					{newObj?.currentObj?.connections.length} Points
+					{newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length} Points
 				</StyledTypography>
 				<StyledTypography sx={{ lineHeight: '26px' }} component="span">{`(J/B ${
-					newObj?.currentObj?.connections.filter((e) => e.joinType === JB_TYPE[0].value).length
+					newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].filter(
+						(e) => e.joinType === JB_TYPE[0].value
+					).length
 				} Points + M/H ${
-					newObj?.currentObj?.connections.filter((e) => e.joinType === JB_TYPE[1].value).length
+					newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].filter(
+						(e) => e.joinType === JB_TYPE[1].value
+					).length
 				} Points) x `}</StyledTypography>
 				<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
 					2 Lines
@@ -121,12 +125,13 @@ const HeaderText = ({ title, color, newObj }) => (
 )
 
 export default function FormDiagram({
-	showDemolitionTable,
 	handleNewObjChange,
 	newObj,
 	handleAddConnection,
 	isEdit,
 	handleCloseInstallation,
+	handleChangeDemolition,
+	handleAddDemolition,
 }) {
 	return (
 		<>
@@ -144,10 +149,15 @@ export default function FormDiagram({
 				<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
 				<InstallationTable handleNewObjChange={handleNewObjChange} newObj={newObj} isEdit={isEdit} />
 			</StyledInstallation>
-			{showDemolitionTable && (
+			{newObj.isDemolition && (
 				<StyledDemolition>
-					<HeaderText title="Demolition" color="#7FBCFE" newObj={newObj} />
-					<DemolitionTable isEdit={isEdit} />
+					<HeaderText title="Demolition" color="#7FBCFE" newObj={newObj} isDemolition={true} />
+					<DemolitionTable
+						handleAddDemolition={handleAddDemolition}
+						handleChangeDemolition={handleChangeDemolition}
+						newObj={newObj}
+						isEdit={isEdit}
+					/>
 				</StyledDemolition>
 			)}
 		</>
@@ -155,10 +165,11 @@ export default function FormDiagram({
 }
 
 FormDiagram.propTypes = {
-	showDemolitionTable: PropTypes.bool.isRequired,
 	handleNewObjChange: PropTypes.func.isRequired,
 	newObj: PropTypes.object.isRequired,
 	handleAddConnection: PropTypes.func.isRequired,
 	isEdit: PropTypes.bool,
 	handleCloseInstallation: PropTypes.func.isRequired,
+	handleChangeDemolition: PropTypes.func.isRequired,
+	handleAddDemolition: PropTypes.func.isRequired,
 }

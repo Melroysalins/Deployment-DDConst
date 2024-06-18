@@ -191,6 +191,7 @@ const DiagramParent = styled('div')({
 	alignItems: 'center',
 	justifyContent: 'center',
 	width: '41.5%',
+	position: 'relative',
 })
 
 const TableParent = styled('div')({
@@ -230,19 +231,9 @@ const ContentParentRoot = styled('div')({
 })
 
 const DiagramHeader = styled('Box')({
-	display: 'flex',
-	flexDirection: 'row',
-	alignItems: 'flex-start',
-	justifyContent: 'flex-end',
-	width: '100%',
-	height: '44px',
-	padding: '12px 12px 0px',
-	boxSizing: 'border-box',
-	'@media (max-width: 1440px)': {
-		width: '100%',
-		height: '30.14px',
-		padding: '8px 8px 0px',
-	},
+	position: 'absolute',
+	right: -50,
+	top: 10,
 })
 
 const Tables = styled('div')({
@@ -307,39 +298,27 @@ const AccordionDetails = styled((props) => <MuiAccordionDetails {...props} />)((
 	fontFamily: 'Manrope',
 }))
 
-const defaultWholeObj = { currentObj: defaultNewObj, id: 1, nodes: [], edges: [], isEnd: false, isEditing: true }
+const defaultWholeObj = {
+	currentObj: defaultNewObj,
+	id: 1,
+	nodes: [],
+	edges: [],
+	isEnd: false,
+	isEditing: true,
+	isDemolition: false,
+	nodes_demolition: [],
+	edges_demolition: [],
+}
 
 const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	const [loading, setloading] = useState(false)
 	const [expanded, setExpanded] = useState('panel1')
-	const [showDemolitionTable, setShowDemolitionTable] = useState(false)
-
 	const [objs, setObjs] = useState([{ ...defaultWholeObj }])
 	const [seqNumber, setseqNumber] = useState(2)
 	const { id } = useParams()
 
 	const handleChange = (panel) => () => {
 		setExpanded(expanded !== panel ? panel : '')
-	}
-
-	const handleEditButtonClick = (objId) => {
-		const updatedObjs = objs.map((obj) => {
-			if (obj.id === objId) {
-				return { ...obj, isEditing: !obj.isEditing }
-			}
-			return obj
-		})
-		setObjs(updatedObjs)
-	}
-
-	const handleCloseInstallation = (objId) => {
-		const updatedObjs = objs.map((obj) => {
-			if (obj.id === objId) {
-				return { ...obj, isEnd: true }
-			}
-			return obj
-		})
-		setObjs(updatedObjs)
 	}
 
 	const getDiagram = async () => {
@@ -373,15 +352,24 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const handleSaveButtonClick = async (currentNewObj) => {
 		setloading(true)
-		const { nodes, edges, currentObj, project } = currentNewObj
+		const { nodes, edges, currentObj, project, isDemolition, nodes_demolition, edges_demolition } = currentNewObj
 		const isEdit = project
-		const _obj = { project: id, nodes, edges, currentObj }
+		const _obj = { project: id, nodes, edges, currentObj, isDemolition, nodes_demolition, edges_demolition }
 		if (isEdit) {
 			await updateProjectDiagram(_obj, id)
 		} else {
 			const success = await createNewProjectDiagram(_obj)
 			if (success.data) {
-				setCurrentObj({ objId: currentNewObj.id, currentObj, nodes, edges, project: id, isEditing: false })
+				setCurrentObj({
+					objId: currentNewObj.id,
+					currentObj,
+					nodes,
+					edges,
+					project: id,
+					isEditing: false,
+					nodes_demolition,
+					edges_demolition,
+				})
 			}
 		}
 		setloading(false)
@@ -399,6 +387,37 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					index === connIndex ? { ...conn, [field]: value } : conn
 				)
 				updatedMainObj.connections = updatedConnections
+			}
+			return { ...obj, currentObj: updatedMainObj }
+		})
+		setObjs(updatedObjs)
+	}
+
+	const handleChangeDemolition = (value, field, objId, connIndex) => {
+		const updatedObjs = objs.map((obj) => {
+			if (obj.id !== objId) return obj
+
+			const updatedMainObj = { ...obj.currentObj }
+			if (connIndex === undefined) {
+				updatedMainObj[field] = value
+			} else {
+				const updatedDemolitions = updatedMainObj.demolitions.map((conn, index) =>
+					index === connIndex ? { ...conn, [field]: value } : conn
+				)
+				updatedMainObj.demolitions = updatedDemolitions
+			}
+			return { ...obj, currentObj: updatedMainObj }
+		})
+		setObjs(updatedObjs)
+	}
+
+	const handleAddDemolition = (objId) => {
+		const updatedObjs = objs.map((obj) => {
+			if (obj.id !== objId) return obj
+
+			const updatedMainObj = {
+				...obj.currentObj,
+				demolitions: [...obj.currentObj.demolitions, { ...defaultConnection }],
 			}
 			return { ...obj, currentObj: updatedMainObj }
 		})
@@ -441,10 +460,48 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					endX: obj.currentObj.length ? +obj.currentObj.length + 130 : 730,
 				}),
 			]
-
 			const objEdges = generateEdges(obj.id, obj.currentObj)
 
-			return { ...obj, nodes: objNodes, edges: objEdges }
+			// Demolition
+			const { isDemolition } = obj
+			let objNodesDemolition = []
+			let objEdgesDemolition = []
+			if (isDemolition) {
+				objNodesDemolition = [
+					...generateNodesFromConnections({
+						id: obj.id,
+						connections: obj.currentObj.demolitions,
+						yPos,
+						length: obj.currentObj.length_demolition,
+					}),
+					...generateStartEndNode({
+						seqNumber: obj.id,
+						yPos: 50,
+						start: obj.currentObj.start,
+						startName: JUNCTION_BOX_MAP[obj.currentObj.start],
+						end: obj.currentObj.end,
+						endName: JUNCTION_BOX_MAP[obj.currentObj.end],
+						startStatus: obj.currentObj.startStatus,
+						endStatus: obj.currentObj.endStatus,
+						endX: obj.currentObj.length_demolition ? +obj.currentObj.length_demolition + 130 : 730,
+					}),
+				]
+
+				objEdgesDemolition = generateEdges(obj.id, obj.currentObj, true)
+			}
+
+			return {
+				...obj,
+				nodes: objNodes,
+				edges: objEdges,
+				edges_demolition: objEdgesDemolition,
+				nodes_demolition: objNodesDemolition,
+				currentObj: {
+					...obj.currentObj,
+					demolitions: isDemolition ? obj.currentObj.demolitions : [defaultConnection],
+					length_demolition: isDemolition ? obj.currentObj.length_demolition : 600,
+				},
+			}
 		})
 
 		setObjs(updatedObjs)
@@ -460,14 +517,57 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		})
 	}
 
-	const setCurrentObj = ({ objId, currentObj, nodes, edges, project = null, isEditing }) => {
+	const updateObjById = (objId, updateFn) => {
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id === objId) {
-				return { ...obj, currentObj, nodes, edges, project, isEditing }
+				return updateFn(obj)
 			}
 			return obj
 		})
 		setObjs(updatedObjs)
+	}
+
+	const handleEditButtonClick = (objId) => {
+		updateObjById(objId, (obj) => ({
+			...obj,
+			isEditing: !obj.isEditing,
+		}))
+	}
+
+	const toggleDemolition = (objId) => {
+		updateObjById(objId, (obj) => ({
+			...obj,
+			isDemolition: !obj.isDemolition,
+		}))
+	}
+
+	const handleCloseInstallation = (objId) => {
+		updateObjById(objId, (obj) => ({
+			...obj,
+			isEnd: true,
+		}))
+	}
+
+	const setCurrentObj = ({
+		objId,
+		currentObj,
+		nodes,
+		edges,
+		project = null,
+		isEditing,
+		edges_demolition,
+		nodes_demolition,
+	}) => {
+		updateObjById(objId, (obj) => ({
+			...obj,
+			currentObj,
+			nodes: nodes || obj.edges,
+			edges: edges || obj.edges,
+			project: project || obj.project,
+			isEditing,
+			nodes_demolition: nodes_demolition || obj.nodes_demolition,
+			edges_demolition: edges_demolition || obj.edges_demolition,
+		}))
 	}
 
 	return (
@@ -603,7 +703,20 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											setCurrentObj={setCurrentObj}
 											currentObj={newObj.currentObj}
 											objId={newObj.id}
+											newObj={newObj}
 										/>
+
+										{newObj.isDemolition && !!newObj.nodes_demolition.length && (
+											<Diagram
+												nodes={newObj.nodes_demolition}
+												edges={newObj.edges_demolition}
+												setCurrentObj={setCurrentObj}
+												currentObj={newObj.currentObj}
+												objId={newObj.id}
+												isDemolition={true}
+												newObj={newObj}
+											/>
+										)}
 									</Container1>
 								</DiagramParent>
 								<TableParent>
@@ -619,8 +732,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 										<FormControlLabel
 											control={
 												<Switch
-													checked={showDemolitionTable}
-													onChange={() => setShowDemolitionTable((prev) => !prev)}
+													disabled={newObj.project && !newObj.isEditing}
+													checked={newObj.isDemolition}
+													onChange={() => toggleDemolition(newObj.id)}
 													color="primary"
 												/>
 											}
@@ -631,13 +745,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 									<Tables>
 										<ConnectionInstallationTable>
 											<FormDiagram
-												showDemolitionTable={showDemolitionTable}
 												newObj={newObj}
 												handleNewObjChange={handleNewObjChange}
 												handleAddConnection={handleAddConnection}
 												index={index}
 												isEdit={newObj.isEditing}
 												handleCloseInstallation={handleCloseInstallation}
+												handleChangeDemolition={handleChangeDemolition}
+												handleAddDemolition={handleAddDemolition}
 											/>
 										</ConnectionInstallationTable>
 									</Tables>

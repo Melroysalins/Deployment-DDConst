@@ -21,81 +21,178 @@ import style from './DemolitionTable.module.scss'
 import PropTypes from 'prop-types'
 import AddIcon from '@mui/icons-material/Add'
 import Iconify from 'components/Iconify'
+import { JB_TYPE, JB_TYPE_MAP, JUNCTION_BOX_MAP, PMJ, STATUS, STATUS_MAP } from '../diagramHelper'
 
-const renderTableCell = (text, tableWidth) => {
-	return (
-		<TableCell className={style.TableCell} sx={{ width: tableWidth }}>
-			<Typography variant="body1" className={style.Typography}>
-				{text}
-			</Typography>
-		</TableCell>
-	)
-}
-const renderFormControl = (label, selectLabel, tableWidth, isEdit) => {
-	return isEdit ? (
-		<TableCell className={style.TableCell} sx={{ width: tableWidth }}>
-			<FormControl variant="outlined" sx={{ width: '100%', height: '32px' }} className={style.FormControl}>
-				<InputLabel className={style.InputLabel} color="primary">
-					{label}
-				</InputLabel>
-				<Select
-					className={style.Select}
-					color="primary"
-					sx={{ height: '32px' }}
-					label={selectLabel}
-					disableUnderline
-					displayEmpty
-				>
-					<MenuItem value="">None</MenuItem>
-					{/* Add more menu items here */}
-				</Select>
-				<FormHelperText />
-			</FormControl>
-		</TableCell>
-	) : (
-		renderTableCell(label, tableWidth)
-	)
+const renderTableCell = (text, tableWidth) => (
+	<TableCell className={style.TableCell} sx={{ width: tableWidth }}>
+		<Typography variant="body1" className={style.Typography}>
+			{text}
+		</Typography>
+	</TableCell>
+)
+
+const getStatusTLSection = (newObj, demolition, index) => {
+	let status = ''
+	const demolitionsLength = newObj.currentObj.demolitions.length
+
+	if (index === 0) {
+		status = `Namyang${JUNCTION_BOX_MAP[newObj.currentObj.start]}#${index + 1}~${JB_TYPE_MAP[demolition.joinType]}#${
+			index + 1
+		}`
+	} else if (index === demolitionsLength) {
+		status = `${JB_TYPE_MAP[demolition.joinType]}#${index + 1}~Yeonsu${JUNCTION_BOX_MAP[newObj.currentObj.end]}`
+	} else {
+		status = `${JB_TYPE_MAP[newObj.currentObj.demolitions[index - 1].joinType]}#${index}~${
+			JB_TYPE_MAP[demolition.joinType]
+		}#${index + 1}`
+	}
+
+	return status
 }
 
-const renderTableRow = (section, isEdit, index) => {
-	return (
-		<TableRow index={index}>
-			{renderTableCell(section, '10%')}
-			{renderFormControl('M/H', 'S/S', '19%', isEdit)}
-			{renderFormControl('IJ', 'EB-G', '19%', isEdit)}
-			{renderTableCell('NamyangS/S~M/H#1', '19%')}
+const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit, newObj) => (
+	<TableRow index={index}>
+		{renderTableCell(`#${index + 1}`, '10%')}
+
+		<TableCell className={style.TableCell} sx={{ padding: '6px 10px', width: '100px' }}>
 			{isEdit ? (
-				<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '19%' }}>
-					<TextField variant="outlined" sx={{ '& .MuiInputBase-root': { height: 32 } }} placeholder="320" />
-				</TableCell>
+				<FormControl variant="outlined" sx={{ width: '95%', height: '32px' }} className={style.FormControl}>
+					<InputLabel className={style.InputLabel} color="primary">
+						Jb Type
+					</InputLabel>
+					<Select
+						className={style.Select}
+						color="primary"
+						sx={{ height: '32px' }}
+						value={demolition.joinType}
+						label="Jb Type"
+						onChange={(e) => handleChangeDemolition(e.target.value, 'joinType', objId, index)}
+						disableUnderline
+						displayEmpty
+					>
+						{JB_TYPE.map((e) => (
+							<MenuItem value={e.value} key={e}>
+								{e.label}
+							</MenuItem>
+						))}
+					</Select>
+					<FormHelperText />
+				</FormControl>
 			) : (
-				renderTableCell('320', '19%')
+				<Typography
+					className={style.Typography}
+					variant="body1"
+					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+				>
+					{JB_TYPE_MAP[demolition.joinType]}
+				</Typography>
 			)}
-			<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '14%' }}>
-				<Select className={style.StyledSelect} value="Completed" variant="outlined" size="small">
-					<MenuItem value="Completed">Completed</MenuItem>
-					<MenuItem value="In Progress">In Progress</MenuItem>
-					<MenuItem value="Not Started">Not Started</MenuItem>
-				</Select>
-			</TableCell>
-		</TableRow>
-	)
-}
+		</TableCell>
 
-const DemolitionTable = ({ isEdit }) => {
-	const [demolitions, setDemolitions] = useState([1, 2])
+		<TableCell className={style.TableCell} sx={{ padding: '6px 10px', width: '100px' }}>
+			{isEdit ? (
+				<FormControl variant="outlined" sx={{ width: '95%', height: '32px' }} className={style.FormControl}>
+					<InputLabel className={style.InputLabel} color="primary">
+						PMJ
+					</InputLabel>
+					<Select
+						className={style.Select}
+						color="primary"
+						sx={{ height: '32px' }}
+						value={demolition.pmj}
+						label="PMJ"
+						onChange={(e) => handleChangeDemolition(e.target.value, 'pmj', objId, index)}
+						disableUnderline
+						displayEmpty
+					>
+						{PMJ.map((e) => (
+							<MenuItem value={e} key={e}>
+								{e}
+							</MenuItem>
+						))}
+					</Select>
+					<FormHelperText />
+				</FormControl>
+			) : (
+				<Typography
+					className={style.Typography}
+					variant="body1"
+					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+				>
+					{demolition.pmj}
+				</Typography>
+			)}
+		</TableCell>
+		{renderTableCell(getStatusTLSection(newObj, demolition, index), '19%')}
+		<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '10px', textAlign: 'center' }}>
+			{isEdit ? (
+				<TextField
+					variant="outlined"
+					sx={{ width: '70px', '& .MuiInputBase-root': { height: 32 } }}
+					placeholder="320"
+					onChange={(e) => handleChangeDemolition(e.target.value, 'length_demolition', newObj.id)}
+					value={newObj.currentObj.length_demolition}
+				/>
+			) : (
+				<Typography
+					variant="body1"
+					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+					className={style.Typography}
+				>
+					{newObj.currentObj.length_demolition}
+				</Typography>
+			)}
+		</TableCell>
+		<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '130px' }}>
+			{isEdit ? (
+				<FormControl>
+					<InputLabel className={style.InputLabel} color="primary">
+						Status
+					</InputLabel>
+					<Select
+						className={style.StyledSelect}
+						value={demolition.status}
+						label="Status"
+						onChange={(e) => handleChangeDemolition(e.target.value, 'status', objId, index)}
+						variant="outlined"
+						size="small"
+					>
+						{STATUS.map((e) => (
+							<MenuItem value={e.value} key={e.value}>
+								{e.label}
+							</MenuItem>
+						))}
+					</Select>
+				</FormControl>
+			) : (
+				<Typography
+					className={style.Typography}
+					variant="body1"
+					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+				>
+					{STATUS_MAP[demolition.status]}
+				</Typography>
+			)}
+		</TableCell>
+	</TableRow>
+)
+
+const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, isEdit }) => {
 	const [isExpanded, setIsExpanded] = useState(false)
+	const { demolitions } = newObj.currentObj || {}
 
-	const handleAddDemolition = () => {
-		setDemolitions((prevDemolitions) => [...prevDemolitions, prevDemolitions.length + 1]) // Add a new row
+	const addPanel = () => {
+		handleAddDemolition(newObj.id)
 	}
 
 	return (
-		<Box sx={{ position: 'relative', left: '24px', width: '95%' }}>
+		<Box sx={{ position: 'relative', left: '2px', width: '98%' }}>
 			<TableContainer sx={{ overflow: 'hidden', border: '1px solid lightgrey', borderRadius: '8px' }}>
 				<Table>
-					<Collapse in={isExpanded} collapsedSize={demolitions.length < 7 ? demolitions.length * 53 + 33.5 : 350}>
-						<Box sx={{ maxHeight: isExpanded ? 'none' : '350px', overflow: 'auto' }}>
+					<Collapse collapsedSize={demolitions.length < 7 ? demolitions.length * 53 + 33.5 : 350}>
+						<Box
+							sx={{ maxHeight: isExpanded ? 'none' : '350px', overflow: demolitions.length > 6 ? 'scroll' : 'hidden' }}
+						>
 							<TableHead>
 								<TableRow style={{ backgroundColor: '#f9f9fa' }}>
 									{renderTableCell('#', '10%')}
@@ -108,7 +205,9 @@ const DemolitionTable = ({ isEdit }) => {
 							</TableHead>
 
 							<TableBody>
-								{demolitions.map((demolition, index) => renderTableRow(`#${demolition}`, isEdit, index))}
+								{demolitions.map((demolition, index) => (
+									<>{renderTableRow(demolition, index, handleChangeDemolition, newObj.id, isEdit, newObj)}</>
+								))}
 							</TableBody>
 						</Box>
 					</Collapse>
@@ -135,7 +234,7 @@ const DemolitionTable = ({ isEdit }) => {
 									width: '24px',
 									height: '24px',
 								}}
-								onClick={handleAddDemolition}
+								onClick={addPanel}
 							>
 								<AddIcon sx={{ color: '#fff' }} />
 							</IconButton>
@@ -157,7 +256,7 @@ const DemolitionTable = ({ isEdit }) => {
 								bottom: '-12px',
 								padding: '0px',
 							}}
-							onClick={setIsExpanded((prevIsExpanded) => !prevIsExpanded)}
+							onClick={() => setIsExpanded((prevIsExpanded) => !prevIsExpanded)}
 						>
 							<Iconify
 								icon={isExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
@@ -174,7 +273,10 @@ const DemolitionTable = ({ isEdit }) => {
 }
 
 DemolitionTable.propTypes = {
-	isEdit: PropTypes.bool.isRequired,
+	handleAddDemolition: PropTypes.func.isRequired,
+	handleChangeDemolition: PropTypes.func.isRequired,
+	newObj: PropTypes.object.isRequired,
+	isEdit: PropTypes.bool,
 }
 
 export default DemolitionTable
