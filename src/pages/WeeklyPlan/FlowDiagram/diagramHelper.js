@@ -1,4 +1,5 @@
-export const MIN_X = 200
+export const MIN_X = 100
+export const NODES_GAP = 150
 export const NAMYUNG = ['XLPE', 'OF', 'Other']
 export const CABLE_TYPE = ['154kV', '345kV', '746kV']
 export const JUNCTION_BOX = [
@@ -35,21 +36,24 @@ export const STATUS_MAP = {
 	completed: 'Completed',
 }
 
-export const generateNodesFromConnections = ({ id, connections, yPos, length = 600 }) => {
+export const generateNodesFromConnections = ({ id, connections, yPos, isDemolition }) => {
 	const nodes = []
-	const step = (length - MIN_X) / connections.length
+	const step = NODES_GAP
 	connections.forEach((connection, index) => {
 		const { joinType, status } = connection
 		const imageUrl = `/static/svg/${joinType}-${status}.svg`
 
-		const start = MIN_X + index * step
-		const x = (start + (start + step)) / 2
+		const x = MIN_X + index * step
 		const nodeId = `${id}.${index + 1}`
 		const nodeName = `${JB_TYPE_MAP[joinType]}#${index + 1}`
 		const position = { x, y: yPos }
 		const data = { imageUrl, name: nodeName, status }
 		nodes.push({ id: nodeId, type: 'image', data, position })
 	})
+
+	const data = { name: isDemolition ? 'Old Of Section (Demolition)' : 'New CV Section (Installation)' }
+	const position = { x: (connections.length * NODES_GAP - MIN_X) / 2, y: 50 }
+	nodes.push({ id: 'heading', type: 'nodeHeading', data, position })
 
 	return nodes
 }
@@ -59,27 +63,30 @@ export const generateStartEndNode = ({
 	yPos,
 	startName,
 	endName,
-	startX = 100,
-	endX = 730,
-	start,
-	end,
+	connectionLength,
+	startType,
+	endType,
 	startStatus,
 	endStatus,
 }) => {
-	start = `/static/svg/${start}-${startStatus}.svg`
-	end = `/static/svg/${end}-${endStatus}.svg`
+	const startX = 0 // Fixed starting position for startX
+	const step = NODES_GAP // Fixed 25px difference between each connection
+	const endX = MIN_X + step * connectionLength
+	const startImageUrl = `/static/svg/${startType}-${startStatus}.svg`
+	const endImageUrl = `/static/svg/${endType}-${endStatus}.svg`
 	const nameNumber = 1
+
 	const nodes = [
 		{
 			id: `${seqNumber}.start`,
 			type: 'image',
-			data: { imageUrl: start, name: `${startName}#${nameNumber}`, isEndbox: true, status: startStatus },
+			data: { imageUrl: startImageUrl, name: `${startName}#${nameNumber}`, isEndbox: true, status: startStatus },
 			position: { x: startX, y: yPos - 10 },
 		},
 		{
 			id: `${seqNumber}.end`,
 			type: 'image',
-			data: { imageUrl: end, name: `${endName}#${nameNumber}`, isEndbox: true, status: endStatus },
+			data: { imageUrl: endImageUrl, name: `${endName}#${nameNumber}`, isEndbox: true, status: endStatus },
 			position: { x: endX, y: yPos - 10 },
 		},
 	]
