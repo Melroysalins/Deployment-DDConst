@@ -9,9 +9,10 @@ import {
 	FormControlLabel,
 	Switch,
 	Typography,
+	Backdrop,
 } from '@mui/material'
 import { styled } from '@mui/system'
-import PropTypes from 'prop-types'
+import PropTypes, { object } from 'prop-types'
 import Iconify from 'components/Iconify'
 import Diagram from './Diagram'
 import FormDiagram from './FormDiagram'
@@ -31,6 +32,8 @@ import {
 	updateProjectDiagram,
 } from 'supabase/project_diagram'
 import { LoadingButton } from '@mui/lab'
+import QuickDiagramBuilderPopup from './QuickDiagramBuilderPopup'
+import { set } from 'lodash'
 
 const StyledButtonContainer = styled(Box)({
 	alignSelf: 'stretch',
@@ -307,20 +310,24 @@ const AccordionDetails = styled((props) => <MuiAccordionDetails {...props} />)((
 	fontFamily: 'Manrope',
 }))
 
-const defaultWholeObj = { currentObj: defaultNewObj, id: 1, nodes: [], edges: [], isEnd: false, isEditing: true }
+const defaultWholeObj = { currentObj: defaultNewObj, nodes: [], edges: [], isEnd: false, isEditing: true, firstOpen: true }
 
 const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	const [loading, setloading] = useState(false)
-	const [expanded, setExpanded] = useState('panel1')
+	const [expanded, setExpanded] = useState()
 	const [showDemolitionTable, setShowDemolitionTable] = useState(false)
-
-	const [objs, setObjs] = useState([{ ...defaultWholeObj }])
-	const [seqNumber, setseqNumber] = useState(2)
+	const [inputValues, setInputValues] = useState({});
+	const [objs, setObjs] = useState([])
+	const [seqNumber, setseqNumber] = useState()
 	const { id } = useParams()
 
-	const handleChange = (panel) => () => {
-		setExpanded(expanded !== panel ? panel : '')
+	const handleChange = (panel) => (event, isExpanded) => {
+		setExpanded(isExpanded ? panel : false);
 	}
+
+	const handleInputChange = (name, value) => {
+		setInputValues(prev => ({ ...prev, [name]: value }));
+	};
 
 	const handleEditButtonClick = (objId) => {
 		const updatedObjs = objs.map((obj) => {
@@ -345,20 +352,21 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	const getDiagram = async () => {
 		const { data } = await getDiagramsByProject(id)
 		if (data?.length) {
-			const updatedData = data.map((diagram) => ({
-				...diagram,
-				isEditing: false,
-				isEnd: true,
-			}))
-
-			const ids = data.map((diagram) => diagram.id)
-			setObjs(updatedData)
-			const maxId = Math.max(...ids)
-			setseqNumber(maxId + 1)
-			const minId = Math.min(...ids)
-			setExpanded(`panel${minId}`)
+		  const updatedData = data.map((diagram) => ({
+			...diagram,
+			isEditing: false,
+			isEnd: true,
+			firstOpen: false,
+		  }))
+	  
+		  const ids = data.map((diagram) => diagram.id)
+		  setObjs(updatedData)
+		  const maxId = Math.max(...ids)
+		  setseqNumber(maxId + 1)
+		  const minId = Math.min(...ids)
+		  setExpanded(`panel${minId}`)
 		}
-	}
+	  }
 
 	useEffect(() => {
 		getDiagram()
@@ -418,6 +426,20 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		setObjs(updatedObjs)
 	}
 
+	const handleAddMultipleConnection = (objId, midPoints) => {
+		const updatedObjs = objs.map((obj, index) => {
+			if (index !== objId) return obj;
+			const updatedMainObj = { ...obj.currentObj };
+			for (let i = 0; i < Number(midPoints) - 1; i += 1) {
+				updatedMainObj.connections.push({ ...defaultConnection });
+			}
+			setInputValues({ ...inputValues, midPoints: '' });
+			return { ...obj, currentObj: updatedMainObj, isEnd: false };
+		});
+		setObjs(updatedObjs);
+		handleAdd();
+	};
+
 	const handleAdd = () => {
 		const updatedObjs = objs.map((obj) => {
 			const yPos = 220 // obj.id * 100
@@ -455,9 +477,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		setObjs([...objs, newObj])
 		setseqNumber((prev) => {
 			const newSeqNumber = prev + 1
-			setExpanded(`panel${newObj.id}`)
 			return newSeqNumber
 		})
+		setExpanded(`panel${objs.length + 1}`)
 	}
 
 	const setCurrentObj = ({ objId, currentObj, nodes, edges, project = null, isEditing }) => {
@@ -475,14 +497,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			{objs.map((newObj, index) => (
 				<ContentParentRoot key={index}>
 					<Accordion
-						expanded={expanded === `panel${newObj.id}`}
-						onChange={handleChange(`panel${newObj.id}`)}
+						expanded={expanded === `panel${index + 1}`}
+						onChange={handleChange(`panel${index + 1}`)}
 						key={index}
 					>
 						<AccordionSummary
 							expandIcon={<Iconify icon="material-symbols:expand-more-rounded" width={20} height={20} />}
-							aria-controls={`panel${newObj.id}-content`}
-							id={`panel${newObj.id}-header`}
+							aria-controls={`panel${objs.length}-content`}
+							id={`panel${objs.length}-header`}
 						>
 							<Stack
 								gap={2}
@@ -576,6 +598,13 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							</Stack>
 						</AccordionSummary>
 						<AccordionDetails>
+							<QuickDiagramBuilderPopup 
+								onInputChange={handleInputChange} 
+								inputValues={inputValues}
+								objId={index}
+								obj={newObj}
+								handleAdd={handleAddMultipleConnection}
+							/>
 							<Content>
 								<DiagramParent>
 									<DiagramHeader>
