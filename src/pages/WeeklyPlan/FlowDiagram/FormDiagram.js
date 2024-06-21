@@ -129,9 +129,11 @@ export default function FormDiagram({
 	newObj,
 	handleAddConnection,
 	isEdit,
+	isDemolition,
 	handleCloseInstallation,
 	handleChangeDemolition,
 	handleAddDemolition,
+	inputValues,
 }) {
 	return (
 		<>
@@ -143,13 +145,14 @@ export default function FormDiagram({
 					handleNewObjChange={handleNewObjChange}
 					newObj={newObj}
 					isEdit={isEdit}
+					midLines={inputValues.midLines}
 				/>
 			</StyledConnection>
 			<StyledInstallation>
 				<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
-				<InstallationTable handleNewObjChange={handleNewObjChange} newObj={newObj} isEdit={isEdit} />
+				<InstallationTable handleNewObjChange={handleNewObjChange} newObj={newObj} isEdit={isEdit} midLines={inputValues.midLines} />
 			</StyledInstallation>
-			{newObj.isDemolition && (
+			{isDemolition && (
 				<StyledDemolition>
 					<HeaderText title="Demolition" color="#7FBCFE" newObj={newObj} isDemolition={true} />
 					<DemolitionTable
@@ -157,6 +160,7 @@ export default function FormDiagram({
 						handleChangeDemolition={handleChangeDemolition}
 						newObj={newObj}
 						isEdit={isEdit}
+						demolitionLines={inputValues.demolitionLines}
 					/>
 				</StyledDemolition>
 			)}
@@ -169,7 +173,9 @@ FormDiagram.propTypes = {
 	newObj: PropTypes.object.isRequired,
 	handleAddConnection: PropTypes.func.isRequired,
 	isEdit: PropTypes.bool,
+	isDemolition: PropTypes.bool,
 	handleCloseInstallation: PropTypes.func.isRequired,
 	handleChangeDemolition: PropTypes.func.isRequired,
 	handleAddDemolition: PropTypes.func.isRequired,
+	inputValues: PropTypes.object.isRequired,
 }

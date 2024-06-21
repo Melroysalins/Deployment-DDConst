@@ -101,11 +101,12 @@ const QuickDiagramBuilderPopup = (
     inputValues, 
     objId, 
     obj,
-    handleAdd,
+    handleAddConnection,
+    handleAddDemolition,
+    updateObjById,
   }
 ) => {
     const [anchorEl, setAnchorEl] = useState(null);
-    const [showDemolitionInput, setShowDemolitionInput] = useState(false);
     const [warningShown, setWarningShown] = useState(false);
     const [popoverOpen, setPopoverOpen] = useState(obj.firstOpen)
 
@@ -114,19 +115,24 @@ const QuickDiagramBuilderPopup = (
       onInputChange(name, value);
     };
 
+    const toggleDemolition = (objId) => {
+      updateObjById(objId, (obj) => ({
+        ...obj,
+        isDemolition: !obj.isDemolition,
+      }));
+    };
+
     useEffect(() => {
       setAnchorEl(null); // Set anchorEl to null to position popover in the middle
     }, []);
     
     const handleClose = useCallback(() => {
       setPopoverOpen(false)
-      obj.firstOpen = false
-      handleAdd(objId, inputValues.midPoints);
-    }, [objId, inputValues.midPoints]);
-
-    const handleShowDemolition = useCallback((event) => {
-      setShowDemolitionInput(event.target.checked);
-    }, []);
+      obj.firstOpen = false;
+      
+      handleAddConnection(objId, inputValues.midPoints);
+      handleAddDemolition(objId, inputValues.demolitionPoints);
+    }, [objId, inputValues.midPoints, inputValues.demolitionPoints]);
 
     const handleCancel = useCallback(() => {
       if (!warningShown) {
@@ -179,24 +185,24 @@ const QuickDiagramBuilderPopup = (
               </Grid>
             </Grid>
             <Grid item xs={2}>
-              <Switch checked={showDemolitionInput} onChange={handleShowDemolition} />
+              <Switch checked={obj.isDemolition} onChange={() => toggleDemolition(objId)} />
             </Grid>
-            {showDemolitionInput && (
+            {obj.isDemolition && (
               <>
                 <Grid item xs={10}>
                   <InputLabel htmlFor="input-field" sx={{ fontSize: '12px' }}>
-                    Demolition MidPoint Connections(14 units)
+                    Demolition MidPoint Connections({Number(inputValues.demolitionPoints) + Number(inputValues.demolitionLines)} units)
                   </InputLabel>
                 </Grid>
                 <Grid item xs={10} container spacing={1}>
                   <Grid item xs={5.5}>
-                    {renderInputBox('units')}
+                    {renderInputBox('units', inputValues.demolitionPoints, handleChange, 'demolitionPoints')}
                   </Grid>
                   <Grid item xs={1} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Iconify icon="radix-icons:cross-2" width={20} height={20} style={{ color: "#919EAB", margin: "auto"}} />
                   </Grid>
                   <Grid item xs={5.5}>
-                    {renderInputBox('lines')}
+                    {renderInputBox('lines', inputValues.demolitionLines, handleChange, 'demolitionLines')}
                   </Grid>
                 </Grid>
               </>
@@ -269,7 +275,7 @@ const QuickDiagramBuilderPopup = (
                   alignItems: 'center',
                   justifyContent: 'flex-start',
                 }}
-                onClick={handleClose}
+                onClick={() => handleClose(inputValues)}
               >
                 <Iconify icon="bi:check-lg" width="20" height="20" style={{ color: "#919EAB", margin: "auto"}} />
                 <Typography
@@ -300,7 +306,9 @@ QuickDiagramBuilderPopup.propTypes = {
   inputValues: PropTypes.any.isRequired,
   objId: PropTypes.any.isRequired,
   obj: PropTypes.any.isRequired,
-  handleAdd: PropTypes.func.isRequired,
+  handleAddConnection: PropTypes.func.isRequired,
+  handleAddDemolition: PropTypes.func.isRequired,
+  toggleDemolition: PropTypes.func.isRequired
 }
 
 export default QuickDiagramBuilderPopup

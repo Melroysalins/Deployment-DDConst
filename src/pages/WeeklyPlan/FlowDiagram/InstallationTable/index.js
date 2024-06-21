@@ -16,7 +16,7 @@ import style from './InstallationTable.module.scss'
 import { JB_TYPE_MAP, JUNCTION_BOX_MAP, STATUS } from '../diagramHelper'
 
 const renderTableCell = (text) => (
-	<TableCell className={style.TableCell} sx={{ padding: '12px 8px', minWidth: 170 }}>
+	<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%' }}>
 		<Typography
 			variant="body1"
 			sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
@@ -27,7 +27,7 @@ const renderTableCell = (text) => (
 	</TableCell>
 )
 
-const renderTableRow = (connection, index, handleNewObjChange, displayName, newObj, isEdit) => (
+const renderTableRow = (connection, index, handleNewObjChange, displayName, newObj, isEdit, midLines=1) => (
 	<TableRow>
 		{renderTableCell(`${displayName}`)}
 		<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
@@ -49,6 +49,15 @@ const renderTableRow = (connection, index, handleNewObjChange, displayName, newO
 				</Typography>
 			)}
 		</TableCell>
+		{Array.from({ length: midLines }, (_, index) => (
+			<>{renderStatus(connection, newObj, index, handleNewObjChange, isEdit)}</>
+		))}
+	</TableRow>
+)
+
+const renderStatus = (connection, newObj, index, handleNewObjChange, isEdit) => {
+	console.log('install:', connection)
+	return (
 		<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
 			{isEdit ? (
 				<Select
@@ -75,17 +84,19 @@ const renderTableRow = (connection, index, handleNewObjChange, displayName, newO
 				</Typography>
 			)}
 		</TableCell>
-	</TableRow>
-)
+	)
+}
 
-const InstallationTable = ({ handleNewObjChange, newObj, isEdit }) => (
+const InstallationTable = ({ handleNewObjChange, newObj, isEdit, midLines }) => (
 	<TableContainer sx={{ border: '1px solid lightgrey', width: 'max-content', marginLeft: '25px', borderRadius: '8px' }}>
 		<Table sx={{ overflow: 'hidden' }}>
 			<TableHead>
 				<TableRow style={{ backgroundColor: '#f9f9fa' }}>
 					{renderTableCell('T/L Section')}
 					{renderTableCell('Length(m)')}
-					{renderTableCell('Status')}
+					{Array.from({ length: midLines }, (_, index) => (
+						<>{renderTableCell(`${index + 1}T/L`)}</>
+					))}
 				</TableRow>
 			</TableHead>
 			<TableBody>
@@ -103,7 +114,7 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit }) => (
 						}#${index + 1}`
 					}
 
-					return <>{renderTableRow(connection, index, handleNewObjChange, status, newObj, isEdit)}</>
+					return <>{renderTableRow(connection, index, handleNewObjChange, status, newObj, isEdit, midLines)}</>
 				})}
 
 				{newObj.isEnd && (
@@ -116,7 +127,8 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit }) => (
 								newObj.currentObj.connections.length
 							}~Yeonsu${JUNCTION_BOX_MAP[newObj.currentObj.end]}#1`,
 							newObj,
-							isEdit
+							isEdit,
+							midLines
 						)}
 					</>
 				)}
@@ -129,6 +141,7 @@ InstallationTable.propTypes = {
 	handleNewObjChange: PropTypes.func.isRequired,
 	newObj: PropTypes.object.isRequired,
 	isEdit: PropTypes.bool.isRequired,
+	midLines: PropTypes.number.isRequired,
 }
 
 export default InstallationTable

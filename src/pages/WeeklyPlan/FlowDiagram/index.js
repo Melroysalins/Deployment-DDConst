@@ -33,7 +33,7 @@ import {
 } from 'supabase/project_diagram'
 import { LoadingButton } from '@mui/lab'
 import QuickDiagramBuilderPopup from './QuickDiagramBuilderPopup'
-import { set } from 'lodash'
+import { set, update } from 'lodash'
 
 const StyledButtonContainer = styled(Box)({
 	alignSelf: 'stretch',
@@ -260,6 +260,7 @@ const ConnectionInstallationTable = styled('div')({
 	borderRadius: '8px',
 	backgroundColor: '#fff',
 	boxSizing: 'border-box',
+	width: '100%'
 })
 
 const Accordion = styled((props) => <MuiAccordion disableGutters elevation={0} square {...props} />)(({ theme }) => ({
@@ -309,6 +310,7 @@ const defaultWholeObj = {
 	isEnd: false,
 	isEditing: true,
 	isDemolition: false,
+	firstOpen: true,
 	nodes_demolition: [],
 	edges_demolition: [],
 }
@@ -316,7 +318,6 @@ const defaultWholeObj = {
 const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	const [loading, setloading] = useState(false)
 	const [expanded, setExpanded] = useState()
-	const [showDemolitionTable, setShowDemolitionTable] = useState(false)
 	const [inputValues, setInputValues] = useState({});
 	const [objs, setObjs] = useState([])
 	const [seqNumber, setseqNumber] = useState()
@@ -329,26 +330,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	const handleInputChange = (name, value) => {
 		setInputValues(prev => ({ ...prev, [name]: value }));
 	};
-
-	const handleEditButtonClick = (objId) => {
-		const updatedObjs = objs.map((obj) => {
-			if (obj.id === objId) {
-				return { ...obj, isEditing: !obj.isEditing }
-			}
-			return obj
-		})
-		setObjs(updatedObjs)
-	}
-
-	const handleCloseInstallation = (objId) => {
-		const updatedObjs = objs.map((obj) => {
-			if (obj.id === objId) {
-				return { ...obj, isEnd: true }
-			}
-			return obj
-		})
-		setObjs(updatedObjs)
-	}
 
 	const getDiagram = async () => {
 		const { data } = await getDiagramsByProject(id)
@@ -454,6 +435,25 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		setObjs(updatedObjs)
 	}
 
+	const handleAddMultipleDemolition = (objId, demolitionPoints) => {
+		const updatedObjs = objs.map((obj) => {
+		  if (obj.id !== objId) return obj;
+	  
+		  console.log('demolitionPoints:', demolitionPoints);
+
+		  const updatedMainObj = { ...obj.currentObj };
+		  for (let i = 0; i < Number(demolitionPoints) - 1; i += 1) {
+			updatedMainObj.demolitions.push({ ...defaultConnection });
+		  }
+	  
+		  obj.isDemolition = true;
+		  return { ...obj, currentObj: updatedMainObj };
+		});
+		console.log(updatedObjs);
+		setObjs(updatedObjs);
+		handleAdd();
+	  };
+
 	const handleAddConnection = (objId) => {
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id !== objId) return obj
@@ -467,14 +467,17 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		setObjs(updatedObjs)
 	}
 
-	const handleAddMultipleConnection = (objId, midPoints) => {
-		const updatedObjs = objs.map((obj, index) => {
-			if (index !== objId) return obj;
+	const handleAddMultipleConnection = (objId, midPoints=1) => {
+		const updatedObjs = objs.map((obj) => {
+			if (obj.id !== objId) return obj;
+
+			console.log('midPoints:', midPoints);
+			console.log("inputValues", inputValues);	
+
 			const updatedMainObj = { ...obj.currentObj };
 			for (let i = 0; i < Number(midPoints) - 1; i += 1) {
 				updatedMainObj.connections.push({ ...defaultConnection });
 			}
-			setInputValues({ ...inputValues, midPoints: '' });
 			return { ...obj, currentObj: updatedMainObj, isEnd: false };
 		});
 		setObjs(updatedObjs);
@@ -590,6 +593,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			isEnd: true,
 		}))
 	}
+
+	console.log(inputValues)
 
 	const setCurrentObj = ({
 		objId,
@@ -722,9 +727,11 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							<QuickDiagramBuilderPopup 
 								onInputChange={handleInputChange} 
 								inputValues={inputValues}
-								objId={index}
+								objId={newObj.id}
 								obj={newObj}
-								handleAdd={handleAddMultipleConnection}
+								handleAddConnection={handleAddMultipleConnection}
+								handleAddDemolition={handleAddMultipleDemolition}
+								updateObjById={updateObjById}
 							/>
 							<Content>
 								<DiagramParent>
@@ -803,6 +810,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 												handleCloseInstallation={handleCloseInstallation}
 												handleChangeDemolition={handleChangeDemolition}
 												handleAddDemolition={handleAddDemolition}
+												inputValues={inputValues}
+												isDemolition={newObj.isDemolition}
 											/>
 										</ConnectionInstallationTable>
 									</Tables>
