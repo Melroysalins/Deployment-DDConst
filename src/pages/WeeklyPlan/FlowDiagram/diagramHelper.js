@@ -3,18 +3,18 @@ export const NODES_GAP = 150
 export const NAMYUNG = ['XLPE', 'OF', 'Other']
 export const CABLE_TYPE = ['154kV', '345kV', '746kV']
 export const JUNCTION_BOX = [
-	{ label: 'T/R', value: 'recTri' },
 	{ label: 'S/S', value: 'square' },
+	{ label: 'T/R', value: 'recTri' },
 ]
 export const JB_TYPE = [
-	{ label: 'J/B', value: 'jb' },
 	{ label: 'M/H', value: 'mh' },
+	{ label: 'J/B', value: 'jb' },
 ]
 export const CONNECTORS = [
 	{ label: 'EB-A', value: 'EB-A' },
 	{ label: 'EB-G', value: 'EB-G' },
 ]
-export const PMJ = ['IJ', 'NJ', 'Pass']
+export const PMJ = ['NJ', 'IJ', 'Pass']
 export const STATUS = [
 	{ label: 'Not Started', value: 'notStarted' },
 	{ label: 'In Progress', value: 'inProgress' },
@@ -128,9 +128,9 @@ export const initialNodes = []
 export const initialEdges = []
 
 export const STROKE_COLOR = {
-	notStarted: '#FFA58D',
+	notStarted: '#919EAB',
 	inProgress: '#8D99FF',
-	completed: '#919EAB',
+	completed: '#FFA58D',
 }
 
 export function getStrokeStatusByColor(color) {
