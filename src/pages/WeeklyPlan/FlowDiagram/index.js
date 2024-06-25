@@ -235,7 +235,7 @@ const ContentParentRoot = styled('div')({
 
 const DiagramHeader = styled('Box')({
 	position: 'absolute',
-	right: -50,
+	right: 10,
 	top: 10,
 })
 
