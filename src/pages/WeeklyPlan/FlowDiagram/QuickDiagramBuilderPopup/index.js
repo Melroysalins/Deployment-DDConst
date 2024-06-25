@@ -131,8 +131,11 @@ const QuickDiagramBuilderPopup = (
       obj.firstOpen = false;
       
       handleAddConnection(objId, inputValues.midPoints);
+      
+      if (obj.isDemolition) {
       handleAddDemolition(objId, inputValues.demolitionPoints);
-    }, [objId, inputValues.midPoints, inputValues.demolitionPoints]);
+      }
+    }, [objId, inputValues.midPoints, inputValues.demolitionPoints, obj.isDemolition]);
 
     const handleCancel = useCallback(() => {
       if (!warningShown) {

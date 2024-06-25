@@ -3,16 +3,16 @@ export const NODES_GAP = 150
 export const NAMYUNG = ['XLPE', 'OF', 'Other']
 export const CABLE_TYPE = ['154kV', '345kV', '746kV']
 export const JUNCTION_BOX = [
-	{ label: 'S/S', value: 'square' },
-	{ label: 'T/R', value: 'recTri' },
+	{ label: 'S/S', value: 'SS' },
+	{ label: 'T/R', value: 'TR' },
 ]
 export const JB_TYPE = [
 	{ label: 'M/H', value: 'mh' },
 	{ label: 'J/B', value: 'jb' },
 ]
 export const CONNECTORS = [
-	{ label: 'EB-A', value: 'EB-A' },
-	{ label: 'EB-G', value: 'EB-G' },
+	{ label: 'EB-A', value: 'square' },
+	{ label: 'EB-G', value: 'recTri' },
 ]
 export const PMJ = ['NJ', 'IJ', 'Pass']
 export const STATUS = [
@@ -26,8 +26,8 @@ export const JB_TYPE_MAP = {
 	mh: 'M/H',
 }
 export const JUNCTION_BOX_MAP = {
-	recTri: 'T/R',
-	square: 'S/S',
+	recTri: 'EB-G',
+	square: 'EB-A',
 }
 
 export const STATUS_MAP = {
@@ -40,12 +40,12 @@ export const generateNodesFromConnections = ({ id, connections, yPos, isDemoliti
 	const nodes = []
 	const step = NODES_GAP
 	connections.forEach((connection, index) => {
-		const { joinType, status } = connection
-		const imageUrl = `/static/svg/${joinType}-${status}.svg`
+		const { pmj, joinType, status } = connection
+		const imageUrl = `/static/svg/${pmj}-${status}.svg`
 
 		const x = MIN_X + index * step
 		const nodeId = `${id}.${index + 1}`
-		const nodeName = `${JB_TYPE_MAP[joinType]}#${index + 1}`
+		const nodeName = `${pmj}#${index + 1}`
 		const position = { x, y: yPos }
 		const data = { imageUrl, name: nodeName, status }
 		nodes.push({ id: nodeId, type: 'image', data, position })

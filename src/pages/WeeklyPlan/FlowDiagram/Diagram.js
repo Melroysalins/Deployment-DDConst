@@ -4,10 +4,12 @@ import 'reactflow/dist/style.css'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
 import {
+	CONNECTORS,
 	JB_TYPE,
 	JB_TYPE_MAP,
 	JUNCTION_BOX,
 	JUNCTION_BOX_MAP,
+	PMJ,
 	STATUS,
 	STROKE_COLOR,
 	getStrokeStatusByColor,
@@ -25,7 +27,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 		const { status, type, name, isEndbox } = editImageObj
 		editImageObj.imageUrl = `/static/svg/${type}-${status}.svg`
 		const _getCount = name.split('#')[1]
-		editImageObj.name = isEndbox ? `${JUNCTION_BOX_MAP[type]}#${_getCount}` : `${JB_TYPE_MAP[type]}#${_getCount}`
+		editImageObj.name = isEndbox ? `${JUNCTION_BOX_MAP[type]}#${_getCount}` : `${type}#${_getCount}`
 		delete editImageObj.isEndbox
 		const updatedNodes = nodes.map((node) =>
 			node.id === editImageObj.id ? { ...node, data: { ...node.data, ...editImageObj } } : node
@@ -41,16 +43,16 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 			if (editImageObj.id.split('.')[1] === 'start') {
 				// Start
 				updatedCurrentObj.startStatus = status
-				updatedCurrentObj.start = type
+				updatedCurrentObj.startConnector = type
 			} else {
 				// End
 				updatedCurrentObj.endStatus = status
-				updatedCurrentObj.end = type
+				updatedCurrentObj.endConnector = type
 			}
 		} else {
 			const connections = currentObj[isDemolition ? 'demolitions' : 'connections'].map((connection, index) => ({
 				...connection,
-				...(editImageObj.id.split('.')[1] === `${index + 1}` && { joinType: type, status }),
+				...(editImageObj.id.split('.')[1] === `${index + 1}` && { pmj: type, status }),
 			}))
 			updatedCurrentObj = { ...currentObj, ...(isDemolition ? { demolitions: connections } : { connections }) }
 		}
@@ -65,6 +67,9 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 	}
 
 	const handleSelectChange = (value, key) => {
+
+		console.log(value, key)
+
 		const updatedData = {
 			...editImageObj,
 			[key]: value,
@@ -96,6 +101,8 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 		setshowEdgeModal(false)
 		seteditEdgeObj(null)
 	}
+
+	console.log('editImageObj:', editImageObj)
 
 	const applyEdgeChanges = () => {
 		const { status, source } = editEdgeObj
@@ -146,7 +153,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 								label="Junction box"
 								onChange={(e) => handleSelectChange(e.target.value, 'type')}
 							>
-								{JUNCTION_BOX.map((e) => (
+								{CONNECTORS.map((e) => (
 									<MenuItem value={e.value} key={e.value}>
 										{e.label}
 									</MenuItem>
@@ -162,9 +169,9 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 								label="Jb Type"
 								onChange={(e) => handleSelectChange(e.target.value, 'type')}
 							>
-								{JB_TYPE.map((e) => (
-									<MenuItem value={e.value} key={e}>
-										{e.label}
+								{PMJ.map((e) => (
+									<MenuItem value={e} key={e}>
+										{e}
 									</MenuItem>
 								))}
 							</Select>

@@ -36,7 +36,7 @@ let status = ''
 const demolitionsLength = newObj.currentObj.demolitions.length
 
 if (index === 0) {
-	status = `Namyang${JUNCTION_BOX_MAP[newObj.currentObj.start]}#${index + 1}~${JB_TYPE_MAP[demolition.joinType]}#${
+	status = `Namyang${newObj.currentObj.start}#${index + 1}~${JB_TYPE_MAP[demolition.joinType]}#${
 		index + 1
 	}`
 } else if (index === demolitionsLength) {
@@ -185,7 +185,7 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 </TableRow>
 )
 
-const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, isEdit, demolitionLines }) => {
+const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, isEdit, demolitionLines=1 }) => {
 const [isExpanded, setIsExpanded] = useState(false)
 const { demolitions } = newObj.currentObj || {}
 

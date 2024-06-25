@@ -299,7 +299,7 @@ return (
 										variant="body1"
 										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 									>
-										{JUNCTION_BOX_MAP[newObj.currentObj.start]}
+										{newObj.currentObj.start}
 									</Typography>
 								)}
 							</TableCell>
@@ -337,7 +337,7 @@ return (
 										variant="body1"
 										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 									>
-										{newObj.currentObj.startConnector}
+										{JUNCTION_BOX_MAP[newObj.currentObj.startConnector]}
 									</Typography>
 								)}
 							</TableCell>
@@ -389,7 +389,7 @@ return (
 										variant="body1"
 										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 									>
-										{JUNCTION_BOX_MAP[newObj.currentObj.end]}
+										{newObj.currentObj.end}
 									</Typography>
 								)}
 							</TableCell>
@@ -427,7 +427,7 @@ return (
 										variant="body1"
 										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 									>
-										{newObj.currentObj.endConnector}
+										{JUNCTION_BOX_MAP[newObj.currentObj.endConnector]}
 									</Typography>
 								)}
 							</TableCell>

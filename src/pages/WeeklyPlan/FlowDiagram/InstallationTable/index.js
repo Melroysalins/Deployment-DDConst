@@ -87,7 +87,7 @@ const renderStatus = (connection, newObj, index, handleNewObjChange, isEdit) => 
 	)
 }
 
-const InstallationTable = ({ handleNewObjChange, newObj, isEdit, midLines }) => (
+const InstallationTable = ({ handleNewObjChange, newObj, isEdit, midLines=1 }) => (
 	<TableContainer sx={{ border: '1px solid lightgrey', width: 'max-content', marginLeft: '25px', borderRadius: '8px' }}>
 		<Table sx={{ overflow: 'hidden' }}>
 			<TableHead>
@@ -103,7 +103,7 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit, midLines }) => 
 				{newObj.currentObj.connections.map((connection, index) => {
 					let status = ''
 					if (index === 0) {
-						status = `Namyang${JUNCTION_BOX_MAP[newObj.currentObj.start]}#${index + 1}~${
+						status = `Namyang${newObj.currentObj.start}#${index + 1}~${
 							JB_TYPE_MAP[connection.joinType]
 						}#${index + 1}`
 					} else if (index === newObj.currentObj.connections.length) {
@@ -125,7 +125,7 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit, midLines }) => 
 							handleNewObjChange,
 							`${JB_TYPE_MAP[newObj.currentObj.connections[newObj.currentObj.connections.length - 1].joinType]}#${
 								newObj.currentObj.connections.length
-							}~Yeonsu${JUNCTION_BOX_MAP[newObj.currentObj.end]}#1`,
+							}~Yeonsu${newObj.currentObj.end}#1`,
 							newObj,
 							isEdit,
 							midLines
