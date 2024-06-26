@@ -233,6 +233,8 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 					<div style={{ position: 'absolute', top: -30 }}>
 						<span
 							style={{
+								display: 'block',
+								width: 'max-content',
 								padding: '5px 10px',
 								border: '1px solid #EDEDEF',
 								borderRadius: 7,

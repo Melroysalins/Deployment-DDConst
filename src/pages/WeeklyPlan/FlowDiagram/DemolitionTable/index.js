@@ -197,7 +197,7 @@ return (
 	<Box sx={{ position: 'relative', left: '2px', width: '98%' }}>
 		<TableContainer sx={{ overflow: 'hidden', border: '1px solid lightgrey', borderRadius: '8px' }}>
 			<Table>
-				<Collapse collapsedSize={demolitions.length < 7 ? demolitions.length * 53 + 33.5 : 350}>
+				<Collapse in={isExpanded} collapsedSize={demolitions.length < 7 ? demolitions.length * 53 + 33.5 : 350}>
 					<Box
 						sx={{ maxHeight: isExpanded ? 'none' : '350px', overflow: demolitions.length > 6 ? 'scroll' : 'hidden' }}
 					>

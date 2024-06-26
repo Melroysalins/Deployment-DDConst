@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { Box, Typography } from '@mui/material'
-import { React } from 'react'
+import { React, useState } from 'react'
 import { styled } from '@mui/material/styles'
 import ConnectionTable from './ConnectionTable'
 import InstallationTable from './InstallationTable'
@@ -135,6 +135,13 @@ export default function FormDiagram({
 	handleAddDemolition,
 	inputValues,
 }) {
+
+	const [isExpanded, setIsExpanded] = useState(false)
+	
+	const toggleExpand = () => {
+		setIsExpanded((prevIsExpanded) => !prevIsExpanded)
+	}
+
 	return (
 		<>
 			<StyledConnection>
@@ -146,11 +153,13 @@ export default function FormDiagram({
 					newObj={newObj}
 					isEdit={isEdit}
 					midLines={inputValues.midLines}
+					isExpanded={isExpanded}
+					toggleExpand={toggleExpand}
 				/>
 			</StyledConnection>
 			<StyledInstallation>
 				<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
-				<InstallationTable handleNewObjChange={handleNewObjChange} newObj={newObj} isEdit={isEdit} midLines={inputValues.midLines} />
+				<InstallationTable handleNewObjChange={handleNewObjChange} newObj={newObj} isEdit={isEdit} midLines={inputValues.midLines} isExpanded={isExpanded} toggleExpand={toggleExpand} />
 			</StyledInstallation>
 			{isDemolition && (
 				<StyledDemolition>

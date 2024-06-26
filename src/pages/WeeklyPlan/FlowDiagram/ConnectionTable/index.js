@@ -168,15 +168,10 @@ return (
 );
 };
 
-const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleNewObjChange, newObj, isEdit, midLines=1 }) => {
-const [isExpanded, setIsExpanded] = useState(false)
+const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleNewObjChange, newObj, isEdit, midLines=1, isExpanded, toggleExpand }) => {
 
 const addPanel = () => {
 	handleAddConnection(newObj.id)
-}
-
-const toggleExpand = () => {
-	setIsExpanded((prevIsExpanded) => !prevIsExpanded)
 }
 
 console.log('connection length: ', newObj.currentObj.connections.length)
@@ -481,10 +476,10 @@ return (
 							<Collapse
 								in={isExpanded}
 								collapsedSize={
-									newObj.currentObj.connections.length < 7 ? newObj.currentObj.connections.length * 65 : 390
+									newObj.currentObj.connections.length < 7 ? newObj.currentObj.connections.length * 73 : 438
 								}
 							>
-								<Box sx={{ maxHeight: isExpanded ? 'none' : '390px', overflow: 'auto' }}>
+								<Box sx={{ maxHeight: isExpanded ? 'none' : '438px', overflow: 'auto' }}>
 									{newObj.currentObj.connections.map((connection, index) => (
 										<>{renderTableRow(connection, index, handleNewObjChange, newObj.id, isEdit, midLines)}</>
 									))}
