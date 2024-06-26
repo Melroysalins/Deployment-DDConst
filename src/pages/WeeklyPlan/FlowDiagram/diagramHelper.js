@@ -45,7 +45,7 @@ export const generateNodesFromConnections = ({ id, connections, yPos, isDemoliti
 
 		const x = MIN_X + index * step
 		const nodeId = `${id}.${index + 1}`
-		const nodeName = `${pmj}#${index + 1}`
+		const nodeName = `${JB_TYPE_MAP[joinType]}#${index + 1}`
 		const position = { x, y: yPos }
 		const data = { imageUrl, name: nodeName, status }
 		nodes.push({ id: nodeId, type: 'image', data, position })
