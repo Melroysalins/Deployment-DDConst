@@ -21,7 +21,6 @@ const StyledInstallation = styled(Box)({
 	flex: '1 1 auto',
 	alignSelf: 'stretch',
 	borderRadius: '8px',
-	overflow: 'hidden',
 	display: 'flex',
 	flexDirection: 'column',
 	alignItems: 'flex-start',
@@ -29,6 +28,7 @@ const StyledInstallation = styled(Box)({
 	fontSize: '14px',
 	color: '#596570',
 	gap: '8px',
+	marginBottom: 10,
 })
 
 const StyledDemolition = styled(Box)({
@@ -133,35 +133,37 @@ export default function FormDiagram({
 	handleCloseInstallation,
 	handleChangeDemolition,
 	handleAddDemolition,
-	inputValues,
 }) {
 	return (
 		<>
 			<StyledConnection>
 				<HeaderText title="Connection" color="#ffa58d" newObj={newObj} />
-				<ConnectionTable
-					handleAddConnection={handleAddConnection}
-					handleCloseInstallation={handleCloseInstallation}
-					handleNewObjChange={handleNewObjChange}
-					newObj={newObj}
-					isEdit={isEdit}
-					midLines={inputValues.midLines}
-				/>
+				{newObj?.currentObj?.startStatuses && (
+					<ConnectionTable
+						handleAddConnection={handleAddConnection}
+						handleCloseInstallation={handleCloseInstallation}
+						handleNewObjChange={handleNewObjChange}
+						newObj={newObj}
+						isEdit={isEdit}
+					/>
+				)}
 			</StyledConnection>
 			<StyledInstallation>
 				<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
-				<InstallationTable handleNewObjChange={handleNewObjChange} newObj={newObj} isEdit={isEdit} midLines={inputValues.midLines} />
+				{newObj?.currentObj?.startStatuses && (
+					<InstallationTable handleNewObjChange={handleNewObjChange} newObj={newObj} isEdit={isEdit} />
+				)}
 			</StyledInstallation>
 			{isDemolition && (
 				<StyledDemolition>
 					<HeaderText title="Demolition" color="#7FBCFE" newObj={newObj} isDemolition={true} />
-					<DemolitionTable
+					{/* <DemolitionTable
 						handleAddDemolition={handleAddDemolition}
 						handleChangeDemolition={handleChangeDemolition}
 						newObj={newObj}
 						isEdit={isEdit}
 						demolitionLines={inputValues.demolitionLines}
-					/>
+					/> */}
 				</StyledDemolition>
 			)}
 		</>
@@ -177,5 +179,4 @@ FormDiagram.propTypes = {
 	handleCloseInstallation: PropTypes.func.isRequired,
 	handleChangeDemolition: PropTypes.func.isRequired,
 	handleAddDemolition: PropTypes.func.isRequired,
-	inputValues: PropTypes.object.isRequired,
 }

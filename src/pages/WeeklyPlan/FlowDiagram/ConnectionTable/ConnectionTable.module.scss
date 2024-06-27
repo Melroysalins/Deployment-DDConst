@@ -1,23 +1,22 @@
 .ConnectionTable {
-    border-radius: 8px;
-    background-color: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    position: relative;
-    gap: 8px;
-
+	border-radius: 8px;
+	background-color: #fff;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: flex-start;
+	position: relative;
+	gap: 8px;
 }
 
 // .StyledSelect {
 //     border-radius: 4px;
 //     background-color: #f8dbdd;
-    
+
 //     .MuiOutlinedInput-notchedOutline {
 //         border: none;
 //     }
-    
+
 //     .MuiSelect-select {
 //         display: flex;
 //         align-items: center;
@@ -28,7 +27,7 @@
 //         font-size: 14px;
 //         color: #da4c57;
 //     }
-    
+
 //     @media (max-width: 1440px) {
 //         .MuiSelect-select {
 //             font-size: 10px;
@@ -36,7 +35,7 @@
 //             height: 14px;
 //         }
 //     }
-    
+
 //     @media (max-width: 1336px) {
 //         .MuiSelect-select {
 //             font-size: 8px;
@@ -44,7 +43,7 @@
 //             height: 10px;
 //         }
 //     }
-    
+
 //     @media (max-width: 1280px) {
 //         .MuiSelect-select {
 //             font-size: 6px;
@@ -61,12 +60,12 @@
 //             width: 40px;
 //             height: 21px;
 //         }
-        
+
 //         .MuiInputBase-root {
 //             height: 1px;
 //         }
 //     }
-    
+
 //     @media (max-width: 1336px) {
 //         .MuiSelect-select {
 //             font-size: 8px;
@@ -74,7 +73,7 @@
 //             height: 16px;
 //         }
 //     }
-    
+
 //     @media (max-width: 1280px) {
 //         .MuiSelect-select {
 //             font-size: 6px;
@@ -85,23 +84,23 @@
 // }
 
 .TableCell {
-    @media (max-width: 1440px) {
-        font-size: 10px;
-        padding: 4px 6px;
-        width: 100%;
-    }
-    
-    @media (max-width: 1336px) {
-        font-size: 8px;
-        padding: 2px 4px;
-        width: 100%;
-    }
-    
-    @media (max-width: 1280px) {
-        font-size: 6px;
-        padding: 2px 4px;
-        width: 100%;
-    }
+	@media (max-width: 1440px) {
+		font-size: 10px;
+		padding: 4px 6px;
+		width: 100%;
+	}
+
+	@media (max-width: 1336px) {
+		font-size: 8px;
+		padding: 2px 4px;
+		width: 100%;
+	}
+
+	@media (max-width: 1280px) {
+		font-size: 6px;
+		padding: 2px 4px;
+		width: 100%;
+	}
 }
 
 // .InputLabel {
@@ -109,12 +108,12 @@
 //         font-size: 10px;
 //         padding: 4px 6px;
 //     }
-    
+
 //     @media (max-width: 1336px) {
 //         font-size: 8px;
 //         padding: 2px 4px;
 //     }
-    
+
 //     @media (max-width: 1280px) {
 //         font-size: 6px;
 //         padding: 2px 4px;
@@ -126,12 +125,12 @@
 //         font-size: 10px;
 //         padding: 2px;
 //     }
-    
+
 //     @media (max-width: 1336px) {
 //         font-size: 8px;
 //         padding: 1px;
 //     }
-    
+
 //     @media (max-width: 1280px) {
 //         font-size: 6px;
 //         padding: 1px;
@@ -142,11 +141,11 @@
 //     @media (max-width: 1440px) {
 //         width: 100%;
 //     }
-    
+
 //     @media (max-width: 1336px) {
 //         width: 80%;
 //     }
-    
+
 //     @media (max-width: 1280px) {
 //         width: 60%;
 //     }

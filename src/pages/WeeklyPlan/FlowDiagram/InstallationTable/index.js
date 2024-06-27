@@ -13,7 +13,7 @@ import {
 	MenuItem,
 } from '@mui/material'
 import style from './InstallationTable.module.scss'
-import { JB_TYPE_MAP, JUNCTION_BOX_MAP, STATUS } from '../diagramHelper'
+import { JB_TYPE_MAP, JUNCTION_BOX_MAP, STATUS, STATUS_MAP } from '../diagramHelper'
 
 const renderTableCell = (text) => (
 	<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%' }}>
@@ -27,7 +27,7 @@ const renderTableCell = (text) => (
 	</TableCell>
 )
 
-const renderTableRow = (connection, index, handleNewObjChange, displayName, newObj, isEdit, midLines=1) => (
+const renderTableRow = (connection, index, handleNewObjChange, displayName, newObj, isEdit) => (
 	<TableRow>
 		{renderTableCell(`${displayName}`)}
 		<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
@@ -49,52 +49,57 @@ const renderTableRow = (connection, index, handleNewObjChange, displayName, newO
 				</Typography>
 			)}
 		</TableCell>
-		{Array.from({ length: midLines }, (_, index) => (
-			<>{renderStatus(connection, newObj, index, handleNewObjChange, isEdit)}</>
+		{connection.statuses.map((e, statusIndex) => (
+			<>{renderStatus(connection, isEdit, handleNewObjChange, newObj.id, index, statusIndex)}</>
 		))}
 	</TableRow>
 )
 
-const renderStatus = (connection, newObj, index, handleNewObjChange, isEdit) => {
-	console.log('install:', connection)
-	return (
-		<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
-			{isEdit ? (
-				<Select
-					value={connection.status}
-					label="Status"
-					onChange={(e) => handleNewObjChange(e.target.value, 'status', newObj.id, index)}
-					variant="outlined"
-					className={style.StyledSelect}
-					size="small"
-				>
-					{STATUS.map((e) => (
-						<MenuItem value={e.value} key={e.value}>
-							{e.label}
-						</MenuItem>
-					))}
-				</Select>
-			) : (
-				<Typography
-					variant="body1"
-					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
-					className={style.Typography}
-				>
-					{connection.status}
-				</Typography>
-			)}
-		</TableCell>
-	)
-}
+const renderStatus = (connection, isEdit, handleNewObjChange, objId, connIndex, statusIndex) => (
+	<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
+		{isEdit ? (
+			<Select
+				value={connection.statuses?.[statusIndex]}
+				label="Status"
+				onChange={(e) => handleNewObjChange(e.target.value, 'statuses', objId, connIndex, statusIndex)}
+				variant="outlined"
+				className={style.StyledSelect}
+				size="small"
+			>
+				{STATUS.map((e) => (
+					<MenuItem value={e.value} key={e.value}>
+						{e.label}
+					</MenuItem>
+				))}
+			</Select>
+		) : (
+			<Typography
+				variant="body1"
+				sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+				className={style.Typography}
+			>
+				{STATUS_MAP[connection.statuses?.[statusIndex]]}
+			</Typography>
+		)}
+	</TableCell>
+)
 
-const InstallationTable = ({ handleNewObjChange, newObj, isEdit, midLines=1 }) => (
-	<TableContainer sx={{ border: '1px solid lightgrey', width: 'max-content', marginLeft: '25px', borderRadius: '8px' }}>
-		<Table sx={{ overflow: 'hidden' }}>
+const InstallationTable = ({ handleNewObjChange, newObj, isEdit }) => (
+	<TableContainer
+		sx={{
+			border: '1px solid lightgrey',
+			width: 'max-content',
+			marginLeft: '25px',
+			borderRadius: '8px',
+			overflow: 'auto',
+		}}
+	>
+		<Table sx={{ overflow: 'auto' }}>
 			<TableHead>
 				<TableRow style={{ backgroundColor: '#f9f9fa' }}>
 					{renderTableCell('T/L Section')}
 					{renderTableCell('Length(m)')}
-					{Array.from({ length: midLines }, (_, index) => (
+					{newObj.currentObj.endStatuses.map((_, index) => (
 						<>{renderTableCell(`${index + 1}T/L`)}</>
 					))}
 				</TableRow>
@@ -103,9 +108,7 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit, midLines=1 }) =
 				{newObj.currentObj.connections.map((connection, index) => {
 					let status = ''
 					if (index === 0) {
-						status = `Namyang${newObj.currentObj.start}#${index + 1}~${
-							JB_TYPE_MAP[connection.joinType]
-						}#${index + 1}`
+						status = `Namyang${newObj.currentObj.start}#${index + 1}~${JB_TYPE_MAP[connection.joinType]}#${index + 1}`
 					} else if (index === newObj.currentObj.connections.length) {
 						status = `${JB_TYPE_MAP[connection.joinType]}#${index + 1}~Yeonsu${JUNCTION_BOX_MAP[newObj.currentObj.end]}`
 					} else {
@@ -114,7 +117,7 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit, midLines=1 }) =
 						}#${index + 1}`
 					}
 
-					return <>{renderTableRow(connection, index, handleNewObjChange, status, newObj, isEdit, midLines)}</>
+					return <>{renderTableRow(connection, index, handleNewObjChange, status, newObj, isEdit)}</>
 				})}
 
 				{newObj.isEnd && (
@@ -127,8 +130,7 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit, midLines=1 }) =
 								newObj.currentObj.connections.length
 							}~Yeonsu${newObj.currentObj.end}#1`,
 							newObj,
-							isEdit,
-							midLines
+							isEdit
 						)}
 					</>
 				)}
@@ -141,7 +143,6 @@ InstallationTable.propTypes = {
 	handleNewObjChange: PropTypes.func.isRequired,
 	newObj: PropTypes.object.isRequired,
 	isEdit: PropTypes.bool.isRequired,
-	midLines: PropTypes.number.isRequired,
 }
 
 export default InstallationTable

@@ -141,7 +141,8 @@ export function getStrokeStatusByColor(color) {
 export const defaultConnection = {
 	joinType: JB_TYPE[0].value,
 	pmj: PMJ[0],
-	status: STATUS[0].value,
+	// status: STATUS[0].value,
+	statuses: [STATUS[0].value],
 }
 
 export const defaultNewObj = {
@@ -153,8 +154,10 @@ export const defaultNewObj = {
 	namyang: NAMYUNG[0],
 	length: 600,
 	length_demolition: 600,
-	startStatus: STATUS[0].value,
-	endStatus: STATUS[0].value,
+	// startStatus: STATUS[0].value,
+	// endStatus: STATUS[0].value,
+	startStatuses: [STATUS[0].value],
+	endStatuses: [STATUS[0].value],
 	startConnector: CONNECTORS[0].value,
 	endConnector: CONNECTORS[0].value,
 }

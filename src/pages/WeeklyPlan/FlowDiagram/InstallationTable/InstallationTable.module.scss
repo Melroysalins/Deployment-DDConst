@@ -1,34 +1,34 @@
 .InstallationTable {
-    align-self: stretch;
-    border-radius: 8px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    font-size: 14px;
-    color: #596570;
-    gap: 8px;
+	align-self: stretch;
+	border-radius: 8px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: flex-start;
+	font-size: 14px;
+	color: #596570;
+	gap: 8px;
 }
 
 .TableCell {
-    @media (max-width: 1440px) {
-        font-size: 10px;
-        padding: 4px ;
-        width: 100%;
-    }
-    
-    @media (max-width: 1336px) {
-        font-size: 8px;
-        padding: 2px 4px;
-        width: 100%;
-    }
-    
-    @media (max-width: 1280px) {
-        font-size: 6px;
-        padding: 2px 4px;
-        width: 100%;
-    }
+	@media (max-width: 1440px) {
+		font-size: 10px;
+		padding: 4px;
+		width: 100%;
+	}
+
+	@media (max-width: 1336px) {
+		font-size: 8px;
+		padding: 2px 4px;
+		width: 100%;
+	}
+
+	@media (max-width: 1280px) {
+		font-size: 6px;
+		padding: 2px 4px;
+		width: 100%;
+	}
 }
 
 // .Typography {
@@ -36,12 +36,12 @@
 //         font-size: 10px;
 //         padding: 2px;
 //     }
-    
+
 //     @media (max-width: 1336px) {
 //         font-size: 8px;
 //         padding: 1px;
 //     }
-    
+
 //     @media (max-width: 1280px) {
 //         font-size: 6px;
 //         padding: 1px;
@@ -51,11 +51,11 @@
 // .StyledSelect {
 //     border-radius: 4px;
 //     background-color: #f8dbdd;
-    
+
 //     .MuiOutlinedInput-notchedOutline {
 //         border: none;
 //     }
-    
+
 //     .MuiSelect-select {
 //         display: flex;
 //         align-items: center;
@@ -66,7 +66,7 @@
 //         font-size: 14px;
 //         color: #da4c57;
 //     }
-    
+
 //     @media (max-width: 1440px) {
 //         .MuiSelect-select {
 //             font-size: 10px;
@@ -74,7 +74,7 @@
 //             height: 14px;
 //         }
 //     }
-    
+
 //     @media (max-width: 1336px) {
 //         .MuiSelect-select {
 //             font-size: 8px;
@@ -82,7 +82,7 @@
 //             height: 10px;
 //         }
 //     }
-    
+
 //     @media (max-width: 1280px) {
 //         .MuiSelect-select {
 //             font-size: 6px;

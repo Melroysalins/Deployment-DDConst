@@ -23,6 +23,7 @@ import {
 	generateNodesFromConnections,
 	generateStartEndNode,
 	defaultConnection,
+	STATUS,
 } from './diagramHelper'
 import { useParams } from 'react-router-dom'
 import {
@@ -33,7 +34,6 @@ import {
 } from 'supabase/project_diagram'
 import { LoadingButton } from '@mui/lab'
 import QuickDiagramBuilderPopup from './QuickDiagramBuilderPopup'
-import { set, update } from 'lodash'
 
 const StyledButtonContainer = styled(Box)({
 	alignSelf: 'stretch',
@@ -260,7 +260,7 @@ const ConnectionInstallationTable = styled('div')({
 	borderRadius: '8px',
 	backgroundColor: '#fff',
 	boxSizing: 'border-box',
-	width: '100%'
+	width: '100%',
 })
 
 const Accordion = styled((props) => <MuiAccordion disableGutters elevation={0} square {...props} />)(({ theme }) => ({
@@ -318,37 +318,32 @@ const defaultWholeObj = {
 const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	const [loading, setloading] = useState(false)
 	const [expanded, setExpanded] = useState()
-	const [inputValues, setInputValues] = useState({});
 	const [objs, setObjs] = useState([])
 	const [seqNumber, setseqNumber] = useState()
 	const { id } = useParams()
 
 	const handleChange = (panel) => (event, isExpanded) => {
-		setExpanded(isExpanded ? panel : false);
+		setExpanded(isExpanded ? panel : false)
 	}
-
-	const handleInputChange = (name, value) => {
-		setInputValues(prev => ({ ...prev, [name]: value }));
-	};
 
 	const getDiagram = async () => {
 		const { data } = await getDiagramsByProject(id)
 		if (data?.length) {
-		  const updatedData = data.map((diagram) => ({
-			...diagram,
-			isEditing: false,
-			isEnd: true,
-			firstOpen: false,
-		  }))
-	  
-		  const ids = data.map((diagram) => diagram.id)
-		  setObjs(updatedData)
-		  const maxId = Math.max(...ids)
-		  setseqNumber(maxId + 1)
-		  const minId = Math.min(...ids)
-		  setExpanded(`panel${minId}`)
+			const updatedData = data.map((diagram) => ({
+				...diagram,
+				isEditing: false,
+				isEnd: true,
+				firstOpen: false,
+			}))
+
+			const ids = data.map((diagram) => diagram.id)
+			setObjs(updatedData)
+			const maxId = Math.max(...ids)
+			setseqNumber(maxId + 1)
+			const minId = Math.min(...ids)
+			setExpanded(`panel${minId}`)
 		}
-	  }
+	}
 
 	useEffect(() => {
 		getDiagram()
@@ -386,17 +381,26 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		setloading(false)
 	}
 
-	const handleNewObjChange = (value, field, objId, connIndex) => {
+	const handleNewObjChange = (value, field, objId, connIndex, statusIndex) => {
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id !== objId) return obj
 
 			const updatedMainObj = { ...obj.currentObj }
 			if (connIndex === undefined) {
 				updatedMainObj[field] = value
+			} else if (field === 'startStatuses' || field === 'endStatuses') {
+				updatedMainObj[field][connIndex] = value
 			} else {
-				const updatedConnections = updatedMainObj.connections.map((conn, index) =>
-					index === connIndex ? { ...conn, [field]: value } : conn
-				)
+				const updatedConnections = updatedMainObj.connections.map((conn, index) => {
+					if (index === connIndex) {
+						if (field === 'statuses') {
+							const updatedStatuses = conn.statuses.map((status, sIndex) => (sIndex === statusIndex ? value : status))
+							return { ...conn, statuses: updatedStatuses }
+						}
+						return { ...conn, [field]: value }
+					}
+					return conn
+				})
 				updatedMainObj.connections = updatedConnections
 			}
 			return { ...obj, currentObj: updatedMainObj }
@@ -435,54 +439,75 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		setObjs(updatedObjs)
 	}
 
-	const handleAddMultipleDemolition = (objId, demolitionPoints) => {
-		const updatedObjs = objs.map((obj) => {
-		  if (obj.id !== objId) return obj;
-	  
-		  console.log('demolitionPoints:', demolitionPoints);
-
-		  const updatedMainObj = { ...obj.currentObj };
-		  for (let i = 0; i < Number(demolitionPoints) - 1; i += 1) {
-			updatedMainObj.demolitions.push({ ...defaultConnection });
-		  }
-	  
-		  obj.isDemolition = true;
-		  return { ...obj, currentObj: updatedMainObj };
-		});
-		console.log(updatedObjs);
-		setObjs(updatedObjs);
-		handleAdd();
-	  };
-
 	const handleAddConnection = (objId) => {
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id !== objId) return obj
 
 			const updatedMainObj = {
 				...obj.currentObj,
-				connections: [...obj.currentObj.connections, { ...defaultConnection }],
+				connections: [...obj.currentObj.connections, obj.currentObj.connections[obj.currentObj.connections.length - 1]],
 			}
 			return { ...obj, currentObj: updatedMainObj, isEnd: false }
 		})
 		setObjs(updatedObjs)
 	}
 
-	const handleAddMultipleConnection = (objId, midPoints=1) => {
+	const handleAddMultipleConnection = (objId, midPoints = 1, midLines = 1) => {
 		const updatedObjs = objs.map((obj) => {
-			if (obj.id !== objId) return obj;
+			if (obj.id !== objId) return obj
 
-			console.log('midPoints:', midPoints);
-			console.log("inputValues", inputValues);	
-
-			const updatedMainObj = { ...obj.currentObj };
-			for (let i = 0; i < Number(midPoints) - 1; i += 1) {
-				updatedMainObj.connections.push({ ...defaultConnection });
+			const updatedMainObj = { ...obj.currentObj }
+			// Update connections
+			for (let i = 0; i < midPoints - 1; i += 1) {
+				const newConnection = { ...defaultConnection, statuses: [] }
+				updatedMainObj.connections.push(newConnection)
 			}
-			return { ...obj, currentObj: updatedMainObj, isEnd: false };
-		});
-		setObjs(updatedObjs);
-		handleAdd();
-	};
+
+			// Update startStatuses and endStatuses
+			for (let i = 0; i < midLines - 1; i += 1) {
+				updatedMainObj.startStatuses.push(STATUS[0].value)
+				updatedMainObj.endStatuses.push(STATUS[0].value)
+			}
+
+			updatedMainObj.connections = updatedMainObj.connections.map((connection) => {
+				while (connection.statuses.length < midLines) {
+					connection.statuses.push(STATUS[0].value)
+				}
+				return connection
+			})
+
+			return { ...obj, currentObj: updatedMainObj, isEnd: false }
+		})
+
+		setObjs(updatedObjs)
+		handleAdd()
+	}
+
+	const handleAddMultipleDemolition = (objId, demolitionPoints, demolitionLines) => {
+		const updatedObjs = objs.map((obj) => {
+			if (obj.id !== objId) return obj
+
+			const updatedMainObj = { ...obj.currentObj }
+			// Update demolitions
+			for (let i = 0; i < demolitionPoints - 1; i += 1) {
+				const newDemolition = { ...defaultConnection }
+				updatedMainObj.demolitions.push(newDemolition)
+			}
+
+			obj.isDemolition = true
+
+			updatedMainObj.connections = updatedMainObj.demolitions.map((newDemolition) => {
+				while (newDemolition.statuses.length < demolitionLines) {
+					newDemolition.statuses.push(STATUS[0].value)
+				}
+				return newDemolition
+			})
+
+			return { ...obj, currentObj: updatedMainObj }
+		})
+		setObjs(updatedObjs)
+		handleAdd()
+	}
 
 	const handleAdd = () => {
 		const updatedObjs = objs.map((obj) => {
@@ -554,7 +579,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	}
 
 	const handleAddNewObj = () => {
-		const newObj = { ...defaultWholeObj }
+		const newObj = { ...JSON.parse(JSON.stringify(defaultWholeObj)) }
 		setObjs([...objs, newObj])
 		setseqNumber((prev) => {
 			const newSeqNumber = prev + 1
@@ -593,8 +618,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			isEnd: true,
 		}))
 	}
-
-	console.log(inputValues)
 
 	const setCurrentObj = ({
 		objId,
@@ -724,9 +747,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							</Stack>
 						</AccordionSummary>
 						<AccordionDetails>
-							<QuickDiagramBuilderPopup 
-								onInputChange={handleInputChange} 
-								inputValues={inputValues}
+							<QuickDiagramBuilderPopup
 								objId={newObj.id}
 								obj={newObj}
 								handleAddConnection={handleAddMultipleConnection}
@@ -810,7 +831,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 												handleCloseInstallation={handleCloseInstallation}
 												handleChangeDemolition={handleChangeDemolition}
 												handleAddDemolition={handleAddDemolition}
-												inputValues={inputValues}
 												isDemolition={newObj.isDemolition}
 											/>
 										</ConnectionInstallationTable>
