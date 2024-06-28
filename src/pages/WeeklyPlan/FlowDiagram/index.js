@@ -639,7 +639,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		updateObjById(objId, (obj) => ({
 			...obj,
 			currentObj,
-			nodes: nodes || obj.edges,
+			nodes: nodes || obj.nodes,
 			edges: edges || obj.edges,
 			project: project || obj.project,
 			isEditing,

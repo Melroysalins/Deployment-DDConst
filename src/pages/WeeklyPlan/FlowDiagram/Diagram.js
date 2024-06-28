@@ -34,18 +34,26 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 			)
 			if (editImageObj.id.split('.')[1] === 'start') {
 				// Start
-				updatedCurrentObj.startStatus = status
+				updatedCurrentObj.startStatuses[_getCount - 1] = status
 				updatedCurrentObj.startConnector = type
 			} else {
 				// End
-				updatedCurrentObj.endStatus = status
+				updatedCurrentObj.endStatuses[_getCount - 1] = status
 				updatedCurrentObj.endConnector = type
 			}
 		} else {
-			const connections = currentObj[isDemolition ? 'demolitions' : 'connections'].map((connection, index) => ({
-				...connection,
-				...(editImageObj.id.split('.')[1] === `${index + 1}` && { pmj: type, status }),
-			}))
+			const spilittedIds = editImageObj.id.split('.')
+			const connections = currentObj[isDemolition ? 'demolitions' : 'connections'].map((connection, index) =>
+				+spilittedIds[1] === index + 1
+					? {
+							...connection,
+							pmj: type,
+							statuses: connection.statuses.map((oldStatus, statusIndex) =>
+								statusIndex + 1 === +spilittedIds[2] ? status : oldStatus
+							),
+					  }
+					: connection
+			)
 			updatedCurrentObj = { ...currentObj, ...(isDemolition ? { demolitions: connections } : { connections }) }
 		}
 		setCurrentObj({
@@ -286,7 +294,6 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 				>
 					{UpdateImageView()}
 					{UpdateEdgeView()}
-					{console.log('Update', newObj)}
 					<ReactFlow
 						nodes={nodes}
 						edges={edges}
