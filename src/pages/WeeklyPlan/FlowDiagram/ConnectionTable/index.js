@@ -197,15 +197,17 @@ const renderStatusStartEnd = (isEdit, handleNewObjChange, newObj, index, name) =
 	</TableCell>
 )
 
-const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleNewObjChange, newObj, isEdit }) => {
-	const [isExpanded, setIsExpanded] = useState(false)
-
+const ConnectionTable = ({
+	handleAddConnection,
+	handleCloseInstallation,
+	handleNewObjChange,
+	newObj,
+	isEdit,
+	isExpanded,
+	toggleExpand,
+}) => {
 	const addPanel = () => {
 		handleAddConnection(newObj.id)
-	}
-
-	const toggleExpand = () => {
-		setIsExpanded((prevIsExpanded) => !prevIsExpanded)
 	}
 
 	return (
@@ -512,10 +514,10 @@ const ConnectionTable = ({ handleAddConnection, handleCloseInstallation, handleN
 								<Collapse
 									in={isExpanded}
 									collapsedSize={
-										newObj.currentObj.connections.length < 7 ? newObj.currentObj.connections.length * 65 : 390
+										newObj.currentObj.connections.length < 7 ? newObj.currentObj.connections.length * 73 : 438
 									}
 								>
-									<Box sx={{ maxHeight: isExpanded ? 'none' : '390px', overflow: 'auto' }}>
+									<Box sx={{ maxHeight: isExpanded ? 'none' : '438px', overflow: 'auto' }}>
 										{newObj.currentObj.connections.map((connection, index) => (
 											<>{renderTableRow(connection, index, handleNewObjChange, newObj.id, isEdit)}</>
 										))}
@@ -610,6 +612,8 @@ ConnectionTable.propTypes = {
 	handleNewObjChange: PropTypes.func.isRequired,
 	newObj: PropTypes.object.isRequired,
 	isEdit: PropTypes.bool,
+	isExpanded: PropTypes.bool,
+	toggleExpand: PropTypes.func,
 }
 
 export default ConnectionTable

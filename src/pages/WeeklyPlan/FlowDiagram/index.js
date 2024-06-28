@@ -528,8 +528,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				...generateStartEndNode({
 					seqNumber: obj.id,
 					yPos: 50,
-					startName: JUNCTION_BOX_MAP[obj.currentObj.startConnector],
-					endName: JUNCTION_BOX_MAP[obj.currentObj.endConnector],
+					startName: obj.currentObj.start,
+					endName: obj.currentObj.end,
 					connectionLength: obj.currentObj.connections.length,
 					startType: obj.currentObj.startConnector,
 					endType: obj.currentObj.endConnector,
@@ -555,8 +555,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					...generateStartEndNode({
 						seqNumber: obj.id,
 						yPos: 30,
-						startName: JUNCTION_BOX_MAP[obj.currentObj.startConnector],
-						endName: JUNCTION_BOX_MAP[obj.currentObj.endConnector],
+						startName: obj.currentObj.start,
+						endName: obj.currentObj.end,
 						connectionLength: obj.currentObj.demolitions.length,
 						startType: obj.currentObj.startConnector,
 						endType: obj.currentObj.endConnector,

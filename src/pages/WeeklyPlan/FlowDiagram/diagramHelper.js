@@ -42,13 +42,13 @@ export const generateNodesFromConnections = ({ id, connections, yPos, isDemoliti
 	const step = NODES_GAP
 
 	connections.forEach((connection, index) => {
-		const { pmj, statuses } = connection
+		const { pmj, joinType, statuses } = connection
 		statuses.forEach((status, statusIndex) => {
 			const imageUrl = `/static/svg/${pmj}-${status}.svg`
 
 			const x = START_POS + MIN_X + index * step
 			const nodeId = `${id}.${index + 1}.${statusIndex + 1}`
-			const nodeName = `${pmj}#${index + 1}`
+			const nodeName = `${JB_TYPE_MAP[joinType]}#${index + 1}`
 			const position = { x, y: yPos + statusIndex * 55 } // Adjust yPos for each status
 			const data = { imageUrl, name: nodeName, status }
 

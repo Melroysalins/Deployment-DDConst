@@ -180,7 +180,11 @@ const QuickDiagramBuilderPopup = ({ objId, obj, handleAddConnection, handleAddDe
 					<Grid container spacing={1} sx={{ padding: '24px 24px 0px 24px' }}>
 						<Grid item xs={10}>
 							<InputLabel htmlFor="input-field" sx={{ fontSize: '12px' }}>
-								MidPoint Connections({Number(inputValues.midPoints) + Number(inputValues.midLines)} units)
+								MidPoint Connections({' '}
+								{inputValues.midLines
+									? Number(inputValues.midPoints) * Number(inputValues.midLines)
+									: inputValues.midPoints}{' '}
+								units)
 							</InputLabel>
 						</Grid>
 						<Grid item xs={2} sx={{ fontSize: '12px' }}>
@@ -210,7 +214,10 @@ const QuickDiagramBuilderPopup = ({ objId, obj, handleAddConnection, handleAddDe
 								<Grid item xs={10}>
 									<InputLabel htmlFor="input-field" sx={{ fontSize: '12px' }}>
 										Demolition MidPoint Connections(
-										{Number(inputValues.demolitionPoints) + Number(inputValues.demolitionLines)} units)
+										{inputValues.demolitionLines
+											? Number(inputValues.demolitionPoints) * Number(inputValues.demolitionLines)
+											: inputValues.demolitionPoints}{' '}
+										units)
 									</InputLabel>
 								</Grid>
 								<Grid item xs={10} container spacing={1}>
