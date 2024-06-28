@@ -111,8 +111,8 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 			objId,
 			currentObj: updatedCurrentObj,
 			isEditing: true,
-			nodes: !isDemolition ? updatedEdges : otherEdges,
-			nodes_demolition: isDemolition ? updatedEdges : otherEdges,
+			edges: !isDemolition ? updatedEdges : otherEdges,
+			edges_demolition: isDemolition ? updatedEdges : otherEdges,
 		})
 		handleEditingEdgeCancel()
 	}
