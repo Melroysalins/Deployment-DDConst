@@ -1,5 +1,6 @@
 export const MIN_X = 100
 export const NODES_GAP = 150
+export const START_POS = 170
 export const NAMYUNG = ['XLPE', 'OF', 'Other']
 export const CABLE_TYPE = ['154kV', '345kV', '746kV']
 export const JUNCTION_BOX = [
@@ -39,21 +40,25 @@ export const STATUS_MAP = {
 export const generateNodesFromConnections = ({ id, connections, yPos, isDemolition }) => {
 	const nodes = []
 	const step = NODES_GAP
-	connections.forEach((connection, index) => {
-		const { pmj, joinType, status } = connection
-		const imageUrl = `/static/svg/${pmj}-${status}.svg`
 
-		const x = MIN_X + index * step
-		const nodeId = `${id}.${index + 1}`
-		const nodeName = `${pmj}#${index + 1}`
-		const position = { x, y: yPos }
-		const data = { imageUrl, name: nodeName, status }
-		nodes.push({ id: nodeId, type: 'image', data, position })
+	connections.forEach((connection, index) => {
+		const { pmj, statuses } = connection
+		statuses.forEach((status, statusIndex) => {
+			const imageUrl = `/static/svg/${pmj}-${status}.svg`
+
+			const x = START_POS + MIN_X + index * step
+			const nodeId = `${id}.${index + 1}.${statusIndex + 1}`
+			const nodeName = `${pmj}#${index + 1}`
+			const position = { x, y: yPos + statusIndex * 55 } // Adjust yPos for each status
+			const data = { imageUrl, name: nodeName, status }
+
+			nodes.push({ id: nodeId, type: 'image', data, position })
+		})
 	})
 
-	const data = { name: isDemolition ? 'Old Of Section (Demolition)' : 'New CV Section (Installation)' }
-	const position = { x: (connections.length * NODES_GAP - MIN_X) / 2, y: 50 }
-	nodes.push({ id: 'heading', type: 'nodeHeading', data, position })
+	const headingData = { name: isDemolition ? 'Old Of Section (Demolition)' : 'New CV Section (Installation)' }
+	const headingPosition = { x: START_POS + (connections.length * NODES_GAP - MIN_X) / 2, y: 50 }
+	nodes.push({ id: 'heading', type: 'nodeHeading', data: headingData, position: headingPosition })
 
 	return nodes
 }
@@ -66,59 +71,82 @@ export const generateStartEndNode = ({
 	connectionLength,
 	startType,
 	endType,
-	startStatus,
-	endStatus,
+	startStatuses,
+	endStatuses,
 }) => {
-	const startX = 0 // Fixed starting position for startX
-	const step = NODES_GAP // Fixed 25px difference between each connection
-	const endX = MIN_X + step * connectionLength
-	const startImageUrl = `/static/svg/${startType}-${startStatus}.svg`
-	const endImageUrl = `/static/svg/${endType}-${endStatus}.svg`
-	const nameNumber = 1
+	const startX = START_POS
+	const step = NODES_GAP
+	const endX = startX + MIN_X + step * connectionLength
 
-	const nodes = [
-		{
-			id: `${seqNumber}.start`,
+	const nodes = []
+
+	startStatuses.forEach((startStatus, index) => {
+		const startImageUrl = `/static/svg/${startType}-${startStatus}.svg`
+		const xPosition = startX - index * 60
+
+		nodes.push({
+			id: `${seqNumber}.start.${index + 1}`,
 			type: 'image',
-			data: { imageUrl: startImageUrl, name: `${startName}#${nameNumber}`, isEndbox: true, status: startStatus },
-			position: { x: startX, y: yPos - 10 },
-		},
-		{
-			id: `${seqNumber}.end`,
+			data: { imageUrl: startImageUrl, name: `${startName}#${index + 1}`, isEndbox: true, status: startStatus },
+			position: { x: xPosition, y: yPos },
+		})
+	})
+
+	endStatuses.forEach((endStatus, index) => {
+		const endImageUrl = `/static/svg/${endType}-${endStatus}.svg`
+		const xPosition = endX + index * 60
+
+		nodes.push({
+			id: `${seqNumber}.end.${index + 1}`,
 			type: 'image',
-			data: { imageUrl: endImageUrl, name: `${endName}#${nameNumber}`, isEndbox: true, status: endStatus },
-			position: { x: endX, y: yPos - 10 },
-		},
-	]
+			data: { imageUrl: endImageUrl, name: `${endName}#${index + 1}`, isEndbox: true, status: endStatus },
+			position: { x: xPosition, y: yPos },
+		})
+	})
+
 	return nodes
 }
 
 export const generateEdges = (startId, newObj, isDemolition) => {
-	const count = newObj[isDemolition ? 'demolitions' : 'connections'].length
+	const items = newObj[isDemolition ? 'demolitions' : 'connections']
 	const edges = []
 	const type = 'step'
-	edges.push({
-		id: `${startId}.start`,
-		source: `${startId}.start`,
-		target: `${startId}.1`,
-		style: { stroke: STROKE_COLOR[newObj.startStatus] },
-		type,
+
+	// Generate edges from the start node to each status of the first connection
+	newObj.startStatuses.forEach((status, index) => {
+		edges.push({
+			id: `${startId}.start.${index + 1}`,
+			source: `${startId}.start.${index + 1}`,
+			target: `${startId}.1.${index + 1}`,
+			style: { stroke: STROKE_COLOR[status] },
+			type,
+		})
 	})
-	for (let i = 1; i <= count; i += 1) {
-		const source = `${startId}.${i}`
-		const target = `${startId}.${i + 1}`
-		const edgeId = `e${i}-${i + 1}`
-		const style = isDemolition
-			? { stroke: STROKE_COLOR[newObj.demolitions[i - 1].status] }
-			: { stroke: STROKE_COLOR[newObj.connections[i - 1].status] }
-		edges.push({ id: edgeId, source, target, style, type })
-	}
-	edges.push({
-		id: `${startId}-end`,
-		source: `${startId}.${count}`,
-		target: `${startId}.end`,
-		style: { stroke: STROKE_COLOR[newObj.endStatus] },
-		type,
+
+	// Generate edges between the statuses of connections
+	items.forEach((item, i) => {
+		item.statuses.forEach((status, j) => {
+			if (i < items.length - 1) {
+				edges.push({
+					id: `${startId}.${i + 1}-${i + 2}.${j + 1}`,
+					source: `${startId}.${i + 1}.${j + 1}`,
+					target: `${startId}.${i + 2}.${j + 1}`,
+					style: { stroke: STROKE_COLOR[status] },
+					type,
+				})
+			}
+		})
+	})
+
+	// Generate edges from the statuses of the last connection to the end node
+	newObj.endStatuses.forEach((status, index) => {
+		edges.push({
+			id: `${startId}.end.${index + 1}`,
+			source: `${startId}.${items.length}.${index + 1}`,
+			target: `${startId}.end.${index + 1}`,
+			style: { stroke: STROKE_COLOR[status] },
+			type,
+		})
 	})
 
 	return edges

@@ -111,7 +111,7 @@ const QuickDiagramBuilderPopup = ({ objId, obj, handleAddConnection, handleAddDe
 	const [anchorEl, setAnchorEl] = useState(null)
 	const [warningShown, setWarningShown] = useState(false)
 	const [popoverOpen, setPopoverOpen] = useState(obj.firstOpen)
-	const [inputValues, setInputValues] = useState({})
+	const [inputValues, setInputValues] = useState({ midLines: 1, midPoints: 1 })
 
 	const handleInputChange = (name, value) => {
 		setInputValues((prev) => ({ ...prev, [name]: value }))

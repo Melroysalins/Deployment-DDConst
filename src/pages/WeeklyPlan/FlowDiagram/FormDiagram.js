@@ -157,13 +157,14 @@ export default function FormDiagram({
 			{isDemolition && (
 				<StyledDemolition>
 					<HeaderText title="Demolition" color="#7FBCFE" newObj={newObj} isDemolition={true} />
-					{/* <DemolitionTable
-						handleAddDemolition={handleAddDemolition}
-						handleChangeDemolition={handleChangeDemolition}
-						newObj={newObj}
-						isEdit={isEdit}
-						demolitionLines={inputValues.demolitionLines}
-					/> */}
+					{newObj?.currentObj?.startStatuses && (
+						<DemolitionTable
+							handleAddDemolition={handleAddDemolition}
+							handleChangeDemolition={handleChangeDemolition}
+							newObj={newObj}
+							isEdit={isEdit}
+						/>
+					)}
 				</StyledDemolition>
 			)}
 		</>

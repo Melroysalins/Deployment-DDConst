@@ -3,17 +3,7 @@ import { Box, Button, Container, Dialog, DialogTitle, FormControl, InputLabel, M
 import 'reactflow/dist/style.css'
 import PropTypes from 'prop-types'
 import { useState } from 'react'
-import {
-	CONNECTORS,
-	JB_TYPE,
-	JB_TYPE_MAP,
-	JUNCTION_BOX,
-	JUNCTION_BOX_MAP,
-	PMJ,
-	STATUS,
-	STROKE_COLOR,
-	getStrokeStatusByColor,
-} from './diagramHelper'
+import { CONNECTORS, JUNCTION_BOX_MAP, PMJ, STATUS, STROKE_COLOR, getStrokeStatusByColor } from './diagramHelper'
 
 const Section = Box
 
@@ -22,6 +12,8 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 	const [editImageObj, seteditImageObj] = useState(null)
 	const [showEdgeModal, setshowEdgeModal] = useState(false)
 	const [editEdgeObj, seteditEdgeObj] = useState(null)
+	const midLines = newObj.currentObj[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length
+	const diagramHeight = Math.min(250 + midLines * 40, 500)
 
 	const applyImageChanges = () => {
 		const { status, type, name, isEndbox } = editImageObj
@@ -67,9 +59,6 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 	}
 
 	const handleSelectChange = (value, key) => {
-
-		console.log(value, key)
-
 		const updatedData = {
 			...editImageObj,
 			[key]: value,
@@ -101,8 +90,6 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 		setshowEdgeModal(false)
 		seteditEdgeObj(null)
 	}
-
-	console.log('editImageObj:', editImageObj)
 
 	const applyEdgeChanges = () => {
 		const { status, source } = editEdgeObj
@@ -230,14 +217,14 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 		image: (data) => (
 			<div>
 				{data.data.name && (
-					<div style={{ position: 'absolute', top: -30 }}>
+					<div style={{ position: 'absolute', top: -25 }}>
 						<span
 							style={{
 								padding: '5px 10px',
 								border: '1px solid #EDEDEF',
 								borderRadius: 7,
-								marginLeft: 20,
-								fontSize: 12,
+								marginLeft: data.data.isEndbox ? -25 : 20,
+								fontSize: 10,
 							}}
 						>
 							{data.data.name}
@@ -290,7 +277,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 				<Box
 					sx={{
 						alignSelf: 'stretch',
-						height: 270,
+						height: diagramHeight,
 						display: 'flex',
 						flexDirection: 'column',
 						alignItems: 'center',
@@ -299,6 +286,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 				>
 					{UpdateImageView()}
 					{UpdateEdgeView()}
+					{console.log('Update', newObj)}
 					<ReactFlow
 						nodes={nodes}
 						edges={edges}

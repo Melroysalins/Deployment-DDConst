@@ -319,7 +319,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	const [loading, setloading] = useState(false)
 	const [expanded, setExpanded] = useState()
 	const [objs, setObjs] = useState([])
-	const [seqNumber, setseqNumber] = useState()
+	const [seqNumber, setseqNumber] = useState(1)
 	const { id } = useParams()
 
 	const handleChange = (panel) => (event, isExpanded) => {
@@ -408,7 +408,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		setObjs(updatedObjs)
 	}
 
-	const handleChangeDemolition = (value, field, objId, connIndex) => {
+	const handleChangeDemolition = (value, field, objId, connIndex, statusIndex) => {
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id !== objId) return obj
 
@@ -416,9 +416,16 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			if (connIndex === undefined) {
 				updatedMainObj[field] = value
 			} else {
-				const updatedDemolitions = updatedMainObj.demolitions.map((conn, index) =>
-					index === connIndex ? { ...conn, [field]: value } : conn
-				)
+				const updatedDemolitions = updatedMainObj.demolitions.map((conn, index) => {
+					if (index === connIndex) {
+						if (field === 'statuses') {
+							const updatedStatuses = conn.statuses.map((status, sIndex) => (sIndex === statusIndex ? value : status))
+							return { ...conn, statuses: updatedStatuses }
+						}
+						return { ...conn, [field]: value }
+					}
+					return conn
+				})
 				updatedMainObj.demolitions = updatedDemolitions
 			}
 			return { ...obj, currentObj: updatedMainObj }
@@ -511,8 +518,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const handleAdd = () => {
 		const updatedObjs = objs.map((obj) => {
-			const yPos = 220 // obj.id * 100
-
+			const yPos = 220
 			const objNodes = [
 				...generateNodesFromConnections({
 					id: obj.id,
@@ -527,8 +533,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					connectionLength: obj.currentObj.connections.length,
 					startType: obj.currentObj.startConnector,
 					endType: obj.currentObj.endConnector,
-					startStatus: obj.currentObj.startStatus,
-					endStatus: obj.currentObj.endStatus,
+					startStatuses: obj.currentObj.startStatuses,
+					endStatuses: obj.currentObj.endStatuses,
 				}),
 			]
 			const objEdges = generateEdges(obj.id, obj.currentObj)
@@ -574,12 +580,11 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				},
 			}
 		})
-
 		setObjs(updatedObjs)
 	}
 
 	const handleAddNewObj = () => {
-		const newObj = { ...JSON.parse(JSON.stringify(defaultWholeObj)) }
+		const newObj = { ...JSON.parse(JSON.stringify({ ...defaultWholeObj, id: seqNumber })) }
 		setObjs([...objs, newObj])
 		setseqNumber((prev) => {
 			const newSeqNumber = prev + 1
