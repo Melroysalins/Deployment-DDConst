@@ -13,7 +13,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 	const [showEdgeModal, setshowEdgeModal] = useState(false)
 	const [editEdgeObj, seteditEdgeObj] = useState(null)
 	const midLines = newObj.currentObj[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length
-	const diagramHeight = Math.min(250 + midLines * 40, 500)
+	const diagramHeight = Math.min(230 + midLines * 40, newObj.isDemolition ? 260 : 400)
 
 	const applyImageChanges = () => {
 		const { status, type, name, isEndbox } = editImageObj
@@ -272,7 +272,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 		seteditEdgeObj({ ...edge, status: getStrokeStatusByColor(stroke) })
 	}
 	return (
-		<Container>
+		<Container sx={{ marginTop: 3 }}>
 			<Section>
 				<Box
 					sx={{

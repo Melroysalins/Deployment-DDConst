@@ -459,7 +459,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		setObjs(updatedObjs)
 	}
 
-	const handleAddMultipleConnection = (objId, midPoints = 1, midLines = 1) => {
+	const handleAddMultipleConnection = (objId, midPoints = 1, midLines = 1, demolitionLines) => {
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id !== objId) return obj
 
@@ -471,7 +471,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			}
 
 			// Update startStatuses and endStatuses
-			for (let i = 0; i < midLines - 1; i += 1) {
+			for (let i = 0; i < Math.max(midLines, demolitionLines) - 1; i += 1) {
 				updatedMainObj.startStatuses.push(STATUS[0].value)
 				updatedMainObj.endStatuses.push(STATUS[0].value)
 			}
@@ -518,7 +518,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const handleAdd = () => {
 		const updatedObjs = objs.map((obj) => {
-			const yPos = 220
+			const yPos = 200
 			const objNodes = [
 				...generateNodesFromConnections({
 					id: obj.id,
@@ -535,6 +535,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					endType: obj.currentObj.endConnector,
 					startStatuses: obj.currentObj.startStatuses,
 					endStatuses: obj.currentObj.endStatuses,
+					startEndLength: obj.currentObj.connections[0]?.statuses.length,
 				}),
 			]
 			const objEdges = generateEdges(obj.id, obj.currentObj)
@@ -553,14 +554,15 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					}),
 					...generateStartEndNode({
 						seqNumber: obj.id,
-						yPos: 50,
+						yPos: 30,
 						startName: JUNCTION_BOX_MAP[obj.currentObj.startConnector],
 						endName: JUNCTION_BOX_MAP[obj.currentObj.endConnector],
 						connectionLength: obj.currentObj.demolitions.length,
 						startType: obj.currentObj.startConnector,
 						endType: obj.currentObj.endConnector,
-						startStatus: obj.currentObj.startStatus,
-						endStatus: obj.currentObj.endStatus,
+						startStatuses: obj.currentObj.startStatuses,
+						endStatuses: obj.currentObj.endStatuses,
+						startEndLength: obj.currentObj.demolitions[0]?.statuses.length,
 					}),
 				]
 

@@ -99,7 +99,7 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit }) => (
 				<TableRow style={{ backgroundColor: '#f9f9fa' }}>
 					{renderTableCell('T/L Section')}
 					{renderTableCell('Length(m)')}
-					{newObj.currentObj.endStatuses.map((_, index) => (
+					{newObj.currentObj.connections[0]?.statuses.map((_, index) => (
 						<>{renderTableCell(`${index + 1}T/L`)}</>
 					))}
 				</TableRow>

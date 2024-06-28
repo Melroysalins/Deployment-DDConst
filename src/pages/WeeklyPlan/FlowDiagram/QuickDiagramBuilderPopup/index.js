@@ -111,7 +111,7 @@ const QuickDiagramBuilderPopup = ({ objId, obj, handleAddConnection, handleAddDe
 	const [anchorEl, setAnchorEl] = useState(null)
 	const [warningShown, setWarningShown] = useState(false)
 	const [popoverOpen, setPopoverOpen] = useState(obj.firstOpen)
-	const [inputValues, setInputValues] = useState({ midLines: 1, midPoints: 1 })
+	const [inputValues, setInputValues] = useState({ midLines: 1, midPoints: 1, demolitionPoints: 1, demolitionLines: 1 })
 
 	const handleInputChange = (name, value) => {
 		setInputValues((prev) => ({ ...prev, [name]: value }))
@@ -136,7 +136,7 @@ const QuickDiagramBuilderPopup = ({ objId, obj, handleAddConnection, handleAddDe
 	const handleClose = () => {
 		setPopoverOpen(false)
 		obj.firstOpen = false
-		handleAddConnection(objId, +inputValues.midPoints, +inputValues.midLines)
+		handleAddConnection(objId, +inputValues.midPoints, +inputValues.midLines, +inputValues.demolitionLines)
 
 		if (obj.isDemolition) {
 			handleAddDemolition(objId, +inputValues.demolitionPoints, +inputValues.demolitionLines)

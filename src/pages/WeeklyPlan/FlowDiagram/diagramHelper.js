@@ -73,14 +73,15 @@ export const generateStartEndNode = ({
 	endType,
 	startStatuses,
 	endStatuses,
+	startEndLength,
 }) => {
 	const startX = START_POS
 	const step = NODES_GAP
 	const endX = startX + MIN_X + step * connectionLength
 
 	const nodes = []
-
 	startStatuses.forEach((startStatus, index) => {
+		if (index >= startEndLength) return
 		const startImageUrl = `/static/svg/${startType}-${startStatus}.svg`
 		const xPosition = startX - index * 60
 
@@ -93,6 +94,7 @@ export const generateStartEndNode = ({
 	})
 
 	endStatuses.forEach((endStatus, index) => {
+		if (index >= startEndLength) return
 		const endImageUrl = `/static/svg/${endType}-${endStatus}.svg`
 		const xPosition = endX + index * 60
 
