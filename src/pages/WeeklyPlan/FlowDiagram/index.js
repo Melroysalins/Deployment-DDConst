@@ -10,6 +10,7 @@ import {
 	Switch,
 	Typography,
 	Backdrop,
+	Dialog,
 } from '@mui/material'
 import { styled } from '@mui/system'
 import PropTypes, { object } from 'prop-types'
@@ -34,6 +35,8 @@ import {
 } from 'supabase/project_diagram'
 import { LoadingButton } from '@mui/lab'
 import QuickDiagramBuilderPopup from './QuickDiagramBuilderPopup'
+import { popupConfig } from './WarningDialog/dialogConfig'
+import WarningDialog from './WarningDialog'
 
 const StyledButtonContainer = styled(Box)({
 	alignSelf: 'stretch',
@@ -321,6 +324,50 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	const [objs, setObjs] = useState([])
 	const [seqNumber, setseqNumber] = useState(1)
 	const { id } = useParams()
+	const [popupProps, setPopupProps] = useState({
+		isOpen: false,
+		title: '',
+		dialogHeading: '',
+		description: '',
+		buttons: []
+	  });
+	
+	  const handleClosePopup = () => setPopupProps(prev => ({ ...prev, isOpen: false }));
+	
+	  const handleAction = async (actionType, data) => {
+
+		switch (actionType) {
+			case 'delete':
+			  handleDeleteButtonClick(data.id, data.project);
+			  break;
+			case 'save':
+			  await handleSaveButtonClick(data);
+			  break;
+			case 'edit':
+			  handleEditButtonClick(data.id);
+			  break;
+			default:
+			  console.log('Unknown action type:', actionType);
+		}
+		handleClosePopup();
+	  };
+	
+	  const handleOpenPopup = (type, data) => {
+
+		const config = popupConfig[type];
+		const buttons = [
+		  { label: 'Cancel', onClick: handleClosePopup },
+		  { label: config.buttonLabel, onClick: () => handleAction(type, data) }
+		];
+	
+		setPopupProps({
+		  isOpen: true,
+		  title: config.title,
+		  dialogHeading: config.dialogHeading,
+		  description: config.description,
+		  buttons
+		});
+	  };
 
 	const handleChange = (panel) => (event, isExpanded) => {
 		setExpanded(isExpanded ? panel : false)
@@ -693,7 +740,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 									)}
 									{delete1 && (
 										<StyledButton
-											onClick={() => handleDeleteButtonClick(newObj.id, newObj.project)}
+											onClick={() => handleOpenPopup('delete', {id: newObj.id, project: newObj.project})}
 											style={{ boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)' }}
 											variant="outlined"
 											sx={{
@@ -711,7 +758,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 										<StyledLoadingButton
 											disabled={!newObj.edges.length}
 											loading={loading && expanded === `panel${newObj.id}`}
-											onClick={() => handleSaveButtonClick(newObj)}
+											onClick={() => handleOpenPopup('save', newObj)}
 											style={{ boxShadow: '0px 8px 16px rgba(141, 153, 255, 0.24)' }}
 											variant="contained"
 											sx={{
@@ -725,7 +772,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 									)}
 									{isEditable && newObj.project && !newObj.isEditing && (
 										<StyledButton
-											onClick={() => handleEditButtonClick(newObj.id)}
+											onClick={() => handleOpenPopup('edit', {id: newObj.id})}
 											style={{ boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)' }}
 											variant="outlined"
 											sx={{
@@ -907,6 +954,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					<Iconify icon="lucide:arrow-right" width={20} height={20} />
 				</StyledButton>
 			</StyledButtonRow>
+			<WarningDialog {...popupProps} onClose={handleClosePopup} /> 
 		</StyledButtonContainer>
 	)
 }
