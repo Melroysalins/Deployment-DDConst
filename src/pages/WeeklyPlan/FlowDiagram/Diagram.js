@@ -298,10 +298,8 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 						nodes={nodes}
 						edges={edges}
 						nodeTypes={nodeTypes}
-						minZoom={1} // Disable zooming out
-						maxZoom={1} // Disable zooming in
 						interactionProps={{
-							zoomOnScroll: false,
+							zoomOnScroll: true,
 							panOnDrag: false,
 						}}
 						nodesDraggable={false} // Disable node dragging
