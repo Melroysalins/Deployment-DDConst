@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import PropTypes from 'prop-types'
 import {
 	TableContainer,
@@ -18,6 +18,9 @@ import {
 import style from './InstallationTable.module.scss'
 import { JB_TYPE_MAP, JUNCTION_BOX_MAP, STATUS, STATUS_MAP } from '../diagramHelper'
 import Iconify from 'components/Iconify'
+import HoverBox from 'components/hover'
+import { visitNode } from 'typescript'
+import Label from 'components/Label'
 
 const renderTableCell = (text) => (
 	<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%' }}>
@@ -31,8 +34,11 @@ const renderTableCell = (text) => (
 	</TableCell>
 )
 
-const renderTableRow = (connection, index, handleNewObjChange, displayName, newObj, isEdit) => (
-	<TableRow>
+const renderTableRow = (connection, index, handleNewObjChange, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup) => {
+	return (
+	<>
+	<TableRow  sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
+	onMouseLeave={() => setHoveredRowIndex(null)}>
 		{renderTableCell(`${displayName}`)}
 		<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
 			{isEdit ? (
@@ -56,8 +62,13 @@ const renderTableRow = (connection, index, handleNewObjChange, displayName, newO
 		{connection.statuses.map((e, statusIndex) => (
 			<>{renderStatus(connection, isEdit, handleNewObjChange, newObj.id, index, statusIndex)}</>
 		))}
+		{hoveredRowIndex === index && (
+			<HoverBox setVisibleNotes={handleOpenPopup} />
+		)}
 	</TableRow>
-)
+	</>
+	
+)}
 
 const renderStatus = (connection, isEdit, handleNewObjChange, objId, connIndex, statusIndex) => (
 	<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
@@ -88,7 +99,19 @@ const renderStatus = (connection, isEdit, handleNewObjChange, objId, connIndex, 
 	</TableCell>
 )
 
-const InstallationTable = ({ handleNewObjChange, newObj, isEdit, isExpanded, toggleExpand }) => (
+const InstallationTable = ({ handleNewObjChange, newObj, isEdit, isExpanded, toggleExpand, isNotePopupOpen, setIsNotePopupOpen }) => {
+	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
+
+	const handleOpenPopup = () => {
+		setIsNotePopupOpen(true);
+	};
+
+	const handleClosePopup = () => {
+		setIsNotePopupOpen(false);
+	};
+
+	return (
+	<>
 	<Box sx={{ position: 'relative', left: '2px', width: '98%' }}>
 		<TableContainer
 			sx={{
@@ -96,11 +119,12 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit, isExpanded, tog
 				width: 'max-content',
 				marginLeft: '25px',
 				borderRadius: '8px',
-				overflow: 'auto',
+				overflow: 'visible clip',
 			}}
 		>
-			<Table sx={{ overflow: 'auto' }}>
+			<Table>
 				<Collapse
+					sx={{ overflow: 'visible clip' }}
 					in={isExpanded}
 					collapsedSize={
 						newObj.currentObj.connections.length < 7 ? newObj.currentObj.connections.length * 49 + 29 : 323
@@ -109,7 +133,7 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit, isExpanded, tog
 					<Box
 						sx={{
 							maxHeight: isExpanded ? 'none' : '323px',
-							overflow: newObj.currentObj.connections.length > 6 ? 'scroll' : 'hidden',
+							overflow: 'visible clip',
 						}}
 					>
 						<TableHead>
@@ -138,20 +162,23 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit, isExpanded, tog
 									}#${index + 1}`
 								}
 
-								return <>{renderTableRow(connection, index, handleNewObjChange, status, newObj, isEdit)}</>
+								return <>{renderTableRow(connection, index, handleNewObjChange, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup)}</>
 							})}
 
 							{newObj.isEnd && (
 								<>
 									{renderTableRow(
 										newObj.currentObj.connections[newObj.currentObj.connections.length - 1],
-										newObj.currentObj.connections.length - 1,
+										newObj.currentObj.connections.length,
 										handleNewObjChange,
 										`${JB_TYPE_MAP[newObj.currentObj.connections[newObj.currentObj.connections.length - 1].joinType]}#${
 											newObj.currentObj.connections.length
 										}~Yeonsu${newObj.currentObj.end}#1`,
 										newObj,
-										isEdit
+										isEdit,
+										hoveredRowIndex,
+										setHoveredRowIndex,
+										handleOpenPopup
 									)}
 								</>
 							)}
@@ -187,12 +214,18 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit, isExpanded, tog
 			</IconButton>
 		)}
 	</Box>
+	</>
 )
+}
 
 InstallationTable.propTypes = {
 	handleNewObjChange: PropTypes.func.isRequired,
 	newObj: PropTypes.object.isRequired,
 	isEdit: PropTypes.bool.isRequired,
+	isExpanded: PropTypes.bool.isRequired,
+	toggleExpand: PropTypes.func.isRequired,
+	isNotePopupOpen: PropTypes.bool.isRequired,
+	setIsNotePopupOpen: PropTypes.func.isRequired,
 }
 
 export default InstallationTable

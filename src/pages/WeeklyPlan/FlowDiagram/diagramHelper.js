@@ -173,11 +173,14 @@ export const defaultConnection = {
 	pmj: PMJ[0],
 	// status: STATUS[0].value,
 	statuses: [STATUS[0].value],
+	note: '',
 }
 
 export const defaultNewObj = {
 	start: JUNCTION_BOX[0].value,
 	end: JUNCTION_BOX[0].value,
+	startNote: '',
+	endNote: '',
 	connections: [defaultConnection],
 	demolitions: [defaultConnection],
 	cableType: CABLE_TYPE[0],

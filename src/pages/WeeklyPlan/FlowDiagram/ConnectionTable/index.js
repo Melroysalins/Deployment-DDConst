@@ -16,6 +16,7 @@ import {
 	TableRow,
 	Collapse,
 	Tooltip,
+	TextField,
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import Iconify from 'components/Iconify'
@@ -31,9 +32,12 @@ import {
 	STATUS,
 	STATUS_MAP,
 } from '../diagramHelper'
+import HoverBox from 'components/hover'
+import NotePopup from 'components/NotePopup'
 
-const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit) => (
-	<TableRow key={index}>
+const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup) => (
+	<TableRow key={index} sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
+	>
 		<TableCell className={style.TableCell} sx={{ width: '10%' }}>
 			<Typography
 				className={style.Typography}
@@ -113,11 +117,14 @@ const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit) =>
 		{connection.statuses.map((e, statusIndex) => (
 			<>{renderStatus(connection, isEdit, handleNewObjChange, objId, index, statusIndex)}</>
 		))}
+		{hoveredRowIndex === index && isEdit && (
+			<HoverBox setVisibleNotes={handleOpenPopup} />
+		)}
 	</TableRow>
 )
 
 const renderTypography = (index) => (
-	<TableCell className={style.TableCell} sx={{ width: '13%' }}>
+	<TableCell index={index} className={style.TableCell} sx={{ width: '13%' , borderTopRightRadius: '8px' }}>
 		<Typography
 			className={style.Typography}
 			variant="body1"
@@ -129,7 +136,7 @@ const renderTypography = (index) => (
 )
 
 const renderStatus = (connection, isEdit, handleNewObjChange, objId, connIndex, statusIndex) => (
-	<TableCell>
+	<TableCell index={connIndex}>
 		{isEdit ? (
 			<FormControl variant="outlined" sx={{ width: '100%', height: '32px' }} className={style.FormControl}>
 				<InputLabel className={style.InputLabel} color="primary">
@@ -164,7 +171,7 @@ const renderStatus = (connection, isEdit, handleNewObjChange, objId, connIndex, 
 )
 
 const renderStatusStartEnd = (isEdit, handleNewObjChange, newObj, index, name) => (
-	<TableCell>
+	<TableCell index={index}>
 		{isEdit ? (
 			<FormControl variant="outlined" size="small">
 				<InputLabel className={style.InputLabel} color="primary">
@@ -205,10 +212,30 @@ const ConnectionTable = ({
 	isEdit,
 	isExpanded,
 	toggleExpand,
+	handleAddNote
 }) => {
 	const addPanel = () => {
 		handleAddConnection(newObj.id)
 	}
+
+	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
+	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
+	const [inputValue, setInputValue] = useState('Connection'); 
+
+	const handleOpenPopup = () => {
+		setIsNotePopupOpen(true);
+	};
+
+	const handleClosePopup = () => {
+		setIsNotePopupOpen(false);
+	};
+
+	const AddNote = () => {
+		handleAddNote(newObj.id, inputValue, "connections", hoveredRowIndex)
+		setIsNotePopupOpen(false)
+	}
+
+	const button = { label: 'Continue', onClick: (() => AddNote()) }
 
 	return (
 		<>
@@ -246,9 +273,9 @@ const ConnectionTable = ({
 						End point
 					</Typography>
 				</Box>
-				<TableContainer sx={{ width: 'max-content', border: '1px solid lightgrey', borderRadius: '0px 8px 0px 0px' }}>
-					<Table sx={{ overflow: 'hidden' }}>
-						<TableHead>
+				<TableContainer sx={{ width: 'max-content', border: '1px solid lightgrey', borderTopRightRadius: '8px', overflow: 'visible clip' }}>
+					<Table sx={{ overflow: 'visible clip'}}>
+						<TableHead sx={{ overflow: 'hidden' }}> 
 							<TableRow style={{ backgroundColor: '#f9f9fa' }}>
 								<TableCell className={style.TableCell} sx={{ width: '10%' }}>
 									<Typography
@@ -281,7 +308,7 @@ const ConnectionTable = ({
 							</TableRow>
 						</TableHead>
 						<TableBody>
-							<TableRow>
+							<TableRow sx={{ position: 'relative' }} onMouseEnter={() => setHoveredRowIndex('start')}  >
 								<TableCell className={style.TableCell} sx={{ width: '10%' }}>
 									<Typography
 										className={style.Typography}
@@ -371,8 +398,11 @@ const ConnectionTable = ({
 								{newObj.currentObj.startStatuses.map((e, index) => (
 									<>{renderStatusStartEnd(isEdit, handleNewObjChange, newObj, index, 'startStatuses')}</>
 								))}
+								{hoveredRowIndex === 'start' && isEdit && (
+									<HoverBox setVisibleNotes={handleOpenPopup} />
+								)}
 							</TableRow>
-							<TableRow>
+							<TableRow sx={{ position: 'relative' }} onMouseEnter={() => setHoveredRowIndex('end')} >
 								<TableCell className={style.TableCell} sx={{ width: '10%' }}>
 									<Typography
 										className={style.Typography}
@@ -461,6 +491,9 @@ const ConnectionTable = ({
 								{newObj.currentObj.endStatuses.map((e, index) => (
 									<>{renderStatusStartEnd(isEdit, handleNewObjChange, newObj, index, 'endStatuses')}</>
 								))}
+								{hoveredRowIndex === 'end' && isEdit && (
+									<HoverBox setVisibleNotes={handleOpenPopup} />
+								)}
 							</TableRow>
 						</TableBody>
 					</Table>
@@ -506,20 +539,22 @@ const ConnectionTable = ({
 						width: 'max-content',
 						borderRadius: '0px 0px 8px 0px',
 						border: '1px solid lightgrey',
+						overflow: 'visible'
 					}}
 				>
-					<Box sx={{ overflow: 'hidden' }}>
-						<Table sx={{}}>
+					<Box>
+						<Table>
 							<TableBody>
 								<Collapse
 									in={isExpanded}
 									collapsedSize={
 										newObj.currentObj.connections.length < 7 ? newObj.currentObj.connections.length * 73 : 438
 									}
+									sx={{ overflow: 'visible clip' }}
 								>
-									<Box sx={{ maxHeight: isExpanded ? 'none' : '438px', overflow: 'auto' }}>
+									<Box sx={{ maxHeight: isExpanded ? 'none' : '438px', overflow: 'visible clip'}}>
 										{newObj.currentObj.connections.map((connection, index) => (
-											<>{renderTableRow(connection, index, handleNewObjChange, newObj.id, isEdit)}</>
+											<>{renderTableRow(connection, index, handleNewObjChange, newObj.id, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup)}</>
 										))}
 									</Box>
 								</Collapse>
@@ -602,6 +637,7 @@ const ConnectionTable = ({
 					</Box>
 				</TableContainer>
 			</Box>
+			<NotePopup isOpen={isNotePopupOpen} onClose={handleClosePopup} title={"Add Note"} button={button} inputValue={inputValue} setInputValue={setInputValue} /> 
 		</>
 	)
 }
@@ -614,6 +650,9 @@ ConnectionTable.propTypes = {
 	isEdit: PropTypes.bool,
 	isExpanded: PropTypes.bool,
 	toggleExpand: PropTypes.func,
+	isNotePopupOpen: PropTypes.bool.isRequired,
+	setIsNotePopupOpen: PropTypes.func.isRequired,
+	handleAddNote: PropTypes.func.isRequired,
 }
 
 export default ConnectionTable

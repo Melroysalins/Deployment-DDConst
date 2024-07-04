@@ -486,9 +486,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 			const updatedMainObj = {
 				...obj.currentObj,
-				demolitions: [...obj.currentObj.demolitions, { ...defaultConnection }],
+				demolitions: [...obj.currentObj.demolitions, obj.currentObj.demolitions[obj.currentObj.demolitions.length - 1]],
 			}
-			return { ...obj, currentObj: updatedMainObj }
+			return { ...obj, currentObj: updatedMainObj, isEnd: false}
 		})
 		setObjs(updatedObjs)
 	}
@@ -562,6 +562,49 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		setObjs(updatedObjs)
 		handleAdd()
 	}
+
+	const handleAddNote = (objId, value, field, index) => {
+
+		console.log("objId", objId)
+		console.log("value", value)
+		console.log("field", field)
+		console.log("index", index)
+		
+		const updatedObjs = objs.map((obj) => {
+			if (obj.id !== objId) return obj
+
+			const updatedMainObj = { ...obj.currentObj }
+
+			if (index === "start") {
+				updatedMainObj.startNote = value
+			} 
+			else if (index === "end") {
+				updatedMainObj.endNote = value
+			}
+			else {
+				if (field === 'connections') {
+					updatedMainObj.connections = updatedMainObj.connections.map((conn, i) => {
+						if (i === index) {
+							conn.note = value
+						}
+						return conn
+					})
+				} 
+	
+				if (field === 'demolitions') {
+					updatedMainObj.demolitions = updatedMainObj.demolitions.map((conn, i) => {
+						if (i === index) {
+							conn.note = value
+						}
+						return conn
+					})
+				}
+			}
+
+			return { ...obj, currentObj: updatedMainObj }
+		})
+		setObjs(updatedObjs)
+	}		
 
 	const handleAdd = () => {
 		const updatedObjs = objs.map((obj) => {
@@ -693,7 +736,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			nodes_demolition: nodes_demolition || obj.nodes_demolition,
 			edges_demolition: edges_demolition || obj.edges_demolition,
 		}))
-	}
+	} 
 
 	return (
 		<StyledButtonContainer>
@@ -886,6 +929,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 												handleChangeDemolition={handleChangeDemolition}
 												handleAddDemolition={handleAddDemolition}
 												isDemolition={newObj.isDemolition}
+												handleAddNote={handleAddNote}
 											/>
 										</ConnectionInstallationTable>
 									</Tables>

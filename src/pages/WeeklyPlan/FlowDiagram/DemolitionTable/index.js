@@ -21,7 +21,9 @@ import style from './DemolitionTable.module.scss'
 import PropTypes from 'prop-types'
 import AddIcon from '@mui/icons-material/Add'
 import Iconify from 'components/Iconify'
+import HoverBox from 'components/hover'
 import { JB_TYPE, JB_TYPE_MAP, JUNCTION_BOX_MAP, PMJ, STATUS, STATUS_MAP } from '../diagramHelper'
+import NotePopup from 'components/NotePopup'
 
 const renderTableCell = (text, tableWidth) => (
 	<TableCell className={style.TableCell} sx={{ width: `${tableWidth}%` }}>
@@ -82,8 +84,9 @@ const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connInd
 	</TableCell>
 )
 
-const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit, newObj) => (
-	<TableRow index={index}>
+const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup) => (
+	<TableRow index={index} sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
+	>
 		{renderTableCell(`#${index + 1}`, '10%')}
 
 		<TableCell className={style.TableCell} sx={{ width: '70%' }}>
@@ -178,24 +181,47 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 		{demolition.statuses.map((_, statusIndex) => (
 			<>{renderStatus(demolition, isEdit, handleChangeDemolition, newObj.id, index, statusIndex)}</>
 		))}
+		{hoveredRowIndex === index && isEdit && (
+			<HoverBox setVisibleNotes={handleOpenPopup} />
+		)}
 	</TableRow>
 )
 
-const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, isEdit }) => {
+const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, isEdit, handleAddNote }) => {
 	const [isExpanded, setIsExpanded] = useState(false)
+	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
+	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
+	const [inputValue, setInputValue] = useState('Demolition'); 
+
 	const { demolitions } = newObj.currentObj || {}
 
 	const addPanel = () => {
 		handleAddDemolition(newObj.id)
 	}
 
+	const handleOpenPopup = () => {
+		setIsNotePopupOpen(true);
+	};
+
+	const handleClosePopup = () => {
+		setIsNotePopupOpen(false);
+	};
+
+	const AddNote = () => {
+		handleAddNote(newObj.id, inputValue, "demolitions", hoveredRowIndex)
+		setIsNotePopupOpen(false)
+	}
+
+	const button = { label: 'Continue', onClick: (() => AddNote()) }
+
 	return (
+		<>
 		<Box sx={{ position: 'relative', left: '2px', width: '98%' }}>
-			<TableContainer sx={{ overflow: 'hidden', border: '1px solid lightgrey', borderRadius: '8px' }}>
+			<TableContainer sx={{ overflow: 'visible', border: '1px solid lightgrey', borderRadius: '8px', width: 'max-content' }}>
 				<Table>
-					<Collapse in={isExpanded} collapsedSize={demolitions.length < 7 ? demolitions.length * 53 + 33.5 : 350}>
+					<Collapse sx={{ overflow: 'visible clip' }} in={isExpanded} collapsedSize={demolitions.length < 7 ? demolitions.length * 53 + 33.5 : 350}>
 						<Box
-							sx={{ maxHeight: isExpanded ? 'none' : '350px', overflow: demolitions.length > 6 ? 'scroll' : 'hidden' }}
+							sx={{ maxHeight: isExpanded ? 'none' : '350px', overflow: 'scroll', width: '100%'}}
 						>
 							<TableHead>
 								<TableRow style={{ backgroundColor: '#f9f9fa' }}>
@@ -210,9 +236,9 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 								</TableRow>
 							</TableHead>
 
-							<TableBody>
+							<TableBody >
 								{demolitions.map((demolition, index) => (
-									<>{renderTableRow(demolition, index, handleChangeDemolition, newObj.id, isEdit, newObj)}</>
+									<>{renderTableRow(demolition, index, handleChangeDemolition, newObj.id, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup)}</>
 								))}
 							</TableBody>
 						</Box>
@@ -275,6 +301,8 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 				</Table>
 			</TableContainer>
 		</Box>
+		<NotePopup isOpen={isNotePopupOpen} onClose={handleClosePopup} title={"Add Note"} button={button} inputValue={inputValue} setInputValue={setInputValue} /> 
+		</>
 	)
 }
 
@@ -283,6 +311,9 @@ DemolitionTable.propTypes = {
 	handleChangeDemolition: PropTypes.func.isRequired,
 	newObj: PropTypes.object.isRequired,
 	isEdit: PropTypes.bool,
+	isNotePopupOpen: PropTypes.bool.isRequired,
+	setIsNotePopupOpen: PropTypes.func.isRequired,
+	handleAddNote: PropTypes.func.isRequired,
 }
 
 export default DemolitionTable
