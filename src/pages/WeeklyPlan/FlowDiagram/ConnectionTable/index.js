@@ -35,9 +35,13 @@ import {
 import HoverBox from 'components/hover'
 import NotePopup from 'components/NotePopup'
 
-const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup) => (
+const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen) => (
 	<TableRow key={index} sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
-	>
+	onMouseLeave={() => {
+        if (!isNotePopupOpen) { // Check if NotePopup is not open
+            setHoveredRowIndex(null);
+        }
+    }}>
 		<TableCell className={style.TableCell} sx={{ width: '10%' }}>
 			<Typography
 				className={style.Typography}
@@ -118,7 +122,7 @@ const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, ho
 			<>{renderStatus(connection, isEdit, handleNewObjChange, objId, index, statusIndex)}</>
 		))}
 		{hoveredRowIndex === index && isEdit && (
-			<HoverBox setVisibleNotes={handleOpenPopup} />
+			<HoverBox index={index} setVisibleNotes={handleOpenPopup} />
 		)}
 	</TableRow>
 )
@@ -220,19 +224,28 @@ const ConnectionTable = ({
 
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
 	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
-	const [inputValue, setInputValue] = useState('Connection'); 
+	const [inputValue, setInputValue] = useState(); 
 
-	const handleOpenPopup = () => {
+	const handleOpenPopup = (index) => {
 		setIsNotePopupOpen(true);
+		if (index === 'start') {
+			setInputValue(newObj.currentObj.startNote)
+		} else if (index === 'end') {
+			setInputValue(newObj.currentObj.endNote)
+		} else {
+		setInputValue(newObj.currentObj.connections[index].note)
+		}
 	};
 
 	const handleClosePopup = () => {
 		setIsNotePopupOpen(false);
+		setInputValue('')
 	};
 
 	const AddNote = () => {
 		handleAddNote(newObj.id, inputValue, "connections", hoveredRowIndex)
 		setIsNotePopupOpen(false)
+		setInputValue('')
 	}
 
 	const button = { label: 'Continue', onClick: (() => AddNote()) }
@@ -399,7 +412,7 @@ const ConnectionTable = ({
 									<>{renderStatusStartEnd(isEdit, handleNewObjChange, newObj, index, 'startStatuses')}</>
 								))}
 								{hoveredRowIndex === 'start' && isEdit && (
-									<HoverBox setVisibleNotes={handleOpenPopup} />
+									<HoverBox index={'start'} setVisibleNotes={handleOpenPopup} />
 								)}
 							</TableRow>
 							<TableRow sx={{ position: 'relative' }} onMouseEnter={() => setHoveredRowIndex('end')} >
@@ -492,7 +505,7 @@ const ConnectionTable = ({
 									<>{renderStatusStartEnd(isEdit, handleNewObjChange, newObj, index, 'endStatuses')}</>
 								))}
 								{hoveredRowIndex === 'end' && isEdit && (
-									<HoverBox setVisibleNotes={handleOpenPopup} />
+									<HoverBox index={'end'} setVisibleNotes={handleOpenPopup} />
 								)}
 							</TableRow>
 						</TableBody>
@@ -554,7 +567,7 @@ const ConnectionTable = ({
 								>
 									<Box sx={{ maxHeight: isExpanded ? 'none' : '438px', overflow: 'visible clip'}}>
 										{newObj.currentObj.connections.map((connection, index) => (
-											<>{renderTableRow(connection, index, handleNewObjChange, newObj.id, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup)}</>
+											<>{renderTableRow(connection, index, handleNewObjChange, newObj.id, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
 										))}
 									</Box>
 								</Collapse>

@@ -84,9 +84,13 @@ const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connInd
 	</TableCell>
 )
 
-const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup) => (
+const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen) => (
 	<TableRow index={index} sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
-	>
+	onMouseLeave={() => {
+        if (!isNotePopupOpen) { // Check if NotePopup is not open
+            setHoveredRowIndex(null);
+        }
+    }} >
 		{renderTableCell(`#${index + 1}`, '10%')}
 
 		<TableCell className={style.TableCell} sx={{ width: '70%' }}>
@@ -182,7 +186,7 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 			<>{renderStatus(demolition, isEdit, handleChangeDemolition, newObj.id, index, statusIndex)}</>
 		))}
 		{hoveredRowIndex === index && isEdit && (
-			<HoverBox setVisibleNotes={handleOpenPopup} />
+			<HoverBox index={index} setVisibleNotes={handleOpenPopup} />
 		)}
 	</TableRow>
 )
@@ -191,7 +195,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
 	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
-	const [inputValue, setInputValue] = useState('Demolition'); 
+	const [inputValue, setInputValue] = useState(); 
 
 	const { demolitions } = newObj.currentObj || {}
 
@@ -199,17 +203,20 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 		handleAddDemolition(newObj.id)
 	}
 
-	const handleOpenPopup = () => {
+	const handleOpenPopup = (index) => {
 		setIsNotePopupOpen(true);
+		setInputValue(newObj.currentObj.demolitions[index].note)
 	};
 
 	const handleClosePopup = () => {
 		setIsNotePopupOpen(false);
+		setInputValue('')
 	};
 
 	const AddNote = () => {
 		handleAddNote(newObj.id, inputValue, "demolitions", hoveredRowIndex)
 		setIsNotePopupOpen(false)
+		setInputValue('')
 	}
 
 	const button = { label: 'Continue', onClick: (() => AddNote()) }
@@ -217,11 +224,11 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 	return (
 		<>
 		<Box sx={{ position: 'relative', left: '2px', width: '98%' }}>
-			<TableContainer sx={{ overflow: 'visible', border: '1px solid lightgrey', borderRadius: '8px', width: 'max-content' }}>
+			<TableContainer sx={{ overflow: 'visible', border: '1px solid lightgrey', borderRadius: '8px', width: 'max-content', marginLeft: '25px' }}>
 				<Table>
 					<Collapse sx={{ overflow: 'visible clip' }} in={isExpanded} collapsedSize={demolitions.length < 7 ? demolitions.length * 53 + 33.5 : 350}>
 						<Box
-							sx={{ maxHeight: isExpanded ? 'none' : '350px', overflow: 'scroll', width: '100%'}}
+							sx={{ maxHeight: isExpanded ? 'none' : '350px', overflow: 'visible', width: '100%'}}
 						>
 							<TableHead>
 								<TableRow style={{ backgroundColor: '#f9f9fa' }}>
@@ -238,7 +245,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 
 							<TableBody >
 								{demolitions.map((demolition, index) => (
-									<>{renderTableRow(demolition, index, handleChangeDemolition, newObj.id, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup)}</>
+									<>{renderTableRow(demolition, index, handleChangeDemolition, newObj.id, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
 								))}
 							</TableBody>
 						</Box>
@@ -249,7 +256,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 							sx={{
 								position: 'absolute',
 								bottom: '-12px',
-								left: '24px',
+								left: '48px',
 								display: 'flex',
 								flexDirection: 'row',
 								alignItems: 'center',

@@ -24,7 +24,7 @@ const HoverDiv = styled(Box)({
 	gap: '4px',
 });
 
-const HoverBox = ({ setVisibleNotes }) => {
+const HoverBox = ({ index, setVisibleNotes }) => {
     
   return (
 	<HoverDiv
@@ -55,7 +55,7 @@ const HoverBox = ({ setVisibleNotes }) => {
 					},
 					},
 				}}
-				onClick={() => setVisibleNotes()}
+				onClick={() => setVisibleNotes(index)}
 			>
 				<Iconify icon="uil:clipboard-notes" width={20} height={20} sx={{ color: '#596570'}} />
 			</Button>
@@ -87,7 +87,7 @@ const HoverBox = ({ setVisibleNotes }) => {
 }
 
 HoverBox.propTypes = {
-  hoveredRowIndex: PropTypes.number,
+  index: PropTypes.any,
   setVisibleNotes: PropTypes.func,
 }
 

@@ -70,6 +70,7 @@ const HeaderText = ({ title, color, newObj, isDemolition }) => (
 			fontSize: '18px',
 			color: { color },
 			fontFamily: 'Manrope',
+			marginLeft: '24px',
 			'@media (max-width: 1440px)': {
 				fontSize: '14px',
 			},

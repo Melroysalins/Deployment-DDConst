@@ -482,28 +482,42 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const handleAddDemolition = (objId) => {
 		const updatedObjs = objs.map((obj) => {
-			if (obj.id !== objId) return obj
-
+			if (obj.id !== objId) return obj;
+	
+			// Assuming the last demolition exists and has a structure we can replicate without the note
+			const lastDemolition = obj.currentObj.demolitions[obj.currentObj.demolitions.length - 1];
+			const newDemolition = { ...lastDemolition, note: '' }; // Copy last demolition without the note or with a reset note
+	
+			// Ensure not to add an undefined demolition if there's no last demolition
+			const updatedDemolitions = lastDemolition ? [...obj.currentObj.demolitions, newDemolition] : [...obj.currentObj.demolitions];
+	
 			const updatedMainObj = {
 				...obj.currentObj,
-				demolitions: [...obj.currentObj.demolitions, obj.currentObj.demolitions[obj.currentObj.demolitions.length - 1]],
-			}
-			return { ...obj, currentObj: updatedMainObj, isEnd: false}
-		})
-		setObjs(updatedObjs)
+				demolitions: updatedDemolitions,
+			};
+			return { ...obj, currentObj: updatedMainObj };
+		});
+		setObjs(updatedObjs);
 	}
 
 	const handleAddConnection = (objId) => {
 		const updatedObjs = objs.map((obj) => {
-			if (obj.id !== objId) return obj
-
+			if (obj.id !== objId) return obj;
+	
+			// Assuming the last connection exists and has a structure we can replicate without the note
+			const lastConnection = obj.currentObj.connections[obj.currentObj.connections.length - 1];
+			const newConnection = { ...lastConnection, note: '' }; // Copy last connection without the note or with a reset note
+	
+			// Ensure not to add an undefined connection if there's no last connection
+			const updatedConnections = lastConnection ? [...obj.currentObj.connections, newConnection] : [...obj.currentObj.connections];
+	
 			const updatedMainObj = {
 				...obj.currentObj,
-				connections: [...obj.currentObj.connections, obj.currentObj.connections[obj.currentObj.connections.length - 1]],
-			}
-			return { ...obj, currentObj: updatedMainObj, isEnd: false }
-		})
-		setObjs(updatedObjs)
+				connections: updatedConnections,
+			};
+			return { ...obj, currentObj: updatedMainObj };
+		});
+		setObjs(updatedObjs);
 	}
 
 	const handleAddMultipleConnection = (objId, midPoints = 1, midLines = 1, demolitionLines) => {
@@ -530,7 +544,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				return connection
 			})
 
-			return { ...obj, currentObj: updatedMainObj, isEnd: false }
+			return { ...obj, currentObj: updatedMainObj}
 		})
 
 		setObjs(updatedObjs)
@@ -686,12 +700,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	}
 
 	const updateObjById = (objId, updateFn) => {
+		console.log(objs)
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id === objId) {
 				return updateFn(obj)
 			}
 			return obj
 		})
+		console.log(updatedObjs)
 		setObjs(updatedObjs)
 	}
 
