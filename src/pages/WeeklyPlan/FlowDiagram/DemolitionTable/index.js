@@ -169,8 +169,8 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 					variant="outlined"
 					sx={{ width: '70px', '& .MuiInputBase-root': { height: 32 } }}
 					placeholder="320"
-					onChange={(e) => handleChangeDemolition(e.target.value, 'length_demolition', newObj.id)}
-					value={newObj.currentObj.length_demolition}
+					onChange={(e) => handleChangeDemolition(e.target.value, 'length_demolition', newObj.id, index)}
+					value={newObj.currentObj.length_demolition[index]}
 				/>
 			) : (
 				<Typography

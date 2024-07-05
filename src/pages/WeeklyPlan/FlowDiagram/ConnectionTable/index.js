@@ -321,7 +321,11 @@ const ConnectionTable = ({
 							</TableRow>
 						</TableHead>
 						<TableBody>
-							<TableRow sx={{ position: 'relative' }} onMouseEnter={() => setHoveredRowIndex('start')}  >
+							<TableRow sx={{ position: 'relative' }} onMouseEnter={() => setHoveredRowIndex('start')} onMouseLeave={() => {
+								if (!isNotePopupOpen) { // Check if NotePopup is not open
+									setHoveredRowIndex(null);
+								}
+							}} >
 								<TableCell className={style.TableCell} sx={{ width: '10%' }}>
 									<Typography
 										className={style.Typography}
@@ -415,7 +419,11 @@ const ConnectionTable = ({
 									<HoverBox index={'start'} setVisibleNotes={handleOpenPopup} />
 								)}
 							</TableRow>
-							<TableRow sx={{ position: 'relative' }} onMouseEnter={() => setHoveredRowIndex('end')} >
+							<TableRow sx={{ position: 'relative' }} onMouseEnter={() => setHoveredRowIndex('end')} onMouseLeave={() => {
+								if (!isNotePopupOpen) { // Check if NotePopup is not open
+									setHoveredRowIndex(null);
+								}
+							}} >
 								<TableCell className={style.TableCell} sx={{ width: '10%' }}>
 									<Typography
 										className={style.Typography}

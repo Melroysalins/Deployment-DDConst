@@ -182,11 +182,14 @@ export const defaultNewObj = {
 	startNote: '',
 	endNote: '',
 	connections: [defaultConnection],
+	// adding statuses and note for installations
+	installations: [{ statuses: [STATUS[0].value], note: ''}],
 	demolitions: [defaultConnection],
 	cableType: CABLE_TYPE[0],
 	namyang: NAMYUNG[0],
-	length: 600,
-	length_demolition: 600,
+	// change length to array for multiple installation and demolition
+	length: [600],
+	length_demolition: [600],
 	// startStatus: STATUS[0].value,
 	// endStatus: STATUS[0].value,
 	startStatuses: [STATUS[0].value],
