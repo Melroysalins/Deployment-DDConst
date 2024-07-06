@@ -35,7 +35,7 @@ const renderTableCell = (text) => (
 	</TableCell>
 )
 
-const renderTableRow = (installation, index, handleNewObjChange, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen) => {
+const renderTableRow = (installation, index, handleChangeInstallation, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen) => {
 	return (
 	<>
 	<TableRow  sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
@@ -51,7 +51,7 @@ const renderTableRow = (installation, index, handleNewObjChange, displayName, ne
 					variant="outlined"
 					sx={{ width: '70px', '& .MuiInputBase-root': { height: 32 } }}
 					placeholder="320"
-					onChange={(e) => handleNewObjChange(e.target.value, 'length', newObj.id, index)}
+					onChange={(e) => handleChangeInstallation(e.target.value, 'length', newObj.id, index)}
 					value={newObj.currentObj.length[index]}
 				/>
 			) : (
@@ -60,12 +60,12 @@ const renderTableRow = (installation, index, handleNewObjChange, displayName, ne
 					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 					className={style.Typography}
 				>
-					{newObj.currentObj.length}
+					{newObj.currentObj.length[index]}
 				</Typography>
 			)}
 		</TableCell>
 		{installation.statuses.map((e, statusIndex) => (
-			<>{renderStatus(installation, isEdit, handleNewObjChange, newObj.id, index, statusIndex)}</>
+			<>{renderStatus(installation, isEdit, handleChangeInstallation, newObj.id, index, statusIndex)}</>
 		))}
 		{hoveredRowIndex === index && isEdit && (
 			<HoverBox index={index} setVisibleNotes={handleOpenPopup} />
@@ -75,13 +75,13 @@ const renderTableRow = (installation, index, handleNewObjChange, displayName, ne
 	
 )}
 
-const renderStatus = (installation, isEdit, handleNewObjChange, objId, connIndex, statusIndex) => (
+const renderStatus = (installation, isEdit, handleChangeInstallation, objId, connIndex, statusIndex) => (
 	<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
 		{isEdit ? (
 			<Select
 				value={installation.statuses?.[statusIndex]}
 				label="Status"
-				onChange={(e) => handleNewObjChange(e.target.value, 'statuses', objId, connIndex, statusIndex)}
+				onChange={(e) => handleChangeInstallation(e.target.value, 'statuses', objId, connIndex, statusIndex)}
 				variant="outlined"
 				className={style.StyledSelect}
 				size="small"
@@ -104,7 +104,7 @@ const renderStatus = (installation, isEdit, handleNewObjChange, objId, connIndex
 	</TableCell>
 )
 
-const InstallationTable = ({ handleNewObjChange, newObj, isEdit, isExpanded, toggleExpand, handleAddNote}) => {
+const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpanded, toggleExpand, handleAddNote}) => {
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
 	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
 	const [inputValue, setInputValue] = useState(); 
@@ -146,7 +146,7 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit, isExpanded, tog
 					sx={{ overflow: 'visible clip' }}
 					in={isExpanded}
 					collapsedSize={
-						newObj.currentObj.installations.length < 7 ? newObj.currentObj.installations.length * 49 + 29 : 323
+						newObj.currentObj.installations.length < 7 ? (newObj.currentObj.installations.length * 49 + 29 + (newObj.isEnd ? 49 : 0)) : 323
 					}
 				>
 					<Box
@@ -182,16 +182,16 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit, isExpanded, tog
 									}#${index + 1}`
 								}
 
-								return <>{renderTableRow(installation, index, handleNewObjChange, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
+								return <>{renderTableRow(installation, index, handleChangeInstallation, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
 							})}
 
 							{newObj.isEnd && (
 								<>
 									{renderTableRow(
 										newObj.currentObj.installations[newObj.currentObj.installations.length - 1],
-										newObj.currentObj.installations.length,
-										handleNewObjChange,
-										`${JB_TYPE_MAP[newObj.currentObj.installations[newObj.currentObj.installations.length - 1].joinType]}#${
+										newObj.currentObj.installations.length - 1,
+										handleChangeInstallation,
+										`${JB_TYPE_MAP[newObj.currentObj.connections[newObj.currentObj.connections.length - 1].joinType]}#${
 											newObj.currentObj.installations.length
 										}~Yeonsu${newObj.currentObj.end}#1`,
 										newObj,
@@ -241,7 +241,7 @@ const InstallationTable = ({ handleNewObjChange, newObj, isEdit, isExpanded, tog
 }
 
 InstallationTable.propTypes = {
-	handleNewObjChange: PropTypes.func.isRequired,
+	handleChangeInstallation: PropTypes.func.isRequired,
 	newObj: PropTypes.object.isRequired,
 	isEdit: PropTypes.bool.isRequired,
 	isExpanded: PropTypes.bool.isRequired,

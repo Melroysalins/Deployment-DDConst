@@ -178,7 +178,7 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 					className={style.Typography}
 				>
-					{newObj.currentObj.length_demolition}
+					{newObj.currentObj.length_demolition[index]}
 				</Typography>
 			)}
 		</TableCell>

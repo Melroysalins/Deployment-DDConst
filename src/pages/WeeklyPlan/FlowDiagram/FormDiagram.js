@@ -134,6 +134,7 @@ export default function FormDiagram({
 	handleCloseInstallation,
 	handleChangeDemolition,
 	handleAddDemolition,
+	handleChangeInstallation,
 	handleAddNote,
 }) {
 	const [isExpanded, setIsExpanded] = useState(false)
@@ -163,7 +164,7 @@ export default function FormDiagram({
 				<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
 				{newObj?.currentObj?.startStatuses && (
 					<InstallationTable
-						handleNewObjChange={handleNewObjChange}
+						handleChangeInstallation={handleChangeInstallation}
 						newObj={newObj}
 						isEdit={isEdit}
 						isExpanded={isExpanded}
@@ -199,5 +200,6 @@ FormDiagram.propTypes = {
 	handleCloseInstallation: PropTypes.func.isRequired,
 	handleChangeDemolition: PropTypes.func.isRequired,
 	handleAddDemolition: PropTypes.func.isRequired,
+	handleChangeInstallation: PropTypes.func.isRequired,
 	handleAddNote: PropTypes.func.isRequired,
 }

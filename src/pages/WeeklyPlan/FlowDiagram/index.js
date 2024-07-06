@@ -455,6 +455,28 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		setObjs(updatedObjs)
 	}
 
+	const handleChangeInstallation = (value, field, objId, connIndex, statusIndex) => {
+		const updatedObjs = objs.map((obj) => {
+			if (obj.id !== objId) return obj
+
+			const updatedMainObj = { ...obj.currentObj }
+			if (field === 'length') {
+				updatedMainObj[field][connIndex] = value
+			} else {
+				const updatedInstallations = updatedMainObj.installations.map((conn, index) => {
+					if (index === connIndex) {
+						const updatedStatuses = conn.statuses.map((status, sIndex) => (sIndex === statusIndex ? value : status))
+						return { ...conn, statuses: updatedStatuses }
+					}
+					return conn
+				})
+				updatedMainObj.installations = updatedInstallations
+			}
+			return { ...obj, currentObj: updatedMainObj }
+		})
+		setObjs(updatedObjs)
+	}
+
 	const handleChangeDemolition = (value, field, objId, connIndex, statusIndex) => {
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id !== objId) return obj
@@ -462,6 +484,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			const updatedMainObj = { ...obj.currentObj }
 			if (connIndex === undefined) {
 				updatedMainObj[field] = value
+			} else if (field === 'length_demolition') {
+				updatedMainObj[field][connIndex] = value
 			} else {
 				const updatedDemolitions = updatedMainObj.demolitions.map((conn, index) => {
 					if (index === connIndex) {
@@ -494,6 +518,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			const updatedMainObj = {
 				...obj.currentObj,
 				demolitions: updatedDemolitions,
+				length_demolition: [...obj.currentObj.length_demolition, 600],
 			};
 			return { ...obj, currentObj: updatedMainObj };
 		});
@@ -507,13 +532,17 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			// Assuming the last connection exists and has a structure we can replicate without the note
 			const lastConnection = obj.currentObj.connections[obj.currentObj.connections.length - 1];
 			const newConnection = { ...lastConnection, note: '' }; // Copy last connection without the note or with a reset note
-	
-			// Ensure not to add an undefined connection if there's no last connection
 			const updatedConnections = lastConnection ? [...obj.currentObj.connections, newConnection] : [...obj.currentObj.connections];
 	
+			const lastInstallation = obj.currentObj.installations[obj.currentObj.installations.length - 1];
+			const newInstallation = { ...lastInstallation, note: '' }; // Assuming a similar structure for installations
+			const updatedInstallations = lastInstallation ? [...obj.currentObj.installations, newInstallation] : [...obj.currentObj.installations];
+
 			const updatedMainObj = {
 				...obj.currentObj,
 				connections: updatedConnections,
+				installations: updatedInstallations,
+				length: [...obj.currentObj.length, 600],
 			};
 			return { ...obj, currentObj: updatedMainObj };
 		});
@@ -528,7 +557,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			// Update connections
 			for (let i = 0; i < midPoints - 1; i += 1) {
 				const newConnection = { ...defaultConnection, statuses: [] }
+				const newInstallation = { statuses:[], note: ''}
 				updatedMainObj.connections.push(newConnection)
+				updatedMainObj.installations.push(newInstallation)
+				updatedMainObj.length.push(600)
 			}
 
 			// Update startStatuses and endStatuses
@@ -542,6 +574,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					connection.statuses.push(STATUS[0].value)
 				}
 				return connection
+			})
+
+			updatedMainObj.installations = updatedMainObj.installations.map((installation) => {
+				while (installation.statuses.length < midLines) {
+					installation.statuses.push(STATUS[0].value)
+					
+				}
+				return installation
 			})
 
 			return { ...obj, currentObj: updatedMainObj}
@@ -560,6 +600,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			for (let i = 0; i < demolitionPoints - 1; i += 1) {
 				const newDemolition = { ...defaultConnection }
 				updatedMainObj.demolitions.push(newDemolition)
+				updatedMainObj.length_demolition.push(600)
 			}
 
 			obj.isDemolition = true
@@ -578,11 +619,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	}
 
 	const handleAddNote = (objId, value, field, index) => {
-
-		console.log("objId", objId)
-		console.log("value", value)
-		console.log("field", field)
-		console.log("index", index)
 		
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id !== objId) return obj
@@ -607,6 +643,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	
 				if (field === 'demolitions') {
 					updatedMainObj.demolitions = updatedMainObj.demolitions.map((conn, i) => {
+						if (i === index) {
+							conn.note = value
+						}
+						return conn
+					})
+				}
+				if (field === 'installations') {
+					updatedMainObj.installations = updatedMainObj.installations.map((conn, i) => {
 						if (i === index) {
 							conn.note = value
 						}
@@ -700,14 +744,12 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	}
 
 	const updateObjById = (objId, updateFn) => {
-		console.log(objs)
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id === objId) {
 				return updateFn(obj)
 			}
 			return obj
 		})
-		console.log(updatedObjs)
 		setObjs(updatedObjs)
 	}
 
@@ -944,6 +986,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 												handleCloseInstallation={handleCloseInstallation}
 												handleChangeDemolition={handleChangeDemolition}
 												handleAddDemolition={handleAddDemolition}
+												handleChangeInstallation={handleChangeInstallation}
 												isDemolition={newObj.isDemolition}
 												handleAddNote={handleAddNote}
 											/>
