@@ -92,7 +92,7 @@ export const generateStartEndNode = ({
 			id: `${seqNumber}.start.${index + 1}`,
 			type: 'image',
 			data: { imageUrl: startImageUrl, name: `${startName}#${index + 1}`, isEndbox: true, status: startStatus },
-			position: { x: xPosition + 10, y: yPos },
+			position: { x: xPosition + 5, y: yPos },
 		})
 	})
 
@@ -105,7 +105,7 @@ export const generateStartEndNode = ({
 			id: `${seqNumber}.end.${index + 1}`,
 			type: 'image',
 			data: { imageUrl: endImageUrl, name: `${endName}#${index + 1}`, isEndbox: true, status: endStatus },
-			position: { x: xPosition - 10, y: yPos },
+			position: { x: xPosition - 5, y: yPos },
 		})
 	})
 
