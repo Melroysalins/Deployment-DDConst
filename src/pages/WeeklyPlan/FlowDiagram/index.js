@@ -9,16 +9,13 @@ import {
 	FormControlLabel,
 	Switch,
 	Typography,
-	Backdrop,
-	Dialog,
 } from '@mui/material'
 import { styled } from '@mui/system'
-import PropTypes, { object } from 'prop-types'
+import PropTypes from 'prop-types'
 import Iconify from 'components/Iconify'
 import Diagram from './Diagram'
 import FormDiagram from './FormDiagram'
 import {
-	JUNCTION_BOX_MAP,
 	defaultNewObj,
 	generateEdges,
 	generateNodesFromConnections,
@@ -666,7 +663,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const handleAdd = () => {
 		const updatedObjs = objs.map((obj) => {
-			const yPos = 200
+			const yPos = 150
 			const objNodes = [
 				...generateNodesFromConnections({
 					id: obj.id,
@@ -675,7 +672,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				}),
 				...generateStartEndNode({
 					seqNumber: obj.id,
-					yPos: 50,
+					yPos: 30,
 					startName: obj.currentObj.start,
 					endName: obj.currentObj.end,
 					connectionLength: obj.currentObj.connections.length,
@@ -920,8 +917,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 													color: '#596570',
 													display: 'flex',
 													gap: '4px',
-													padding: '0px 12px 0px 12px',
-													height: '32px',
+													padding: '0px 12px',
+													height: '30px',
 												}}
 											>
 												<Iconify icon="ic:baseline-cached" width={16} height={16} />

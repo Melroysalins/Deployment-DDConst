@@ -13,7 +13,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 	const [showEdgeModal, setshowEdgeModal] = useState(false)
 	const [editEdgeObj, seteditEdgeObj] = useState(null)
 	const midLines = newObj.currentObj[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length
-	const diagramHeight = Math.min(230 + midLines * 40, newObj.isDemolition ? 260 : 400)
+	const diagramHeight = Math.min(230 + midLines * 20, newObj.isDemolition ? 230 : 350)
 
 	const applyImageChanges = () => {
 		const { status, type, name, isEndbox } = editImageObj
@@ -225,14 +225,14 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 		image: (data) => (
 			<div>
 				{data.data.name && (
-					<div style={{ position: 'absolute', top: -25 }}>
+					<div style={{ position: 'absolute', top: -23 }}>
 						<span
 							style={{
-								padding: '5px 10px',
+								padding: '3px',
 								border: '1px solid #EDEDEF',
-								borderRadius: 7,
-								marginLeft: data.data.isEndbox ? -25 : 20,
-								fontSize: 10,
+								borderRadius: 3,
+								marginLeft: data.data.isEndbox ? -6 : 10,
+								fontSize: 9,
 							}}
 						>
 							{data.data.name}
@@ -258,11 +258,12 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 				<div>
 					<span
 						style={{
-							padding: '5px 10px',
+							padding: '3px 5px',
 							border: '1px solid #EDEDEF',
-							borderRadius: 7,
-							marginLeft: 20,
-							fontWeight: 500,
+							borderRadius: 5,
+							marginLeft: 7,
+							fontWeight: 600,
+							fontSize: 12,
 						}}
 					>
 						{data.name}
@@ -298,10 +299,8 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 						nodes={nodes}
 						edges={edges}
 						nodeTypes={nodeTypes}
-						minZoom={1} // Disable zooming out
-						maxZoom={1} // Disable zooming in
 						interactionProps={{
-							zoomOnScroll: false,
+							zoomOnScroll: true,
 							panOnDrag: false,
 						}}
 						nodesDraggable={false} // Disable node dragging

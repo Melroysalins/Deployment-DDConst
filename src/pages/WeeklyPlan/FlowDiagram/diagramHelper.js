@@ -1,6 +1,9 @@
-export const MIN_X = 100
-export const NODES_GAP = 150
-export const START_POS = 170
+export const MIN_X = 45
+export const NODES_GAP = 75
+export const START_POS = 10
+const GAP_LINES_Y_AXIS = 40
+const GAP_LINES_X_AXIS = 33
+
 export const NAMYUNG = ['XLPE', 'OF', 'Other']
 export const CABLE_TYPE = ['154kV', '345kV', '746kV']
 export const JUNCTION_BOX = [
@@ -49,14 +52,14 @@ export const generateNodesFromConnections = ({ id, connections, yPos, isDemoliti
 			const x = START_POS + MIN_X + index * step
 			const nodeId = `${id}.${index + 1}.${statusIndex + 1}`
 			const nodeName = `${JB_TYPE_MAP[joinType]}#${index + 1}`
-			const position = { x, y: yPos + statusIndex * 55 } // Adjust yPos for each status
+			const position = { x, y: yPos + statusIndex * GAP_LINES_Y_AXIS } // Adjust yPos for each status
 			const data = { imageUrl, name: nodeName, status }
 
 			nodes.push({ id: nodeId, type: 'image', data, position })
 		})
 	})
 
-	const headingData = { name: isDemolition ? 'Old Of Section (Demolition)' : 'New CV Section (Installation)' }
+	const headingData = { name: isDemolition ? 'Old Of Section' : 'New CV Section' }
 	const headingPosition = { x: START_POS + (connections.length * NODES_GAP - MIN_X) / 2, y: 50 }
 	nodes.push({ id: 'heading', type: 'nodeHeading', data: headingData, position: headingPosition })
 
@@ -83,26 +86,26 @@ export const generateStartEndNode = ({
 	startStatuses.forEach((startStatus, index) => {
 		if (index >= startEndLength) return
 		const startImageUrl = `/static/svg/${startType}-${startStatus}.svg`
-		const xPosition = startX - index * 60
+		const xPosition = startX - index * GAP_LINES_X_AXIS
 
 		nodes.push({
 			id: `${seqNumber}.start.${index + 1}`,
 			type: 'image',
 			data: { imageUrl: startImageUrl, name: `${startName}#${index + 1}`, isEndbox: true, status: startStatus },
-			position: { x: xPosition, y: yPos },
+			position: { x: xPosition + 5, y: yPos },
 		})
 	})
 
 	endStatuses.forEach((endStatus, index) => {
 		if (index >= startEndLength) return
 		const endImageUrl = `/static/svg/${endType}-${endStatus}.svg`
-		const xPosition = endX + index * 60
+		const xPosition = endX + index * GAP_LINES_X_AXIS
 
 		nodes.push({
 			id: `${seqNumber}.end.${index + 1}`,
 			type: 'image',
 			data: { imageUrl: endImageUrl, name: `${endName}#${index + 1}`, isEndbox: true, status: endStatus },
-			position: { x: xPosition, y: yPos },
+			position: { x: xPosition - 5, y: yPos },
 		})
 	})
 
