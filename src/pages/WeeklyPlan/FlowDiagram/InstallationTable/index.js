@@ -35,7 +35,7 @@ const renderTableCell = (text) => (
 	</TableCell>
 )
 
-const renderTableRow = (installation, index, handleChangeInstallation, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen) => {
+const renderTableRow = (installation, index, handleChangeInstallation, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow) => {
 	return (
 	<>
 	<TableRow  sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
@@ -68,7 +68,7 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
 			<>{renderStatus(installation, isEdit, handleChangeInstallation, newObj.id, index, statusIndex)}</>
 		))}
 		{hoveredRowIndex === index && isEdit && (
-			<HoverBox index={index} setVisibleNotes={handleOpenPopup} />
+			<HoverBox index={index} setVisibleNotes={handleOpenPopup} deleteRow={deleteRow} />
 		)}
 	</TableRow>
 	</>
@@ -104,7 +104,7 @@ const renderStatus = (installation, isEdit, handleChangeInstallation, objId, con
 	</TableCell>
 )
 
-const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpanded, toggleExpand, handleAddNote}) => {
+const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpanded, toggleExpand, handleAddNote, handleDeleteRow}) => {
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
 	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
 	const [inputValue, setInputValue] = useState(); 
@@ -127,34 +127,37 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 		setInputValue('')
 	}
 
+	const deleteRow = (index) => {	
+		handleDeleteRow(newObj.id, index, "installations")
+	}
+
 	const button = { label: 'Continue', onClick: (() => AddNote()) }
 
 	return (
 	<>
 	<Box sx={{ position: 'relative', left: '2px', width: '98%' }}>
-		<TableContainer
-			sx={{
-				border: '1px solid lightgrey',
-				width: 'max-content',
-				marginLeft: '25px',
-				borderRadius: '8px',
-				overflow: 'visible clip',
-			}}
+		<Collapse
+			in={isExpanded}
+			collapsedSize={
+				newObj.currentObj.installations.length < 7 ? (newObj.currentObj.installations.length * 49 + 29 + (newObj.isEnd ? 49 : 0)) : 323
+			}
 		>
-			<Table>
-				<Collapse
-					sx={{ overflow: 'visible clip' }}
-					in={isExpanded}
-					collapsedSize={
-						newObj.currentObj.installations.length < 7 ? (newObj.currentObj.installations.length * 49 + 29 + (newObj.isEnd ? 49 : 0)) : 323
-					}
+			<Box
+				sx={{
+					maxHeight: isExpanded ? 'none' : '323px',
+					overflow: 'scroll',
+				}}
+			>
+				<TableContainer
+					sx={{
+						border: '1px solid lightgrey',
+						width: 'max-content',
+						marginLeft: '25px',
+						borderRadius: '8px',
+						overflow: 'visible',
+					}}
 				>
-					<Box
-						sx={{
-							maxHeight: isExpanded ? 'none' : '323px',
-							overflow: 'visible clip',
-						}}
-					>
+					<Table>
 						<TableHead>
 							<TableRow style={{ backgroundColor: '#f9f9fa' }}>
 								{renderTableCell('T/L Section')}
@@ -167,7 +170,7 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 						<TableBody>
 							{newObj.currentObj.installations.map((installation, index) => {
 								let status = ''
-								const joinType = newObj.currentObj.connections[index].joinType
+								const joinType = newObj.currentObj.connections[index]?.joinType
 								if (index === 0) {
 									status = `Namyang${newObj.currentObj.start}#${index + 1}~${JB_TYPE_MAP[joinType]}#${
 										index + 1
@@ -182,7 +185,7 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 									}#${index + 1}`
 								}
 
-								return <>{renderTableRow(installation, index, handleChangeInstallation, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
+								return <>{renderTableRow(installation, index, handleChangeInstallation, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow)}</>
 							})}
 
 							{newObj.isEnd && (
@@ -199,15 +202,16 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 										hoveredRowIndex,
 										setHoveredRowIndex,
 										handleOpenPopup,
-										isNotePopupOpen
+										isNotePopupOpen,
+										deleteRow
 									)}
 								</>
 							)}
 						</TableBody>
-					</Box>
-				</Collapse>
-			</Table>
-		</TableContainer>
+					</Table>
+				</TableContainer>
+			</Box>
+		</Collapse>
 		{newObj.currentObj.installations.length > 6 && (
 			<IconButton
 				style={{
@@ -247,6 +251,7 @@ InstallationTable.propTypes = {
 	isExpanded: PropTypes.bool.isRequired,
 	toggleExpand: PropTypes.func.isRequired,
 	handleAddNote: PropTypes.func.isRequired,
+	handleDeleteRow: PropTypes.func.isRequired,
 }
 
 export default InstallationTable

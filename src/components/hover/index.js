@@ -24,7 +24,7 @@ const HoverDiv = styled(Box)({
 	gap: '4px',
 });
 
-const HoverBox = ({ index, setVisibleNotes }) => {
+const HoverBox = ({ index, setVisibleNotes, deleteRow }) => {
     
   return (
 	<HoverDiv
@@ -78,7 +78,7 @@ const HoverBox = ({ index, setVisibleNotes }) => {
 				},
 				},
 			}}
-			onClick={() => console.log('Delete icon clicked for connection')}
+			onClick={() => deleteRow(index)}
 		>
 			<Iconify icon="tabler:trash" width={20} height={20} sx={{ color: '#596570', Opacity: '0.5', '&: hover': { Opacity: 1}}} />
 		</Button>

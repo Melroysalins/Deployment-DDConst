@@ -84,7 +84,7 @@ const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connInd
 	</TableCell>
 )
 
-const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen) => (
+const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow) => (
 	<TableRow index={index} sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
 	onMouseLeave={() => {
         if (!isNotePopupOpen) { // Check if NotePopup is not open
@@ -186,12 +186,12 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 			<>{renderStatus(demolition, isEdit, handleChangeDemolition, newObj.id, index, statusIndex)}</>
 		))}
 		{hoveredRowIndex === index && isEdit && (
-			<HoverBox index={index} setVisibleNotes={handleOpenPopup} />
+			<HoverBox index={index} setVisibleNotes={handleOpenPopup} deleteRow={deleteRow} />
 		)}
 	</TableRow>
 )
 
-const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, isEdit, handleAddNote }) => {
+const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, isEdit, handleAddNote, handleDeleteRow }) => {
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
 	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
@@ -219,17 +219,21 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 		setInputValue('')
 	}
 
+	const deleteRow = (index) => {	
+		handleDeleteRow(newObj.id, index, "demolitions")
+	}
+
 	const button = { label: 'Continue', onClick: (() => AddNote()) }
 
 	return (
 		<>
 		<Box sx={{ position: 'relative', left: '2px', width: '98%' }}>
-			<TableContainer sx={{ overflow: 'visible', border: '1px solid lightgrey', borderRadius: '8px', width: 'max-content', marginLeft: '25px' }}>
-				<Table>
-					<Collapse sx={{ overflow: 'visible clip' }} in={isExpanded} collapsedSize={demolitions.length < 7 ? demolitions.length * 53 + 33.5 : 350}>
-						<Box
-							sx={{ maxHeight: isExpanded ? 'none' : '350px', overflow: 'visible', width: '100%'}}
-						>
+			<Collapse in={isExpanded} collapsedSize={demolitions.length < 7 ? demolitions.length * 53 + 33.5 : 350}>
+				<Box
+					sx={{ maxHeight: isExpanded ? 'none' : '350px', overflow: 'scroll', width: '100%'}}
+				>
+					<TableContainer sx={{ overflow: 'visible', border: '1px solid lightgrey', borderRadius: '8px', width: 'max-content', marginLeft: '25px' }}>
+						<Table>
 							<TableHead>
 								<TableRow style={{ backgroundColor: '#f9f9fa' }}>
 									{renderTableCell('#', '10%')}
@@ -242,71 +246,69 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 									))}
 								</TableRow>
 							</TableHead>
-
 							<TableBody >
 								{demolitions.map((demolition, index) => (
-									<>{renderTableRow(demolition, index, handleChangeDemolition, newObj.id, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
+									<>{renderTableRow(demolition, index, handleChangeDemolition, newObj.id, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow)}</>
 								))}
 							</TableBody>
-						</Box>
-					</Collapse>
-
-					{isEdit && (
-						<Box
-							sx={{
-								position: 'absolute',
-								bottom: '-12px',
-								left: '48px',
-								display: 'flex',
-								flexDirection: 'row',
-								alignItems: 'center',
-								justifyContent: 'flex-start',
-								gap: '12px',
-								zIndex: 4,
-							}}
-						>
-							<IconButton
+							{isEdit && (
+								<Box
+								sx={{
+									position: 'absolute',
+									bottom: '-12px',
+									left: '48px',
+									display: 'flex',
+									flexDirection: 'row',
+									alignItems: 'center',
+									justifyContent: 'flex-start',
+									gap: '12px',
+									zIndex: 4,
+								}}
+								>
+									<IconButton
+										style={{
+											backgroundColor: '#ffa58d',
+											boxShadow: '0px 8px 16px rgba(255, 165, 141, 0.24)',
+											borderRadius: '32px',
+											width: '24px',
+											height: '24px',
+										}}
+										onClick={addPanel}
+										>
+										<AddIcon sx={{ color: '#fff' }} />
+									</IconButton>
+								</Box>
+							)}
+							{demolitions.length > 6 && (
+								<IconButton
 								style={{
-									backgroundColor: '#ffa58d',
-									boxShadow: '0px 8px 16px rgba(255, 165, 141, 0.24)',
+									border: '1px solid rgba(0, 0, 0, 0.1)',
+									backgroundColor: '#fff',
+									boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
 									borderRadius: '32px',
 									width: '24px',
 									height: '24px',
+									boxSizing: 'border-box',
+									zIndex: '5',
+									position: 'absolute',
+									right: '12px',
+									bottom: '-12px',
+									padding: '0px',
 								}}
-								onClick={addPanel}
-							>
-								<AddIcon sx={{ color: '#fff' }} />
-							</IconButton>
-						</Box>
-					)}
-					{demolitions.length > 6 && (
-						<IconButton
-							style={{
-								border: '1px solid rgba(0, 0, 0, 0.1)',
-								backgroundColor: '#fff',
-								boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
-								borderRadius: '32px',
-								width: '24px',
-								height: '24px',
-								boxSizing: 'border-box',
-								zIndex: '5',
-								position: 'absolute',
-								right: '12px',
-								bottom: '-12px',
-								padding: '0px',
-							}}
-							onClick={() => setIsExpanded((prevIsExpanded) => !prevIsExpanded)}
-						>
-							<Iconify
-								icon={isExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
-								width={16}
-								height={16}
-								sx={{ color: '#596570' }}
-							/>
-						</IconButton>
-					)}
-				</Table>
-			</TableContainer>
+								onClick={() => setIsExpanded((prevIsExpanded) => !prevIsExpanded)}
+								>
+									<Iconify
+										icon={isExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
+										width={16}
+										height={16}
+										sx={{ color: '#596570' }}
+										/>
+								</IconButton>
+							)}
+						</Table>
+					</TableContainer>
+				</Box>
+			</Collapse>
 		</Box>
 		<NotePopup isOpen={isNotePopupOpen} onClose={handleClosePopup} title={"Add Note"} button={button} inputValue={inputValue} setInputValue={setInputValue} /> 
 		</>
@@ -321,6 +323,7 @@ DemolitionTable.propTypes = {
 	isNotePopupOpen: PropTypes.bool.isRequired,
 	setIsNotePopupOpen: PropTypes.func.isRequired,
 	handleAddNote: PropTypes.func.isRequired,
+	handleDeleteRow: PropTypes.func.isRequired,
 }
 
 export default DemolitionTable
