@@ -299,6 +299,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 						nodes={nodes}
 						edges={edges}
 						nodeTypes={nodeTypes}
+						proOptions={{ hideAttribution: true }}
 						interactionProps={{
 							zoomOnScroll: true,
 							panOnDrag: false,

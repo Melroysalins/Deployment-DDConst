@@ -526,6 +526,7 @@ const ConnectionTable = ({
 					flexDirection: 'row',
 					justifyContent: 'flex-start',
 					alignItems: 'flex-start',
+					width: '100%',
 				}}
 			>
 				<Box
@@ -555,108 +556,108 @@ const ConnectionTable = ({
 						Mid {newObj.currentObj.connections.length > 1 ? 'point' : ''}
 					</Typography>
 				</Box>
-				<TableContainer
-					sx={{
-						width: 'max-content',
-						borderRadius: '0px 0px 8px 0px',
-						border: '1px solid lightgrey',
-						overflow: 'visible'
-					}}
+				<Collapse
+					sx={{ width: '100%' }}
+					in={isExpanded}
+					collapsedSize={
+						newObj.currentObj.connections.length < 7 ? newObj.currentObj.connections.length * 73 : 438
+					}
 				>
-					<Box>
-						<Table>
-							<TableBody>
-								<Collapse
-									in={isExpanded}
-									collapsedSize={
-										newObj.currentObj.connections.length < 7 ? newObj.currentObj.connections.length * 73 : 438
-									}
-									sx={{ overflow: 'visible clip' }}
-								>
-									<Box sx={{ maxHeight: isExpanded ? 'none' : '438px', overflow: 'visible clip'}}>
+					<Box sx={{ maxHeight: isExpanded ? 'none' : '438px', overflow: 'scroll'}}>
+						<TableContainer
+							sx={{
+								width: 'max-content',
+								borderRadius: '0px 0px 8px 0px',
+								border: '1px solid lightgrey',
+								overflow: 'visible'
+							}}
+						>
+							<Box>
+								<Table>
+									<TableBody>
 										{newObj.currentObj.connections.map((connection, index) => (
 											<>{renderTableRow(connection, index, handleNewObjChange, newObj.id, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
 										))}
-									</Box>
-								</Collapse>
-								{isEdit && (
-									<Box
-										sx={{
-											position: 'absolute',
-											bottom: '-12px',
-											left: '40px',
-											display: 'flex',
-											flexDirection: 'row',
-											alignItems: 'center',
-											justifyContent: 'flex-start',
-											gap: '12px',
-											zIndex: 4,
-										}}
-									>
-										<IconButton
-											style={{
-												backgroundColor: '#ffa58d',
-												boxShadow: '0px 8px 16px rgba(255, 165, 141, 0.24)',
-												borderRadius: '32px',
-												width: '24px',
-												height: '24px',
-											}}
-											onClick={addPanel} // Add onClick event handler here
-										>
-											<AddIcon sx={{ color: '#fff' }} />
-										</IconButton>
-										{!newObj.isEnd && (
-											<Tooltip title="Done adding" arrow placement="right">
+										{isEdit && (
+											<Box
+												sx={{
+													position: 'absolute',
+													bottom: '-12px',
+													left: '40px',
+													display: 'flex',
+													flexDirection: 'row',
+													alignItems: 'center',
+													justifyContent: 'flex-start',
+													gap: '12px',
+													zIndex: 4,
+												}}
+											>
 												<IconButton
 													style={{
-														border: '1px solid #6ac79b',
-														backgroundColor: '#fff',
-														boxShadow: '0px 8px 16px rgba(152, 210, 195, 0.24)',
+														backgroundColor: '#ffa58d',
+														boxShadow: '0px 8px 16px rgba(255, 165, 141, 0.24)',
 														borderRadius: '32px',
-														padding: '0px',
 														width: '24px',
 														height: '24px',
 													}}
-													onClick={() => handleCloseInstallation(newObj.id)} // Add onClick event handler here
+													onClick={addPanel} // Add onClick event handler here
 												>
-													<Iconify icon="ic:round-check" width={16} height={16} sx={{ color: '#6ac78b' }} />
+													<AddIcon sx={{ color: '#fff' }} />
 												</IconButton>
-											</Tooltip>
+												{!newObj.isEnd && (
+													<Tooltip title="Done adding" arrow placement="right">
+														<IconButton
+															style={{
+																border: '1px solid #6ac79b',
+																backgroundColor: '#fff',
+																boxShadow: '0px 8px 16px rgba(152, 210, 195, 0.24)',
+																borderRadius: '32px',
+																padding: '0px',
+																width: '24px',
+																height: '24px',
+															}}
+															onClick={() => handleCloseInstallation(newObj.id)} // Add onClick event handler here
+														>
+															<Iconify icon="ic:round-check" width={16} height={16} sx={{ color: '#6ac78b' }} />
+														</IconButton>
+													</Tooltip>
+												)}
+											</Box>
 										)}
-									</Box>
-								)}
-								{newObj.currentObj.connections.length > 6 && (
-									<TableRow>
-										<IconButton
-											style={{
-												border: '1px solid rgba(0, 0, 0, 0.1)',
-												backgroundColor: '#fff',
-												boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
-												borderRadius: '32px',
-												width: '24px',
-												height: '24px',
-												boxSizing: 'border-box',
-												zIndex: '5',
-												position: 'absolute',
-												right: '100px',
-												bottom: '-12px',
-												padding: '0px',
-											}}
-											onClick={toggleExpand}
-										>
-											<Iconify
-												icon={isExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
-												width={16}
-												height={16}
-												sx={{ color: '#596570' }}
-											/>
-										</IconButton>
-									</TableRow>
-								)}
-							</TableBody>
-						</Table>
+										{newObj.currentObj.connections.length > 6 && (
+											<TableRow>
+												<IconButton
+													style={{
+														border: '1px solid rgba(0, 0, 0, 0.1)',
+														backgroundColor: '#fff',
+														boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
+														borderRadius: '32px',
+														width: '24px',
+														height: '24px',
+														boxSizing: 'border-box',
+														zIndex: '5',
+														position: 'absolute',
+														right: '100px',
+														bottom: '-12px',
+														padding: '0px',
+													}}
+													onClick={toggleExpand}
+												>
+													<Iconify
+														icon={isExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
+														width={16}
+														height={16}
+														sx={{ color: '#596570' }}
+													/>
+												</IconButton>
+											</TableRow>
+										)}
+									</TableBody>
+								</Table>
+							</Box>
+						</TableContainer>
 					</Box>
-				</TableContainer>
+				</Collapse>
 			</Box>
 			<NotePopup isOpen={isNotePopupOpen} onClose={handleClosePopup} title={"Add Note"} button={button} inputValue={inputValue} setInputValue={setInputValue} /> 
 		</>

@@ -723,7 +723,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				currentObj: {
 					...obj.currentObj,
 					demolitions: isDemolition ? obj.currentObj.demolitions : [defaultConnection],
-					length_demolition: isDemolition ? obj.currentObj.length_demolition : 600,
+					length_demolition: isDemolition ? obj.currentObj.length_demolition : [600],
 				},
 			}
 		})
@@ -765,10 +765,23 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	}
 
 	const handleCloseInstallation = (objId) => {
-		updateObjById(objId, (obj) => ({
-			...obj,
-			isEnd: true,
-		}))
+		const updatedObjs = objs.map((obj) => {
+			if (obj.id !== objId) return obj;
+	
+			const lastInstallation = obj.currentObj.installations[obj.currentObj.installations.length - 1];
+			const newInstallation = { ...lastInstallation, note: '' };		
+			const updatedInstallations = [...obj.currentObj.installations, newInstallation];
+
+			const updatedMainObj = {
+				...obj.currentObj,
+				installations: updatedInstallations,
+				length: [...obj.currentObj.length, 600],
+			};
+	
+			return { ...obj, currentObj: updatedMainObj, isEnd: true };
+		});
+	
+		setObjs(updatedObjs);
 	}
 
 	const setCurrentObj = ({

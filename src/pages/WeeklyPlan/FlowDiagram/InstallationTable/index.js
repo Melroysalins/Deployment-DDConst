@@ -132,29 +132,28 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 	return (
 	<>
 	<Box sx={{ position: 'relative', left: '2px', width: '98%' }}>
-		<TableContainer
-			sx={{
-				border: '1px solid lightgrey',
-				width: 'max-content',
-				marginLeft: '25px',
-				borderRadius: '8px',
-				overflow: 'visible clip',
-			}}
+		<Collapse
+			in={isExpanded}
+			collapsedSize={
+				newObj.currentObj.installations.length < 7 ? (newObj.currentObj.installations.length * 49 + 29) : 323
+			}
 		>
-			<Table>
-				<Collapse
-					sx={{ overflow: 'visible clip' }}
-					in={isExpanded}
-					collapsedSize={
-						newObj.currentObj.installations.length < 7 ? (newObj.currentObj.installations.length * 49 + 29 + (newObj.isEnd ? 49 : 0)) : 323
-					}
+			<Box
+				sx={{
+					maxHeight: isExpanded ? 'none' : '323px',
+					overflow: 'scroll',
+				}}
+			>
+				<TableContainer
+					sx={{
+						border: '1px solid lightgrey',
+						width: 'max-content',
+						marginLeft: '25px',
+						borderRadius: '8px',
+						overflow: 'visible',
+					}}
 				>
-					<Box
-						sx={{
-							maxHeight: isExpanded ? 'none' : '323px',
-							overflow: 'visible clip',
-						}}
-					>
+					<Table>
 						<TableHead>
 							<TableRow style={{ backgroundColor: '#f9f9fa' }}>
 								{renderTableCell('T/L Section')}
@@ -167,47 +166,31 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 						<TableBody>
 							{newObj.currentObj.installations.map((installation, index) => {
 								let status = ''
-								const joinType = newObj.currentObj.connections[index].joinType
+								const joinType = newObj.currentObj.connections[index]?.joinType
+								console.log(newObj, newObj.currentObj.installations)
 								if (index === 0) {
 									status = `Namyang${newObj.currentObj.start}#${index + 1}~${JB_TYPE_MAP[joinType]}#${
 										index + 1
 									}`
-								} else if (index === newObj.currentObj.installations.length) {
-									status = `${JB_TYPE_MAP[joinType]}#${index + 1}~Yeonsu${
-										JUNCTION_BOX_MAP[newObj.currentObj.end]
-									}`
+								} else if (index === newObj.currentObj.installations.length - 1) {
+									if (newObj.isEnd) {
+										status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1]?.joinType]}#${index}~Yeonsu${newObj.currentObj.end}`;
+									} else {
+										status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1].joinType]}#${index}~${JB_TYPE_MAP[joinType]}#${index + 1}`;
+									}
 								} else {
 									status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1].joinType]}#${index}~${
 										JB_TYPE_MAP[joinType]
 									}#${index + 1}`
 								}
-
 								return <>{renderTableRow(installation, index, handleChangeInstallation, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
 							})}
 
-							{newObj.isEnd && (
-								<>
-									{renderTableRow(
-										newObj.currentObj.installations[newObj.currentObj.installations.length - 1],
-										newObj.currentObj.installations.length - 1,
-										handleChangeInstallation,
-										`${JB_TYPE_MAP[newObj.currentObj.connections[newObj.currentObj.connections.length - 1].joinType]}#${
-											newObj.currentObj.installations.length
-										}~Yeonsu${newObj.currentObj.end}#1`,
-										newObj,
-										isEdit,
-										hoveredRowIndex,
-										setHoveredRowIndex,
-										handleOpenPopup,
-										isNotePopupOpen
-									)}
-								</>
-							)}
 						</TableBody>
-					</Box>
-				</Collapse>
-			</Table>
-		</TableContainer>
+					</Table>
+				</TableContainer>
+			</Box>
+		</Collapse>
 		{newObj.currentObj.installations.length > 6 && (
 			<IconButton
 				style={{

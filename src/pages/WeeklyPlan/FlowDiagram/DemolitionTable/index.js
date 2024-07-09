@@ -224,12 +224,12 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 	return (
 		<>
 		<Box sx={{ position: 'relative', left: '2px', width: '98%' }}>
-			<TableContainer sx={{ overflow: 'visible', border: '1px solid lightgrey', borderRadius: '8px', width: 'max-content', marginLeft: '25px' }}>
-				<Table>
-					<Collapse sx={{ overflow: 'visible clip' }} in={isExpanded} collapsedSize={demolitions.length < 7 ? demolitions.length * 53 + 33.5 : 350}>
-						<Box
-							sx={{ maxHeight: isExpanded ? 'none' : '350px', overflow: 'visible', width: '100%'}}
-						>
+			<Collapse in={isExpanded} collapsedSize={demolitions.length < 7 ? demolitions.length * 53 + 33.5 : 350}>
+				<Box
+					sx={{ maxHeight: isExpanded ? 'none' : '350px', overflow: 'scroll', width: '100%'}}
+				>
+					<TableContainer sx={{ overflow: 'visible', border: '1px solid lightgrey', borderRadius: '8px', width: 'max-content', marginLeft: '25px' }}>
+						<Table>
 							<TableHead>
 								<TableRow style={{ backgroundColor: '#f9f9fa' }}>
 									{renderTableCell('#', '10%')}
@@ -242,71 +242,69 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 									))}
 								</TableRow>
 							</TableHead>
-
 							<TableBody >
 								{demolitions.map((demolition, index) => (
 									<>{renderTableRow(demolition, index, handleChangeDemolition, newObj.id, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
 								))}
 							</TableBody>
-						</Box>
-					</Collapse>
-
-					{isEdit && (
-						<Box
-							sx={{
-								position: 'absolute',
-								bottom: '-12px',
-								left: '48px',
-								display: 'flex',
-								flexDirection: 'row',
-								alignItems: 'center',
-								justifyContent: 'flex-start',
-								gap: '12px',
-								zIndex: 4,
-							}}
-						>
-							<IconButton
-								style={{
-									backgroundColor: '#ffa58d',
-									boxShadow: '0px 8px 16px rgba(255, 165, 141, 0.24)',
-									borderRadius: '32px',
-									width: '24px',
-									height: '24px',
-								}}
-								onClick={addPanel}
-							>
-								<AddIcon sx={{ color: '#fff' }} />
-							</IconButton>
-						</Box>
-					)}
-					{demolitions.length > 6 && (
-						<IconButton
-							style={{
-								border: '1px solid rgba(0, 0, 0, 0.1)',
-								backgroundColor: '#fff',
-								boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
-								borderRadius: '32px',
-								width: '24px',
-								height: '24px',
-								boxSizing: 'border-box',
-								zIndex: '5',
-								position: 'absolute',
-								right: '12px',
-								bottom: '-12px',
-								padding: '0px',
-							}}
-							onClick={() => setIsExpanded((prevIsExpanded) => !prevIsExpanded)}
-						>
-							<Iconify
-								icon={isExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
-								width={16}
-								height={16}
-								sx={{ color: '#596570' }}
-							/>
-						</IconButton>
-					)}
-				</Table>
-			</TableContainer>
+							{isEdit && (
+								<Box
+									sx={{
+										position: 'absolute',
+										bottom: '-12px',
+										left: '48px',
+										display: 'flex',
+										flexDirection: 'row',
+										alignItems: 'center',
+										justifyContent: 'flex-start',
+										gap: '12px',
+										zIndex: 4,
+									}}
+								>
+									<IconButton
+										style={{
+											backgroundColor: '#ffa58d',
+											boxShadow: '0px 8px 16px rgba(255, 165, 141, 0.24)',
+											borderRadius: '32px',
+											width: '24px',
+											height: '24px',
+										}}
+										onClick={addPanel}
+									>
+										<AddIcon sx={{ color: '#fff' }} />
+									</IconButton>
+								</Box>
+							)}
+							{demolitions.length > 6 && (
+								<IconButton
+									style={{
+										border: '1px solid rgba(0, 0, 0, 0.1)',
+										backgroundColor: '#fff',
+										boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
+										borderRadius: '32px',
+										width: '24px',
+										height: '24px',
+										boxSizing: 'border-box',
+										zIndex: '5',
+										position: 'absolute',
+										right: '12px',
+										bottom: '-12px',
+										padding: '0px',
+									}}
+									onClick={() => setIsExpanded((prevIsExpanded) => !prevIsExpanded)}
+								>
+									<Iconify
+										icon={isExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
+										width={16}
+										height={16}
+										sx={{ color: '#596570' }}
+									/>
+								</IconButton>
+							)}
+						</Table>
+					</TableContainer>
+				</Box>
+			</Collapse>
 		</Box>
 		<NotePopup isOpen={isNotePopupOpen} onClose={handleClosePopup} title={"Add Note"} button={button} inputValue={inputValue} setInputValue={setInputValue} /> 
 		</>
