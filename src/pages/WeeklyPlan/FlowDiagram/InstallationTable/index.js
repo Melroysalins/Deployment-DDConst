@@ -95,7 +95,7 @@ const renderStatus = (installation, isEdit, handleChangeInstallation, objId, con
 		) : (
 			<Typography
 				variant="body1"
-				sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+				sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', whiteSpace: 'nowrap'  }}
 				className={style.Typography}
 			>
 				{STATUS_MAP[installation.statuses?.[statusIndex]]}
@@ -133,21 +133,22 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 	<>
 	<Box sx={{ position: 'relative', left: '2px', width: '98%' }}>
 		<Collapse
+			sx={{ overflow: 'visible', position: 'relative', zIndex: 1}}
 			in={isExpanded}
 			collapsedSize={
-				newObj.currentObj.installations.length < 7 ? (newObj.currentObj.installations.length * 49 + 29) : 323
+				newObj.currentObj.installations.length < 7 ? (newObj.currentObj.installations.length * 65.5) + 45: isEdit ? '438px' : '350px'
 			}
 		>
 			<Box
 				sx={{
-					maxHeight: isExpanded ? 'none' : '323px',
-					overflow: 'scroll',
+					maxHeight: isExpanded ? 'none' : isEdit ? '438px' : '350px',
+					overflow: 'auto',
 				}}
 			>
 				<TableContainer
 					sx={{
 						border: '1px solid lightgrey',
-						width: 'max-content',
+						width: '60%',
 						marginLeft: '25px',
 						borderRadius: '8px',
 						overflow: 'visible',
