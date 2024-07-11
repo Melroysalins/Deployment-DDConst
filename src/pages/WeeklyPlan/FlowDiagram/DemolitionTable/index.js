@@ -223,10 +223,10 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 
 	return (
 		<>
-		<Box sx={{ position: 'relative', left: '2px', width: '98%' }}>
-			<Collapse in={isExpanded} collapsedSize={demolitions.length < 7 ? demolitions.length * 53 + 33.5 : 350}>
+		<Box sx={{ position: 'relative', left: '2px'}}>
+			<Collapse sx={{ overflow: 'visible' }} in={isExpanded} collapsedSize={demolitions.length < 7 ? demolitions.length * 53 + 34 : 350}>
 				<Box
-					sx={{ maxHeight: isExpanded ? 'none' : '350px', overflow: 'auto', width: '100%'}}
+					sx={{ maxHeight: isExpanded ? 'none' : '350px', overflow: 'auto', minWidth: `${528 + newObj.currentObj.demolitions[0]?.statuses.length * 152}px`}}
 				>
 					<TableContainer sx={{ overflow: 'visible', border: '1px solid lightgrey', borderRadius: '8px', width: 'max-content', marginLeft: '25px' }}>
 						<Table>

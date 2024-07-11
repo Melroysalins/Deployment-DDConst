@@ -131,7 +131,7 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 
 	return (
 	<>
-	<Box sx={{ position: 'relative', left: '2px', width: '98%' }}>
+	<Box sx={{ position: 'relative', marginLeft: '25px'}}>
 		<Collapse
 			sx={{ overflow: 'visible', position: 'relative', zIndex: 1}}
 			in={isExpanded}
@@ -143,13 +143,13 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 				sx={{
 					maxHeight: isExpanded ? 'none' : isEdit ? '438px' : '350px',
 					overflow: 'auto',
+					minWidth: `${268 + newObj.currentObj.installations[0]?.statuses.length * 152}px`, 
 				}}
 			>
 				<TableContainer
 					sx={{
 						border: '1px solid lightgrey',
-						width: '60%',
-						marginLeft: '25px',
+						width: 'max-content',
 						borderRadius: '8px',
 						overflow: 'visible',
 					}}
