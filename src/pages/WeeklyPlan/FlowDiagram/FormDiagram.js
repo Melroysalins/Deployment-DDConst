@@ -6,7 +6,15 @@ import ConnectionTable from './ConnectionTable'
 import InstallationTable from './InstallationTable'
 import DemolitionTable from './DemolitionTable'
 import PropTypes from 'prop-types'
-import { JB_TYPE } from './diagramHelper'
+import { JB_TYPE, PMJ } from './diagramHelper'
+
+const StyledRowTables = styled(Box)({
+	display: 'flex',
+	flexDirection: 'row',
+	alignItems: 'flex-start',
+	justifyContent: 'flex-start',
+	gap: '8px',
+})
 
 const StyledConnection = styled(Box)({
 	display: 'flex',
@@ -41,20 +49,13 @@ const StyledDemolition = styled(Box)({
 	borderRadius: '8px',
 	backgroundColor: '#fff',
 	alignSelf: 'auto',
+	width: '100%',
 })
 
 const StyledTypography = styled(Typography)({
 	'@media (max-width: 1440px)': {
-		fontSize: '10px',
+		fontSize: '12px',
 		padding: '2px',
-	},
-	'@media (max-width: 1336px)': {
-		fontSize: '8px',
-		padding: '1px',
-	},
-	'@media (max-width: 1280px)': {
-		fontSize: '6px',
-		padding: '1px',
 	},
 })
 
@@ -66,11 +67,10 @@ const HeaderText = ({ title, color, newObj, isDemolition }) => (
 			alignItems: 'flex-end',
 			justifyContent: 'flex-start',
 			padding: '0px 0px 0px 6px',
-			gap: '4px',
 			fontSize: '18px',
+			flexWrap: 'nowrap',
 			color: { color },
-			fontFamily: 'Manrope',
-			marginLeft: '24px',
+			fontFamily: "'Manrope', sans-serif",
 			'@media (max-width: 1440px)': {
 				fontSize: '14px',
 			},
@@ -81,6 +81,9 @@ const HeaderText = ({ title, color, newObj, isDemolition }) => (
 				position: 'relative',
 				lineHeight: '24px',
 				fontWeight: '600',
+				whiteSpace: 'nowrap', // Keep this text in a single line
+                overflow: 'hidden', // Hide overflow
+                textOverflow: 'ellipsis', // Add ellipsis for overflow
 			}}
 		>
 			{title}
@@ -96,29 +99,23 @@ const HeaderText = ({ title, color, newObj, isDemolition }) => (
 				overflow: 'hidden',
 				textOverflow: 'ellipsis',
 				height: '22px',
-				'@media (max-width: 1440px)': {
-					fontSize: '10px',
-				},
 			}}
 		>
 			<StyledTypography>
 				<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
 					{newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length} Points
 				</StyledTypography>
-				<StyledTypography sx={{ lineHeight: '26px' }} component="span">{`(J/B ${
+				<StyledTypography sx={{ lineHeight: '26px' }} component="span">{`(IJ ${
 					newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].filter(
-						(e) => e.joinType === JB_TYPE[0].value
+						(e) => e.pmj === PMJ[1]
 					).length
-				} Points + M/H ${
+				} Points, NJ ${
 					newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].filter(
-						(e) => e.joinType === JB_TYPE[1].value
+						(e) => e.pmj === PMJ[0]
 					).length
 				} Points) x `}</StyledTypography>
 				<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
 					2 Lines
-				</StyledTypography>
-				<StyledTypography sx={{ lineHeight: '26px' }} component="span">
-					(aka T/R | S/S)
 				</StyledTypography>
 			</StyledTypography>
 		</Box>
@@ -143,39 +140,56 @@ export default function FormDiagram({
 		setIsExpanded((prevIsExpanded) => !prevIsExpanded)
 	}
 
+	const getBoxStyle = () => {
+		const screenWidth = window.innerWidth;
+		if (screenWidth <= 2560) { // Assuming you want this effect for screens up to 2560px wide
+			return {
+				transform: 'scale(0.75)',
+				transformOrigin: 'top left',
+			};
+		}
+		return {}; // Return empty object for styles if screen width is greater than 2560px
+	};
+
 	return (
 		<>
-			<StyledConnection>
-				<HeaderText title="Connection" color="#ffa58d" newObj={newObj} />
-				{newObj?.currentObj?.startStatuses && (
-					<ConnectionTable
-						handleAddConnection={handleAddConnection}
-						handleCloseInstallation={handleCloseInstallation}
-						handleNewObjChange={handleNewObjChange}
-						newObj={newObj}
-						isEdit={isEdit}
-						isExpanded={isExpanded}
-						toggleExpand={toggleExpand}
-						handleAddNote={handleAddNote}
-					/>
-				)}
-			</StyledConnection>
-			<StyledInstallation>
-				<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
-				{newObj?.currentObj?.startStatuses && (
-					<InstallationTable
-						handleChangeInstallation={handleChangeInstallation}
-						newObj={newObj}
-						isEdit={isEdit}
-						isExpanded={isExpanded}
-						toggleExpand={toggleExpand}
-						handleAddNote={handleAddNote}
-					/>
-				)}
-			</StyledInstallation>
+			<StyledRowTables>
+				<StyledConnection>
+					<Box sx={{ marginLeft: '19px'}}>
+						<HeaderText title="Connection" color="#ffa58d" newObj={newObj} />
+					</Box>
+					{newObj?.currentObj?.startStatuses && (
+						<ConnectionTable
+							handleAddConnection={handleAddConnection}
+							handleCloseInstallation={handleCloseInstallation}
+							handleNewObjChange={handleNewObjChange}
+							newObj={newObj}
+							isEdit={isEdit}
+							isExpanded={isExpanded}
+							toggleExpand={toggleExpand}
+							handleAddNote={handleAddNote}
+						/>
+					)}
+				</StyledConnection>
+				<StyledInstallation>
+					<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
+					{newObj?.currentObj?.startStatuses && (
+						<InstallationTable
+							handleChangeInstallation={handleChangeInstallation}
+							newObj={newObj}
+							isEdit={isEdit}
+							isExpanded={isExpanded}
+							toggleExpand={toggleExpand}
+							handleAddNote={handleAddNote}
+						/>
+					)}
+				</StyledInstallation>
+			</StyledRowTables>
 			{isDemolition && (
 				<StyledDemolition>
-					<HeaderText title="Demolition" color="#7FBCFE" newObj={newObj} isDemolition={true} />
+					<Box sx={{ marginLeft: '19px'}}>
+						<HeaderText title="Demolition" color="#7FBCFE" newObj={newObj} isDemolition={true} />
+					</Box>
 					{newObj?.currentObj?.startStatuses && (
 						<DemolitionTable
 							handleAddDemolition={handleAddDemolition}

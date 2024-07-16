@@ -12,38 +12,35 @@
 }
 
 .TableCell {
-	@media (max-width: 1440px) {
-		font-size: 10px;
-		width: 100%;
-	}
-
-	@media (max-width: 1336px) {
-		font-size: 8px;
-		width: 100%;
-	}
-
-	@media (max-width: 1280px) {
-		font-size: 6px;
-		width: 100%;
-	}
+    padding: 0.425rem 0.175rem; // Convert pixels to rem for responsiveness
+    width: 4.86vw; // Assuming the base font size is 16px, 73px is approximately 4.56rem
+    // @media (max-width: 90rem) { // 1440px is equivalent to 90rem if base font size is 16px
+    //     font-size: 1rem; // Remains the same, as it's already responsive
+    //     padding:  0; // Convert pixels to rem for responsiveness
+    //     width: 100%; // Already responsive
+    // }
 }
 
-// .Typography {
-//     @media (max-width: 1440px) {
-//         font-size: 10px;
-//         padding: 2px;
-//     }
+.Typography {
+    @media (max-width: 90rem) {
+        font-size: 0.65rem; // Same conversion as above
+        padding: 0.125rem; // Convert pixels to rem for responsiveness
+    }
+}
 
-//     @media (max-width: 1336px) {
-//         font-size: 8px;
-//         padding: 1px;
-//     }
+.TextField {
 
-//     @media (max-width: 1280px) {
-//         font-size: 6px;
-//         padding: 1px;
-//     }
-// }
+	// @media (max-width: 1336px) {
+	// 	font-size: 8px;
+	// 	padding: 1px;
+	// }
+
+	// @media (max-width: 1280px) {
+	// 	font-size: 6px;
+	// 	padding: 1px;
+	// }
+
+}
 
 // .StyledSelect {
 //     border-radius: 4px;

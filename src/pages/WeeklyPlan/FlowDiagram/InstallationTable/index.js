@@ -9,11 +9,12 @@ import {
 	TableBody,
 	Typography,
 	TextField,
-	Select,
+	Select as MuiSelect,
 	MenuItem,
 	Collapse,
 	Box,
 	IconButton,
+	styled,
 } from '@mui/material'
 import style from './InstallationTable.module.scss'
 import { JB_TYPE_MAP, JUNCTION_BOX_MAP, STATUS, STATUS_MAP } from '../diagramHelper'
@@ -23,8 +24,51 @@ import { visitNode } from 'typescript'
 import Label from 'components/Label'
 import NotePopup from 'components/NotePopup'
 
+const StyledSelect = styled(MuiSelect)({
+    borderRadius: '4px',
+    backgroundColor: '#f8dbdd',
+	width: '100%',
+    '& .MuiOutlinedInput-notchedOutline': {
+        border: 'none',
+    },
+    '& .MuiSelect-select': {
+        display: 'flex',
+        alignItems: 'center',
+        paddingRight: '0px',
+        gap: '4px',
+        color: '#da4c57',
+        '@media (max-width: 1440px)': {
+            fontSize: '10px',
+            padding: '0.1rem',
+            height: '14px',
+        },
+        // '@media (max-width: 1336px)': {
+        //     fontSize: '8px',
+        //     padding: '2px 4px',
+        //     height: '10px',
+        // },
+        // '@media (max-width: 1280px)': {
+        //     fontSize: '6px',
+        //     padding: '2px 4px',
+        //     height: '8px',
+        // },
+    },
+	'& .css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input':{
+		paddingRight: '0.1rem',
+		fontFamily: "'Manrope', sans-serif",
+        fontWeight: 600,
+        fontSize: '11px',
+	},
+});
+
+const CustomSelectIcon = () => (
+	<>
+		<Box sx={{ width: '0px', height: '0px'}} />
+	</>
+  );
+
 const renderTableCell = (text) => (
-	<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%' }}>
+	<TableCell className={style.TableCell} sx={{ width: '60%'}}>
 		<Typography
 			variant="body1"
 			sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
@@ -45,11 +89,12 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
         }
     }} >
 		{renderTableCell(`${displayName}`)}
-		<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
+		<TableCell className={style.TableCell} sx={{ width: '20%'}} >
 			{isEdit ? (
 				<TextField
+					className={style.TextField}
 					variant="outlined"
-					sx={{ width: '70px', '& .MuiInputBase-root': { height: 32 } }}
+					sx={{ maxWidth: '70px', '& .MuiInputBase-root': { height: '3vh', borderRadius: '6px' } }}
 					placeholder="320"
 					onChange={(e) => handleChangeInstallation(e.target.value, 'length', newObj.id, index)}
 					value={newObj.currentObj.length[index]}
@@ -76,22 +121,22 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
 )}
 
 const renderStatus = (installation, isEdit, handleChangeInstallation, objId, connIndex, statusIndex) => (
-	<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
+	<TableCell className={style.TableCell} sx={{ width: '20%'}}>
 		{isEdit ? (
-			<Select
+			<StyledSelect
 				value={installation.statuses?.[statusIndex]}
 				label="Status"
 				onChange={(e) => handleChangeInstallation(e.target.value, 'statuses', objId, connIndex, statusIndex)}
 				variant="outlined"
 				className={style.StyledSelect}
-				size="small"
+				IconComponent={CustomSelectIcon}
 			>
 				{STATUS.map((e) => (
 					<MenuItem value={e.value} key={e.value}>
 						{e.label}
 					</MenuItem>
 				))}
-			</Select>
+			</StyledSelect>
 		) : (
 			<Typography
 				variant="body1"
@@ -131,32 +176,31 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 
 	return (
 	<>
-	<Box sx={{ position: 'relative', marginLeft: '25px'}}>
+	<Box sx={{ position: 'relative', width: '100%'}}>
 		<Collapse
 			sx={{ overflow: 'visible', position: 'relative', zIndex: 1}}
 			in={isExpanded}
 			collapsedSize={
-				newObj.currentObj.installations.length < 7 ? (newObj.currentObj.installations.length * 65.5) + 45: isEdit ? '438px' : '350px'
+				newObj.currentObj.installations.length < 7 ? (newObj.currentObj.installations.length * 38) + 33.9: '261.9px'
 			}
 		>
 			<Box
 				sx={{
-					maxHeight: isExpanded ? 'none' : isEdit ? '438px' : '350px',
+					maxHeight: isExpanded ? 'none' : '261.9px',
 					overflow: 'auto',
-					minWidth: `${268 + newObj.currentObj.installations[0]?.statuses.length * 152}px`, 
 				}}
 			>
 				<TableContainer
 					sx={{
 						border: '1px solid lightgrey',
-						width: 'max-content',
+						width: '100%',
 						borderRadius: '8px',
 						overflow: 'visible',
 					}}
 				>
 					<Table>
 						<TableHead>
-							<TableRow style={{ backgroundColor: '#f9f9fa' }}>
+							<TableRow style={{width: '100%', backgroundColor: '#f9f9fa' }}>
 								{renderTableCell('T/L Section')}
 								{renderTableCell('Length(m)')}
 								{newObj.currentObj.installations[0]?.statuses.map((_, index) => (

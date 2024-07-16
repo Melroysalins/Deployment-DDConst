@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+
 .ag-theme-ddconst {
 	/* customise with CSS variables */
 	--ag-grid-size: 8px;
@@ -17,7 +19,7 @@
 	--ag-checkbox-unchecked-color: #999;
 	--ag-input-focus-border-color: #999;
 	--ag-borders-input: none;
-	--ag-font-family: Public Sans, sans-serif;
+	--ag-font-family: Manrope, Public Sans, sans-serif;
 
 	// --ag-font-size: 1rem;
 	.ag-root-wrapper {
@@ -53,4 +55,8 @@
 .header .ag-header-cell-comp-wrapper {
 	display: flex;
 	justify-content: flex-end;
+}
+
+body {
+    font-family: 'Manrope', sans-serif;
 }
