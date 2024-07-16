@@ -27,67 +27,67 @@ import { JB_TYPE, JB_TYPE_MAP, JUNCTION_BOX_MAP, PMJ, STATUS, STATUS_MAP } from 
 import NotePopup from 'components/NotePopup'
 
 const StyledSelect = styled(MuiSelect)({
-    borderRadius: '4px',
-    backgroundColor: '#f8dbdd',
+	borderRadius: '4px',
+	backgroundColor: '#f8dbdd',
 	width: '100%',
-    '& .MuiOutlinedInput-notchedOutline': {
-        border: 'none',
-    },
-    '& .MuiSelect-select': {
-        display: 'flex',
-        alignItems: 'center',
-        paddingRight: '0px',
-        gap: '4px',
-        color: '#da4c57',
+	'& .MuiOutlinedInput-notchedOutline': {
+		border: 'none',
+	},
+	'& .MuiSelect-select': {
+		display: 'flex',
+		alignItems: 'center',
+		paddingRight: '0px',
+		gap: '4px',
+		color: '#da4c57',
 		padding: '0.1rem',
-        '@media (max-width: 1440px)': {
-            fontSize: '10px',
-            height: '14px',
-        },
-        // '@media (max-width: 1336px)': {
-        //     fontSize: '8px',
-        //     padding: '2px 4px',
-        //     height: '10px',
-        // },
-        // '@media (max-width: 1280px)': {
-        //     fontSize: '6px',
-        //     padding: '2px 4px',
-        //     height: '8px',
-        // },
-    },
+		'@media (max-width: 98.75rem)': {
+			fontSize: '10px',
+			height: '14px',
+		},
+		// '@media (max-width: 1336px)': {
+		//     fontSize: '8px',
+		//     padding: '2px 4px',
+		//     height: '10px',
+		// },
+		// '@media (max-width: 1280px)': {
+		//     fontSize: '6px',
+		//     padding: '2px 4px',
+		//     height: '8px',
+		// },
+	},
 	'& .css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input':{
 		paddingRight: '0.1rem',
 		fontFamily: "'Manrope', sans-serif",
-        fontWeight: 600,
-        fontSize: '11px',
+		fontWeight: 600,
+		fontSize: '11px',
 	},
 });
 
 const Select = styled(MuiSelect)({
-		height: '3vh',
-		borderRadius: '8px',
-		width: '100%',
-		'@media (min-width: 1441px)': {
-            maxWidth: '121px',
-        },
-        '@media (max-width: 1440px)': {
-            fontSize: '11px',
-			borderRadius: '6px',
-			// padding: '0.5556vh 0.3125vw',
-        },
-        // '@media (max-width: 1336px)': {
-        //     fontSize: '8px',
-        //     height: '16px',
-        // },
-        // '@media (max-width: 1280px)': {
-        //     fontSize: '6px',
-        //     height: '12px',
-        // },
-    '& .MuiInputBase-formControl': {
-        '@media (max-width: 1440px)': {
-            height: '25px',
-        },
-    },
+	height: '3vh',
+	borderRadius: '8px',
+	width: '100%',
+	'@media (min-width: 98.80rem)': {
+		maxWidth: '121px',
+	},
+	'@media (max-width: 98.75rem)': {
+		fontSize: '11px',
+		borderRadius: '6px',
+		// padding: '0.5556vh 0.3125vw',
+	},
+	// '@media (max-width: 1336px)': {
+	//     fontSize: '8px',
+	//     height: '16px',
+	// },
+	// '@media (max-width: 1280px)': {
+	//     fontSize: '6px',
+	//     height: '12px',
+	// },
+	'& .MuiInputBase-formControl': {
+		'@media (max-width: 98.75rem)': {
+			height: '25px',
+		},
+	},
 	'& .css-z83vip-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-z83vip-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-z83vip-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input':{
 		width: '20px',
 		paddingRight: '0px',

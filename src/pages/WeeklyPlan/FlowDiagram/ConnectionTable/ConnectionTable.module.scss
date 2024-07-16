@@ -20,21 +20,27 @@
 }
 
 .InputLabel {
-    @media (max-width: 90rem) {
-        font-size: 0.625rem; // 10px is equivalent to 0.625rem
+    @media (max-width: 98.75rem) {
+        font-size: 0.725rem; // 10px is equivalent to 0.625rem
         padding: 0.25rem 0.375rem; // Convert pixels to rem for responsiveness
+    }
+    @media (max-width: 90rem) {
+        font-size: 0.625rem; // 8px is equivalent to 0.5rem
     }
 }
 
 .Typography {
-    @media (max-width: 90rem) {
-        font-size: 0.65rem; // Same conversion as above
+    @media (max-width: 98.75rem) {
+        font-size: 0.75rem; // Same conversion as above
         padding: 0.125rem; // Convert pixels to rem for responsiveness
+    }
+    @media (max-width: 90rem) {
+        font-size: 0.65rem;
     }
 }
 
 .FormControl {
-    @media (max-width: 90rem) {
+    @media (max-width: 98.75rem) {
         width: 100%; // Already responsive
     }
 }

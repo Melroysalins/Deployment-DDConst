@@ -22,9 +22,12 @@
 }
 
 .Typography {
+	@media (max-width: 98.75rem) {
+		font-size: 0.75rem;
+		padding: 0.125rem; // Convert pixels to rem for responsiveness
+	}
     @media (max-width: 90rem) {
         font-size: 0.65rem; // Same conversion as above
-        padding: 0.125rem; // Convert pixels to rem for responsiveness
     }
 }
 

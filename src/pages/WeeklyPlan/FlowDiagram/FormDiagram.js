@@ -14,6 +14,7 @@ const StyledRowTables = styled(Box)({
 	alignItems: 'flex-start',
 	justifyContent: 'flex-start',
 	gap: '8px',
+	width: '100%',
 })
 
 const StyledConnection = styled(Box)({
@@ -23,6 +24,7 @@ const StyledConnection = styled(Box)({
 	justifyContent: 'flex-start',
 	position: 'relative',
 	gap: '8px',
+	width: '50%'
 })
 
 const StyledInstallation = styled(Box)({
@@ -37,6 +39,7 @@ const StyledInstallation = styled(Box)({
 	color: '#596570',
 	gap: '8px',
 	marginBottom: 10,
+	width: '47%',
 })
 
 const StyledDemolition = styled(Box)({
@@ -53,9 +56,15 @@ const StyledDemolition = styled(Box)({
 })
 
 const StyledTypography = styled(Typography)({
-	'@media (max-width: 1440px)': {
-		fontSize: '12px',
+	'@media (max-width: 1723px)': {
+		fontSize: '14px',
 		padding: '2px',
+	},
+	'@media (max-width: 1610px)': {
+		fontSize: '13px',
+	},
+	'@media (max-width: 1530px)': {
+		fontSize: '12px',
 	},
 })
 
@@ -71,7 +80,13 @@ const HeaderText = ({ title, color, newObj, isDemolition }) => (
 			flexWrap: 'nowrap',
 			color: { color },
 			fontFamily: "'Manrope', sans-serif",
-			'@media (max-width: 1440px)': {
+			'@media (max-width: 1723px)': {
+				fontSize: '16px',
+			},
+			'@media (max-width: 1610px)': {
+				fontSize: '15px',
+			},
+			'@media (max-width: 1530px)': {
 				fontSize: '14px',
 			},
 		}}
