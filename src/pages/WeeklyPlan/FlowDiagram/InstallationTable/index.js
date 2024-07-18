@@ -28,36 +28,22 @@ const StyledSelect = styled(MuiSelect)({
 	borderRadius: '4px',
 	backgroundColor: '#f8dbdd',
 	width: '100%',
+	fontFamily: "'Manrope', sans-serif",
+	fontWeight: 600,
 	'& .MuiOutlinedInput-notchedOutline': {
 		border: 'none',
 	},
 	'& .MuiSelect-select': {
 		display: 'flex',
 		alignItems: 'center',
-		paddingRight: '0px',
+		paddingRight: '0.1rem !important',
 		gap: '4px',
 		color: '#da4c57',
-		padding: '0.1rem',
-		'@media (max-width: 98.75rem)': {
+		padding: '0.1rem !important',
+		'@media (max-width: 110.625rem)': {
 			fontSize: '10px',
 			height: '14px',
-		},
-		// '@media (max-width: 1336px)': {
-		//     fontSize: '8px',
-		//     padding: '2px 4px',
-		//     height: '10px',
-		// },
-		// '@media (max-width: 1280px)': {
-		//     fontSize: '6px',
-		//     padding: '2px 4px',
-		//     height: '8px',
-		// },
-	},
-	'& .css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input':{
-		paddingRight: '0.1rem',
-		fontFamily: "'Manrope', sans-serif",
-		fontWeight: 600,
-		fontSize: '11px',
+		}, 
 	},
 });
 

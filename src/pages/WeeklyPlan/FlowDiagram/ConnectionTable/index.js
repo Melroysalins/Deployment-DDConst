@@ -40,36 +40,22 @@ const StyledSelect = styled(MuiSelect)({
 	borderRadius: '4px',
 	backgroundColor: '#f8dbdd',
 	width: '100%',
+	fontFamily: "'Manrope', sans-serif",
+	fontWeight: 600,
 	'& .MuiOutlinedInput-notchedOutline': {
 		border: 'none',
 	},
 	'& .MuiSelect-select': {
 		display: 'flex',
 		alignItems: 'center',
-		paddingRight: '0px',
+		paddingRight: '0.1rem !important',
 		gap: '4px',
 		color: '#da4c57',
-		padding: '0.1rem',
-		'@media (max-width: 98.75rem)': {
+		padding: '0.1rem !important',
+		'@media (max-width: 110.625rem)': {
 			fontSize: '10px',
 			height: '14px',
-		},
-		// '@media (max-width: 1336px)': {
-		//     fontSize: '8px',
-		//     padding: '2px 4px',
-		//     height: '10px',
-		// },
-		// '@media (max-width: 1280px)': {
-		//     fontSize: '6px',
-		//     padding: '2px 4px',
-		//     height: '8px',
-		// },
-	},
-	'& .css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input':{
-		paddingRight: '0.1rem',
-		fontFamily: "'Manrope', sans-serif",
-		fontWeight: 600,
-		fontSize: '11px',
+		}, 
 	},
 });
 
@@ -77,38 +63,25 @@ const Select = styled(MuiSelect)({
 	height: '3vh',
 	borderRadius: '8px',
 	width: '100%',
-	'@media (min-width: 98.80rem)': {
+	'@media (min-width: 110.630rem)': {
 		maxWidth: '121px',
 	},
-	'@media (max-width: 98.75rem)': {
+	'@media (max-width: 110.625rem)': {
 		fontSize: '11px',
 		borderRadius: '6px',
 		// padding: '0.5556vh 0.3125vw',
 	},
-	// '@media (max-width: 1336px)': {
-	//     fontSize: '8px',
-	//     height: '16px',
-	// },
-	// '@media (max-width: 1280px)': {
-	//     fontSize: '6px',
-	//     height: '12px',
-	// },
-	'& .MuiInputBase-formControl': {
-		'@media (max-width: 98.75rem)': {
-			height: '25px',
-		},
+
+	'& .MuiSelect-select': {
+		minWidth: '40px',
+		paddingRight: '0px !important',
+		padding: '0.25rem 0.375rem 0.25rem 0.5rem '
 	},
+
 	'& .css-z83vip-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-z83vip-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-z83vip-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input':{
 		width: '20px',
 		paddingRight: '0px',
-		padding: '0.25rem 0.375rem 0.25rem 0.5rem'
-		
-	},
-
-	'& .css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input':{
-		minWidth: '40px',
-		paddingRight: '0px',
-		padding: '0.25rem 0.375rem 0.25rem 0.5rem'
+		padding: '0.25rem 0.375rem 0.25rem 0.5rem',	
 	},
 });
 
@@ -126,14 +99,14 @@ const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, ho
             setHoveredRowIndex(null);
         }
     }}>
-		<TableCell className={style.TableCell}>
+		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.7vw'}}>
 			<Typography
 				className={style.Typography}
 				variant="body1"
-				sx={{width: '3.32vw', padding: '0px', fontSize: '14px', textAlign: 'center' }}
+				sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 			>{`#${index + 1}`}</Typography>
 		</TableCell>
-		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.86vw', minWidth: '70.44px'}}>
+		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.7vw'}}>
 			{isEdit ? (
 					<Select
 						className={style.Select}
@@ -243,7 +216,7 @@ const renderStatus = (connection, isEdit, handleNewObjChange, objId, connIndex, 
 )
 
 const renderStatusStartEnd = (isEdit, handleNewObjChange, newObj, index, name) => (
-	<TableCell sx={{ width: '4.72vw', padding: ' 0.425rem 0.175rem'}} index={index}>
+	<TableCell sx={{ maxwidth: '4.95vw', padding: ' 0.425rem 0.175rem'}} index={index}>
 		{isEdit ? (
 				<StyledSelect
 					className={style.StyledSelect}
@@ -559,8 +532,8 @@ const ConnectionTable = ({
 			>
 				<Box
 					sx={{
-						maxHeight: '104px',
-						height: `${newObj.currentObj.connections.length > 1 ? '78px' : '40.5px' }`,
+						// maxHeight: '80px',
+						height: `${newObj.currentObj.connections.length > 1 ? '' : '39.5px' }`,
 						maxWidth: '28px',
 						borderRadius: '8px 0px 0px 8px',
 						backgroundColor: '#ffa58d',

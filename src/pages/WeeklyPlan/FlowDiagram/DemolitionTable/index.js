@@ -30,36 +30,22 @@ const StyledSelect = styled(MuiSelect)({
 	borderRadius: '4px',
 	backgroundColor: '#f8dbdd',
 	width: '100%',
+	fontFamily: "'Manrope', sans-serif",
+	fontWeight: 600,
 	'& .MuiOutlinedInput-notchedOutline': {
 		border: 'none',
 	},
 	'& .MuiSelect-select': {
 		display: 'flex',
 		alignItems: 'center',
-		paddingRight: '0px',
+		paddingRight: '0.1rem !important',
 		gap: '4px',
 		color: '#da4c57',
-		padding: '0.1rem',
-		'@media (max-width: 98.75rem)': {
+		padding: '0.1rem !important',
+		'@media (max-width: 110.625rem)': {
 			fontSize: '10px',
 			height: '14px',
-		},
-		// '@media (max-width: 1336px)': {
-		//     fontSize: '8px',
-		//     padding: '2px 4px',
-		//     height: '10px',
-		// },
-		// '@media (max-width: 1280px)': {
-		//     fontSize: '6px',
-		//     padding: '2px 4px',
-		//     height: '8px',
-		// },
-	},
-	'& .css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input':{
-		paddingRight: '0.1rem',
-		fontFamily: "'Manrope', sans-serif",
-		fontWeight: 600,
-		fontSize: '11px',
+		}, 
 	},
 });
 
@@ -67,38 +53,25 @@ const Select = styled(MuiSelect)({
 	height: '3vh',
 	borderRadius: '8px',
 	width: '100%',
-	'@media (min-width: 98.80rem)': {
+	'@media (min-width: 110.630rem)': {
 		maxWidth: '121px',
 	},
-	'@media (max-width: 98.75rem)': {
+	'@media (max-width: 110.625rem)': {
 		fontSize: '11px',
 		borderRadius: '6px',
 		// padding: '0.5556vh 0.3125vw',
 	},
-	// '@media (max-width: 1336px)': {
-	//     fontSize: '8px',
-	//     height: '16px',
-	// },
-	// '@media (max-width: 1280px)': {
-	//     fontSize: '6px',
-	//     height: '12px',
-	// },
-	'& .MuiInputBase-formControl': {
-		'@media (max-width: 98.75rem)': {
-			height: '25px',
-		},
+
+	'& .MuiSelect-select': {
+		minWidth: '40px',
+		paddingRight: '0px !important',
+		padding: '0.25rem 0.375rem 0.25rem 0.5rem '
 	},
+
 	'& .css-z83vip-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-z83vip-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-z83vip-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input':{
 		width: '20px',
 		paddingRight: '0px',
-		padding: '0.25rem 0.375rem 0.25rem 0.5rem'
-		
-	},
-
-	'& .css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input.css-9q3kl4-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input':{
-		minWidth: '40px',
-		paddingRight: '0px',
-		padding: '0.25rem 0.375rem 0.25rem 0.5rem'
+		padding: '0.25rem 0.375rem 0.25rem 0.5rem',	
 	},
 });
 
@@ -110,13 +83,21 @@ const CustomSelectIcon = () => (
   );
 
 
-const renderTableCell = (text, tableWidth) => (
-	<TableCell className={style.TableCell} sx={{ width: `${tableWidth}%` }}>
-		<Typography variant="body1" className={style.Typography}>
-			{text}
+  const renderTableCell = (text, cellWidth) => {
+	const computedWidth = cellWidth ? `${cellWidth}` : '3.73vw';
+  
+	return (
+	  <TableCell sx={{ padding: '0.425rem 0.175rem', width: computedWidth }}>
+		<Typography 
+			variant="body1" 
+			sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+			className={style.Typography}
+		>
+		  {text}
 		</Typography>
-	</TableCell>
-)
+	  </TableCell>
+	);
+  };
 
 const getStatusTLSection = (newObj, demolition, index) => {
 	let status = ''
@@ -138,25 +119,20 @@ const getStatusTLSection = (newObj, demolition, index) => {
 const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connIndex, statusIndex) => (
 	<TableCell className={style.TableCell} sx={{ width: '100%' }}>
 		{isEdit ? (
-			<FormControl>
-				<InputLabel className={style.InputLabel} color="primary">
-					Status
-				</InputLabel>
-				<StyledSelect
-					className={style.StyledSelect}
-					value={demolition.statuses?.[statusIndex]}
-					label="Status"
-					onChange={(e) => handleChangeDemolition(e.target.value, 'statuses', objId, connIndex, statusIndex)}
-					variant="outlined"
-					IconComponent={CustomSelectIcon}
-				>
-					{STATUS.map((e) => (
-						<MenuItem value={e.value} key={e.value}>
-							{e.label}
-						</MenuItem>
-					))}
-				</StyledSelect>
-			</FormControl>
+			<StyledSelect
+				className={style.StyledSelect}
+				value={demolition.statuses?.[statusIndex]}
+				label="Status"
+				onChange={(e) => handleChangeDemolition(e.target.value, 'statuses', objId, connIndex, statusIndex)}
+				variant="outlined"
+				IconComponent={CustomSelectIcon}
+			>
+				{STATUS.map((e) => (
+					<MenuItem value={e.value} key={e.value}>
+						{e.label}
+					</MenuItem>
+				))}
+			</StyledSelect>
 		) : (
 			<Typography
 				className={style.Typography}
@@ -176,32 +152,26 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
             setHoveredRowIndex(null);
         }
     }} >
-		{renderTableCell(`#${index + 1}`, '10%')}
+		{renderTableCell(`#${index + 1}`, '2.73vw')}
 
-		<TableCell className={style.TableCell} sx={{ width: '70%' }}>
+		<TableCell className={style.TableCell}>
 			{isEdit ? (
-				<FormControl variant="outlined" sx={{ width: '95%', height: '32px' }} className={style.FormControl}>
-					<InputLabel className={style.InputLabel} color="primary">
-						Jb Type
-					</InputLabel>
-					<Select
-						className={style.Select}
-						color="primary"
-						sx={{ height: '32px' }}
-						value={demolition.joinType}
-						label="Jb Type"
-						onChange={(e) => handleChangeDemolition(e.target.value, 'joinType', objId, index)}
-						disableUnderline
-						displayEmpty
-					>
-						{JB_TYPE.map((e) => (
-							<MenuItem value={e.value} key={e}>
-								{e.label}
-							</MenuItem>
-						))}
-					</Select>
-					<FormHelperText />
-				</FormControl>
+				<Select
+					className={style.Select}
+					color="primary"
+					sx={{ height: '32px' }}
+					value={demolition.joinType}
+					label="Jb Type"
+					onChange={(e) => handleChangeDemolition(e.target.value, 'joinType', objId, index)}
+					disableUnderline
+					displayEmpty
+				>
+					{JB_TYPE.map((e) => (
+						<MenuItem value={e.value} key={e}>
+							{e.label}
+						</MenuItem>
+					))}
+				</Select>
 			) : (
 				<Typography
 					className={style.Typography}
@@ -215,10 +185,6 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 
 		<TableCell className={style.TableCell} sx={{ width: '70%' }}>
 			{isEdit ? (
-				<FormControl variant="outlined" sx={{ width: '95%', height: '32px' }} className={style.FormControl}>
-					<InputLabel className={style.InputLabel} color="primary">
-						PMJ
-					</InputLabel>
 					<Select
 						className={style.Select}
 						color="primary"
@@ -235,8 +201,6 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 							</MenuItem>
 						))}
 					</Select>
-					<FormHelperText />
-				</FormControl>
 			) : (
 				<Typography
 					className={style.Typography}
@@ -252,7 +216,7 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 			{isEdit ? (
 				<TextField
 					variant="outlined"
-					sx={{ width: '70px', '& .MuiInputBase-root': { height: 32 } }}
+					sx={{ width: '100%', '& .MuiInputBase-root': { height: 32 } }}
 					placeholder="320"
 					onChange={(e) => handleChangeDemolition(e.target.value, 'length_demolition', newObj.id, index)}
 					value={newObj.currentObj.length_demolition[index]}
@@ -317,13 +281,13 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 						<Table>
 							<TableHead>
 								<TableRow style={{ backgroundColor: '#f9f9fa' }}>
-									{renderTableCell('#', '10%')}
-									{renderTableCell('Transformer', '19%')}
-									{renderTableCell('Connector', '19%')}
-									{renderTableCell('T/L Section', '19%')}
-									{renderTableCell('Length', '19%')}
+									{renderTableCell('#', '2.73vw')}
+									{renderTableCell('Transformer')}
+									{renderTableCell('Connector')}
+									{renderTableCell('T/L Section', '10%')}
+									{renderTableCell('Length')}
 									{demolitions[0].statuses.map((_, index) => (
-										<>{renderTableCell(`${index + 1}T/L`)}</>
+										<>{renderTableCell(`${index + 1}T/L`, '10%')}</>
 									))}
 								</TableRow>
 							</TableHead>

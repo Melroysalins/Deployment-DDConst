@@ -8,24 +8,23 @@ import DemolitionTable from './DemolitionTable'
 import PropTypes from 'prop-types'
 import { JB_TYPE, PMJ } from './diagramHelper'
 
-const StyledRowTables = styled(Box)({
+const StyledRowTables = styled(Box)(({ flexDirection }) => ({
 	display: 'flex',
-	flexDirection: 'row',
+	flexDirection,
 	alignItems: 'flex-start',
 	justifyContent: 'flex-start',
-	gap: '8px',
 	width: '100%',
-})
+}));
 
-const StyledConnection = styled(Box)({
+const StyledConnection = styled(Box)(({ connectionTableWidth }) => ({
 	display: 'flex',
 	flexDirection: 'column',
 	alignItems: 'flex-start',
 	justifyContent: 'flex-start',
 	position: 'relative',
 	gap: '8px',
-	width: '50%'
-})
+	width: connectionTableWidth,
+}));
 
 const StyledInstallation = styled(Box)({
 	flex: '1 1 auto',
@@ -39,7 +38,7 @@ const StyledInstallation = styled(Box)({
 	color: '#596570',
 	gap: '8px',
 	marginBottom: 10,
-	width: '47%',
+	marginLeft: 25,
 })
 
 const StyledDemolition = styled(Box)({
@@ -155,21 +154,13 @@ export default function FormDiagram({
 		setIsExpanded((prevIsExpanded) => !prevIsExpanded)
 	}
 
-	const getBoxStyle = () => {
-		const screenWidth = window.innerWidth;
-		if (screenWidth <= 2560) { // Assuming you want this effect for screens up to 2560px wide
-			return {
-				transform: 'scale(0.75)',
-				transformOrigin: 'top left',
-			};
-		}
-		return {}; // Return empty object for styles if screen width is greater than 2560px
-	};
-
+	const statuses_length = newObj?.currentObj?.connections[0]?.statuses?.length;
+	const flexDirection = statuses_length > 2 ? 'column' : 'row';
+	const connectionTableWidth = statuses_length > 2 ? '100%' : '50%';
 	return (
 		<>
-			<StyledRowTables>
-				<StyledConnection>
+			<StyledRowTables flexDirection={flexDirection}>
+				<StyledConnection connectionTableWidth={connectionTableWidth}>
 					<Box sx={{ marginLeft: '19px'}}>
 						<HeaderText title="Connection" color="#ffa58d" newObj={newObj} />
 					</Box>
