@@ -19,7 +19,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 		const { status, type, name, isEndbox } = editImageObj
 		editImageObj.imageUrl = `/static/svg/${type}-${status}.svg`
 		const _getCount = name.split('#')[1]
-		editImageObj.name = isEndbox ? `${JUNCTION_BOX_MAP[type]}#${_getCount}` : `${type}#${_getCount}`
+		editImageObj.name = name
 		delete editImageObj.isEndbox
 		const updatedNodes = nodes.map((node) =>
 			node.id === editImageObj.id ? { ...node, data: { ...node.data, ...editImageObj } } : node
@@ -274,12 +274,14 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 	}
 
 	const onEdgeClick = (_, edge) => {
+		if (!newObj.isEditing) return
 		const {
 			style: { stroke },
 		} = edge
 		setshowEdgeModal(true)
 		seteditEdgeObj({ ...edge, status: getStrokeStatusByColor(stroke) })
 	}
+	
 	return (
 		<Container sx={{ marginTop: 3 }}>
 			<Section>
@@ -300,6 +302,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 						edges={edges}
 						nodeTypes={nodeTypes}
 						proOptions={{ hideAttribution: true }}
+						elementsSelectable={newObj.isEditing} // Elements are selectable only if editing is enabled
 						interactionProps={{
 							zoomOnScroll: true,
 							panOnDrag: false,

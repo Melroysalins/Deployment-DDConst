@@ -171,9 +171,13 @@ const QuickDiagramBuilderPopup = ({ objId, obj, handleAddConnection, handleAddDe
 				<AddProjectPopupRoot>
 					<PopupTitle>
 						<span style={{ color: '#fff' }}>Quick Diagram Builder</span>
-						{warningShown && (
+						{warningShown ? (
 							<Alert severity="warning" icon={false} sx={{ backgroundColor: 'transparent', padding: 0 }}>
 								Add these points to save 75% of your time
+							</Alert>
+						): (
+							<Alert severity="warning" icon={false} sx={{ backgroundColor: 'transparent', padding: 0, color: '#f1f0f0' }}>
+								Add in minimal details before to speed up your diagram creation.
 							</Alert>
 						)}
 					</PopupTitle>
