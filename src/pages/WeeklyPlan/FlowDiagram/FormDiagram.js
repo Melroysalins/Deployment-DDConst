@@ -14,6 +14,7 @@ const StyledRowTables = styled(Box)(({ flexDirection }) => ({
 	alignItems: 'flex-start',
 	justifyContent: 'flex-start',
 	width: '100%',
+	gap: '16px',
 }));
 
 const StyledConnection = styled(Box)(({ connectionTableWidth }) => ({
@@ -38,7 +39,6 @@ const StyledInstallation = styled(Box)({
 	color: '#596570',
 	gap: '8px',
 	marginBottom: 10,
-	marginLeft: 25,
 })
 
 const StyledDemolition = styled(Box)({
@@ -129,7 +129,7 @@ const HeaderText = ({ title, color, newObj, isDemolition }) => (
 					).length
 				} Points) x `}</StyledTypography>
 				<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
-					2 Lines
+				{`${(newObj.currentObj?.[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length || 0)} Lines`}
 				</StyledTypography>
 			</StyledTypography>
 		</Box>
@@ -156,7 +156,7 @@ export default function FormDiagram({
 
 	const statuses_length = newObj?.currentObj?.connections[0]?.statuses?.length;
 	const flexDirection = statuses_length > 2 ? 'column' : 'row';
-	const connectionTableWidth = statuses_length > 2 ? '100%' : '50%';
+	const connectionTableWidth = statuses_length > 2 ? '100%' : '';
 	return (
 		<>
 			<StyledRowTables flexDirection={flexDirection}>

@@ -3,9 +3,9 @@ import { Box, Button, Tooltip, styled } from '@mui/material';
 import Iconify from 'components/Iconify';
 import PropTypes from 'prop-types';
 
-const HoverDiv = styled(Box)({
+const HoverDiv = styled(Box)(({ index, scrollPosition }) => ({
 	visibility: 'hidden', // Hide the box by default
-	top: '50%', // Place the box at the top of the parent container
+	top: `${(19 + index * 37.5) - scrollPosition}px`, // Place the box at the top of the parent container
 	right: '-16px', // Adjust based on your layout. This positions it outside the border.
 	display: 'flex',
 	position: 'absolute', // or 'fixed' if it needs to be positioned relative to the viewport
@@ -23,15 +23,20 @@ const HoverDiv = styled(Box)({
 		boxShadow: 'none',
 	},
 	gap: '4px',
-});
+}));
 
-const HoverBox = ({ index, setVisibleNotes }) => {
+const HoverBox = ({ index, setVisibleNotes, scrollPosition }) => {
     
+	console.log('HoverBox index:', index)
+	console.log('HoverBox scrollPosition:', scrollPosition)
+
   return (
 	<HoverDiv
 	sx={{
 		visibility: 'visible', // Initially hidden
 	}}
+	index={index}
+	scrollPosition={scrollPosition}
 	>
 		<Tooltip title="Add note" arrow placement='right'>
 			<Button

@@ -25,10 +25,11 @@ import Iconify from 'components/Iconify'
 import HoverBox from 'components/hover'
 import { JB_TYPE, JB_TYPE_MAP, JUNCTION_BOX_MAP, PMJ, STATUS, STATUS_MAP } from '../diagramHelper'
 import NotePopup from 'components/NotePopup'
+import { getColorFromValue } from '../helper'
 
-const StyledSelect = styled(MuiSelect)({
+const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
 	borderRadius: '4px',
-	backgroundColor: '#f8dbdd',
+	backgroundColor: bgColor,
 	width: '100%',
 	fontFamily: "'Manrope', sans-serif",
 	fontWeight: 600,
@@ -38,24 +39,22 @@ const StyledSelect = styled(MuiSelect)({
 	'& .MuiSelect-select': {
 		display: 'flex',
 		alignItems: 'center',
-		paddingRight: '0.1rem !important',
+		paddingRight: '0.2rem !important',
 		gap: '4px',
-		color: '#da4c57',
-		padding: '0.1rem !important',
+		color: textColor,
+		padding: '0.2rem !important',
 		'@media (max-width: 110.625rem)': {
-			fontSize: '10px',
+			fontSize: '11px',
 			height: '14px',
 		}, 
 	},
-});
+}));
 
 const Select = styled(MuiSelect)({
 	height: '3vh',
 	borderRadius: '8px',
 	width: '100%',
-	'@media (min-width: 110.630rem)': {
-		maxWidth: '121px',
-	},
+	color: '#596570',
 	'@media (max-width: 110.625rem)': {
 		fontSize: '11px',
 		borderRadius: '6px',
@@ -83,21 +82,44 @@ const CustomSelectIcon = () => (
   );
 
 
-  const renderTableCell = (text, cellWidth) => {
+const renderTableCell = (text, isTableHead=false, cellWidth='3.73vw') => (
+	<TableCell sx={{ padding: '0.425rem 0.175rem', width: cellWidth }}>
+	  <Typography
+		variant="body1"
+		sx={{ 
+		  padding: '0px', 
+		  fontSize: '14px', 
+		  textAlign: 'center', 
+		  color: isTableHead ? '#000' : '#596570', // Conditional color
+		  fontWeight: isTableHead ? 600 : 'normal' // Conditional fontWeight
+		}}
+		className={style.Typography}
+	  >
+		{text}
+	  </Typography>
+	</TableCell>
+);
+
+const renderInput = (index, cellWidth) => {
 	const computedWidth = cellWidth ? `${cellWidth}` : '3.73vw';
-  
+
 	return (
-	  <TableCell sx={{ padding: '0.425rem 0.175rem', width: computedWidth }}>
-		<Typography 
-			variant="body1" 
-			sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
-			className={style.Typography}
-		>
-		  {text}
-		</Typography>
-	  </TableCell>
-	);
-  };
+		<TableCell index={index} sx={{ padding: '0.425rem 0.475rem', width: computedWidth }}>
+			<TextField
+				variant="outlined"
+				placeholder="320"
+				value={`${index + 1}T/L`}
+				InputProps={{
+					readOnly: true,
+				}}
+				sx={{
+					'& .MuiOutlinedInput-input': { padding: '0px 0px 0px 5px', fontSize: '11px', height: '3vh', color: '#596570' }, // Adjust padding for the input field
+					'& .MuiOutlinedInput-root': { borderRadius: '6px', backgroundColor: '#fff' }, // Adjust padding for the root if necessary
+				}}
+			/>
+		</TableCell>
+	)
+}  
 
 const getStatusTLSection = (newObj, demolition, index) => {
 	let status = ''
@@ -116,7 +138,10 @@ const getStatusTLSection = (newObj, demolition, index) => {
 	return status
 }
 
-const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connIndex, statusIndex) => (
+const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connIndex, statusIndex) => {
+	const { bgColor, textColor } = getColorFromValue(demolition.statuses?.[statusIndex]);
+	
+	return (
 	<TableCell className={style.TableCell} sx={{ width: '100%' }}>
 		{isEdit ? (
 			<StyledSelect
@@ -126,6 +151,8 @@ const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connInd
 				onChange={(e) => handleChangeDemolition(e.target.value, 'statuses', objId, connIndex, statusIndex)}
 				variant="outlined"
 				IconComponent={CustomSelectIcon}
+				bgColor={bgColor}
+				textColor={textColor}
 			>
 				{STATUS.map((e) => (
 					<MenuItem value={e.value} key={e.value}>
@@ -143,7 +170,8 @@ const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connInd
 			</Typography>
 		)}
 	</TableCell>
-)
+	)
+}
 
 const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen) => (
 	<TableRow index={index} sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
@@ -152,7 +180,7 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
             setHoveredRowIndex(null);
         }
     }} >
-		{renderTableCell(`#${index + 1}`, '2.73vw')}
+		{renderTableCell(`#${index + 1}`, false, '2.04vw')}
 
 		<TableCell className={style.TableCell}>
 			{isEdit ? (
@@ -211,7 +239,7 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 				</Typography>
 			)}
 		</TableCell>
-		{renderTableCell(getStatusTLSection(newObj, demolition, index), '19%')}
+		{renderTableCell(getStatusTLSection(newObj, demolition, index), false, '19%')}
 		<TableCell className={style.TableCell} sx={{ width: '10px', textAlign: 'center' }}>
 			{isEdit ? (
 				<TextField
@@ -281,13 +309,13 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 						<Table>
 							<TableHead>
 								<TableRow style={{ backgroundColor: '#f9f9fa' }}>
-									{renderTableCell('#', '2.73vw')}
-									{renderTableCell('Transformer')}
-									{renderTableCell('Connector')}
-									{renderTableCell('T/L Section', '10%')}
-									{renderTableCell('Length')}
+									{renderTableCell('#', true, '2.04vw')}
+									{renderTableCell('Transformer', true)}
+									{renderTableCell('Connector', true)}
+									{renderTableCell('T/L Section', true, '10%')}
+									{renderTableCell('Length', true)}
 									{demolitions[0].statuses.map((_, index) => (
-										<>{renderTableCell(`${index + 1}T/L`, '10%')}</>
+										<>{renderInput(index, '0%')}</>
 									))}
 								</TableRow>
 							</TableHead>
@@ -315,12 +343,12 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 											backgroundColor: '#ffa58d',
 											boxShadow: '0px 8px 16px rgba(255, 165, 141, 0.24)',
 											borderRadius: '32px',
-											width: '24px',
-											height: '24px',
+											width: window.innerWidth < 1600 ? '20px' : '24px', // Adjusted size
+											height: window.innerHeight < 900 ? '20px' : '24px', // Adjusted size
 										}}
 										onClick={addPanel}
 									>
-										<AddIcon sx={{ color: '#fff' }} />
+										<AddIcon sx={{ color: '#fff', fontSize: window.innerWidth < 1600 ? 16 : 'inherit' }} /> {/* Adjusted icon size */}
 									</IconButton>
 								</Box>
 							)}
@@ -331,8 +359,8 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 										backgroundColor: '#fff',
 										boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
 										borderRadius: '32px',
-										width: '24px',
-										height: '24px',
+										width: window.innerWidth < 1600 ? '20px' : '24px', // Adjusted size
+										height: window.innerHeight < 900 ? '20px' : '24px', // Adjusted size
 										boxSizing: 'border-box',
 										zIndex: '5',
 										position: 'absolute',
@@ -344,8 +372,8 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 								>
 									<Iconify
 										icon={isExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
-										width={16}
-										height={16}
+										width={window.innerWidth < 1600 ? 14 : 16} // Adjusted size
+										height={window.innerHeight < 900 ? 14 : 16} // Adjusted size
 										sx={{ color: '#596570' }}
 									/>
 								</IconButton>

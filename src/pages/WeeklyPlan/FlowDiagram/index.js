@@ -247,8 +247,8 @@ const ContentParentRoot = styled('div')({
 
 const DiagramHeader = styled('Box')({
 	position: 'absolute',
-	right: 10,
-	top: 10,
+	right: 0,
+	top: 5,
 })
 
 const Tables = styled('div')({
@@ -945,6 +945,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 													gap: '4px',
 													padding: '0px 12px',
 													height: '30px',
+													'@media (min-width:1440px)': {
+													  transform: 'scale(0.80)', // Scale down the switch for 1440p screens
+													},
 												}}
 											>
 												<Iconify icon="ic:baseline-cached" width={16} height={16} />

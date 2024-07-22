@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import {
 	Box,
 	InputLabel,
@@ -35,10 +35,11 @@ import {
 } from '../diagramHelper'
 import HoverBox from 'components/hover'
 import NotePopup from 'components/NotePopup'
+import { getColorFromValue } from '../helper'
 
-const StyledSelect = styled(MuiSelect)({
+const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
 	borderRadius: '4px',
-	backgroundColor: '#f8dbdd',
+	backgroundColor: bgColor,
 	width: '100%',
 	fontFamily: "'Manrope', sans-serif",
 	fontWeight: 600,
@@ -48,21 +49,22 @@ const StyledSelect = styled(MuiSelect)({
 	'& .MuiSelect-select': {
 		display: 'flex',
 		alignItems: 'center',
-		paddingRight: '0.1rem !important',
+		paddingRight: '0.2rem !important',
 		gap: '4px',
-		color: '#da4c57',
-		padding: '0.1rem !important',
+		color: textColor,
+		padding: '0.2rem !important',
 		'@media (max-width: 110.625rem)': {
-			fontSize: '10px',
+			fontSize: '11px',
 			height: '14px',
 		}, 
 	},
-});
+}));
 
 const Select = styled(MuiSelect)({
 	height: '3vh',
 	borderRadius: '8px',
 	width: '100%',
+	color: '#596570',
 	'@media (min-width: 110.630rem)': {
 		maxWidth: '121px',
 	},
@@ -103,7 +105,7 @@ const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, ho
 			<Typography
 				className={style.Typography}
 				variant="body1"
-				sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+				sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', color: '#596570'  }}
 			>{`#${index + 1}`}</Typography>
 		</TableCell>
 		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.7vw'}}>
@@ -136,7 +138,7 @@ const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, ho
 			)}
 		</TableCell>
 
-		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.86vw', minWidth: '60.95px'}}>
+		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.7vw'}}>
 			{isEdit ? (
 					<Select
 						className={style.Select}
@@ -168,9 +170,8 @@ const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, ho
 		{connection.statuses.map((e, statusIndex) => (
 			<>{renderStatus(connection, isEdit, handleNewObjChange, objId, index, statusIndex)}</>
 		))}
-		{hoveredRowIndex === index && isEdit && (
-			<HoverBox index={index} setVisibleNotes={handleOpenPopup} />
-		)}
+		{/* {hoveredRowIndex === index && isEdit && (
+		)} */}
 	</TableRow>
 )
 
@@ -186,63 +187,94 @@ const renderTypography = (index) => (
 	</TableCell>
 )
 
-const renderStatus = (connection, isEdit, handleNewObjChange, objId, connIndex, statusIndex) => (
-	<TableCell sx={{ width: '4.72vw', padding: ' 0.425rem 0.175rem'}} index={connIndex}>
-		{isEdit ? (
-				<StyledSelect
-					className={style.StyledSelect}
-					label="Status"
-					value={connection.statuses?.[statusIndex]}
-					onChange={(e) => handleNewObjChange(e.target.value, 'statuses', objId, connIndex, statusIndex)}
-					variant="outlined"
-					IconComponent={CustomSelectIcon}
-				>
-					{STATUS.map((e) => (
-						<MenuItem value={e.value} key={e.value}>
-							{e.label}
-						</MenuItem>
-					))}
-				</StyledSelect>
-		) : (
-			<Typography
-				className={style.Typography}
-				variant="body1"
-				sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
-			>
-				{STATUS_MAP[connection.statuses?.[statusIndex]]}
-			</Typography>
-		)}
-	</TableCell>
-)
+const renderInput = (index) => {
+	return (
+		<TableCell index={index} className={style.TableCell} sx={{ width: '13%' , borderTopRightRadius: '8px' }}>
+			<TextField
+				variant="outlined"
+				placeholder="320"
+				value={`${index + 1}T/L`}
+				InputProps={{
+					readOnly: true,
+				}}
+				sx={{
+					'& .MuiOutlinedInput-input': { padding: '0px 0px 0px 5px', fontSize: '11px', height: '3vh', color: '#596570' }, // Adjust padding for the input field
+					'& .MuiOutlinedInput-root': { borderRadius: '6px', backgroundColor: '#fff' }, // Adjust padding for the root if necessary
+				}}
+			/>
+		</TableCell>
+	)
+}
 
-const renderStatusStartEnd = (isEdit, handleNewObjChange, newObj, index, name) => (
-	<TableCell sx={{ maxwidth: '4.95vw', padding: ' 0.425rem 0.175rem'}} index={index}>
-		{isEdit ? (
-				<StyledSelect
-					className={style.StyledSelect}
-					label="Status"
-					value={newObj.currentObj[name]?.[index]}
-					onChange={(e) => handleNewObjChange(e.target.value, name, newObj.id, index)}
-					variant="outlined"
-					IconComponent={CustomSelectIcon}
+const renderStatus = (connection, isEdit, handleNewObjChange, objId, connIndex, statusIndex) => {
+	const { bgColor, textColor } = getColorFromValue(connection.statuses?.[statusIndex]);
+	
+	return (
+		<TableCell sx={{ width: '0%', padding: ' 0.425rem 0.175rem'}} index={connIndex}>
+			{isEdit ? (
+					<StyledSelect
+						className={style.StyledSelect}
+						label="Status"
+						value={connection.statuses?.[statusIndex]}
+						onChange={(e) => handleNewObjChange(e.target.value, 'statuses', objId, connIndex, statusIndex)}
+						variant="outlined"
+						IconComponent={CustomSelectIcon}
+						bgColor={bgColor}
+						textColor={textColor} 
+					>
+						{STATUS.map((e) => (
+							<MenuItem value={e.value} key={e.value}>
+								{e.label}
+							</MenuItem>
+						))}
+					</StyledSelect>
+			) : (
+				<Typography
+					className={style.Typography}
+					variant="body1"
+					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 				>
-					{STATUS.map((e) => (
-						<MenuItem value={e.value} key={e.value}>
-							{e.label}
-						</MenuItem>
-					))}
-				</StyledSelect>
-		) : (
-			<Typography
-				className={style.Typography}
-				variant="body1"
-				sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
-			>
-				{STATUS_MAP[newObj.currentObj[name]?.[index]]}
-			</Typography>
-		)}
-	</TableCell>
-)
+					{STATUS_MAP[connection.statuses?.[statusIndex]]}
+				</Typography>
+			)}
+		</TableCell>
+	)
+}
+
+const renderStatusStartEnd = (isEdit, handleNewObjChange, newObj, index, name) => {
+	const { bgColor, textColor } = getColorFromValue(newObj.currentObj[name]?.[index]);
+	
+	return (
+		<TableCell sx={{ width: '0%', padding: ' 0.425rem 0.175rem'}} index={index}>
+			{isEdit ? (
+					<StyledSelect
+						className={style.StyledSelect}
+						label="Status"
+						value={newObj.currentObj[name]?.[index]}
+						onChange={(e) => handleNewObjChange(e.target.value, name, newObj.id, index)}
+						variant="outlined"
+						IconComponent={CustomSelectIcon}
+						bgColor={bgColor}
+						textColor={textColor} 
+					>
+						{STATUS.map((e) => (
+							<MenuItem value={e.value} key={e.value}>
+								{e.label}
+							</MenuItem>
+						))}
+					</StyledSelect>
+			) : (
+				<Typography
+					className={style.Typography}
+					variant="body1"
+					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+				>
+					{STATUS_MAP[newObj.currentObj[name]?.[index]]}
+				</Typography>
+			)}
+		</TableCell>
+	)
+}
 
 const ConnectionTable = ({
 	handleAddConnection,
@@ -261,6 +293,9 @@ const ConnectionTable = ({
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
 	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
 	const [inputValue, setInputValue] = useState(); 
+	const [scrollPosition, setScrollPosition] = useState(0);
+	const boxRef = useRef(null);
+
 
 	const handleOpenPopup = (index) => {
 		setIsNotePopupOpen(true);
@@ -283,6 +318,20 @@ const ConnectionTable = ({
 		setIsNotePopupOpen(false)
 		setInputValue('')
 	}
+
+
+	useEffect(() => {
+		const handleScroll = () => {
+		  if (boxRef.current) {
+			setScrollPosition(boxRef.current.scrollTop);
+		  }
+		};
+	  
+		const box = boxRef.current;
+		box.addEventListener('scroll', handleScroll);
+	   
+		return () => box.removeEventListener('scroll', handleScroll);
+	}, []);
 
 	const button = { label: 'Continue', onClick: (() => AddNote()) }
 
@@ -356,7 +405,7 @@ const ConnectionTable = ({
 										Connector
 									</Typography>
 								</TableCell>
-								{newObj.currentObj.startStatuses.map((e, index) => renderTypography(index))}
+								{newObj.currentObj.startStatuses.map((e, index) => renderInput(index))}
 							</TableRow>
 						</TableHead>
 						<TableBody>
@@ -369,7 +418,7 @@ const ConnectionTable = ({
 									<Typography
 										className={style.Typography}
 										variant="body1"
-										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', color: '#596570' }}
 									>
 										Namyang
 									</Typography>
@@ -446,7 +495,7 @@ const ConnectionTable = ({
 									<Typography
 										className={style.Typography}
 										variant="body1"
-										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', color: '#596570'  }}
 									>
 										Yeonsu
 									</Typography>
@@ -557,13 +606,13 @@ const ConnectionTable = ({
 					</Typography>
 				</Box>
 				<Collapse
-					sx={{width: '100%', paddingBottom: '8px'}}
+					sx={{width: '100%', paddingBottom: '8px', position: 'relative', overflow: 'visible'}}
 					in={isExpanded}
 					collapsedSize={
 						newObj.currentObj.connections.length < 7 ? newObj.currentObj.connections.length * 38 : 228
 					}
 				>
-					<Box sx={{ maxHeight: isExpanded ? 'none' : '228px', overflow: 'auto', width: '100%'}}>
+					<Box ref={boxRef} sx={{ maxHeight: isExpanded ? 'none' : '228px', overflow: 'auto', width: '100%'}}>
 						<TableContainer
 							sx={{
 								borderRadius: '0px 0px 8px 0px',
@@ -580,6 +629,9 @@ const ConnectionTable = ({
 							</Table>
 						</TableContainer>
 					</Box>
+					{(hoveredRowIndex  !== null) && isEdit && (
+						<HoverBox index={hoveredRowIndex} setVisibleNotes={handleOpenPopup} scrollPosition={scrollPosition} />
+					)}
 				</Collapse>
 				{isEdit && (
 					<Box
@@ -600,12 +652,12 @@ const ConnectionTable = ({
 								backgroundColor: '#ffa58d',
 								boxShadow: '0px 8px 16px rgba(255, 165, 141, 0.24)',
 								borderRadius: '32px',
-								width: '24px',
-								height: '24px',
+								width: window.innerWidth < 1600 ? '20px' : '24px', // Adjusted size
+								height: window.innerHeight < 900 ? '20px' : '24px', // Adjusted size
 							}}
 							onClick={addPanel} // Add onClick event handler here
 						>
-							<AddIcon sx={{ color: '#fff' }} />
+            				<AddIcon sx={{ color: '#fff', fontSize: window.innerWidth < 1600 ? 16 : 'inherit' }} /> {/* Adjusted icon size */}
 						</IconButton>
 						{!newObj.isEnd && (
 							<Tooltip title="Done adding" arrow placement="right">
@@ -616,12 +668,12 @@ const ConnectionTable = ({
 										boxShadow: '0px 8px 16px rgba(152, 210, 195, 0.24)',
 										borderRadius: '32px',
 										padding: '0px',
-										width: '24px',
-										height: '24px',
+										width: window.innerWidth < 1600 ? '20px' : '24px', // Adjusted size
+										height: window.innerHeight < 900 ? '20px' : '24px', // Adjusted size
 									}}
 									onClick={() => handleCloseInstallation(newObj.id)} // Add onClick event handler here
 								>
-									<Iconify icon="ic:round-check" width={16} height={16} sx={{ color: '#6ac78b' }} />
+                    				<Iconify icon="ic:round-check" width={window.innerWidth < 1600 ? 14 : 16} height={window.innerHeight < 900 ? 14 : 16} sx={{ color: '#6ac78b' }} /> {/* Adjusted icon size */}
 								</IconButton>
 							</Tooltip>
 						)}
@@ -635,8 +687,8 @@ const ConnectionTable = ({
 								backgroundColor: '#fff',
 								boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
 								borderRadius: '32px',
-								width: '24px',
-								height: '24px',
+								width: window.innerWidth < 1600 ? '20px' : '24px', // Adjusted size
+								height: window.innerHeight < 900 ? '20px' : '24px', // Adjusted size
 								boxSizing: 'border-box',
 								zIndex: '5',
 								position: 'absolute',
@@ -648,8 +700,8 @@ const ConnectionTable = ({
 						>
 							<Iconify
 								icon={isExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
-								width={16}
-								height={16}
+								width={window.innerWidth < 1600 ? 14 : 16} // Adjusted size
+								height={window.innerHeight < 900 ? 14 : 16} // Adjusted size
 								sx={{ color: '#596570' }}
 							/>
 						</IconButton>
