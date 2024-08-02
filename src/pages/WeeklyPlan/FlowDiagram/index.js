@@ -234,9 +234,14 @@ const ContentParentRoot = styled('div')({
 })
 
 const DiagramHeader = styled('Box')({
+	display: 'flex',
+	flexDirection: 'row',
+	alignItems: 'center',
 	position: 'absolute',
 	right: 10,
 	top: 10,
+	gap: '8px',
+	fontFamily: 'Manrope',
 })
 
 const Tables = styled('div')({
@@ -311,6 +316,7 @@ const defaultWholeObj = {
 	isEditing: true,
 	isDemolition: false,
 	firstOpen: true,
+	hasChanges: false,
 	nodes_demolition: [],
 	edges_demolition: [],
 }
@@ -378,6 +384,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				isEditing: false,
 				isEnd: true,
 				firstOpen: false,
+				hasChanges: false,
 			}))
 
 			const ids = data.map((diagram) => diagram.id)
@@ -447,9 +454,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				})
 				updatedMainObj.connections = updatedConnections
 			}
-			return { ...obj, currentObj: updatedMainObj }
+			return { ...obj, currentObj: updatedMainObj, hasChanges: true }
 		})
 		setObjs(updatedObjs)
+		
 	}
 
 	const handleChangeInstallation = (value, field, objId, connIndex, statusIndex) => {
@@ -468,6 +476,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					return conn
 				})
 				updatedMainObj.installations = updatedInstallations
+				obj.hasChanges = true
 			}
 			return { ...obj, currentObj: updatedMainObj }
 		})
@@ -481,6 +490,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			const updatedMainObj = { ...obj.currentObj }
 			if (connIndex === undefined) {
 				updatedMainObj[field] = value
+				obj.hasChanges = true
 			} else if (field === 'length_demolition') {
 				updatedMainObj[field][connIndex] = value
 			} else {
@@ -495,10 +505,12 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					return conn
 				})
 				updatedMainObj.demolitions = updatedDemolitions
+				obj.hasChanges = true
 			}
-			return { ...obj, currentObj: updatedMainObj }
+			return { ...obj, currentObj: updatedMainObj}
 		})
 		setObjs(updatedObjs)
+		
 	}
 
 	const handleAddDemolition = (objId) => {
@@ -517,9 +529,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				demolitions: updatedDemolitions,
 				length_demolition: [...obj.currentObj.length_demolition, 600],
 			};
-			return { ...obj, currentObj: updatedMainObj };
+			return { ...obj, currentObj: updatedMainObj, hasChanges: true };
 		});
 		setObjs(updatedObjs);
+		
 	}
 
 	const handleAddConnection = (objId) => {
@@ -541,9 +554,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				installations: updatedInstallations,
 				length: [...obj.currentObj.length, 600],
 			};
-			return { ...obj, currentObj: updatedMainObj };
+			return { ...obj, currentObj: updatedMainObj, hasChanges: true };
 		});
 		setObjs(updatedObjs);
+		
 	}
 
 	const handleAddMultipleConnection = (objId, midPoints = 1, midLines = 1, demolitionLines) => {
@@ -725,6 +739,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					demolitions: isDemolition ? obj.currentObj.demolitions : [defaultConnection],
 					length_demolition: isDemolition ? obj.currentObj.length_demolition : [600],
 				},
+				hasChanges: false,
 			}
 		})
 		setObjs(updatedObjs)
@@ -878,7 +893,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											}}
 										>
 											<Iconify icon="heroicons-outline:save" width={20} height={20} />
-											{newObj.project ? 'Update' : 'Save'}
+											Save
 										</StyledLoadingButton>
 									)}
 									{isEditable && newObj.project && !newObj.isEditing && (
@@ -922,6 +937,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							<Content>
 								<DiagramParent>
 									<DiagramHeader>
+										{newObj.hasChanges && <span style={{ color: '#cc8500'}}>Diagram outdated, please refresh</span>}
 										{(newObj.isEditing || !newObj.project) && (
 											<Button
 												onClick={handleAdd}
