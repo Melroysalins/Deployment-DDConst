@@ -345,6 +345,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			  break;
 			case 'save':
 			  await handleSaveButtonClick(data);
+			  if (data.project) { 
+                handleEditButtonClick(data.id);
+			  }
 			  break;
 			case 'edit':
 			  handleEditButtonClick(data.id);
@@ -697,7 +700,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					startEndLength: obj.currentObj.connections[0]?.statuses.length,
 				}),
 			]
-			const objEdges = generateEdges(obj.id, obj.currentObj)
+			const objEdges = generateEdges(obj.id, obj)
 
 			// Demolition
 			const { isDemolition } = obj
@@ -725,7 +728,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					}),
 				]
 
-				objEdgesDemolition = generateEdges(obj.id, obj.currentObj, true)
+				objEdgesDemolition = generateEdges(obj.id, obj, true)
 			}
 
 			return {

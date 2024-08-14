@@ -113,49 +113,84 @@ export const generateStartEndNode = ({
 }
 
 export const generateEdges = (startId, newObj, isDemolition) => {
-	const items = newObj[isDemolition ? 'demolitions' : 'connections']
-	const edges = []
-	const type = 'step'
+    const items = newObj.currentObj[isDemolition ? 'demolitions' : 'installations'];
+    const edges = [];
+    const type = 'step';
 
-	// Generate edges from the start node to each status of the first connection
-	newObj.startStatuses.forEach((status, index) => {
-		edges.push({
-			id: `${startId}.start.${index + 1}`,
-			source: `${startId}.start.${index + 1}`,
-			target: `${startId}.1.${index + 1}`,
-			style: { stroke: STROKE_COLOR[status] },
-			type,
-		})
-	})
+    if (isDemolition) {
+        // Generate edges from the start node to each status of the first connection
+        newObj.currentObj.startStatuses.forEach((status, index) => {
+            edges.push({
+                id: `${startId}.start.${index + 1}`,
+                source: `${startId}.start.${index + 1}`,
+                target: `${startId}.1.${index + 1}`,
+                style: { stroke: STROKE_COLOR[status] },
+                type,
+            });
+        });
 
-	// Generate edges between the statuses of connections
-	items.forEach((item, i) => {
-		item.statuses.forEach((status, j) => {
-			if (i < items.length - 1) {
-				edges.push({
-					id: `${startId}.${i + 1}-${i + 2}.${j + 1}`,
-					source: `${startId}.${i + 1}.${j + 1}`,
-					target: `${startId}.${i + 2}.${j + 1}`,
-					style: { stroke: STROKE_COLOR[status] },
-					type,
-				})
-			}
-		})
-	})
+        // Generate edges between the statuses of connections
+        items.forEach((item, i) => {
+            item.statuses.forEach((status, j) => {
+                if (i < items.length - 1) {
+                    edges.push({
+                        id: `${startId}.${i + 1}-${i + 2}.${j + 1}`,
+                        source: `${startId}.${i + 1}.${j + 1}`,
+                        target: `${startId}.${i + 2}.${j + 1}`,
+                        style: { stroke: STROKE_COLOR[status] },
+                        type,
+                    });
+                }
+            });
+        });
 
-	// Generate edges from the statuses of the last connection to the end node
-	newObj.endStatuses.forEach((status, index) => {
-		edges.push({
-			id: `${startId}.end.${index + 1}`,
-			source: `${startId}.${items.length}.${index + 1}`,
-			target: `${startId}.end.${index + 1}`,
-			style: { stroke: STROKE_COLOR[status] },
-			type,
-		})
-	})
+        // Generate edges from the statuses of the last connection to the end node
+        newObj.currentObj.endStatuses.forEach((status, index) => {
+            edges.push({
+                id: `${startId}.end.${index + 1}`,
+                source: `${startId}.${items.length}.${index + 1}`,
+                target: `${startId}.end.${index + 1}`,
+                style: { stroke: STROKE_COLOR[status] },
+                type,
+            });
+        });
+    } else {
+        items.forEach((item, i) => {
+            item.statuses.forEach((status, j) => {
+                if (i === 0) {
+                    // Generate edges from the start node to the first status of each connection
+                    edges.push({
+                        id: `${startId}.start.${j + 1}`,
+                        source: `${startId}.start.${j + 1}`,
+                        target: `${startId}.${i + 1}.${j + 1}`,
+                        style: { stroke: STROKE_COLOR[status] },
+                        type,
+                    });
+                } 
+				else if (i === items.length - 1 && newObj.isEnd) {
+					edges.push({
+						id: `${startId}.end.${j + 1}`,
+						source: `${startId}.${items.length}.${j + 1}`,
+						target: `${startId}.end.${j + 1}`,
+						style: { stroke: STROKE_COLOR[status] },
+						type,
+					});
+				} 
+				else {
+                    edges.push({
+                        id: `${startId}.${i}-${i + 1}.${j + 1}`,
+                        source: `${startId}.${i}.${j + 1}`,
+                        target: `${startId}.${i + 1}.${j + 1}`,
+                        style: { stroke: STROKE_COLOR[status] },
+                        type,
+                    });
+                }
+            });
+        });
+    }
 
-	return edges
-}
+    return edges;
+};
 
 export const initialNodes = []
 export const initialEdges = []
@@ -164,6 +199,12 @@ export const STROKE_COLOR = {
 	notStarted: '#919EAB',
 	inProgress: '#8D99FF',
 	completed: '#FFA58D',
+}
+
+export const COLOR_MAP = {
+	'#919EAB': 'notStarted',
+	'#8D99FF': 'inProgress',
+	'#FFA58D': 'completed',
 }
 
 export function getStrokeStatusByColor(color) {

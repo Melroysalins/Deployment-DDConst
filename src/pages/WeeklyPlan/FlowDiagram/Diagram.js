@@ -101,11 +101,26 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 
 	const applyEdgeChanges = () => {
 		const { status, source } = editEdgeObj
+		
 		const updatedEdges = edges.map((edge) =>
 			edge.source === source ? { ...edge, style: { stroke: STROKE_COLOR[status] } } : edge
+		
 		)
+
+		const InstallationIndex = source.split('.')[1] === 'start' ? 0 : parseInt(source.split('.')[1], 10);
+		const statusIndex = parseInt(source.split('.')[2], 10) - 1;
+		console.log(InstallationIndex, statusIndex)
 		const { currentObj } = newObj
 		const updatedCurrentObj = { ...currentObj }
+		const updatedInstallations = updatedCurrentObj.installations.map((installation, index) => {
+			if (index === InstallationIndex) {
+				const updatedStatuses = installation.statuses.map((oldStatus, sIndex) => (sIndex === statusIndex ? status : oldStatus))
+				return { ...installation, statuses: updatedStatuses }
+			}
+			return installation
+		})
+
+		updatedCurrentObj.installations = updatedInstallations
 		const otherEdges = isDemolition ? newObj.edges : newObj.edges_demolition
 		setCurrentObj({
 			objId,
