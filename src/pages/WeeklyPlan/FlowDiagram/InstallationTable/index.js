@@ -16,7 +16,7 @@ import {
 	IconButton,
 } from '@mui/material'
 import style from './InstallationTable.module.scss'
-import { JB_TYPE_MAP, JUNCTION_BOX_MAP, STATUS, STATUS_MAP } from '../diagramHelper'
+import { JB_TYPE_MAP, JUNCTION_BOX_MAP, STATUS, STATUS_MAP, COLOR_MAP } from '../diagramHelper'
 import Iconify from 'components/Iconify'
 import HoverBox from 'components/hover'
 import { visitNode } from 'typescript'
@@ -65,7 +65,7 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
 			)}
 		</TableCell>
 		{installation.statuses.map((e, statusIndex) => (
-			<>{renderStatus(installation, isEdit, handleChangeInstallation, newObj.id, index, statusIndex)}</>
+			<>{renderStatus(installation, isEdit, handleChangeInstallation, newObj, index, statusIndex)}</>
 		))}
 		{hoveredRowIndex === index && isEdit && (
 			<HoverBox index={index} setVisibleNotes={handleOpenPopup} />
@@ -75,13 +75,13 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
 	
 )}
 
-const renderStatus = (installation, isEdit, handleChangeInstallation, objId, connIndex, statusIndex) => (
+const renderStatus = (installation, isEdit, handleChangeInstallation, newObj, connIndex, statusIndex) => (
 	<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
 		{isEdit ? (
 			<Select
 				value={installation.statuses?.[statusIndex]}
 				label="Status"
-				onChange={(e) => handleChangeInstallation(e.target.value, 'statuses', objId, connIndex, statusIndex)}
+				onChange={(e) => handleChangeInstallation(e.target.value, 'statuses', newObj.id, connIndex, statusIndex)}
 				variant="outlined"
 				className={style.StyledSelect}
 				size="small"
