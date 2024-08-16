@@ -170,7 +170,7 @@ export const generateEdges = (startId, newObj, isDemolition) => {
 				else if (i === items.length - 1 && newObj.isEnd) {
 					edges.push({
 						id: `${startId}.end.${j + 1}`,
-						source: `${startId}.${items.length}.${j + 1}`,
+						source: `${startId}.${items.length-1}.${j + 1}`,
 						target: `${startId}.end.${j + 1}`,
 						style: { stroke: STROKE_COLOR[status] },
 						type,

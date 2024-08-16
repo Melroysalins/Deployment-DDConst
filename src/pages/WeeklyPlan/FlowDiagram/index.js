@@ -796,7 +796,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				length: [...obj.currentObj.length, 600],
 			};
 	
-			return { ...obj, currentObj: updatedMainObj, isEnd: true };
+			return { ...obj, currentObj: updatedMainObj, isEnd: true, hasChanges: true };
 		});
 	
 		setObjs(updatedObjs);
