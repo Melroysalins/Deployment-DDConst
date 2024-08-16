@@ -200,13 +200,16 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 			)}
 		</Dialog>
 	)
-	const UpdateEdgeView = () => (
+	const UpdateEdgeView = () => {
+		const startNode = editEdgeObj?.source.split('.')[1] === 'start' ? `s/s${editEdgeObj?.source.split('.')[2]}` : `m/h${editEdgeObj?.source.split('.')[1]}`
+		const endNode = editEdgeObj?.target.split('.')[1] === 'end' ? `s/s${editEdgeObj?.target.split('.')[2]}` : `m/h${editEdgeObj?.target.split('.')[1]}`
+		return (
 		<Dialog onClose={handleEditingEdgeCancel} open={showEdgeModal}>
 			{editEdgeObj && (
 				<Box
 					sx={{ minWidth: 400, margin: 'auto', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 2 }}
 				>
-					<DialogTitle>Update Edge # {editEdgeObj.id}</DialogTitle>
+					<DialogTitle>Update {startNode}-{endNode}</DialogTitle>
 					<FormControl style={{ width: 200 }}>
 						<InputLabel>Status</InputLabel>
 						<Select
@@ -234,7 +237,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 				</Box>
 			)}
 		</Dialog>
-	)
+	)}
 
 	const nodeTypes = {
 		image: (data) => (
