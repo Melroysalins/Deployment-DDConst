@@ -522,7 +522,11 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	
 			// Assuming the last demolition exists and has a structure we can replicate without the note
 			const lastDemolition = obj.currentObj.demolitions[obj.currentObj.demolitions.length - 1];
-			const newDemolition = { ...lastDemolition, note: '' }; // Copy last demolition without the note or with a reset note
+			const numberOfStatuses = lastDemolition ? lastDemolition.statuses.length : 0;
+			const newDemolition = { 
+				...defaultConnection,
+				statuses: [ ...Array(numberOfStatuses).fill(STATUS[0].value)], // Add the number of statuses
+			}; // Copy last demolition without the note or with a reset note
 	
 			// Ensure not to add an undefined demolition if there's no last demolition
 			const updatedDemolitions = lastDemolition ? [...obj.currentObj.demolitions, newDemolition] : [...obj.currentObj.demolitions];
@@ -542,14 +546,23 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id !== objId) return obj;
 	
-			// Assuming the last connection exists and has a structure we can replicate without the note
 			const lastConnection = obj.currentObj.connections[obj.currentObj.connections.length - 1];
-			const newConnection = { ...lastConnection, note: '' }; // Copy last connection without the note or with a reset note
-			const updatedConnections = lastConnection ? [...obj.currentObj.connections, newConnection] : [...obj.currentObj.connections];
-	
-			const lastInstallation = obj.currentObj.installations[obj.currentObj.installations.length - 1];
-			const newInstallation = { ...lastInstallation, note: '' }; // Assuming a similar structure for installations
-			const updatedInstallations = lastInstallation ? [...obj.currentObj.installations, newInstallation] : [...obj.currentObj.installations];
+			const numberOfStatuses = lastConnection ? lastConnection.statuses.length : 0;
+
+			// Create a new connection based on defaultConnection and add the number of statuses
+			const newConnection = { 
+				...defaultConnection,
+				statuses: [ ...Array(numberOfStatuses).fill(STATUS[0].value)], // Add the number of statuses
+			};
+			const updatedConnections = [...obj.currentObj.connections, newConnection];
+		
+			// Define the structure of a new installation
+			const newInstallation = {
+				statuses: [ ...Array(numberOfStatuses).fill(STATUS[0].value)],
+				note: '',
+				// Add other necessary fields with default values
+			};
+			const updatedInstallations = [...obj.currentObj.installations, newInstallation];	
 
 			const updatedMainObj = {
 				...obj.currentObj,
@@ -560,7 +573,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			return { ...obj, currentObj: updatedMainObj, hasChanges: true };
 		});
 		setObjs(updatedObjs);
-		
 	}
 
 	const handleAddMultipleConnection = (objId, midPoints = 1, midLines = 1, demolitionLines) => {
@@ -578,7 +590,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			}
 
 			// Update startStatuses and endStatuses
-			for (let i = 0; i < Math.max(midLines, demolitionLines) - 1; i += 1) {
+			for (let i = 0; i < midLines - 1; i += 1) {
 				updatedMainObj.startStatuses.push(STATUS[0].value)
 				updatedMainObj.endStatuses.push(STATUS[0].value)
 			}
@@ -811,6 +823,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		isEditing,
 		edges_demolition,
 		nodes_demolition,
+		hasChanges = false,
 	}) => {
 		updateObjById(objId, (obj) => ({
 			...obj,
@@ -821,6 +834,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			isEditing,
 			nodes_demolition: nodes_demolition || obj.nodes_demolition,
 			edges_demolition: edges_demolition || obj.edges_demolition,
+			hasChanges,
 		}))
 	} 
 

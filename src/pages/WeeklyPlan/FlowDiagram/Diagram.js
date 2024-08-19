@@ -12,6 +12,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 	const [editImageObj, seteditImageObj] = useState(null)
 	const [showEdgeModal, setshowEdgeModal] = useState(false)
 	const [editEdgeObj, seteditEdgeObj] = useState(null)
+	const [currentType, setCurrentType] = useState('')
 	const midLines = newObj.currentObj[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length
 	const diagramHeight = Math.min(230 + midLines * 20, newObj.isDemolition ? 230 : 350)
 
@@ -62,6 +63,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 			isEditing: true,
 			nodes: !isDemolition ? updatedNodes : otherNodes,
 			nodes_demolition: isDemolition ? updatedNodes : otherNodes,
+			hasChanges: type !== currentType,
 		})
 		handleEditingImageCancel()
 	}
@@ -91,6 +93,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 		setshowEditModal(true)
 		const { isEndbox, name, status } = data.data
 		const type = data.data.imageUrl.split('svg/')[1].split('-')[0]
+		setCurrentType(type)
 		seteditImageObj({ id: data.id, isEndbox, name, status, type })
 	}
 
