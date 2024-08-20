@@ -9,6 +9,7 @@ import {
 	FormControlLabel,
 	Switch,
 	Typography,
+	Drawer,
 } from '@mui/material'
 import { styled } from '@mui/system'
 import PropTypes from 'prop-types'
@@ -34,6 +35,7 @@ import { LoadingButton } from '@mui/lab'
 import QuickDiagramBuilderPopup from './QuickDiagramBuilderPopup'
 import { popupConfig } from './WarningDialog/dialogConfig'
 import WarningDialog from './WarningDialog'
+import DropdownPopover from 'components/Drawer/DropdownDrawer'
 
 const StyledButtonContainer = styled(Box)({
 	alignSelf: 'stretch',
@@ -91,7 +93,6 @@ const CableContent = styled(Box)({
 	fontWeight: '500',
 	'@media (max-width: 1440px)': {
 		minWidth: '294px',
-		fontSize: '14px',
 	},
 })
 
@@ -208,6 +209,7 @@ const TableParent = styled('div')({
 })
 
 const Content = styled('div')({
+	marginTop: '16px',
 	width: '100%',
 	height: '584.41px',
 	display: 'flex',
@@ -334,6 +336,16 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		description: '',
 		buttons: []
 	  });
+	
+	  const [drawerOpen, setDrawerOpen] = useState(false);
+
+	const handleDrawerOpen = () => {
+		setDrawerOpen(true);
+	};
+
+	const handleDrawerClose = () => {
+		setDrawerOpen(false);
+	};
 	
 	  const handleClosePopup = () => setPopupProps(prev => ({ ...prev, isOpen: false }));
 	
@@ -845,12 +857,18 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 								sx={{ width: '100%' }}
 								justifyContent={'space-between'}
 							>
-								<LeftContent sx={{ position: 'relative', left: '2rem', textAlign: 'center' }}>
+								<LeftContent onClick={(event) => event.stopPropagation()} sx={{ position: 'relative', left: '2rem', textAlign: 'center', gap: '0px' }}>
 									<CableContent>
-										Cable Name:<span style={{ fontWeight: '600' }}>154kV Namyang - Yeonsu T/L</span>
+										Cable Name
+										<DropdownPopover type="first" />
 									</CableContent>
 									<CableContent>
-										Cable Name:<span>154kV Namyang - Yeonsu T/L</span>
+										Cable Type
+										<DropdownPopover type="second" />
+									</CableContent>
+									<CableContent>
+										Demolition
+										<DropdownPopover type="third" />
 									</CableContent>
 								</LeftContent>
 								<RightContent onClick={(event) => event.stopPropagation()}>
