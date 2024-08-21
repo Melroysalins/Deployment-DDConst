@@ -332,7 +332,7 @@ const ConnectionTable = ({
 										variant="body1"
 										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 									>
-										Namyang
+										{newObj?.currentObj?.inputValues?.first?.startLocation}
 									</Typography>
 								</TableCell>
 								<TableCell className={style.TableCell} sx={{ width: '15%' }}>
@@ -430,7 +430,7 @@ const ConnectionTable = ({
 										variant="body1"
 										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 									>
-										Yeonsu
+										{newObj?.currentObj?.inputValues?.first?.endLocation}
 									</Typography>
 								</TableCell>
 								<TableCell className={style.TableCell} sx={{ width: '15%' }}>

@@ -68,7 +68,7 @@ const StyledButtonRow = styled(Box)({
 })
 
 const LeftContent = styled(Box)({
-	maxWidth: '1339px',
+	maxWidth: '1323px',
 	gap: '16px',
 	display: 'flex',
 	flexDirection: 'row',
@@ -86,14 +86,11 @@ const CableContent = styled(Box)({
 	alignItems: 'center',
 	justifyContent: 'flex-start',
 	gap: '8px',
-	minWidth: '354px',
-	maxWidth: '100%',
+	minWidth: '294px',
+	width: '100%',
 	fontSize: '18px',
 	fontFamily: 'Manrope',
-	fontWeight: '500',
-	'@media (max-width: 1440px)': {
-		minWidth: '294px',
-	},
+	fontWeight: '500',	
 })
 
 const RightContent = styled(Box)({
@@ -337,16 +334,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		buttons: []
 	  });
 	
-	  const [drawerOpen, setDrawerOpen] = useState(false);
-
-	const handleDrawerOpen = () => {
-		setDrawerOpen(true);
-	};
-
-	const handleDrawerClose = () => {
-		setDrawerOpen(false);
-	};
-	
 	  const handleClosePopup = () => setPopupProps(prev => ({ ...prev, isOpen: false }));
 	
 	  const handleAction = async (actionType, data) => {
@@ -586,6 +573,45 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		});
 		setObjs(updatedObjs);
 	}
+
+	const handleChangeStatus = (objId, midlines, type) => {
+		const updatedObjs = objs.map((obj) => {
+		  if (obj.id !== objId) return obj;
+	  
+		  const updatedMainObj = { ...obj.currentObj };
+		  const defaultStatus = STATUS[0].value; // Define your default status value here
+	  
+		  const updateStatuses = (statuses) => {
+			if (midlines < statuses.length) {
+			  return statuses.slice(0, midlines);
+			}
+			return [...statuses, ...Array(midlines - statuses.length).fill(defaultStatus)];
+		  };
+	  
+		  if (type === 'second') {
+			updatedMainObj.connections = updatedMainObj.connections.map((connection) => {
+				connection.statuses = updateStatuses(connection.statuses);
+				return connection;
+			  });
+		  
+			  updatedMainObj.installations = updatedMainObj.installations.map((installation) => {
+				installation.statuses = updateStatuses(installation.statuses);
+				return installation;
+			  });
+		  
+			  updatedMainObj.startStatuses = updateStatuses(updatedMainObj.startStatuses || []);
+			  updatedMainObj.endStatuses = updateStatuses(updatedMainObj.endStatuses || []);
+		  } else {
+			updatedMainObj.demolitions = updatedMainObj.demolitions.map((demolition) => {
+				demolition.statuses = updateStatuses(demolition.statuses);
+				return demolition;
+			});
+		  }
+	  
+		  return { ...obj, currentObj: updatedMainObj, hasChanges: true };
+		});
+		setObjs(updatedObjs);
+	};
 
 	const handleAddMultipleConnection = (objId, midPoints = 1, midLines = 1, demolitionLines) => {
 		const updatedObjs = objs.map((obj) => {
@@ -871,18 +897,18 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 								sx={{ width: '100%' }}
 								justifyContent={'space-between'}
 							>
-								<LeftContent onClick={(event) => event.stopPropagation()} sx={{ position: 'relative', left: '2rem', textAlign: 'center', gap: '0px' }}>
-									<CableContent>
+								<LeftContent onClick={(event) => event.stopPropagation()} sx={{ position: 'relative', left: '2rem', textAlign: 'center', gap: '0px', display: 'flex', flexDirection: 'row', alignItems: 'center', whiteSpace: 'nowrap' }}>
+									<CableContent style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300, color: '#606380' }}>
 										Cable Name
-										<DropdownPopover type="first" />
+										<DropdownPopover type="first" newObj={newObj} setObjs={setObjs}/>
 									</CableContent>
-									<CableContent>
+									<CableContent style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300, color: '#606380'  }}>
 										Cable Type
-										<DropdownPopover type="second" />
+										<DropdownPopover type="second" newObj={newObj} handleChangeStatus={handleChangeStatus}/>
 									</CableContent>
-									<CableContent>
+									<CableContent style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300, color: '#606380'  }}>
 										Demolition
-										<DropdownPopover type="third" />
+										<DropdownPopover type="third" newObj={newObj} handleChangeStatus={handleChangeStatus}/>
 									</CableContent>
 								</LeftContent>
 								<RightContent onClick={(event) => event.stopPropagation()}>
@@ -1050,6 +1076,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 												handleChangeInstallation={handleChangeInstallation}
 												isDemolition={newObj.isDemolition}
 												handleAddNote={handleAddNote}
+												handleChangeStatus={handleChangeStatus}
 											/>
 										</ConnectionInstallationTable>
 									</Tables>

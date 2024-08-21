@@ -1,31 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { Popover, Grid, Select, FormControl, Box, Button, TextField, InputLabel, MenuItem, Typography, InputAdornment, Divider } from '@mui/material';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Popover, Grid, Select, FormControl, Box, Button, TextField, InputLabel, Typography, InputAdornment, Divider } from '@mui/material';
 import Iconify from 'components/Iconify';
 import Proptypes from 'prop-types';
 
-const DropdownPopover = ({ type }) => {
-  const initialInputValues = {
+const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
+  const initialInputValues = useMemo(() => ({
     first: {
-      bigInput: '154',
-      startLocation: 'Namyang',
-      endLocation: 'Yeonsu',
+      bigInput: newObj?.currentObj?.inputValues?.first?.bigInput || '154',
+      startLocation: newObj?.currentObj?.inputValues?.first?.startLocation || 'Namyang',
+      endLocation: newObj?.currentObj?.inputValues?.first?.endLocation || 'Yeonsu',
     },
     second: {
-      voltageLevel: '154',
-      bigInput: 'XLPE',
-      wiringArea: '200',
-      tlCount: '2',
-      tlLength: '2.8',
+      voltageLevel: newObj?.currentObj?.inputValues?.second?.voltageLevel || '154',
+      bigInput: newObj?.currentObj?.inputValues?.second?.bigInput || 'XLPE',
+      wiringArea: newObj?.currentObj?.inputValues?.second?.wiringArea || '200',
+      tlCount: parseInt(newObj?.currentObj?.connections?.[0]?.statuses?.length, 10),
+      tlLength: newObj?.currentObj?.inputValues?.second?.tlLength || '2.8',
     },
     third: {
-      voltageLevel: '154',
-      bigInput: 'XLPE',
-      wiringArea: '200',
-      tlCount: '2',
-      tlLength: '2.8',
+      voltageLevel: newObj?.currentObj?.inputValues?.third?.voltageLevel || '154',
+      bigInput: newObj?.currentObj?.inputValues?.third?.bigInput || 'XLPE',
+      wiringArea: newObj?.currentObj?.inputValues?.third?.wiringArea || '200',
+      tlCount: parseInt(newObj?.currentObj?.demolitions?.[0]?.statuses?.length, 10),
+      tlLength: newObj?.currentObj?.inputValues?.third?.tlLength || '2.8',
     },
-  };
+  }), [newObj]);
 
+  newObj.currentObj.inputValues = newObj.currentObj.inputValues || {};
   const [anchorEl, setAnchorEl] = useState(null);
   const [inputValues, setInputValues] = useState(initialInputValues[type]);
   const [selectedOptions, setSelectedOptions] = useState({
@@ -42,8 +43,16 @@ const DropdownPopover = ({ type }) => {
     }));
   }, [type]);
 
+  useEffect(() => {
+    if (newObj?.currentObj?.inputValues) {
+      newObj.currentObj.inputValues[type] = inputValues;
+    }
+  }, [inputValues, type]);
+
   const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
+    if (newObj.isEditing) {
+      setAnchorEl(event.currentTarget);
+    }
   };
 
   const handleClose = () => {
@@ -78,17 +87,17 @@ const DropdownPopover = ({ type }) => {
         }
       }
     });
-    console.log(formattedValues);
     return formattedValues.slice(0, -2); // Remove the trailing comma and space
   };
 
-  const handleOkayClick = () => {
+  const handleOkayClick = (inputValues) => {
     
     setSelectedOptions((prevOptions) => ({
       ...prevOptions,
       [type]: formatInputValues(inputValues), // or format the inputValues as needed
     }));
     handleClose(); 
+    handleChangeStatus(newObj.id, parseInt(inputValues.tlCount, 10), type)
   };
 
   const renderGridItem = (label, id, inputAdornment) => {
@@ -121,35 +130,52 @@ const DropdownPopover = ({ type }) => {
   return (
     <>
       <FormControl variant="outlined">
-        <Select
-          value={selectedOptions[type]}
-          onClick={handleClick}
-          readOnly
-          renderValue={(selected) => (
-            <Box sx={{ display: 'flex', alignItems: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '94%' }}>
-              {selected}
-            </Box>
-          )}
-          IconComponent={() => <Iconify icon="material-symbols:expand-more-rounded" width={20} height={20} sx={{ marginRight: '5px'}} />}
-          sx={{
-            height: '40px', // Forcefully set the height to 40px
-            width: '190px',
-            '.MuiOutlinedInput-root': {
-              height: '40px', // Ensure the input root also respects the height
-              width: '190px',
-            },
-            '.MuiSelect-select': {
-              height: '40px', // Ensure the select respects the height
-              width: '190px',
+      <Select
+        value={selectedOptions[type]}
+        onClick={handleClick}
+        readOnly
+        renderValue={(selected) => (
+          <Box
+            sx={{
               display: 'flex',
               alignItems: 'center',
-              padding: '8px !important',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-            },
-          }}
-        />
+              maxWidth: '100%', // Ensure the Box takes the full width of the parent
+            }}
+          >
+            {selected}
+          </Box>
+        )}
+        IconComponent={() => (
+          <Iconify
+            icon="material-symbols:expand-more-rounded"
+            width={20}
+            height={20}
+            sx={{ marginRight: '5px' }}
+          />
+        )}
+        sx={{
+          height: '40px', // Forcefully set the height to 40px
+          width: '13.19vw',
+          marginRight: '1rem',
+          '.MuiOutlinedInput-root': {
+            height: '40px', // Ensure the input root also respects the height
+            width: '13.19vw',
+          },
+          '.MuiSelect-select': {
+            height: '40px', // Ensure the select respects the height
+            width: '13.19vw',
+            display: 'flex',
+            alignItems: 'center',
+            padding: '8px !important',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          },
+        }}
+      />
       </FormControl>
       <Popover
         id="simple-popover"
@@ -233,6 +259,7 @@ const DropdownPopover = ({ type }) => {
                 alignItems: 'center',
                 justifyContent: 'flex-start',
               }}
+              onClick={handleClose}
             >
               <Iconify
                 icon={'radix-icons:cross-2'}
@@ -266,7 +293,7 @@ const DropdownPopover = ({ type }) => {
                 alignItems: 'center',
                 justifyContent: 'flex-start',
               }}
-              onClick={handleOkayClick}
+              onClick={() => {handleOkayClick(inputValues)}}
             >
               <Iconify
                 icon={'tabler:check'}
@@ -298,6 +325,8 @@ const DropdownPopover = ({ type }) => {
 
 DropdownPopover.propTypes = {
   type: Proptypes.oneOf(['first', 'second', 'third']).isRequired,
+  newObj: Proptypes.object.isRequired,
+  handleChangeStatus: Proptypes.func.isRequired,
 };
 
 export default DropdownPopover;
