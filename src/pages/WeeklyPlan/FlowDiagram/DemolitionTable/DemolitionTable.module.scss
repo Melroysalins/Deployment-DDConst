@@ -20,9 +20,33 @@
     // }
 }
 
-.Typography {
-    padding: 0px;
-    text-align: center;
-    font-size: 14px;
+.TableCell {
+    padding: 0.425rem 0.175rem; // Convert pixels to rem for responsiveness
+    width: 4.86vw; // Assuming the base font size is 16px, 73px is approximately 4.56rem
+    // @media (max-width: 90rem) { // 1440px is equivalent to 90rem if base font size is 16px
+    //     font-size: 1rem; // Remains the same, as it's already responsive
+    //     padding:  0; // Convert pixels to rem for responsiveness
+    //     width: 100%; // Already responsive
+    // }
+}
 
+
+.InputLabel {
+    @media (max-width: 98.75rem) {
+        font-size: 0.725rem; // 10px is equivalent to 0.625rem
+        padding: 0.25rem 0.375rem; // Convert pixels to rem for responsiveness
+    }
+    @media (max-width: 90rem) {
+        font-size: 0.625rem; // 8px is equivalent to 0.5rem
+    }
+}
+
+.Typography {
+    @media (max-width: 98.75rem) {
+        font-size: 0.75rem; // Same conversion as above
+        padding: 0.125rem; // Convert pixels to rem for responsiveness
+    }
+    @media (max-width: 90rem) {
+        font-size: 0.65rem;
+    }
 }

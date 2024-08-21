@@ -186,12 +186,25 @@ const DiagramParent = styled('div')({
 	backgroundColor: '#fff',
 	border: '1px solid rgba(0, 0, 0, 0.1)',
 	boxSizing: 'border-box',
-	height: '100%',
+	minHeight: '584.41px',
 	display: 'flex',
 	flexDirection: 'column',
 	alignItems: 'center',
 	justifyContent: 'center',
-	width: '41.5%',
+	width: '100%',
+	position: 'relative',
+	'@media (max-width: 1440px)': {
+		minHeight: '450.41px',
+	},
+})
+
+const DiagramDemolitionParent = styled('div')({
+	display: 'flex',
+	flexDirection: 'column',
+	alignItems: 'flex-end',
+	justifyContent: 'center',
+	width: '39.58%',
+	height: '100%',
 	position: 'relative',
 })
 
@@ -202,13 +215,12 @@ const TableParent = styled('div')({
 	flexDirection: 'column',
 	alignItems: 'flex-end',
 	justifyContent: 'flex-start',
-	'@media (max-width: 1440px)': {},
 })
 
 const Content = styled('div')({
 	marginTop: '16px',
 	width: '100%',
-	height: '584.41px',
+	minHeight: '584.41px',
 	display: 'flex',
 	flexDirection: 'row',
 	alignItems: 'flex-start',
@@ -216,7 +228,7 @@ const Content = styled('div')({
 	gap: '16px',
 	'@media (max-width: 1440px)': {
 		width: '100%',
-		height: '450.41px',
+		minHeight: '450.41px',
 	},
 })
 
@@ -237,10 +249,8 @@ const DiagramHeader = styled('Box')({
 	flexDirection: 'row',
 	alignItems: 'center',
 	position: 'absolute',
-	right: 10,
-	top: 10,
-	gap: '8px',
-	fontFamily: 'Manrope',
+	right: 0,
+	top: 5,
 })
 
 const Tables = styled('div')({
@@ -256,8 +266,7 @@ const ConnectionInstallationTable = styled('div')({
 	alignSelf: 'auto',
 	display: 'flex',
 	flex: '1 1 auto',
-	flexDirection: 'row',
-	flexWrap: 'wrap',
+	flexDirection: 'column',
 	alignItems: 'flex-start',
 	justifyContent: 'flex-start',
 	gap: '16px',
@@ -265,6 +274,7 @@ const ConnectionInstallationTable = styled('div')({
 	backgroundColor: '#fff',
 	boxSizing: 'border-box',
 	width: '100%',
+	paddingBottom: '16px',
 })
 
 const Accordion = styled((props) => <MuiAccordion disableGutters elevation={0} square {...props} />)(({ theme }) => ({
@@ -996,6 +1006,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 								updateObjById={updateObjById}
 							/>
 							<Content>
+								<DiagramDemolitionParent>
 								<DiagramParent>
 									<DiagramHeader>
 										{newObj.hasChanges && <span style={{ color: '#cc8500'}}>Diagram outdated, please refresh</span>}
@@ -1009,6 +1020,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 													gap: '4px',
 													padding: '0px 12px',
 													height: '30px',
+													'@media (min-width:1440px)': {
+													  transform: 'scale(0.80)', // Scale down the switch for 1440p screens
+													},
 												}}
 											>
 												<Iconify icon="ic:baseline-cached" width={16} height={16} />
@@ -1016,52 +1030,58 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											</Button>
 										)}
 									</DiagramHeader>
-									<Container1>
+									<Diagram
+										nodes={newObj.nodes}
+										edges={newObj.edges}
+										setCurrentObj={setCurrentObj}
+										currentObj={newObj.currentObj}
+										objId={newObj.id}
+										newObj={newObj}
+									/>
+
+									{newObj.isDemolition && !!newObj.nodes_demolition.length && (
 										<Diagram
-											nodes={newObj.nodes}
-											edges={newObj.edges}
+											nodes={newObj.nodes_demolition}
+											edges={newObj.edges_demolition}
 											setCurrentObj={setCurrentObj}
 											currentObj={newObj.currentObj}
 											objId={newObj.id}
+											isDemolition={true}
 											newObj={newObj}
 										/>
-
-										{newObj.isDemolition && !!newObj.nodes_demolition.length && (
-											<Diagram
-												nodes={newObj.nodes_demolition}
-												edges={newObj.edges_demolition}
-												setCurrentObj={setCurrentObj}
-												currentObj={newObj.currentObj}
-												objId={newObj.id}
-												isDemolition={true}
-												newObj={newObj}
-											/>
-										)}
-									</Container1>
+									)}
 								</DiagramParent>
+								<Box
+									sx={{
+										display: 'flex',
+										flexDirection: 'column',
+										alignItems: 'flex-start',
+										justifyContent: 'flex-start',
+										padding: '8px 0px',
+									}}
+								>
+									<FormControlLabel
+										control={
+											<Switch
+												disabled={newObj.project && !newObj.isEditing}
+												checked={newObj.isDemolition}
+												onChange={() => toggleDemolition(newObj.id)}
+												color="primary"
+												sx={{
+													
+													'@media (min-width:1440px)': {
+													  transform: 'scale(0.75)', // Scale down the switch for 1440p screens
+													},
+												  }}
+											/>
+										}
+										label="Demolition"
+										labelPlacement='start'
+										sx={{ color: 'black', '& .css-1yrymlm-MuiTypography-root': { '@media (max-width: 1440px)': { fontSize: '0.675rem', fontFamily: 'Manrope, sans-serif',} }, }}
+									/>
+								</Box>
+								</DiagramDemolitionParent>
 								<TableParent>
-									<Box
-										sx={{
-											display: 'flex',
-											flexDirection: 'column',
-											alignItems: 'flex-start',
-											justifyContent: 'flex-start',
-											padding: '8px 0px',
-										}}
-									>
-										<FormControlLabel
-											control={
-												<Switch
-													disabled={newObj.project && !newObj.isEditing}
-													checked={newObj.isDemolition}
-													onChange={() => toggleDemolition(newObj.id)}
-													color="primary"
-												/>
-											}
-											label="Demolition"
-											sx={{ color: 'black', fontFamily: 'Manrope, sans-serif' }}
-										/>
-									</Box>
 									<Tables>
 										<ConnectionInstallationTable>
 											<FormDiagram

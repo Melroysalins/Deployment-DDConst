@@ -9,11 +9,12 @@ import {
 	TableBody,
 	Typography,
 	TextField,
-	Select,
+	Select as MuiSelect,
 	MenuItem,
 	Collapse,
 	Box,
 	IconButton,
+	styled,
 } from '@mui/material'
 import style from './InstallationTable.module.scss'
 import { JB_TYPE_MAP, JUNCTION_BOX_MAP, STATUS, STATUS_MAP, COLOR_MAP } from '../diagramHelper'
@@ -22,18 +23,54 @@ import HoverBox from 'components/hover'
 import { visitNode } from 'typescript'
 import Label from 'components/Label'
 import NotePopup from 'components/NotePopup'
+import { getColorFromValue } from '../helper'
 
-const renderTableCell = (text) => (
-	<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%' }}>
-		<Typography
-			variant="body1"
-			sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
-			className={style.Typography}
-		>
-			{text}
-		</Typography>
+const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
+	borderRadius: '4px',
+	backgroundColor: bgColor,
+	width: '100%',
+	fontFamily: "'Manrope', sans-serif",
+	fontWeight: 600,
+	'& .MuiOutlinedInput-notchedOutline': {
+		border: 'none',
+	},
+	'& .MuiSelect-select': {
+		display: 'flex',
+		alignItems: 'center',
+		paddingRight: '0.2rem !important',
+		gap: '4px',
+		color: textColor,
+		padding: '0.2rem !important',
+		'@media (max-width: 110.625rem)': {
+			fontSize: '11px',
+			height: '14px',
+		}, 
+	},
+}));
+
+const CustomSelectIcon = () => (
+	<>
+		<Box sx={{ width: '0px', height: '0px'}} />
+	</>
+  );
+
+const renderTableCell = (text, cellWidth='3.73vw', isTableHead=false) => (
+	<TableCell sx={{ padding: '0.425rem 0.175rem', width: cellWidth }}>
+	  <Typography
+		variant="body1"
+		sx={{ 
+		  padding: '0px', 
+		  fontSize: '14px', 
+		  textAlign: 'center', 
+		  color: isTableHead ? '#000' : '#596570', // Conditional color
+		  fontWeight: isTableHead ? 600 : 'normal' // Conditional fontWeight
+		}}
+		className={style.Typography}
+	  >
+		{text}
+	  </Typography>
 	</TableCell>
-)
+);
 
 const renderTableRow = (installation, index, handleChangeInstallation, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen) => {
 	return (
@@ -45,11 +82,12 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
         }
     }} >
 		{renderTableCell(`${displayName}`)}
-		<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
+		<TableCell className={style.TableCell} sx={{ width: '20%'}} >
 			{isEdit ? (
 				<TextField
+					className={style.TextField}
 					variant="outlined"
-					sx={{ width: '70px', '& .MuiInputBase-root': { height: 32 } }}
+					sx={{ '& .MuiInputBase-root': { height: '3vh', borderRadius: '6px' } }}
 					placeholder="320"
 					onChange={(e) => handleChangeInstallation(e.target.value, 'length', newObj.id, index)}
 					value={newObj.currentObj.length[index]}
@@ -75,34 +113,40 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
 	
 )}
 
-const renderStatus = (installation, isEdit, handleChangeInstallation, newObj, connIndex, statusIndex) => (
-	<TableCell className={style.TableCell} sx={{ padding: '12px 8px', width: '100%', textAlign: 'center' }}>
-		{isEdit ? (
-			<Select
-				value={installation.statuses?.[statusIndex]}
-				label="Status"
-				onChange={(e) => handleChangeInstallation(e.target.value, 'statuses', newObj.id, connIndex, statusIndex)}
-				variant="outlined"
-				className={style.StyledSelect}
-				size="small"
-			>
-				{STATUS.map((e) => (
-					<MenuItem value={e.value} key={e.value}>
-						{e.label}
-					</MenuItem>
-				))}
-			</Select>
-		) : (
-			<Typography
-				variant="body1"
-				sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', whiteSpace: 'nowrap'  }}
-				className={style.Typography}
-			>
-				{STATUS_MAP[installation.statuses?.[statusIndex]]}
-			</Typography>
-		)}
-	</TableCell>
-)
+const renderStatus = (installation, isEdit, handleChangeInstallation, objId, connIndex, statusIndex) => {
+	const { bgColor, textColor } = getColorFromValue(installation.statuses?.[statusIndex]);
+
+	return (
+		<TableCell className={style.TableCell} sx={{ width: '20%'}}>
+			{isEdit ? (
+				<StyledSelect
+					value={installation.statuses?.[statusIndex]}
+					label="Status"
+					onChange={(e) => handleChangeInstallation(e.target.value, 'statuses', objId, connIndex, statusIndex)}
+					variant="outlined"
+					className={style.StyledSelect}
+					IconComponent={CustomSelectIcon}
+					bgColor={bgColor}
+					textColor={textColor}
+				>
+					{STATUS.map((e) => (
+						<MenuItem value={e.value} key={e.value}>
+							{e.label}
+						</MenuItem>
+					))}
+				</StyledSelect>
+			) : (
+				<Typography
+					variant="body1"
+					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', whiteSpace: 'nowrap'  }}
+					className={style.Typography}
+				>
+					{STATUS_MAP[installation.statuses?.[statusIndex]]}
+				</Typography>
+			)}
+		</TableCell>
+	)
+}
 
 const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpanded, toggleExpand, handleAddNote}) => {
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
@@ -131,36 +175,35 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 
 	return (
 	<>
-	<Box sx={{ position: 'relative', left: '2px', width: '98%' }}>
+	<Box sx={{ position: 'relative', width: '100%'}}>
 		<Collapse
 			sx={{ overflow: 'visible', position: 'relative', zIndex: 1}}
 			in={isExpanded}
 			collapsedSize={
-				newObj.currentObj.installations.length < 7 ? (newObj.currentObj.installations.length * 65.5) + 45: isEdit ? '438px' : '350px'
+				newObj.currentObj.installations.length < 7 ? (newObj.currentObj.installations.length * 38) + 33.9: '261.9px'
 			}
 		>
 			<Box
 				sx={{
-					maxHeight: isExpanded ? 'none' : isEdit ? '438px' : '350px',
+					maxHeight: isExpanded ? 'none' : '261.9px',
 					overflow: 'auto',
 				}}
 			>
 				<TableContainer
 					sx={{
 						border: '1px solid lightgrey',
-						width: '60%',
-						marginLeft: '25px',
+						width: '100%',
 						borderRadius: '8px',
 						overflow: 'visible',
 					}}
 				>
 					<Table>
 						<TableHead>
-							<TableRow style={{ backgroundColor: '#f9f9fa' }}>
-								{renderTableCell('T/L Section')}
-								{renderTableCell('Length(m)')}
+							<TableRow style={{width: '100%', backgroundColor: '#f9f9fa' }}>
+								{renderTableCell('T/L Section', '10%', true)}
+								{renderTableCell('Length(m)', '40%', true)}
 								{newObj.currentObj.installations[0]?.statuses.map((_, index) => (
-									<>{renderTableCell(`${index + 1}T/L`)}</>
+									<>{renderTableCell(`${index + 1}T/L`, '10%', true)}</>
 								))}
 							</TableRow>
 						</TableHead>
@@ -199,8 +242,8 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 					backgroundColor: '#fff',
 					boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
 					borderRadius: '32px',
-					width: '24px',
-					height: '24px',
+					width: window.innerWidth < 1600 ? '20px' : '24px', // Adjusted size
+					height: window.innerHeight < 900 ? '20px' : '24px', // Adjusted size
 					boxSizing: 'border-box',
 					zIndex: '5',
 					position: 'relative',
@@ -212,8 +255,8 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 			>
 				<Iconify
 					icon={isExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
-					width={16}
-					height={16}
+					width={window.innerWidth < 1600 ? 14 : 16} // Adjusted size
+					height={window.innerHeight < 900 ? 14 : 16} // Adjusted size
 					sx={{ color: '#596570' }}
 				/>
 			</IconButton>
