@@ -227,7 +227,7 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 									if (newObj.isEnd) {
 										status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1]?.joinType]}#${index}~${newObj?.currentObj?.inputValues?.first?.endLocation}${newObj.currentObj.end}`;
 									} else {
-										status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1].joinType]}#${index}~${JB_TYPE_MAP[joinType]}#${index + 1}`;
+										status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1]?.joinType]}#${index}~${JB_TYPE_MAP[joinType]}#${index + 1}`;
 									}
 								} else {
 									status = `${JB_TYPE_MAP[newObj.currentObj?.connections[index - 1]?.joinType]}#${index}~${

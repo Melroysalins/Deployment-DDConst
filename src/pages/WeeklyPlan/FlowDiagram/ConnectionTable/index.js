@@ -633,7 +633,7 @@ const ConnectionTable = ({
 							<Table>
 								<TableBody>
 									{newObj.currentObj.connections.map((connection, index) => (
-										<>{renderTableRow(connection, index, handleNewObjChange, newObj.id, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
+										<>{renderTableRow(connection, index, handleNewObjChange, newObj.id, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow)}</>
 									))}
 								</TableBody>
 							</Table>
