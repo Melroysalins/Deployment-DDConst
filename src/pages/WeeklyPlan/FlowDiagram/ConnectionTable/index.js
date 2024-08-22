@@ -99,7 +99,7 @@ const CustomSelectIcon = () => (
 	</>
   );
 
-const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen) => (
+const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow) => (
 	<TableRow key={index} sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
 	onMouseLeave={() => {
         if (!isNotePopupOpen) { // Check if NotePopup is not open
@@ -175,8 +175,9 @@ const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, ho
 		{connection.statuses.map((e, statusIndex) => (
 			<>{renderStatus(connection, isEdit, handleNewObjChange, objId, index, statusIndex)}</>
 		))}
-		{/* {hoveredRowIndex === index && isEdit && (
-		)} */}
+		{hoveredRowIndex === index && isEdit && (
+			<HoverBox index={index} setVisibleNotes={handleOpenPopup} deleteRow={deleteRow} />
+		)}
 	</TableRow>
 )
 
@@ -289,7 +290,8 @@ const ConnectionTable = ({
 	isEdit,
 	isExpanded,
 	toggleExpand,
-	handleAddNote
+	handleAddNote,
+	handleDeleteRow,
 }) => {
 	const addPanel = () => {
 		handleAddConnection(newObj.id)
@@ -337,6 +339,9 @@ const ConnectionTable = ({
 	   
 		return () => box.removeEventListener('scroll', handleScroll);
 	}, []);
+	const deleteRow = (index) => {	
+		handleDeleteRow(newObj.id, index, "connections") 
+	}
 
 	const button = { label: 'Continue', onClick: (() => AddNote()) }
 
@@ -634,9 +639,6 @@ const ConnectionTable = ({
 							</Table>
 						</TableContainer>
 					</Box>
-					{(hoveredRowIndex  !== null) && isEdit && (
-						<HoverBox index={hoveredRowIndex} setVisibleNotes={handleOpenPopup} scrollPosition={scrollPosition} />
-					)}
 				</Collapse>
 				{isEdit && (
 					<Box
@@ -726,9 +728,10 @@ ConnectionTable.propTypes = {
 	isEdit: PropTypes.bool,
 	isExpanded: PropTypes.bool,
 	toggleExpand: PropTypes.func,
-	isNotePopupOpen: PropTypes.bool.isRequired,
+	isNotePopupOpen: PropTypes.bool,
 	setIsNotePopupOpen: PropTypes.func.isRequired,
 	handleAddNote: PropTypes.func.isRequired,
+	handleDeleteRow: PropTypes.func.isRequired,
 }
 
 export default ConnectionTable

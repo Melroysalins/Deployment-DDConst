@@ -158,6 +158,7 @@ export default function FormDiagram({
 	handleAddDemolition,
 	handleChangeInstallation,
 	handleAddNote,
+	handleDeleteRow,
 }) {
 	const [isExpanded, setIsExpanded] = useState(false)
 
@@ -185,6 +186,7 @@ export default function FormDiagram({
 							isExpanded={isExpanded}
 							toggleExpand={toggleExpand}
 							handleAddNote={handleAddNote}
+							handleDeleteRow={handleDeleteRow}
 						/>
 					)}
 				</StyledConnection>
@@ -198,6 +200,7 @@ export default function FormDiagram({
 							isExpanded={isExpanded}
 							toggleExpand={toggleExpand}
 							handleAddNote={handleAddNote}
+							handleDeleteRow={handleDeleteRow}
 						/>
 					)}
 				</StyledInstallation>
@@ -214,6 +217,7 @@ export default function FormDiagram({
 							newObj={newObj}
 							isEdit={isEdit}
 							handleAddNote={handleAddNote}
+							handleDeleteRow={handleDeleteRow}
 						/>
 					)}
 				</StyledDemolition>
@@ -233,4 +237,5 @@ FormDiagram.propTypes = {
 	handleAddDemolition: PropTypes.func.isRequired,
 	handleChangeInstallation: PropTypes.func.isRequired,
 	handleAddNote: PropTypes.func.isRequired,
+	handleDeleteRow: PropTypes.func.isRequired,
 }

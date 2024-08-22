@@ -176,7 +176,7 @@ const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connInd
 	)
 }
 
-const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen) => (
+const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow) => (
 	<TableRow index={index} sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
 	onMouseLeave={() => {
         if (!isNotePopupOpen) { // Check if NotePopup is not open
@@ -266,12 +266,12 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 			<>{renderStatus(demolition, isEdit, handleChangeDemolition, newObj.id, index, statusIndex)}</>
 		))}
 		{hoveredRowIndex === index && isEdit && (
-			<HoverBox index={index} setVisibleNotes={handleOpenPopup} />
+			<HoverBox index={index} setVisibleNotes={handleOpenPopup} deleteRow={deleteRow} />
 		)}
 	</TableRow>
 )
 
-const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, isEdit, handleAddNote }) => {
+const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, isEdit, handleAddNote, handleDeleteRow }) => {
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
 	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
@@ -299,6 +299,10 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 		setInputValue('')
 	}
 
+	const deleteRow = (index) => {	
+		handleDeleteRow(newObj.id, index, "demolitions")
+	}
+
 	const button = { label: 'Continue', onClick: (() => AddNote()) }
 
 	return (
@@ -324,7 +328,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 							</TableHead>
 							<TableBody >
 								{demolitions.map((demolition, index) => (
-									<>{renderTableRow(demolition, index, handleChangeDemolition, newObj.id, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
+									<>{renderTableRow(demolition, index, handleChangeDemolition, newObj.id, isEdit, newObj, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow)}</>
 								))}
 							</TableBody>
 							{isEdit && (
@@ -399,6 +403,7 @@ DemolitionTable.propTypes = {
 	isNotePopupOpen: PropTypes.bool.isRequired,
 	setIsNotePopupOpen: PropTypes.func.isRequired,
 	handleAddNote: PropTypes.func.isRequired,
+	handleDeleteRow: PropTypes.func.isRequired,
 }
 
 export default DemolitionTable

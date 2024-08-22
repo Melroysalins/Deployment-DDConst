@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 
 const HoverDiv = styled(Box)(({ index, scrollPosition }) => ({
 	visibility: 'hidden', // Hide the box by default
-	top: `${(19 + index * 37.5) - scrollPosition}px`, // Place the box at the top of the parent container
+	top: '50%', // Place the box at the top of the parent container
 	right: '-16px', // Adjust based on your layout. This positions it outside the border.
 	display: 'flex',
 	position: 'absolute', // or 'fixed' if it needs to be positioned relative to the viewport
@@ -25,10 +25,9 @@ const HoverDiv = styled(Box)(({ index, scrollPosition }) => ({
 	gap: '4px',
 }));
 
-const HoverBox = ({ index, setVisibleNotes, scrollPosition }) => {
+const HoverBox = ({ index, setVisibleNotes, deleteRow }) => {
     
 	console.log('HoverBox index:', index)
-	console.log('HoverBox scrollPosition:', scrollPosition)
 
   return (
 	<HoverDiv
@@ -36,7 +35,6 @@ const HoverBox = ({ index, setVisibleNotes, scrollPosition }) => {
 		visibility: 'visible', // Initially hidden
 	}}
 	index={index}
-	scrollPosition={scrollPosition}
 	>
 		<Tooltip title="Add note" arrow placement='right'>
 			<Button
@@ -80,7 +78,7 @@ const HoverBox = ({ index, setVisibleNotes, scrollPosition }) => {
 				},
 				},
 			}}
-			onClick={() => console.log('Delete icon clicked for connection')}
+			onClick={() => deleteRow(index)}
 		>
 			<Iconify icon="tabler:trash" width={20} height={20} sx={{ color: '#596570', Opacity: '0.5', '&: hover': { Opacity: 1}}} />
 		</Button>

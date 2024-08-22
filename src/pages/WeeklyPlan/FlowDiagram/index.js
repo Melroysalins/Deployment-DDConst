@@ -693,50 +693,55 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	}
 
 	const handleAddNote = (objId, value, field, index) => {
-		
-		const updatedObjs = objs.map((obj) => {
-			if (obj.id !== objId) return obj
-
-			const updatedMainObj = { ...obj.currentObj }
-
-			if (index === "start") {
-				updatedMainObj.startNote = value
-			} 
-			else if (index === "end") {
-				updatedMainObj.endNote = value
-			}
-			else {
-				if (field === 'connections') {
-					updatedMainObj.connections = updatedMainObj.connections.map((conn, i) => {
-						if (i === index) {
-							conn.note = value
-						}
-						return conn
-					})
-				} 
+		const updatedObjs = objs.map(obj => {
+			if (obj.id !== objId) return obj;
 	
-				if (field === 'demolitions') {
-					updatedMainObj.demolitions = updatedMainObj.demolitions.map((conn, i) => {
-						if (i === index) {
-							conn.note = value
-						}
-						return conn
-					})
+			const updatedMainObj = { ...obj.currentObj };
+	
+			if (index === "start") {
+				updatedMainObj.startNote = value;
+			} else if (index === "end") {
+				updatedMainObj.endNote = value;
+			} else if (['connections', 'demolitions', 'installations'].includes(field)) {
+				updatedMainObj[field] = updatedMainObj[field].map((conn, i) => {
+					if (i === index) {
+						return { ...conn, note: value };
+					}
+					return conn;
+				});
+			}
+	
+			return { ...obj, currentObj: updatedMainObj };
+		});
+	
+		setObjs(updatedObjs);
+	};
+
+	const handleDeleteRow = (objId, index, field) => {
+		const updatedObjs = objs.map(obj => {
+			if (obj.id !== objId) return obj;
+	
+			const updatedMainObj = { ...obj.currentObj };
+			if (field === 'connections') {
+				updatedMainObj[field] = updatedMainObj[field].filter((_, i) => i !== index);
+			} else if (field === 'installations') {
+				updatedMainObj[field] = updatedMainObj[field].filter((_, i) => i !== index);
+				if (updatedMainObj.length && index < updatedMainObj.length) {
+					delete updatedMainObj.length[index]; 
 				}
-				if (field === 'installations') {
-					updatedMainObj.installations = updatedMainObj.installations.map((conn, i) => {
-						if (i === index) {
-							conn.note = value
-						}
-						return conn
-					})
+			} else if (field === 'demolitions') {
+				updatedMainObj[field] = updatedMainObj[field].filter((_, i) => i !== index);
+				if (updatedMainObj.length_demolition && index < updatedMainObj.length_demolition) {
+					delete updatedMainObj.length_demolition[index]; 
 				}
 			}
+	
+			return { ...obj, currentObj: updatedMainObj };
+		});
+	
+		setObjs(updatedObjs);
+	};
 
-			return { ...obj, currentObj: updatedMainObj }
-		})
-		setObjs(updatedObjs)
-	}		
 
 	const handleAdd = () => {
 		const updatedObjs = objs.map((obj) => {
@@ -1097,6 +1102,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 												isDemolition={newObj.isDemolition}
 												handleAddNote={handleAddNote}
 												handleChangeStatus={handleChangeStatus}
+												handleDeleteRow={handleDeleteRow}
 											/>
 										</ConnectionInstallationTable>
 									</Tables>
