@@ -180,7 +180,7 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 										JUNCTION_BOX_MAP[newObj.currentObj.end]
 									}`
 								} else {
-									status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1].joinType]}#${index}~${
+									status = `${JB_TYPE_MAP[newObj.currentObj?.connections[index - 1]?.joinType]}#${index}~${
 										JB_TYPE_MAP[joinType]
 									}#${index + 1}`
 								}

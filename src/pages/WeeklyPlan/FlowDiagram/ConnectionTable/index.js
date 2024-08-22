@@ -677,7 +677,7 @@ ConnectionTable.propTypes = {
 	isEdit: PropTypes.bool,
 	isExpanded: PropTypes.bool,
 	toggleExpand: PropTypes.func,
-	isNotePopupOpen: PropTypes.bool.isRequired,
+	isNotePopupOpen: PropTypes.bool,
 	setIsNotePopupOpen: PropTypes.func.isRequired,
 	handleAddNote: PropTypes.func.isRequired,
 	handleDeleteRow: PropTypes.func.isRequired,
