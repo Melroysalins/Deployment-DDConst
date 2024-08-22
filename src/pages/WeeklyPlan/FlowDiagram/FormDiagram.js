@@ -115,23 +115,34 @@ const HeaderText = ({ title, color, newObj, isDemolition }) => (
 				height: '22px',
 			}}
 		>
-			<StyledTypography>
-				<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
-					{newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length} Points
+			{ title === 'Installation' ? (
+				<StyledTypography>
+					<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
+						{(newObj?.currentObj?.connections.length + 2) * newObj.currentObj?.connections[0]?.statuses?.length} Sections
+					</StyledTypography>
+					<StyledTypography sx={{ lineHeight: '26px' }} component="span">
+						{`(${newObj?.currentObj?.connections.length + 2} Sections) x ${newObj.currentObj?.connections[0]?.statuses?.length} Lines`}
+					</StyledTypography>
 				</StyledTypography>
-				<StyledTypography sx={{ lineHeight: '26px' }} component="span">{`(IJ ${
-					newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].filter(
-						(e) => e.pmj === PMJ[1]
-					).length
-				} Points, NJ ${
-					newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].filter(
-						(e) => e.pmj === PMJ[0]
-					).length
-				} Points) x `}</StyledTypography>
-				<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
-				{`${(newObj.currentObj?.[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length || 0)} Lines`}
+			) : (
+				<StyledTypography>
+					<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
+						{newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length} Points
+					</StyledTypography>
+					<StyledTypography sx={{ lineHeight: '26px' }} component="span">{`(IJ ${
+						newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].filter(
+							(e) => e.pmj === PMJ[1]
+						).length
+					} Points, NJ ${
+						newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].filter(
+							(e) => e.pmj === PMJ[0]
+						).length
+					} Points) x `}</StyledTypography>
+					<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
+					{`${(newObj.currentObj?.[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length || 0)} Lines`}
+					</StyledTypography>
 				</StyledTypography>
-			</StyledTypography>
+			)}
 		</Box>
 	</Box>
 )

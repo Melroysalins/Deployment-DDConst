@@ -26,11 +26,14 @@ import NotePopup from 'components/NotePopup'
 import { getColorFromValue } from '../helper'
 
 const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
+	height: '2.2vh',
 	borderRadius: '4px',
 	backgroundColor: bgColor,
 	width: '100%',
 	fontFamily: "'Manrope', sans-serif",
 	fontWeight: 600,
+	lineHeight: '24px',
+	fontSize: '14px',
 	'& .MuiOutlinedInput-notchedOutline': {
 		border: 'none',
 	},
@@ -113,7 +116,7 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
 	
 )}
 
-const renderStatus = (installation, isEdit, handleChangeInstallation, objId, connIndex, statusIndex) => {
+const renderStatus = (installation, isEdit, handleChangeInstallation, newObj, connIndex, statusIndex) => {
 	const { bgColor, textColor } = getColorFromValue(installation.statuses?.[statusIndex]);
 
 	return (
@@ -122,7 +125,7 @@ const renderStatus = (installation, isEdit, handleChangeInstallation, objId, con
 				<StyledSelect
 					value={installation.statuses?.[statusIndex]}
 					label="Status"
-					onChange={(e) => handleChangeInstallation(e.target.value, 'statuses', objId, connIndex, statusIndex)}
+					onChange={(e) => handleChangeInstallation(e.target.value, 'statuses', newObj.id, connIndex, statusIndex)}
 					variant="outlined"
 					className={style.StyledSelect}
 					IconComponent={CustomSelectIcon}
@@ -180,12 +183,12 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 			sx={{ overflow: 'visible', position: 'relative', zIndex: 1}}
 			in={isExpanded}
 			collapsedSize={
-				newObj.currentObj.installations.length < 7 ? (newObj.currentObj.installations.length * 38) + 33.9: '261.9px'
+				newObj.currentObj.installations.length < 7 ? `${(newObj.currentObj.installations.length * 4.5) + 4}vh`: '34vh'
 			}
 		>
 			<Box
 				sx={{
-					maxHeight: isExpanded ? 'none' : '261.9px',
+					maxHeight: isExpanded ? 'none' : '34.7vh',
 					overflow: 'auto',
 				}}
 			>
@@ -246,9 +249,9 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 					height: window.innerHeight < 900 ? '20px' : '24px', // Adjusted size
 					boxSizing: 'border-box',
 					zIndex: '5',
-					position: 'relative',
-					right: `-${newObj.currentObj.installations[0]?.statuses.length * 140 + 200}px`,
-					bottom: '12px',
+					position: 'absolute',
+					right: `50px`,
+					bottom: '-12px',
 					padding: '0px',
 				}}
 				onClick={toggleExpand}

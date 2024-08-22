@@ -28,11 +28,14 @@ import NotePopup from 'components/NotePopup'
 import { getColorFromValue } from '../helper'
 
 const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
+	height: '2.2vh',
 	borderRadius: '4px',
 	backgroundColor: bgColor,
 	width: '100%',
 	fontFamily: "'Manrope', sans-serif",
 	fontWeight: 600,
+	lineHeight: '24px',
+	fontSize: '14px',
 	'& .MuiOutlinedInput-notchedOutline': {
 		border: 'none',
 	},
@@ -301,7 +304,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 	return (
 		<>
 		<Box sx={{ position: 'relative', left: '2px', width: '95.42%', marginLeft: '3.58%'}}>
-			<Collapse sx={{ overflow: 'visible' }} in={isExpanded} collapsedSize={demolitions.length < 7 ? demolitions.length * 53 + 34 : 350}>
+			<Collapse sx={{ overflow: 'visible' }} in={isExpanded} collapsedSize={demolitions.length < 7 ? `${demolitions.length * 4.26 + 3.15}vh` : '28.71vh'}>
 				<Box
 					sx={{ maxHeight: isExpanded ? 'none' : '350px', overflow: 'auto', width: '100%'}}
 				>

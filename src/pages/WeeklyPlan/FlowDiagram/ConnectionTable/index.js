@@ -38,11 +38,14 @@ import NotePopup from 'components/NotePopup'
 import { getColorFromValue } from '../helper'
 
 const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
+	height: '2.2vh',
 	borderRadius: '4px',
 	backgroundColor: bgColor,
 	width: '100%',
 	fontFamily: "'Manrope', sans-serif",
 	fontWeight: 600,
+	lineHeight: '24px',
+	fontSize: '14px',
 	'& .MuiOutlinedInput-notchedOutline': {
 		border: 'none',
 	},
@@ -65,6 +68,8 @@ const Select = styled(MuiSelect)({
 	borderRadius: '8px',
 	width: '100%',
 	color: '#596570',
+	fontWeight: 400,
+	lineHeight: '24px',
 	'@media (min-width: 110.630rem)': {
 		maxWidth: '121px',
 	},
@@ -609,10 +614,10 @@ const ConnectionTable = ({
 					sx={{width: '100%', paddingBottom: '8px', position: 'relative', overflow: 'visible'}}
 					in={isExpanded}
 					collapsedSize={
-						newObj.currentObj.connections.length < 7 ? newObj.currentObj.connections.length * 38 : 228
+						newObj.currentObj.connections.length < 7 ? `${newObj.currentObj.connections.length * 4.5}vh` : '30vh'
 					}
 				>
-					<Box ref={boxRef} sx={{ maxHeight: isExpanded ? 'none' : '228px', overflow: 'auto', width: '100%'}}>
+					<Box ref={boxRef} sx={{ maxHeight: isExpanded ? 'none' : '30vh', overflow: 'auto', width: '100%'}}>
 						<TableContainer
 							sx={{
 								borderRadius: '0px 0px 8px 0px',
