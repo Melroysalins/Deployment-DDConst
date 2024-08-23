@@ -36,12 +36,34 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
   });
 
   useEffect(() => {
-    setInputValues(initialInputValues[type]);
+    const updatedInputValues = {
+      first: {
+        bigInput: newObj?.currentObj?.inputValues?.first?.bigInput || '154',
+        startLocation: newObj?.currentObj?.inputValues?.first?.startLocation || 'Namyang',
+        endLocation: newObj?.currentObj?.inputValues?.first?.endLocation || 'Yeonsu',
+      },
+      second: {
+        voltageLevel: newObj?.currentObj?.inputValues?.second?.voltageLevel || '154',
+        bigInput: newObj?.currentObj?.inputValues?.second?.bigInput || 'XLPE',
+        wiringArea: newObj?.currentObj?.inputValues?.second?.wiringArea || '200',
+        tlCount: parseInt(newObj?.currentObj?.connections?.[0]?.statuses?.length, 10),
+        tlLength: newObj?.currentObj?.inputValues?.second?.tlLength || '2.8',
+      },
+      third: {
+        voltageLevel: newObj?.currentObj?.inputValues?.third?.voltageLevel || '154',
+        bigInput: newObj?.currentObj?.inputValues?.third?.bigInput || 'XLPE',
+        wiringArea: newObj?.currentObj?.inputValues?.third?.wiringArea || '200',
+        tlCount: parseInt(newObj?.currentObj?.demolitions?.[0]?.statuses?.length, 10),
+        tlLength: newObj?.currentObj?.inputValues?.third?.tlLength || '2.8',
+      },
+    };
+
+    setInputValues(updatedInputValues[type]);
     setSelectedOptions((prevOptions) => ({
       ...prevOptions,
-      [type]: formatInputValues(inputValues), // or format the inputValues as needed
+      [type]: formatInputValues(updatedInputValues[type]), // or format the inputValues as needed
     }));
-  }, [type]);
+  }, [newObj, type]);
 
   useEffect(() => {
     if (newObj?.currentObj?.inputValues) {
