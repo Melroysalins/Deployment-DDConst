@@ -583,8 +583,11 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			// Update connections
 			for (let i = 0; i < midPoints - 1; i += 1) {
 				const newConnection = { ...defaultConnection, statuses: [] }
-				const newInstallation = { statuses:[], note: ''}
 				updatedMainObj.connections.push(newConnection)
+			}
+
+			for (let i =0 ;i < midPoints; i += 1) {
+				const newInstallation = { statuses:[], note: ''}
 				updatedMainObj.installations.push(newInstallation)
 				updatedMainObj.length.push(600)
 			}
@@ -792,26 +795,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			...obj,
 			isDemolition: !obj.isDemolition,
 		}))
-	}
-
-	const handleCloseInstallation = (objId) => {
-		const updatedObjs = objs.map((obj) => {
-			if (obj.id !== objId) return obj;
-	
-			const lastInstallation = obj.currentObj.installations[obj.currentObj.installations.length - 1];
-			const newInstallation = { ...lastInstallation, note: '' };		
-			const updatedInstallations = [...obj.currentObj.installations, newInstallation];
-
-			const updatedMainObj = {
-				...obj.currentObj,
-				installations: updatedInstallations,
-				length: [...obj.currentObj.length, 600],
-			};
-	
-			return { ...obj, currentObj: updatedMainObj, isEnd: true, hasChanges: true };
-		});
-	
-		setObjs(updatedObjs);
 	}
 
 	const setCurrentObj = ({
@@ -1026,7 +1009,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 												handleAddConnection={handleAddConnection}
 												index={index}
 												isEdit={newObj.isEditing}
-												handleCloseInstallation={handleCloseInstallation}
 												handleChangeDemolition={handleChangeDemolition}
 												handleAddDemolition={handleAddDemolition}
 												handleChangeInstallation={handleChangeInstallation}

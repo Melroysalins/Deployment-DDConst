@@ -210,7 +210,6 @@ const renderStatusStartEnd = (isEdit, handleNewObjChange, newObj, index, name) =
 
 const ConnectionTable = ({
 	handleAddConnection,
-	handleCloseInstallation,
 	handleNewObjChange,
 	newObj,
 	isEdit,
@@ -608,24 +607,6 @@ const ConnectionTable = ({
 						>
 							<AddIcon sx={{ color: '#fff' }} />
 						</IconButton>
-						{!newObj.isEnd && (
-							<Tooltip title="Done adding" arrow placement="right">
-								<IconButton
-									style={{
-										border: '1px solid #6ac79b',
-										backgroundColor: '#fff',
-										boxShadow: '0px 8px 16px rgba(152, 210, 195, 0.24)',
-										borderRadius: '32px',
-										padding: '0px',
-										width: '24px',
-										height: '24px',
-									}}
-									onClick={() => handleCloseInstallation(newObj.id)} // Add onClick event handler here
-								>
-									<Iconify icon="ic:round-check" width={16} height={16} sx={{ color: '#6ac78b' }} />
-								</IconButton>
-							</Tooltip>
-						)}
 					</Box>
 				)}
 				{newObj.currentObj.connections.length > 6 && (
@@ -664,7 +645,6 @@ const ConnectionTable = ({
 
 ConnectionTable.propTypes = {
 	handleAddConnection: PropTypes.func.isRequired,
-	handleCloseInstallation: PropTypes.func.isRequired,
 	handleNewObjChange: PropTypes.func.isRequired,
 	newObj: PropTypes.object.isRequired,
 	isEdit: PropTypes.bool,

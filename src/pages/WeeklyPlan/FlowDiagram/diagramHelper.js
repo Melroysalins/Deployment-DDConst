@@ -167,7 +167,7 @@ export const generateEdges = (startId, newObj, isDemolition) => {
                         type,
                     });
                 } 
-				else if (i === items.length - 1 && newObj.isEnd) {
+				else if (i === items.length - 1) {
 					edges.push({
 						id: `${startId}.end.${j + 1}`,
 						source: `${startId}.${items.length-1}.${j + 1}`,
