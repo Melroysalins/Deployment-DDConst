@@ -322,6 +322,7 @@ const defaultWholeObj = {
 	nodes: [],
 	edges: [],
 	isEnd: false,
+	isDemolitionEnd: false,
 	isEditing: true,
 	isDemolition: false,
 	firstOpen: true,
@@ -395,6 +396,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				...diagram,
 				isEditing: false,
 				isEnd: true,
+				isDemolitionEnd: true,
 				firstOpen: false,
 				hasChanges: false,
 			}))
@@ -473,13 +475,17 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	}
 
 	const handleChangeInstallation = (value, field, objId, connIndex, statusIndex) => {
+		console.log('field', field)
+
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id !== objId) return obj
 
 			const updatedMainObj = { ...obj.currentObj }
 			if (field === 'length') {
 				updatedMainObj[field][connIndex] = value
-			} else {
+			} else if (field === 'length_demolition') {
+				updatedMainObj[field][connIndex] = value
+			} else if (field === 'statuses_installation') {
 				const updatedInstallations = updatedMainObj.installations.map((conn, index) => {
 					if (index === connIndex) {
 						const updatedStatuses = conn.statuses.map((status, sIndex) => (sIndex === statusIndex ? value : status))
@@ -488,6 +494,16 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					return conn
 				})
 				updatedMainObj.installations = updatedInstallations
+				obj.hasChanges = true
+			} else {
+				const updatedInstallations = updatedMainObj.demolitionInstallations.map((conn, index) => {
+					if (index === connIndex) {
+						const updatedStatuses = conn.statuses.map((status, sIndex) => (sIndex === statusIndex ? value : status))
+						return { ...conn, statuses: updatedStatuses }
+					}
+					return conn
+				})
+				updatedMainObj.demolitionInstallations = updatedInstallations
 				obj.hasChanges = true
 			}
 			return { ...obj, currentObj: updatedMainObj }
@@ -503,8 +519,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			if (connIndex === undefined) {
 				updatedMainObj[field] = value
 				obj.hasChanges = true
-			} else if (field === 'length_demolition') {
-				updatedMainObj[field][connIndex] = value
 			} else {
 				const updatedDemolitions = updatedMainObj.demolitions.map((conn, index) => {
 					if (index === connIndex) {
@@ -540,9 +554,18 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			// Ensure not to add an undefined demolition if there's no last demolition
 			const updatedDemolitions = lastDemolition ? [...obj.currentObj.demolitions, newDemolition] : [...obj.currentObj.demolitions];
 	
+			// Define the structure of a new installation
+			const newInstallation = {
+				statuses: [ ...Array(numberOfStatuses).fill(STATUS[0].value)],
+				note: '',
+				// Add other necessary fields with default values
+			};
+			const updatedInstallations = [...obj.currentObj.demolitionInstallations, newInstallation];	
+
 			const updatedMainObj = {
 				...obj.currentObj,
 				demolitions: updatedDemolitions,
+				demolitionInstallations: updatedInstallations,
 				length_demolition: [...obj.currentObj.length_demolition, 600],
 			};
 			return { ...obj, currentObj: updatedMainObj, hasChanges: true };
@@ -672,8 +695,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			const updatedMainObj = { ...obj.currentObj }
 			// Update demolitions
 			for (let i = 0; i < demolitionPoints - 1; i += 1) {
-				const newDemolition = { ...defaultConnection }
+				const newDemolition = { ...defaultConnection, statuses: [] }
+				const newInstallation = { statuses:[], note: ''}
 				updatedMainObj.demolitions.push(newDemolition)
+				updatedMainObj.demolitionInstallations.push(newInstallation)
 				updatedMainObj.length_demolition.push(600)
 			}
 
@@ -684,6 +709,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					newDemolition.statuses.push(STATUS[0].value)
 				}
 				return newDemolition
+			})
+
+			updatedMainObj.demolitionInstallations = updatedMainObj.demolitionInstallations.map((demolitionInstallation) => {
+				while (demolitionInstallation.statuses.length < demolitionLines) {
+					demolitionInstallation.statuses.push(STATUS[0].value)
+					
+				}
+				return demolitionInstallation
 			})
 
 			return { ...obj, currentObj: updatedMainObj }
@@ -847,21 +880,32 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		}))
 	}
 
-	const handleCloseInstallation = (objId) => {
+	const handleCloseInstallation = (objId, field) => {
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id !== objId) return obj;
 	
-			const lastInstallation = obj.currentObj.installations[obj.currentObj.installations.length - 1];
-			const newInstallation = { ...lastInstallation, note: '' };		
-			const updatedInstallations = [...obj.currentObj.installations, newInstallation];
-
-			const updatedMainObj = {
-				...obj.currentObj,
-				installations: updatedInstallations,
-				length: [...obj.currentObj.length, 600],
-			};
+			const updatedMainObj = { ...obj.currentObj };
+			if (field === 'demolition') {
+				const lastInstallation = obj.currentObj.demolitionInstallations[obj.currentObj.demolitionInstallations.length - 1];
+				const newInstallation = { ...lastInstallation, note: '' };		
+				const updatedInstallations = [...obj.currentObj.demolitionInstallations, newInstallation];
+				updatedMainObj.demolitionInstallations = updatedInstallations;
+				updatedMainObj.length_demolition = [...obj.currentObj.length_demolition, 600];
+			} else {
+				const lastInstallation = obj.currentObj.installations[obj.currentObj.installations.length - 1];
+				const newInstallation = { ...lastInstallation, note: '' };		
+				const updatedInstallations = [...obj.currentObj.installations, newInstallation];
+				updatedMainObj.installations = updatedInstallations;
+				updatedMainObj.length = [...obj.currentObj.length, 600];
+			}
 	
-			return { ...obj, currentObj: updatedMainObj, isEnd: true, hasChanges: true };
+			return { 
+				...obj, 
+				currentObj: updatedMainObj, 
+				isEnd: field !== 'demolition' ? true : obj.isEnd, 
+				isDemolitionEnd: field === 'demolition' ? true : obj.isDemolitionEnd, 
+				hasChanges: true 
+			};
 		});
 	
 		setObjs(updatedObjs);

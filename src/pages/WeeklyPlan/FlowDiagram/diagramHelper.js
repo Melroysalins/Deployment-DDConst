@@ -113,61 +113,24 @@ export const generateStartEndNode = ({
 }
 
 export const generateEdges = (startId, newObj, isDemolition) => {
-    const items = newObj.currentObj[isDemolition ? 'demolitions' : 'installations'];
+    const items = newObj.currentObj[isDemolition ? 'demolitionInstallations' : 'installations'];
     const edges = [];
     const type = 'step';
 
-    if (isDemolition) {
-        // Generate edges from the start node to each status of the first connection
-        newObj.currentObj.startStatuses.forEach((status, index) => {
-            edges.push({
-                id: `${startId}.start.${index + 1}`,
-                source: `${startId}.start.${index + 1}`,
-                target: `${startId}.1.${index + 1}`,
-                style: { stroke: STROKE_COLOR[status] },
-                type,
-            });
-        });
-
-        // Generate edges between the statuses of connections
-        items.forEach((item, i) => {
-            item.statuses.forEach((status, j) => {
-                if (i < items.length - 1) {
-                    edges.push({
-                        id: `${startId}.${i + 1}-${i + 2}.${j + 1}`,
-                        source: `${startId}.${i + 1}.${j + 1}`,
-                        target: `${startId}.${i + 2}.${j + 1}`,
-                        style: { stroke: STROKE_COLOR[status] },
-                        type,
-                    });
-                }
-            });
-        });
-
-        // Generate edges from the statuses of the last connection to the end node
-        newObj.currentObj.endStatuses.forEach((status, index) => {
-            edges.push({
-                id: `${startId}.end.${index + 1}`,
-                source: `${startId}.${items.length}.${index + 1}`,
-                target: `${startId}.end.${index + 1}`,
-                style: { stroke: STROKE_COLOR[status] },
-                type,
-            });
-        });
-    } else {
-        items.forEach((item, i) => {
-            item.statuses.forEach((status, j) => {
-                if (i === 0) {
-                    // Generate edges from the start node to the first status of each connection
-                    edges.push({
-                        id: `${startId}.start.${j + 1}`,
-                        source: `${startId}.start.${j + 1}`,
-                        target: `${startId}.${i + 1}.${j + 1}`,
-                        style: { stroke: STROKE_COLOR[status] },
-                        type,
-                    });
-                } 
-				else if (i === items.length - 1 && newObj.isEnd) {
+	items.forEach((item, i) => {
+		item.statuses.forEach((status, j) => {
+			if (i === 0) {
+				// Generate edges from the start node to the first status of each connection
+				edges.push({
+					id: `${startId}.start.${j + 1}`,
+					source: `${startId}.start.${j + 1}`,
+					target: `${startId}.${i + 1}.${j + 1}`,
+					style: { stroke: STROKE_COLOR[status] },
+					type,
+				});
+			} 
+			else if (i === items.length - 1) {
+				if ((isDemolition && newObj.isDemolitionEnd) || (!isDemolition && newObj.isEnd)) {
 					edges.push({
 						id: `${startId}.end.${j + 1}`,
 						source: `${startId}.${items.length-1}.${j + 1}`,
@@ -177,17 +140,26 @@ export const generateEdges = (startId, newObj, isDemolition) => {
 					});
 				} 
 				else {
-                    edges.push({
-                        id: `${startId}.${i}-${i + 1}.${j + 1}`,
-                        source: `${startId}.${i}.${j + 1}`,
-                        target: `${startId}.${i + 1}.${j + 1}`,
-                        style: { stroke: STROKE_COLOR[status] },
-                        type,
-                    });
-                }
-            });
-        });
-    }
+					edges.push({
+						id: `${startId}.${i}-${i + 1}.${j + 1}`,
+						source: `${startId}.${i}.${j + 1}`,
+						target: `${startId}.${i + 1}.${j + 1}`,
+						style: { stroke: STROKE_COLOR[status] },
+						type,
+					});
+				}
+			} 
+			else {
+				edges.push({
+					id: `${startId}.${i}-${i + 1}.${j + 1}`,
+					source: `${startId}.${i}.${j + 1}`,
+					target: `${startId}.${i + 1}.${j + 1}`,
+					style: { stroke: STROKE_COLOR[status] },
+					type,
+				});
+			}
+		});
+	});
 
     return edges;
 };
@@ -229,6 +201,7 @@ export const defaultNewObj = {
 	// adding statuses and note for installations
 	installations: [{ statuses: [STATUS[0].value], note: ''}],
 	demolitions: [defaultConnection],
+	demolitionInstallations: [{ statuses: [STATUS[0].value], note: ''}],
 	cableType: CABLE_TYPE[0],
 	namyang: NAMYUNG[0],
 	// change length to array for multiple installation and demolition

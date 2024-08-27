@@ -50,3 +50,9 @@
         font-size: 0.65rem;
     }
 }
+
+.FormControl {
+    @media (max-width: 98.75rem) {
+        width: 100%; // Already responsive
+    }
+}

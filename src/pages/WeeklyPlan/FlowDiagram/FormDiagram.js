@@ -5,6 +5,7 @@ import { styled } from '@mui/material/styles'
 import ConnectionTable from './ConnectionTable'
 import InstallationTable from './InstallationTable'
 import DemolitionTable from './DemolitionTable'
+import DemolitionInstallation from './DemolitionInstallation'
 import PropTypes from 'prop-types'
 import { JB_TYPE, PMJ } from './diagramHelper'
 
@@ -41,7 +42,7 @@ const StyledInstallation = styled(Box)({
 	marginBottom: 10,
 })
 
-const StyledDemolition = styled(Box)({
+const StyledDemolition = styled(Box)(({ demolitionTableWidth }) => ({
 	flex: '1 1 auto',
 	display: 'flex',
 	flexDirection: 'column',
@@ -51,8 +52,8 @@ const StyledDemolition = styled(Box)({
 	borderRadius: '8px',
 	backgroundColor: '#fff',
 	alignSelf: 'auto',
-	width: '100%',
-})
+	width: demolitionTableWidth,
+}));
 
 const StyledTypography = styled(Typography)({
 	'@media (max-width: 1723px)': {
@@ -161,14 +162,21 @@ export default function FormDiagram({
 	handleDeleteRow,
 }) {
 	const [isExpanded, setIsExpanded] = useState(false)
+	const [isDemolitionExpanded, setIsDemolitionExpanded] = useState(false)
 
 	const toggleExpand = () => {
 		setIsExpanded((prevIsExpanded) => !prevIsExpanded)
 	}
 
+	const toggleDemolitionExpand = () => {
+		setIsDemolitionExpanded((prevIsDemolitionExpand) => !prevIsDemolitionExpand)
+	}
+
 	const statuses_length = newObj?.currentObj?.connections[0]?.statuses?.length;
 	const flexDirection = statuses_length > 2 ? 'column' : 'row';
 	const connectionTableWidth = statuses_length > 2 ? '100%' : '';
+	const demolition_length = newObj?.currentObj?.demolitions[0]?.statuses?.length;
+	const demolitionTableWidth = demolition_length > 2 ? '100%' : '';
 	return (
 		<>
 			<StyledRowTables flexDirection={flexDirection}>
@@ -206,21 +214,42 @@ export default function FormDiagram({
 				</StyledInstallation>
 			</StyledRowTables>
 			{isDemolition && (
-				<StyledDemolition>
-					<Box sx={{ marginLeft: '19px'}}>
-						<HeaderText title="Demolition" color="#7FBCFE" newObj={newObj} isDemolition={true} />
-					</Box>
-					{newObj?.currentObj?.startStatuses && (
-						<DemolitionTable
+				<StyledRowTables flexDirection={flexDirection}>
+					<StyledDemolition demolitionTableWidth={demolitionTableWidth}>
+						<Box sx={{ marginLeft: '19px'}}>
+							<HeaderText title="Demolition" color="#7FBCFE" newObj={newObj} isDemolition={true} />
+						</Box>
+						{newObj?.currentObj?.startStatuses && (
+							<DemolitionTable
 							handleAddDemolition={handleAddDemolition}
+							handleAddConnection={handleAddConnection}
+							handleCloseInstallation={handleCloseInstallation}
 							handleChangeDemolition={handleChangeDemolition}
 							newObj={newObj}
 							isEdit={isEdit}
+							isExpanded={isExpanded}
+							toggleExpand={toggleExpand}
 							handleAddNote={handleAddNote}
 							handleDeleteRow={handleDeleteRow}
 						/>
-					)}
-				</StyledDemolition>
+						)}
+					</StyledDemolition>
+					<StyledInstallation>
+						<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
+						{newObj?.currentObj?.startStatuses && (
+							<DemolitionInstallation
+								handleChangeInstallation={handleChangeInstallation}
+								handleCloseInstallation={handleCloseInstallation}
+								newObj={newObj}
+								isEdit={isEdit}
+								isDemolitionExpanded={isDemolitionExpanded}
+								toggleDemolitionExpand={toggleDemolitionExpand}
+								handleAddNote={handleAddNote}
+								handleDeleteRow={handleDeleteRow}
+							/>
+						)}
+					</StyledInstallation>
+				</StyledRowTables>
 			)}
 		</>
 	)

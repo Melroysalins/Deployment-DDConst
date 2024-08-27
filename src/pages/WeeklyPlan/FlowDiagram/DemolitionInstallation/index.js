@@ -16,7 +16,7 @@ import {
 	IconButton,
 	styled,
 } from '@mui/material'
-import style from './InstallationTable.module.scss'
+import style from './DemolitionInstallation.module.scss'
 import { JB_TYPE_MAP, JUNCTION_BOX_MAP, STATUS, STATUS_MAP, COLOR_MAP } from '../diagramHelper'
 import Iconify from 'components/Iconify'
 import HoverBox from 'components/hover'
@@ -75,7 +75,7 @@ const renderTableCell = (text, cellWidth='3.73vw', isTableHead=false) => (
 	</TableCell>
 );
 
-const renderTableRow = (installation, index, handleChangeInstallation, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow) => {
+const renderTableRow = (demolitionInstallation, index, handleChangeInstallation, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow) => {
 	return (
 	<>
 	<TableRow  sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
@@ -92,8 +92,8 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
 					variant="outlined"
 					sx={{ '& .MuiInputBase-root': { height: '3vh', borderRadius: '6px' } }}
 					placeholder="320"
-					onChange={(e) => handleChangeInstallation(e.target.value, 'length', newObj.id, index)}
-					value={newObj.currentObj.length[index]}
+					onChange={(e) => handleChangeInstallation(e.target.value, 'length_demolition', newObj.id, index)}
+					value={newObj.currentObj.length_demolition[index]}
 				/>
 			) : (
 				<Typography
@@ -101,12 +101,12 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
 					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 					className={style.Typography}
 				>
-					{newObj.currentObj.length[index]}
+					{newObj.currentObj.length_demolition[index]}
 				</Typography>
 			)}
 		</TableCell>
-		{installation.statuses.map((e, statusIndex) => (
-			<>{renderStatus(installation, isEdit, handleChangeInstallation, newObj, index, statusIndex)}</>
+		{demolitionInstallation.statuses.map((e, statusIndex) => (
+			<>{renderStatus(demolitionInstallation, isEdit, handleChangeInstallation, newObj, index, statusIndex)}</>
 		))}
 		{hoveredRowIndex === index && isEdit && (
 			<HoverBox index={index} setVisibleNotes={handleOpenPopup} deleteRow={deleteRow} />
@@ -116,16 +116,16 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
 	
 )}
 
-const renderStatus = (installation, isEdit, handleChangeInstallation, newObj, connIndex, statusIndex) => {
-	const { bgColor, textColor } = getColorFromValue(installation.statuses?.[statusIndex]);
+const renderStatus = (demolitionInstallation, isEdit, handleChangeInstallation, newObj, connIndex, statusIndex) => {
+	const { bgColor, textColor } = getColorFromValue(demolitionInstallation.statuses?.[statusIndex]);
 
 	return (
 		<TableCell className={style.TableCell} sx={{ width: '20%'}}>
 			{isEdit ? (
 				<StyledSelect
-					value={installation.statuses?.[statusIndex]}
+					value={demolitionInstallation.statuses?.[statusIndex]}
 					label="Status"
-					onChange={(e) => handleChangeInstallation(e.target.value, 'statuses_installation', newObj.id, connIndex, statusIndex)}
+					onChange={(e) => handleChangeInstallation(e.target.value, 'statuses', newObj.id, connIndex, statusIndex)}
 					variant="outlined"
 					className={style.StyledSelect}
 					IconComponent={CustomSelectIcon}
@@ -144,7 +144,7 @@ const renderStatus = (installation, isEdit, handleChangeInstallation, newObj, co
 					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', whiteSpace: 'nowrap'  }}
 					className={style.Typography}
 				>
-					{STATUS_MAP[installation.statuses?.[statusIndex]]}
+					{STATUS_MAP[demolitionInstallation.statuses?.[statusIndex]]}
 				</Typography>
 			)}
 		</TableCell>
@@ -158,7 +158,7 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 
 	const handleOpenPopup = (index) => {
 		setIsNotePopupOpen(true);
-		setInputValue(newObj.currentObj.installations[index].note)
+		setInputValue(newObj.currentObj.demolitionInstallations[index].note)
 	};
 
 
@@ -169,13 +169,13 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 
 
 	const AddNote = () => {
-		handleAddNote(newObj.id, inputValue, "installations", hoveredRowIndex)
+		handleAddNote(newObj.id, inputValue, "demolitionInstallations", hoveredRowIndex)
 		setIsNotePopupOpen(false)
 		setInputValue('')
 	}
 
 	const deleteRow = (index) => {	
-		handleDeleteRow(newObj.id, index, "installations")
+		handleDeleteRow(newObj.id, index, "demolitionInstallations")
 	}
 
 	const button = { label: 'Continue', onClick: (() => AddNote()) }
@@ -187,7 +187,7 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 			sx={{ overflow: 'visible', position: 'relative', zIndex: 1}}
 			in={isExpanded}
 			collapsedSize={
-				newObj.currentObj.installations.length < 7 ? `${(newObj.currentObj.installations.length * 4.5) + 4}vh`: '34vh'
+				newObj.currentObj.demolitionInstallations.length < 7 ? `${(newObj.currentObj.demolitionInstallations.length * 4.5) + 4}vh`: '34vh'
 			}
 		>
 			<Box
@@ -209,32 +209,32 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 							<TableRow style={{width: '100%', backgroundColor: '#f9f9fa' }}>
 								{renderTableCell('T/L Section', '10%', true)}
 								{renderTableCell('Length(m)', '40%', true)}
-								{newObj.currentObj.installations[0]?.statuses.map((_, index) => (
+								{newObj.currentObj.demolitionInstallations[0]?.statuses.map((_, index) => (
 									<>{renderTableCell(`${index + 1}T/L`, '10%', true)}</>
 								))}
 							</TableRow>
 						</TableHead>
 						<TableBody>
-							{newObj.currentObj.installations.map((installation, index) => {
+							{newObj.currentObj.demolitionInstallations.map((demolitionInstallation, index) => {
 								let status = ''
-								const joinType = newObj.currentObj.connections[index]?.joinType
-								console.log(newObj, newObj.currentObj.installations)
+								const joinType = newObj.currentObj.demolitions[index]?.joinType
+								console.log(newObj, newObj.currentObj.demolitionInstallations)
 								if (index === 0) {
 									status = `${newObj?.currentObj?.inputValues?.first?.startLocation}${newObj.currentObj.start}#${index + 1}~${JB_TYPE_MAP[joinType]}#${
 										index + 1
 									}`
-								} else if (index === newObj.currentObj.installations.length - 1) {
-									if (newObj.isEnd) {
-										status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1]?.joinType]}#${index}~${newObj?.currentObj?.inputValues?.first?.endLocation}${newObj.currentObj.end}`;
+								} else if (index === newObj.currentObj.demolitionInstallations.length - 1) {
+									if (newObj.isDemolitionEnd) {
+										status = `${JB_TYPE_MAP[newObj.currentObj.demolitions[index - 1]?.joinType]}#${index}~${newObj?.currentObj?.inputValues?.first?.endLocation}${newObj.currentObj.end}`;
 									} else {
-										status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1]?.joinType]}#${index}~${JB_TYPE_MAP[joinType]}#${index + 1}`;
+										status = `${JB_TYPE_MAP[newObj.currentObj.demolitions[index - 1]?.joinType]}#${index}~${JB_TYPE_MAP[joinType]}#${index + 1}`;
 									}
 								} else {
-									status = `${JB_TYPE_MAP[newObj.currentObj?.connections[index - 1]?.joinType]}#${index}~${
+									status = `${JB_TYPE_MAP[newObj.currentObj?.demolitions[index - 1]?.joinType]}#${index}~${
 										JB_TYPE_MAP[joinType]
 									}#${index + 1}`
 								}
-								return <>{renderTableRow(installation, index, handleChangeInstallation, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow)}</>
+								return <>{renderTableRow(demolitionInstallation, index, handleChangeInstallation, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow)}</>
 							})}
 
 						</TableBody>
@@ -242,7 +242,7 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 				</TableContainer>
 			</Box>
 		</Collapse>
-		{newObj.currentObj.installations.length > 6 && (
+		{newObj.currentObj.demolitionInstallations.length > 6 && (
 			<IconButton
 				style={{
 					border: '1px solid rgba(0, 0, 0, 0.1)',
