@@ -43,15 +43,12 @@ const StyledInstallation = styled(Box)({
 })
 
 const StyledDemolition = styled(Box)(({ demolitionTableWidth }) => ({
-	flex: '1 1 auto',
 	display: 'flex',
 	flexDirection: 'column',
 	alignItems: 'flex-start',
-	justifyContent: 'flex-end',
+	justifyContent: 'flex-start',
+	position: 'relative',
 	gap: '8px',
-	borderRadius: '8px',
-	backgroundColor: '#fff',
-	alignSelf: 'auto',
 	width: demolitionTableWidth,
 }));
 
