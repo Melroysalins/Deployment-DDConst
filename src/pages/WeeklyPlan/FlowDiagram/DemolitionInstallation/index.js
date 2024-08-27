@@ -224,11 +224,7 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 										index + 1
 									}`
 								} else if (index === newObj.currentObj.demolitionInstallations.length - 1) {
-									if (newObj.isDemolitionEnd) {
-										status = `${JB_TYPE_MAP[newObj.currentObj.demolitions[index - 1]?.joinType]}#${index}~${newObj?.currentObj?.inputValues?.first?.endLocation}${newObj.currentObj.end}`;
-									} else {
-										status = `${JB_TYPE_MAP[newObj.currentObj.demolitions[index - 1]?.joinType]}#${index}~${JB_TYPE_MAP[joinType]}#${index + 1}`;
-									}
+									status = `${JB_TYPE_MAP[newObj.currentObj.demolitions[index - 1]?.joinType]}#${index}~${newObj?.currentObj?.inputValues?.first?.endLocation}${newObj.currentObj.end}`;
 								} else {
 									status = `${JB_TYPE_MAP[newObj.currentObj?.demolitions[index - 1]?.joinType]}#${index}~${
 										JB_TYPE_MAP[joinType]

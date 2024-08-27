@@ -130,24 +130,13 @@ export const generateEdges = (startId, newObj, isDemolition) => {
 				});
 			} 
 			else if (i === items.length - 1) {
-				if ((isDemolition && newObj.isDemolitionEnd) || (!isDemolition && newObj.isEnd)) {
-					edges.push({
-						id: `${startId}.end.${j + 1}`,
-						source: `${startId}.${items.length-1}.${j + 1}`,
-						target: `${startId}.end.${j + 1}`,
-						style: { stroke: STROKE_COLOR[status] },
-						type,
-					});
-				} 
-				else {
-					edges.push({
-						id: `${startId}.${i}-${i + 1}.${j + 1}`,
-						source: `${startId}.${i}.${j + 1}`,
-						target: `${startId}.${i + 1}.${j + 1}`,
-						style: { stroke: STROKE_COLOR[status] },
-						type,
-					});
-				}
+				edges.push({
+					id: `${startId}.end.${j + 1}`,
+					source: `${startId}.${items.length-1}.${j + 1}`,
+					target: `${startId}.end.${j + 1}`,
+					style: { stroke: STROKE_COLOR[status] },
+					type,
+				});
 			} 
 			else {
 				edges.push({

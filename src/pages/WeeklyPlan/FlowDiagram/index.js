@@ -654,8 +654,11 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			// Update connections
 			for (let i = 0; i < midPoints - 1; i += 1) {
 				const newConnection = { ...defaultConnection, statuses: [] }
-				const newInstallation = { statuses:[], note: ''}
 				updatedMainObj.connections.push(newConnection)
+			}
+
+			for (let i =0 ;i < midPoints; i += 1) {
+				const newInstallation = { statuses:[], note: ''}
 				updatedMainObj.installations.push(newInstallation)
 				updatedMainObj.length.push(600)
 			}
@@ -696,8 +699,11 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			// Update demolitions
 			for (let i = 0; i < demolitionPoints - 1; i += 1) {
 				const newDemolition = { ...defaultConnection, statuses: [] }
-				const newInstallation = { statuses:[], note: ''}
 				updatedMainObj.demolitions.push(newDemolition)
+			}
+
+			for (let i =0 ;i < demolitionPoints; i += 1) {
+				const newInstallation = { statuses:[], note: ''}
 				updatedMainObj.demolitionInstallations.push(newInstallation)
 				updatedMainObj.length_demolition.push(600)
 			}
@@ -757,14 +763,17 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			const updatedMainObj = { ...obj.currentObj };
 			if (field === 'connections') {
 				updatedMainObj[field] = updatedMainObj[field].filter((_, i) => i !== index);
-			} else if (field === 'installations') {
-				updatedMainObj[field] = updatedMainObj[field].filter((_, i) => i !== index);
-				if (updatedMainObj.length && index < updatedMainObj.length) {
+				// Also delete installations
+				updatedMainObj.installations = updatedMainObj.installations.filter((_, i) => i !== index);
+				if (updatedMainObj.length && index < updatedMainObj.length.length) {
 					delete updatedMainObj.length[index]; 
 				}
-			} else if (field === 'demolitions') {
+			} 
+			if (field === 'demolitions') {
 				updatedMainObj[field] = updatedMainObj[field].filter((_, i) => i !== index);
-				if (updatedMainObj.length_demolition && index < updatedMainObj.length_demolition) {
+				// Also delete installations
+				updatedMainObj.demolitionInstallations = updatedMainObj.demolitionInstallations.filter((_, i) => i !== index);
+				if (updatedMainObj.length_demolition && index < updatedMainObj.length_demolition.length) {
 					delete updatedMainObj.length_demolition[index]; 
 				}
 			}
@@ -878,37 +887,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			...obj,
 			isDemolition: !obj.isDemolition,
 		}))
-	}
-
-	const handleCloseInstallation = (objId, field) => {
-		const updatedObjs = objs.map((obj) => {
-			if (obj.id !== objId) return obj;
-	
-			const updatedMainObj = { ...obj.currentObj };
-			if (field === 'demolition') {
-				const lastInstallation = obj.currentObj.demolitionInstallations[obj.currentObj.demolitionInstallations.length - 1];
-				const newInstallation = { ...lastInstallation, note: '' };		
-				const updatedInstallations = [...obj.currentObj.demolitionInstallations, newInstallation];
-				updatedMainObj.demolitionInstallations = updatedInstallations;
-				updatedMainObj.length_demolition = [...obj.currentObj.length_demolition, 600];
-			} else {
-				const lastInstallation = obj.currentObj.installations[obj.currentObj.installations.length - 1];
-				const newInstallation = { ...lastInstallation, note: '' };		
-				const updatedInstallations = [...obj.currentObj.installations, newInstallation];
-				updatedMainObj.installations = updatedInstallations;
-				updatedMainObj.length = [...obj.currentObj.length, 600];
-			}
-	
-			return { 
-				...obj, 
-				currentObj: updatedMainObj, 
-				isEnd: field !== 'demolition' ? true : obj.isEnd, 
-				isDemolitionEnd: field === 'demolition' ? true : obj.isDemolitionEnd, 
-				hasChanges: true 
-			};
-		});
-	
-		setObjs(updatedObjs);
 	}
 
 	const setCurrentObj = ({
@@ -1139,7 +1117,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 												handleAddConnection={handleAddConnection}
 												index={index}
 												isEdit={newObj.isEditing}
-												handleCloseInstallation={handleCloseInstallation}
 												handleChangeDemolition={handleChangeDemolition}
 												handleAddDemolition={handleAddDemolition}
 												handleChangeInstallation={handleChangeInstallation}

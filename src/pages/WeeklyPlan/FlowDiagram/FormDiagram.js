@@ -154,7 +154,6 @@ export default function FormDiagram({
 	handleAddConnection,
 	isEdit,
 	isDemolition,
-	handleCloseInstallation,
 	handleChangeDemolition,
 	handleAddDemolition,
 	handleChangeInstallation,
@@ -187,7 +186,6 @@ export default function FormDiagram({
 					{newObj?.currentObj?.startStatuses && (
 						<ConnectionTable
 							handleAddConnection={handleAddConnection}
-							handleCloseInstallation={handleCloseInstallation}
 							handleNewObjChange={handleNewObjChange}
 							newObj={newObj}
 							isEdit={isEdit}
@@ -223,7 +221,6 @@ export default function FormDiagram({
 							<DemolitionTable
 							handleAddDemolition={handleAddDemolition}
 							handleAddConnection={handleAddConnection}
-							handleCloseInstallation={handleCloseInstallation}
 							handleChangeDemolition={handleChangeDemolition}
 							newObj={newObj}
 							isEdit={isEdit}
@@ -239,7 +236,6 @@ export default function FormDiagram({
 						{newObj?.currentObj?.startStatuses && (
 							<DemolitionInstallation
 								handleChangeInstallation={handleChangeInstallation}
-								handleCloseInstallation={handleCloseInstallation}
 								newObj={newObj}
 								isEdit={isEdit}
 								isDemolitionExpanded={isDemolitionExpanded}
@@ -261,7 +257,6 @@ FormDiagram.propTypes = {
 	handleAddConnection: PropTypes.func.isRequired,
 	isEdit: PropTypes.bool,
 	isDemolition: PropTypes.bool,
-	handleCloseInstallation: PropTypes.func.isRequired,
 	handleChangeDemolition: PropTypes.func.isRequired,
 	handleAddDemolition: PropTypes.func.isRequired,
 	handleChangeInstallation: PropTypes.func.isRequired,

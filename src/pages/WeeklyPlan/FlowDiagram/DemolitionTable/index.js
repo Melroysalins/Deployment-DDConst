@@ -282,7 +282,7 @@ const renderStatusStartEnd = (isEdit, handleChangeDemolition, newObj, index, nam
 	)
 }
 
-const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, isEdit, handleAddNote, handleDeleteRow, handleCloseInstallation, toggleDemolitionExpand, isDemolitionExpanded }) => {
+const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, isEdit, handleAddNote, handleDeleteRow, toggleDemolitionExpand, isDemolitionExpanded }) => {
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
 	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
@@ -656,24 +656,6 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 						>
             				<AddIcon sx={{ color: '#fff', fontSize: window.innerWidth < 1600 ? 16 : 'inherit' }} /> {/* Adjusted icon size */}
 						</IconButton>
-						{!newObj.isDemolitionEnd && (
-							<Tooltip title="Done adding" arrow placement="right">
-								<IconButton
-									style={{
-										border: '1px solid #6ac79b',
-										backgroundColor: '#fff',
-										boxShadow: '0px 8px 16px rgba(152, 210, 195, 0.24)',
-										borderRadius: '32px',
-										padding: '0px',
-										width: window.innerWidth < 1600 ? '20px' : '24px', // Adjusted size
-										height: window.innerHeight < 900 ? '20px' : '24px', // Adjusted size
-									}}
-									onClick={() => handleCloseInstallation(newObj.id, 'demolition')} // Add onClick event handler here
-								>
-                    				<Iconify icon="ic:round-check" width={window.innerWidth < 1600 ? 14 : 16} height={window.innerHeight < 900 ? 14 : 16} sx={{ color: '#6ac78b' }} /> {/* Adjusted icon size */}
-								</IconButton>
-							</Tooltip>
-						)}
 					</Box>
 				)}
 				{newObj.currentObj.demolitions.length > 6 && (
@@ -712,7 +694,6 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 
 DemolitionTable.propTypes = {
 	handleAddDemolition: PropTypes.func.isRequired,
-	handleCloseInstallation: PropTypes.func.isRequired,
 	handleChangeDemolition: PropTypes.func.isRequired,
 	newObj: PropTypes.object.isRequired,
 	isEdit: PropTypes.bool,
