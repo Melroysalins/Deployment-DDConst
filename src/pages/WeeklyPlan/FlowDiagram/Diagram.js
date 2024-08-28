@@ -103,37 +103,42 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 	}
 
 	const applyEdgeChanges = () => {
-		const { status, source } = editEdgeObj
-		
+		const { status, source } = editEdgeObj;
+		console.log(status, source);
+	
 		const updatedEdges = edges.map((edge) =>
 			edge.source === source ? { ...edge, style: { stroke: STROKE_COLOR[status] } } : edge
-		
-		)
-
+		);
+	
 		const InstallationIndex = source.split('.')[1] === 'start' ? 0 : parseInt(source.split('.')[1], 10);
 		const statusIndex = parseInt(source.split('.')[2], 10) - 1;
-		console.log(InstallationIndex, statusIndex)
-		const { currentObj } = newObj
-		const updatedCurrentObj = { ...currentObj }
-		const updatedInstallations = updatedCurrentObj.installations.map((installation, index) => {
+		console.log(InstallationIndex, statusIndex);
+	
+		const { currentObj } = newObj;
+		const updatedCurrentObj = { ...currentObj };
+	
+		const fieldToUpdate = isDemolition ? 'demolitionInstallations' : 'installations';
+		const updatedInstallations = updatedCurrentObj[fieldToUpdate].map((installation, index) => {
 			if (index === InstallationIndex) {
-				const updatedStatuses = installation.statuses.map((oldStatus, sIndex) => (sIndex === statusIndex ? status : oldStatus))
-				return { ...installation, statuses: updatedStatuses }
+				const updatedStatuses = installation.statuses.map((oldStatus, sIndex) => (sIndex === statusIndex ? status : oldStatus));
+				return { ...installation, statuses: updatedStatuses };
 			}
-			return installation
-		})
-
-		updatedCurrentObj.installations = updatedInstallations
-		const otherEdges = isDemolition ? newObj.edges : newObj.edges_demolition
+			return installation;
+		});
+	
+		updatedCurrentObj[fieldToUpdate] = updatedInstallations;
+		const otherEdges = isDemolition ? newObj.edges : newObj.edges_demolition;
+	
 		setCurrentObj({
 			objId,
 			currentObj: updatedCurrentObj,
 			isEditing: true,
 			edges: !isDemolition ? updatedEdges : otherEdges,
 			edges_demolition: isDemolition ? updatedEdges : otherEdges,
-		})
-		handleEditingEdgeCancel()
-	}
+		});
+	
+		handleEditingEdgeCancel();
+	};
 
 	const UpdateImageView = () => (
 		<Dialog onClose={handleEditingImageCancel} open={showEditModal}>

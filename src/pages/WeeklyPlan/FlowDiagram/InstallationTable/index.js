@@ -175,7 +175,7 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 	}
 
 	const deleteRow = (index) => {	
-		handleDeleteRow(newObj.id, index, "installations")
+		handleDeleteRow(newObj.id, index, "connections")
 	}
 
 	const button = { label: 'Continue', onClick: (() => AddNote()) }

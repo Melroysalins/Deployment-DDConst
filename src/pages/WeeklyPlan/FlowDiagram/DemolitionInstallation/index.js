@@ -151,7 +151,7 @@ const renderStatus = (demolitionInstallation, isEdit, handleChangeInstallation, 
 	)
 }
 
-const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpanded, toggleExpand, handleAddNote, handleDeleteRow}) => {
+const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isDemolitionExpanded, toggleDemolitionExpand, handleAddNote, handleDeleteRow}) => {
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
 	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
 	const [inputValue, setInputValue] = useState(); 
@@ -175,7 +175,7 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 	}
 
 	const deleteRow = (index) => {	
-		handleDeleteRow(newObj.id, index, "demolitionInstallations")
+		handleDeleteRow(newObj.id, index, "demolitions")
 	}
 
 	const button = { label: 'Continue', onClick: (() => AddNote()) }
@@ -185,14 +185,14 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 	<Box sx={{ position: 'relative', width: '100%'}}>
 		<Collapse
 			sx={{ overflow: 'visible', position: 'relative', zIndex: 1}}
-			in={isExpanded}
+			in={isDemolitionExpanded}
 			collapsedSize={
 				newObj.currentObj.demolitionInstallations.length < 7 ? `${(newObj.currentObj.demolitionInstallations.length * 4.5) + 4}vh`: '34vh'
 			}
 		>
 			<Box
 				sx={{
-					maxHeight: isExpanded ? 'none' : '34.7vh',
+					maxHeight: isDemolitionExpanded ? 'none' : '34.7vh',
 					overflow: 'auto',
 				}}
 			>
@@ -254,10 +254,10 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 					bottom: '-12px',
 					padding: '0px',
 				}}
-				onClick={toggleExpand}
+				onClick={toggleDemolitionExpand}
 			>
 				<Iconify
-					icon={isExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
+					icon={isDemolitionExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
 					width={window.innerWidth < 1600 ? 14 : 16} // Adjusted size
 					height={window.innerHeight < 900 ? 14 : 16} // Adjusted size
 					sx={{ color: '#596570' }}
@@ -274,8 +274,8 @@ InstallationTable.propTypes = {
 	handleChangeInstallation: PropTypes.func.isRequired,
 	newObj: PropTypes.object.isRequired,
 	isEdit: PropTypes.bool.isRequired,
-	isExpanded: PropTypes.bool.isRequired,
-	toggleExpand: PropTypes.func.isRequired,
+	isDemolitionExpanded: PropTypes.bool.isRequired,
+	toggleDemolitionExpand: PropTypes.func.isRequired,
 	handleAddNote: PropTypes.func.isRequired,
 	handleDeleteRow: PropTypes.func.isRequired,
 }

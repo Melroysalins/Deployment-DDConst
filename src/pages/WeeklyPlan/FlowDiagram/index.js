@@ -741,7 +741,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				updatedMainObj.startNote = value;
 			} else if (index === "end") {
 				updatedMainObj.endNote = value;
-			} else if (['connections', 'demolitions', 'installations'].includes(field)) {
+			} else if (['connections', 'demolitions', 'installations', 'demolitionInstallations'].includes(field)) {
 				updatedMainObj[field] = updatedMainObj[field].map((conn, i) => {
 					if (i === index) {
 						return { ...conn, note: value };
@@ -996,7 +996,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 									)}
 									{isEditable && newObj.project && !newObj.isEditing && (
 										<StyledButton
-											onClick={() => handleOpenPopup('edit', {id: newObj.id})}
+											onClick={() => handleEditButtonClick(newObj.id)}
 											style={{ boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)' }}
 											variant="outlined"
 											sx={{

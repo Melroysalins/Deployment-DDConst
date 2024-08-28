@@ -247,7 +247,7 @@ const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connInd
 	)
 }
 
-const renderStatusStartEnd = (isEdit, handleChangeDemolition, newObj, index, name) => {
+const renderStatusStartEnd = (isEdit, handleNewObjChange, newObj, index, name) => {
 	const { bgColor, textColor } = getColorFromValue(newObj.currentObj[name]?.[index]);
 	
 	return (
@@ -257,7 +257,7 @@ const renderStatusStartEnd = (isEdit, handleChangeDemolition, newObj, index, nam
 						className={style.StyledSelect}
 						label="Status"
 						value={newObj.currentObj[name]?.[index]}
-						onChange={(e) => handleChangeDemolition(e.target.value, name, newObj.id, index)}
+						onChange={(e) => handleNewObjChange(e.target.value, name, newObj.id, index)}
 						variant="outlined"
 						IconComponent={CustomSelectIcon}
 						bgColor={bgColor}
@@ -282,7 +282,7 @@ const renderStatusStartEnd = (isEdit, handleChangeDemolition, newObj, index, nam
 	)
 }
 
-const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, isEdit, handleAddNote, handleDeleteRow, toggleDemolitionExpand, isDemolitionExpanded }) => {
+const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, isEdit, handleAddNote, handleDeleteRow, toggleDemolitionExpand, isDemolitionExpanded, handleNewObjChange }) => {
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
 	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
@@ -428,7 +428,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 												className={style.Select}
 												color="primary"
 												value={newObj.currentObj.start}
-												onChange={(e) => handleChangeDemolition(e.target.value, 'start', newObj.id)}
+												onChange={(e) => handleNewObjChange(e.target.value, 'start', newObj.id)}
 												disableUnderline
 												displayEmpty
 												IconComponent={CustomSelectIcon}
@@ -456,7 +456,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 												className={style.Select}
 												color="primary"
 												value={newObj.currentObj.startConnector}
-												onChange={(e) => handleChangeDemolition(e.target.value, 'startConnector', newObj.id)}
+												onChange={(e) => handleNewObjChange(e.target.value, 'startConnector', newObj.id)}
 												disableUnderline
 												displayEmpty
 												IconComponent={CustomSelectIcon}
@@ -479,7 +479,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 									)}
 								</TableCell>
 								{newObj.currentObj.startStatuses.map((e, index) => (
-									<>{renderStatusStartEnd(isEdit, handleChangeDemolition, newObj, index, 'startStatuses')}</>
+									<>{renderStatusStartEnd(isEdit, handleNewObjChange, newObj, index, 'startStatuses')}</>
 								))}
 								{hoveredRowIndex === 'start' && isEdit && (
 									<HoverBox index={'start'} setVisibleNotes={handleOpenPopup} />
@@ -505,7 +505,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 											className={style.Select}
 											color="primary"
 											value={newObj.currentObj.end}
-											onChange={(e) => handleChangeDemolition(e.target.value, 'end', newObj.id)}
+											onChange={(e) => handleNewObjChange(e.target.value, 'end', newObj.id)}
 											disableUnderline
 											displayEmpty
 												IconComponent={CustomSelectIcon}
@@ -534,7 +534,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 												color="primary"
 												label="Connector"
 												value={newObj.currentObj.endConnector}
-												onChange={(e) => handleChangeDemolition(e.target.value, 'endConnector', newObj.id)}
+												onChange={(e) => handleNewObjChange(e.target.value, 'endConnector', newObj.id)}
 												disableUnderline
 												displayEmpty
 												IconComponent={CustomSelectIcon}
@@ -557,7 +557,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 									)}
 								</TableCell>
 								{newObj.currentObj.endStatuses.map((e, index) => (
-									<>{renderStatusStartEnd(isEdit, handleChangeDemolition, newObj, index, 'endStatuses')}</>
+									<>{renderStatusStartEnd(isEdit, handleNewObjChange, newObj, index, 'endStatuses')}</>
 								))}
 								{hoveredRowIndex === 'end' && isEdit && (
 									<HoverBox index={'end'} setVisibleNotes={handleOpenPopup} />
@@ -607,12 +607,12 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 				</Box>
 				<Collapse
 					sx={{width: '100%', paddingBottom: '8px', position: 'relative', overflow: 'visible'}}
-					in={isExpanded}
+					in={isDemolitionExpanded}
 					collapsedSize={
-						newObj.currentObj.demolitions.length < 7 ? `${newObj.currentObj.demolitions.length * 4.5}vh` : '30vh'
+						newObj.currentObj.demolitions.length < 7 ? `${newObj.currentObj.demolitions.length * 4}vh` : '29vh'
 					}
 				>
-					<Box ref={boxRef} sx={{ maxHeight: isDemolitionExpanded ? 'none' : '30vh', overflow: 'auto', width: '100%'}}>
+					<Box ref={boxRef} sx={{ maxHeight: isDemolitionExpanded ? 'none' : '29vh', overflow: 'auto', width: '100%'}}>
 						<TableContainer
 							sx={{
 								borderRadius: '0px 0px 8px 0px',
@@ -678,7 +678,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 							onClick={toggleDemolitionExpand}
 						>
 							<Iconify
-								icon={isExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
+								icon={isDemolitionExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
 								width={window.innerWidth < 1600 ? 14 : 16} // Adjusted size
 								height={window.innerHeight < 900 ? 14 : 16} // Adjusted size
 								sx={{ color: '#596570' }}
@@ -703,6 +703,7 @@ DemolitionTable.propTypes = {
 	setIsNotePopupOpen: PropTypes.func.isRequired,
 	handleAddNote: PropTypes.func.isRequired,
 	handleDeleteRow: PropTypes.func.isRequired,
+	handleNewObjChange: PropTypes.func.isRequired,
 }
 
 export default DemolitionTable

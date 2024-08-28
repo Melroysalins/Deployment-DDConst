@@ -165,6 +165,7 @@ export default function FormDiagram({
 	}
 
 	const toggleDemolitionExpand = () => {
+		console.log('toggleDemolitionExpand')
 		setIsDemolitionExpanded((prevIsDemolitionExpand) => !prevIsDemolitionExpand)
 	}
 
@@ -221,10 +222,11 @@ export default function FormDiagram({
 							handleChangeDemolition={handleChangeDemolition}
 							newObj={newObj}
 							isEdit={isEdit}
-							isExpanded={isExpanded}
-							toggleExpand={toggleExpand}
+							isDemolitionExpanded={isDemolitionExpanded}
+							toggleDemolitionExpand={toggleDemolitionExpand}
 							handleAddNote={handleAddNote}
 							handleDeleteRow={handleDeleteRow}
+							handleNewObjChange={handleNewObjChange}
 						/>
 						)}
 					</StyledDemolition>
