@@ -4,72 +4,45 @@ import Iconify from 'components/Iconify';
 import Proptypes from 'prop-types';
 
 const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
-  const initialInputValues = useMemo(() => ({
-    first: {
-      bigInput: newObj?.currentObj?.inputValues?.first?.bigInput || '154',
-      startLocation: newObj?.currentObj?.inputValues?.first?.startLocation || 'Namyang',
-      endLocation: newObj?.currentObj?.inputValues?.first?.endLocation || 'Yeonsu',
-    },
-    second: {
-      voltageLevel: newObj?.currentObj?.inputValues?.second?.voltageLevel || '154',
-      bigInput: newObj?.currentObj?.inputValues?.second?.bigInput || 'XLPE',
-      wiringArea: newObj?.currentObj?.inputValues?.second?.wiringArea || '200',
-      tlCount: parseInt(newObj?.currentObj?.connections?.[0]?.statuses?.length, 10),
-      tlLength: newObj?.currentObj?.inputValues?.second?.tlLength || '2.8',
-    },
-    third: {
-      voltageLevel: newObj?.currentObj?.inputValues?.third?.voltageLevel || '154',
-      bigInput: newObj?.currentObj?.inputValues?.third?.bigInput || 'XLPE',
-      wiringArea: newObj?.currentObj?.inputValues?.third?.wiringArea || '200',
-      tlCount: parseInt(newObj?.currentObj?.demolitions?.[0]?.statuses?.length, 10),
-      tlLength: newObj?.currentObj?.inputValues?.third?.tlLength || '2.8',
-    },
-  }), [newObj]);
 
   newObj.currentObj.inputValues = newObj.currentObj.inputValues || {};
   const [anchorEl, setAnchorEl] = useState(null);
-  const [inputValues, setInputValues] = useState(initialInputValues[type]);
+  const [inputValues, setInputValues] = useState({});
   const [selectedOptions, setSelectedOptions] = useState({
-    first: '',
-    second: '',
-    third: '',
+    cable_name: '',
+    cable_type: '',
+    demolition_type: '',
   });
 
   useEffect(() => {
     const updatedInputValues = {
-      first: {
-        bigInput: newObj?.currentObj?.inputValues?.first?.bigInput || '154',
-        startLocation: newObj?.currentObj?.inputValues?.first?.startLocation || 'Namyang',
-        endLocation: newObj?.currentObj?.inputValues?.first?.endLocation || 'Yeonsu',
+      cable_name: newObj.cable_name,
+      cable_type: {
+        ...newObj.cable_type,
+        tlCount: newObj?.currentObj?.connections[0]?.statuses?.length,
       },
-      second: {
-        voltageLevel: newObj?.currentObj?.inputValues?.second?.voltageLevel || '154',
-        bigInput: newObj?.currentObj?.inputValues?.second?.bigInput || 'XLPE',
-        wiringArea: newObj?.currentObj?.inputValues?.second?.wiringArea || '200',
-        tlCount: parseInt(newObj?.currentObj?.connections?.[0]?.statuses?.length, 10),
-        tlLength: newObj?.currentObj?.inputValues?.second?.tlLength || '2.8',
-      },
-      third: {
-        voltageLevel: newObj?.currentObj?.inputValues?.third?.voltageLevel || '154',
-        bigInput: newObj?.currentObj?.inputValues?.third?.bigInput || 'XLPE',
-        wiringArea: newObj?.currentObj?.inputValues?.third?.wiringArea || '200',
-        tlCount: parseInt(newObj?.currentObj?.demolitions?.[0]?.statuses?.length, 10),
-        tlLength: newObj?.currentObj?.inputValues?.third?.tlLength || '2.8',
+      demolition_type: {
+        ...newObj.demolition_type,
+        tlCount: newObj?.currentObj?.demolitions[0]?.statuses?.length,
       },
     };
 
     setInputValues(updatedInputValues[type]);
     setSelectedOptions((prevOptions) => ({
       ...prevOptions,
-      [type]: formatInputValues(updatedInputValues[type]), // or format the inputValues as needed
+      [type]: formatInputValues(updatedInputValues[type], type),
     }));
   }, [newObj, type]);
 
   useEffect(() => {
-    if (newObj?.currentObj?.inputValues) {
-      newObj.currentObj.inputValues[type] = inputValues;
+    if (type === "cable_name") {
+      newObj.cable_name = inputValues;
+    } else if (type === "cable_type") {
+      newObj.cable_type = inputValues;
+    } else if (type === "demolition_type") {
+      newObj.demolition_type = inputValues;
     }
-  }, [inputValues, type]);
+  }, [inputValues]);
 
   const handleClick = (event) => {
     if (newObj.isEditing) {
@@ -89,37 +62,43 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
     }));
   };
 
-  const formatInputValues = (values) => {
-    let formattedValues = '';
+  const formatInputValues = (values, type) => {
+    const formattedValues = [];
     Object.entries(values).forEach(([key, value]) => {
       if (value) {
-        formattedValues += `${value}`;
-        if (key === 'voltageLevel' || (key === 'bigInput' && type === 'first')) {
-          formattedValues += 'kV ';
+        if (key === 'bigInput') { 
+          if (type === "cable_name") {
+            formattedValues[0] = `${value}kV`;
+          }
+          if (type === "cable_type" || type === "demolition_type") {
+            formattedValues[1] = `${value}`;
+          }
+        }
+        else if (key === 'voltageLevel') {
+          formattedValues[0] = `${value}kV`;  
         } else if (key === 'wiringArea') {
-          formattedValues += 'sq, ';
+          formattedValues[2] = `${value}sq`;
         } else if (key === 'tlLength') {
-          formattedValues += 'km ';
+          formattedValues[4] = `${value}km`;
+        } else if (key === 'tlCount') {
+          formattedValues[3] = `${value}회선`;
         } else if (key === 'endLocation') {
-            formattedValues += 'T/L ';
+          formattedValues[2] = `${value}T/L`;
         } else if (key === 'startLocation') {
-            formattedValues += '-';
-        } else {
-            formattedValues += ' ';
+          formattedValues[1] = `${value}-`;
         }
       }
     });
-    return formattedValues.slice(0, -2); // Remove the trailing comma and space
+    return formattedValues.join(' ');
   };
 
   const handleOkayClick = (inputValues) => {
-    
     setSelectedOptions((prevOptions) => ({
       ...prevOptions,
-      [type]: formatInputValues(inputValues), // or format the inputValues as needed
+      [type]: formatInputValues(inputValues, type),
     }));
     handleClose(); 
-    handleChangeStatus(newObj.id, parseInt(inputValues.tlCount, 10), type)
+    handleChangeStatus(newObj.id, parseInt(inputValues?.tlCount, 10), type)
   };
 
   const renderGridItem = (label, id, inputAdornment) => {
@@ -164,7 +143,7 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              maxWidth: '100%', // Ensure the Box takes the full width of the parent
+              maxWidth: '100%',
             }}
           >
             {selected}
@@ -179,15 +158,15 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
           />
         )}
         sx={{
-          height: '40px', // Forcefully set the height to 40px
+          height: '40px',
           width: '13.19vw',
           marginRight: '1rem',
           '.MuiOutlinedInput-root': {
-            height: '40px', // Ensure the input root also respects the height
+            height: '40px',
             width: '13.19vw',
           },
           '.MuiSelect-select': {
-            height: '40px', // Ensure the select respects the height
+            height: '40px',
             width: '13.19vw',
             display: 'flex',
             alignItems: 'center',
@@ -216,30 +195,30 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
         <Box
           sx={{
             width: '284px',
-            height: `${type === "first" ? '100%' : '338px'}`,
+            height: `${type === "cable_name" ? '100%' : '338px'}`,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
           }}
         >
           <Grid container sx={{ padding: '24px 24px 6px 24px'}} spacing={2}>
-            { type === "third" && (
+            { type === "demolition_type" && (
               <>
                 {renderGridItem("Voltage level", "voltageLevel", "kV")}
                 {renderGridItem("Wiring Area", "wiringArea", "sq")}
               </>
             )} 
             <Grid item xs={12}>
-              <InputLabel htmlFor="bigInput" sx={{ fontSize: '12px', color: '#212B36', marginBottom: '4px' }}>{type === "first" ? "Voltage level": "Cable Type"}</InputLabel>
+              <InputLabel htmlFor="bigInput" sx={{ fontSize: '12px', color: '#212B36', marginBottom: '4px' }}>{type === "cable_name" ? "Voltage level": "Cable Type"}</InputLabel>
               <TextField
                 fullWidth
                 size="small"
-                id='bigInput'
-                value={type === "first" ? inputValues.voltageLevel : inputValues.cableType}
+                id="bigInput"
+                value={inputValues.bigInput}
                 onChange={handleInputChange}
                 sx={{ marginBottom: 2, '& .MuiInputBase-input': { fontSize: '14px' } }}
                 InputProps={{
-                  endAdornment: type === "first" ? (
+                  endAdornment: type === "cable_name" ? (
                     <>
                       <Divider sx={{ height: 40, m: 0 }} orientation="vertical" />
                       <InputAdornment position="end">kV</InputAdornment>
@@ -248,13 +227,13 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
                 }}
               />
             </Grid>
-            { type === "first" && (
+            { type === "cable_name" && (
               <>
                 {renderGridItem('Start Location', 'startLocation')}
                 {renderGridItem('End Location', 'endLocation', 'T/L')}
               </>
             )}
-            { type === "second" && (
+            { type === "cable_type" && (
               <>
                 {renderGridItem("Voltage level", "voltageLevel", "kV")}
                 {renderGridItem("Wiring Area", "wiringArea", "sq")}
@@ -262,7 +241,7 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
                 {renderGridItem('T/L Length', 'tlLength', 'km')}
               </>
             )}
-            { type === "third" && (
+            { type === "demolition_type" && (
               <>
                 {renderGridItem('# T/L', 'tlCount')}
                 {renderGridItem('T/L Length', 'tlLength', 'km')}
@@ -346,7 +325,7 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
 };
 
 DropdownPopover.propTypes = {
-  type: Proptypes.oneOf(['first', 'second', 'third']).isRequired,
+  type: Proptypes.oneOf(['cable_name', 'cable_type', 'demolition_type']).isRequired,
   newObj: Proptypes.object.isRequired,
   handleChangeStatus: Proptypes.func.isRequired,
 };

@@ -161,12 +161,10 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isDemolit
 		setInputValue(newObj.currentObj.demolitionInstallations[index].note)
 	};
 
-
 	const handleClosePopup = () => {
 		setIsNotePopupOpen(false);
 		setInputValue('')
 	};
-
 
 	const AddNote = () => {
 		handleAddNote(newObj.id, inputValue, "demolitionInstallations", hoveredRowIndex)
@@ -220,11 +218,11 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isDemolit
 								const joinType = newObj.currentObj.demolitions[index]?.joinType
 								console.log(newObj, newObj.currentObj.demolitionInstallations)
 								if (index === 0) {
-									status = `${newObj?.currentObj?.inputValues?.first?.startLocation}${newObj.currentObj.start}#${index + 1}~${JB_TYPE_MAP[joinType]}#${
+									status = `${newObj?.cable_name?.startLocation}${newObj.currentObj.start}#${index + 1}~${JB_TYPE_MAP[joinType]}#${
 										index + 1
 									}`
 								} else if (index === newObj.currentObj.demolitionInstallations.length - 1) {
-									status = `${JB_TYPE_MAP[newObj.currentObj.demolitions[index - 1]?.joinType]}#${index}~${newObj?.currentObj?.inputValues?.first?.endLocation}${newObj.currentObj.end}`;
+									status = `${JB_TYPE_MAP[newObj.currentObj.demolitions[index - 1]?.joinType]}#${index}~${newObj?.cable_name?.endLocation}${newObj.currentObj.end}`;
 								} else {
 									status = `${JB_TYPE_MAP[newObj.currentObj?.demolitions[index - 1]?.joinType]}#${index}~${
 										JB_TYPE_MAP[joinType]

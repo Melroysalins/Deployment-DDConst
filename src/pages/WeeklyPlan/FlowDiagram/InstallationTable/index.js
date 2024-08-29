@@ -220,11 +220,11 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 								const joinType = newObj.currentObj.connections[index]?.joinType
 								console.log(newObj, newObj.currentObj.installations)
 								if (index === 0) {
-									status = `${newObj?.currentObj?.inputValues?.first?.startLocation}${newObj.currentObj.start}#${index + 1}~${JB_TYPE_MAP[joinType]}#${
+									status = `${newObj?.cable_name?.startLocation}${newObj.currentObj.start}#${index + 1}~${JB_TYPE_MAP[joinType]}#${
 										index + 1
 									}`
 								} else if (index === newObj.currentObj.installations.length - 1) {
-									status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1]?.joinType]}#${index}~Yeonsu${newObj.currentObj.end}`;
+									status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1]?.joinType]}#${index}~${newObj?.cable_name?.endLocation}${newObj.currentObj.end}`;
 								} else {
 									status = `${JB_TYPE_MAP[newObj.currentObj?.connections[index - 1]?.joinType]}#${index}~${
 										JB_TYPE_MAP[joinType]

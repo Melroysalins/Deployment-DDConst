@@ -419,7 +419,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 										variant="body1"
 										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', color: '#596570' }}
 									>
-										{newObj?.currentObj?.inputValues?.first?.startLocation}
+										{newObj?.cable_name?.startLocation}
 									</Typography>
 								</TableCell>
 								<TableCell className={style.TableCell} >
@@ -496,7 +496,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 										variant="body1"
 										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', color: '#596570'  }}
 									>
-										{newObj?.currentObj?.inputValues?.first?.endLocation}
+										{newObj?.cable_name?.endLocation}
 									</Typography>
 								</TableCell>
 								<TableCell className={style.TableCell} sx={{ width: '15%' }}>

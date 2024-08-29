@@ -23,6 +23,8 @@ import {
 	generateStartEndNode,
 	defaultConnection,
 	STATUS,
+	defaultCableName,
+	defaultCableType,
 } from './diagramHelper'
 import { useParams } from 'react-router-dom'
 import {
@@ -327,6 +329,9 @@ const defaultWholeObj = {
 	isDemolition: false,
 	firstOpen: true,
 	hasChanges: false,
+	cable_name: defaultCableName,
+	cable_type: defaultCableType,
+	demolition_type: defaultCableType,
 	nodes_demolition: [],
 	edges_demolition: [],
 }
@@ -423,9 +428,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const handleSaveButtonClick = async (currentNewObj) => {
 		setloading(true)
-		const { nodes, edges, currentObj, project, isDemolition, nodes_demolition, edges_demolition } = currentNewObj
+		const { nodes, edges, currentObj, project, isDemolition, cable_name, cable_type, demolition_type, nodes_demolition, edges_demolition } = currentNewObj
 		const isEdit = project
-		const _obj = { project: id, nodes, edges, currentObj, isDemolition, nodes_demolition, edges_demolition }
+		const _obj = { project: id, nodes, edges, currentObj, isDemolition, cable_name, cable_type, demolition_type, nodes_demolition, edges_demolition }
 		if (isEdit) {
 			await updateProjectDiagram(_obj, id)
 		} else {
@@ -438,6 +443,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					edges,
 					project: id,
 					isEditing: false,
+					cable_name,
+					cable_type,
+					demolition_type,
 					nodes_demolition,
 					edges_demolition,
 				})
@@ -621,7 +629,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			return [...statuses, ...Array(midlines - statuses.length).fill(defaultStatus)];
 		  };
 	  
-		  if (type === 'second') {
+		  if (type === 'cable_type') {
 			updatedMainObj.connections = updatedMainObj.connections.map((connection) => {
 				connection.statuses = updateStatuses(connection.statuses);
 				return connection;
@@ -634,14 +642,26 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		  
 			  updatedMainObj.startStatuses = updateStatuses(updatedMainObj.startStatuses || []);
 			  updatedMainObj.endStatuses = updateStatuses(updatedMainObj.endStatuses || []);
-		  } else {
+
+			  obj.cable_type.tlCount = midlines;
+			  obj.hasChanges = true;
+		  } 
+		  if (type === 'demolition_type') {
 			updatedMainObj.demolitions = updatedMainObj.demolitions.map((demolition) => {
 				demolition.statuses = updateStatuses(demolition.statuses);
 				return demolition;
 			});
+
+			updatedMainObj.demolitionInstallations = updatedMainObj.demolitionInstallations.map((demolitionInstallation) => {
+				demolitionInstallation.statuses = updateStatuses(demolitionInstallation.statuses);
+				return demolitionInstallation;
+			});
+
+			obj.demolition_type.tlCount = midlines;
+			obj.hasChanges = true;
 		  }
 	  
-		  return { ...obj, currentObj: updatedMainObj, hasChanges: true };
+		  return { ...obj, currentObj: updatedMainObj};
 		});
 		setObjs(updatedObjs);
 	};
@@ -937,15 +957,15 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 								<LeftContent onClick={(event) => event.stopPropagation()} sx={{ position: 'relative', left: '2rem', textAlign: 'center', gap: '0px', display: 'flex', flexDirection: 'row', alignItems: 'center', whiteSpace: 'nowrap' }}>
 									<CableContent style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300, color: '#606380' }}>
 										Cable Name
-										<DropdownPopover type="first" newObj={newObj} setObjs={setObjs}/>
+										<DropdownPopover type="cable_name" newObj={newObj} handleChangeStatus={handleChangeStatus}/>
 									</CableContent>
 									<CableContent style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300, color: '#606380'  }}>
 										Cable Type
-										<DropdownPopover type="second" newObj={newObj} handleChangeStatus={handleChangeStatus}/>
+										<DropdownPopover type="cable_type" newObj={newObj} handleChangeStatus={handleChangeStatus}/>
 									</CableContent>
 									<CableContent style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300, color: '#606380'  }}>
 										Demolition
-										<DropdownPopover type="third" newObj={newObj} handleChangeStatus={handleChangeStatus}/>
+										<DropdownPopover type="demolition_type" newObj={newObj} handleChangeStatus={handleChangeStatus}/>
 									</CableContent>
 								</LeftContent>
 								<RightContent onClick={(event) => event.stopPropagation()}>

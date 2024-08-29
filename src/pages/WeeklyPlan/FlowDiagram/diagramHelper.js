@@ -181,6 +181,20 @@ export const defaultConnection = {
 	note: '',
 }
 
+export const defaultCableName = {
+	bigInput: '154',
+	startLocation: 'Namyang',
+	endLocation: 'Yeonsu',
+}
+
+export const defaultCableType = {
+	voltageLevel: '154',
+	bigInput: 'XLPE',
+	wiringArea: '200',
+	tlCount: '1',
+	tlLength: '2.8',
+}
+
 export const defaultNewObj = {
 	start: JUNCTION_BOX[0].value,
 	end: JUNCTION_BOX[0].value,
