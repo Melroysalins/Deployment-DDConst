@@ -210,7 +210,7 @@ export const defaultNewObj = {
 	connections: [defaultConnection],
 	installations: [{ statuses: [STATUS[0].value], note: ''}],
 	demolitions: [defaultConnection],
-	demolitionInstallations: [{ statuses: [STATUS[0].value], note: ''}],
+	demolitionInstallations: [{ statuses: [STATUS[0].value], note: ''},{ statuses: [STATUS[0].value], note: ''}],
 	length: [600],
 	length_demolition: [600],
 	endpoints: defaultEndpoints,

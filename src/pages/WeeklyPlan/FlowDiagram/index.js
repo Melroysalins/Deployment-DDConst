@@ -403,8 +403,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				data.map(async (diagram) => {
 					const tableData1 = await getTableByProjectDiagram(diagram.id, false);
 					const tableData2 = await getTableByProjectDiagram(diagram.id, true);
-					console.log("tableData1", tableData1)
-					console.log("tableData2", tableData2)
 					return {
 						...diagram,
 						currentObj: {
@@ -429,9 +427,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					};
 				})
 			);
-
-			console.log('updatedData', updatedData);
-
 			const ids = data.map((diagram) => diagram.id);
 			setObjs(updatedData);
 			const maxId = Math.max(...ids);
@@ -557,7 +552,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	}
 
 	const handleChangeInstallation = (value, field, objId, connIndex, statusIndex) => {
-		console.log('field', field)
 
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id !== objId) return obj
@@ -804,7 +798,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 			for (let i =0 ;i < demolitionPoints; i += 1) {
 				const newInstallation = { statuses:[], note: ''}
-				console.log(i)
 				updatedMainObj.demolitionInstallations.push(newInstallation)
 				updatedMainObj.length_demolition.push(600)
 			}
@@ -964,7 +957,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				currentObj: {
 					...obj.currentObj,
 					demolitions: isDemolition ? obj.currentObj.demolitions : [defaultConnection],
-					length_demolition: isDemolition ? obj.currentObj.length_demolition : [600],
+					length_demolition: isDemolition ? obj.currentObj.length_demolition : [600, 600],
 				},
 				hasChanges: false,
 			}

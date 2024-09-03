@@ -585,7 +585,6 @@ const ConnectionTable = ({
 					justifyContent: 'flex-start',
 					alignItems: 'flex-start',
 					width: '100%',
-					marginBottom: '5vh',
 				}}
 			>
 				<Box
@@ -618,7 +617,7 @@ const ConnectionTable = ({
 					sx={{width: '100%', paddingBottom: '8px', position: 'relative', overflow: 'visible'}}
 					in={isExpanded}
 					collapsedSize={
-						newObj.currentObj.connections.length < 7 ? `${newObj.currentObj.connections.length * 4}vh` : '29vh'
+						newObj.currentObj.connections.length < 7 ? `${newObj.currentObj.connections.length * 4.7}vh` : '29vh'
 					}
 				>
 					<Box ref={boxRef} sx={{ maxHeight: isExpanded ? 'none' : '29vh', overflow: 'auto', width: '100%'}}>

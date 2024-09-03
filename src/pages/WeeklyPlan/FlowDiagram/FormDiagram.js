@@ -16,6 +16,7 @@ const StyledRowTables = styled(Box)(({ flexDirection }) => ({
 	justifyContent: 'flex-start',
 	width: '100%',
 	gap: '16px',
+	marginBottom: '20px',
 }));
 
 const StyledConnection = styled(Box)(({ connectionTableWidth }) => ({

@@ -609,7 +609,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 					sx={{width: '100%', paddingBottom: '8px', position: 'relative', overflow: 'visible'}}
 					in={isDemolitionExpanded}
 					collapsedSize={
-						newObj.currentObj.demolitions.length < 7 ? `${newObj.currentObj.demolitions.length * 4}vh` : '29vh'
+						newObj.currentObj.demolitions.length < 7 ? `${newObj.currentObj.demolitions.length * 4.7}vh` : '29vh'
 					}
 				>
 					<Box ref={boxRef} sx={{ maxHeight: isDemolitionExpanded ? 'none' : '29vh', overflow: 'auto', width: '100%'}}>
