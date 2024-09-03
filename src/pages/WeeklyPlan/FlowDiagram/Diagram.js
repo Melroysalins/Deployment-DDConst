@@ -13,7 +13,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 	const [showEdgeModal, setshowEdgeModal] = useState(false)
 	const [editEdgeObj, seteditEdgeObj] = useState(null)
 	const [currentType, setCurrentType] = useState('')
-	const midLines = newObj.currentObj[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length
+	const midLines = newObj.currentObj?.[isDemolition ? 'demolitions' : 'connections']?.[0]?.statuses?.length
 	const diagramHeight = Math.min(230 + midLines * 20, newObj.isDemolition ? 230 : 350)
 
 	const applyImageChanges = () => {
@@ -28,19 +28,19 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 
 		const { currentObj } = newObj
 		let updatedCurrentObj = { ...currentObj }
-		let otherNodes = isDemolition ? newObj.nodes : newObj.nodes_demolition
+		// let otherNodes = isDemolition ? newObj.nodes : newObj.nodes_demolition
 		if (isEndbox) {
-			otherNodes = otherNodes.map((node) =>
-				node.id === editImageObj.id ? { ...node, data: { ...node.data, ...editImageObj } } : node
-			)
+			// otherNodes = otherNodes.map((node) =>
+			// 	node.id === editImageObj.id ? { ...node, data: { ...node.data, ...editImageObj } } : node
+			// )
 			if (editImageObj.id.split('.')[1] === 'start') {
 				// Start
-				updatedCurrentObj.startStatuses[_getCount - 1] = status
-				updatedCurrentObj.startConnector = type
+				updatedCurrentObj[isDemolition ? 'endpointsDemolition' : 'endpoints'].startStatuses[_getCount - 1] = status
+				updatedCurrentObj[isDemolition ? 'endpointsDemolition' : 'endpoints'].startConnector = type
 			} else {
 				// End
-				updatedCurrentObj.endStatuses[_getCount - 1] = status
-				updatedCurrentObj.endConnector = type
+				updatedCurrentObj[isDemolition ? 'endpointsDemolition' : 'endpoints'].endStatuses[_getCount - 1] = status
+				updatedCurrentObj[isDemolition ? 'endpointsDemolition' : 'endpoints'].endConnector = type
 			}
 		} else {
 			const spilittedIds = editImageObj.id.split('.')
@@ -61,8 +61,8 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 			objId,
 			currentObj: updatedCurrentObj,
 			isEditing: true,
-			nodes: !isDemolition ? updatedNodes : otherNodes,
-			nodes_demolition: isDemolition ? updatedNodes : otherNodes,
+			nodes: !isDemolition ? updatedNodes : newObj.nodes,
+			nodes_demolition: isDemolition ? updatedNodes : newObj.nodes_demolition,
 			hasChanges: type !== currentType,
 		})
 		handleEditingImageCancel()

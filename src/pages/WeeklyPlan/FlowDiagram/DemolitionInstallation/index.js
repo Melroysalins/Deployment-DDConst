@@ -218,11 +218,11 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isDemolit
 								const joinType = newObj.currentObj.demolitions[index]?.joinType
 								console.log(newObj, newObj.currentObj.demolitionInstallations)
 								if (index === 0) {
-									status = `${newObj?.cable_name?.startLocation}${newObj.currentObj.start}#${index + 1}~${JB_TYPE_MAP[joinType]}#${
+									status = `${newObj?.cable_name?.startLocation}${newObj.currentObj.endpointsDemolition.start}#${index + 1}~${JB_TYPE_MAP[joinType]}#${
 										index + 1
 									}`
 								} else if (index === newObj.currentObj.demolitionInstallations.length - 1) {
-									status = `${JB_TYPE_MAP[newObj.currentObj.demolitions[index - 1]?.joinType]}#${index}~${newObj?.cable_name?.endLocation}${newObj.currentObj.end}`;
+									status = `${JB_TYPE_MAP[newObj.currentObj.demolitions[index - 1]?.joinType]}#${index}~${newObj?.cable_name?.endLocation}${newObj.currentObj.endpointsDemolition.end}`;
 								} else {
 									status = `${JB_TYPE_MAP[newObj.currentObj?.demolitions[index - 1]?.joinType]}#${index}~${
 										JB_TYPE_MAP[joinType]

@@ -5,7 +5,6 @@ import Proptypes from 'prop-types';
 
 const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
 
-  newObj.currentObj.inputValues = newObj.currentObj.inputValues || {};
   const [anchorEl, setAnchorEl] = useState(null);
   const [inputValues, setInputValues] = useState({});
   const [selectedOptions, setSelectedOptions] = useState({

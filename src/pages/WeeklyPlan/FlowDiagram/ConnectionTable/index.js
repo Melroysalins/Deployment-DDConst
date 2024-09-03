@@ -248,7 +248,7 @@ const renderStatus = (connection, isEdit, handleNewObjChange, objId, connIndex, 
 }
 
 const renderStatusStartEnd = (isEdit, handleNewObjChange, newObj, index, name) => {
-	const { bgColor, textColor } = getColorFromValue(newObj.currentObj[name]?.[index]);
+	const { bgColor, textColor } = getColorFromValue(newObj.currentObj.endpoints[name]?.[index]);
 	
 	return (
 		<TableCell sx={{ width: '0%', padding: ' 0.425rem 0.175rem'}} index={index}>
@@ -256,7 +256,7 @@ const renderStatusStartEnd = (isEdit, handleNewObjChange, newObj, index, name) =
 					<StyledSelect
 						className={style.StyledSelect}
 						label="Status"
-						value={newObj.currentObj[name]?.[index]}
+						value={newObj.currentObj.endpoints[name]?.[index]}
 						onChange={(e) => handleNewObjChange(e.target.value, name, newObj.id, index)}
 						variant="outlined"
 						IconComponent={CustomSelectIcon}
@@ -275,7 +275,7 @@ const renderStatusStartEnd = (isEdit, handleNewObjChange, newObj, index, name) =
 					variant="body1"
 					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 				>
-					{STATUS_MAP[newObj.currentObj[name]?.[index]]}
+					{STATUS_MAP[newObj.currentObj.endpoints[name]?.[index]]}
 				</Typography>
 			)}
 		</TableCell>
@@ -306,9 +306,9 @@ const ConnectionTable = ({
 	const handleOpenPopup = (index) => {
 		setIsNotePopupOpen(true);
 		if (index === 'start') {
-			setInputValue(newObj.currentObj.startNote)
+			setInputValue(newObj.currentObj.endpoints.startNote)
 		} else if (index === 'end') {
-			setInputValue(newObj.currentObj.endNote)
+			setInputValue(newObj.currentObj.endpoints.endNote)
 		} else {
 		setInputValue(newObj.currentObj.connections[index].note)
 		}
@@ -414,7 +414,7 @@ const ConnectionTable = ({
 										Connector
 									</Typography>
 								</TableCell>
-								{newObj.currentObj.startStatuses.map((e, index) => renderInput(index))}
+								{newObj.currentObj.endpoints.startStatuses.map((e, index) => renderInput(index))}
 							</TableRow>
 						</TableHead>
 						<TableBody>
@@ -437,7 +437,7 @@ const ConnectionTable = ({
 											<Select
 												className={style.Select}
 												color="primary"
-												value={newObj.currentObj.start}
+												value={newObj.currentObj.endpoints.start}
 												onChange={(e) => handleNewObjChange(e.target.value, 'start', newObj.id)}
 												disableUnderline
 												displayEmpty
@@ -456,7 +456,7 @@ const ConnectionTable = ({
 											variant="body1"
 											sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 										>
-											{newObj.currentObj.start}
+											{newObj.currentObj.endpoints.start}
 										</Typography>
 									)}
 								</TableCell>
@@ -465,7 +465,7 @@ const ConnectionTable = ({
 											<Select
 												className={style.Select}
 												color="primary"
-												value={newObj.currentObj.startConnector}
+												value={newObj.currentObj.endpoints.startConnector}
 												onChange={(e) => handleNewObjChange(e.target.value, 'startConnector', newObj.id)}
 												disableUnderline
 												displayEmpty
@@ -484,11 +484,11 @@ const ConnectionTable = ({
 											variant="body1"
 											sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 										>
-											{JUNCTION_BOX_MAP[newObj.currentObj.startConnector]}
+											{JUNCTION_BOX_MAP[newObj.currentObj.endpoints.startConnector]}
 										</Typography>
 									)}
 								</TableCell>
-								{newObj.currentObj.startStatuses.map((e, index) => (
+								{newObj.currentObj.endpoints.startStatuses.map((e, index) => (
 									<>{renderStatusStartEnd(isEdit, handleNewObjChange, newObj, index, 'startStatuses')}</>
 								))}
 								{hoveredRowIndex === 'start' && isEdit && (
@@ -514,7 +514,7 @@ const ConnectionTable = ({
 										<Select
 											className={style.Select}
 											color="primary"
-											value={newObj.currentObj.end}
+											value={newObj.currentObj.endpoints.end}
 											onChange={(e) => handleNewObjChange(e.target.value, 'end', newObj.id)}
 											disableUnderline
 											displayEmpty
@@ -533,7 +533,7 @@ const ConnectionTable = ({
 											variant="body1"
 											sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 										>
-											{newObj.currentObj.end}
+											{newObj.currentObj.endpoints.end}
 										</Typography>
 									)}
 								</TableCell>
@@ -543,7 +543,7 @@ const ConnectionTable = ({
 												className={style.Select}
 												color="primary"
 												label="Connector"
-												value={newObj.currentObj.endConnector}
+												value={newObj.currentObj.endpoints.endConnector}
 												onChange={(e) => handleNewObjChange(e.target.value, 'endConnector', newObj.id)}
 												disableUnderline
 												displayEmpty
@@ -562,11 +562,11 @@ const ConnectionTable = ({
 											variant="body1"
 											sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 										>
-											{JUNCTION_BOX_MAP[newObj.currentObj.endConnector]}
+											{JUNCTION_BOX_MAP[newObj.currentObj.endpoints.endConnector]}
 										</Typography>
 									)}
 								</TableCell>
-								{newObj.currentObj.endStatuses.map((e, index) => (
+								{newObj.currentObj.endpoints.endStatuses.map((e, index) => (
 									<>{renderStatusStartEnd(isEdit, handleNewObjChange, newObj, index, 'endStatuses')}</>
 								))}
 								{hoveredRowIndex === 'end' && isEdit && (

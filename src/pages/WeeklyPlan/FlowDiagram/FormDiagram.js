@@ -159,7 +159,6 @@ export default function FormDiagram({
 }) {
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [isDemolitionExpanded, setIsDemolitionExpanded] = useState(false)
-
 	const toggleExpand = () => {
 		setIsExpanded((prevIsExpanded) => !prevIsExpanded)
 	}
@@ -181,7 +180,7 @@ export default function FormDiagram({
 					<Box sx={{ marginLeft: '19px'}}>
 						<HeaderText title="Connection" color="#ffa58d" newObj={newObj} />
 					</Box>
-					{newObj?.currentObj?.startStatuses && (
+					{newObj?.currentObj?.endpoints?.startStatuses && (
 						<ConnectionTable
 							handleAddConnection={handleAddConnection}
 							handleNewObjChange={handleNewObjChange}
@@ -196,7 +195,7 @@ export default function FormDiagram({
 				</StyledConnection>
 				<StyledInstallation>
 					<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
-					{newObj?.currentObj?.startStatuses && (
+					{newObj?.currentObj?.endpoints?.startStatuses && (
 						<InstallationTable
 							handleChangeInstallation={handleChangeInstallation}
 							newObj={newObj}
@@ -215,7 +214,7 @@ export default function FormDiagram({
 						<Box sx={{ marginLeft: '19px'}}>
 							<HeaderText title="Demolition" color="#7FBCFE" newObj={newObj} isDemolition={true} />
 						</Box>
-						{newObj?.currentObj?.startStatuses && (
+						{newObj?.currentObj?.endpointsDemolition?.startStatuses && (
 							<DemolitionTable
 							handleAddDemolition={handleAddDemolition}
 							handleAddConnection={handleAddConnection}
@@ -232,7 +231,7 @@ export default function FormDiagram({
 					</StyledDemolition>
 					<StyledInstallation>
 						<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
-						{newObj?.currentObj?.startStatuses && (
+						{newObj?.currentObj?.endpointsDemolition?.startStatuses && (
 							<DemolitionInstallation
 								handleChangeInstallation={handleChangeInstallation}
 								newObj={newObj}

@@ -25,6 +25,7 @@ import {
 	STATUS,
 	defaultCableName,
 	defaultCableType,
+	defaultEndpoints,
 } from './diagramHelper'
 import { useParams } from 'react-router-dom'
 import {
@@ -38,6 +39,7 @@ import QuickDiagramBuilderPopup from './QuickDiagramBuilderPopup'
 import { popupConfig } from './WarningDialog/dialogConfig'
 import WarningDialog from './WarningDialog'
 import DropdownPopover from 'components/Drawer/DropdownDrawer'
+import { createNewProjectDiagramTable, getTableByProjectDiagram, updateProjectDiagramTable } from 'supabase/project_diagrams_table'
 
 const StyledButtonContainer = styled(Box)({
 	alignSelf: 'stretch',
@@ -395,23 +397,47 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	}
 
 	const getDiagram = async () => {
-		const { data } = await getDiagramsByProject(id)
+		const { data } = await getDiagramsByProject(id);
 		if (data?.length) {
-			const updatedData = data.map((diagram) => ({
-				...diagram,
-				isEditing: false,
-				isEnd: true,
-				isDemolitionEnd: true,
-				firstOpen: false,
-				hasChanges: false,
-			}))
+			const updatedData = await Promise.all(
+				data.map(async (diagram) => {
+					const tableData1 = await getTableByProjectDiagram(diagram.id, false);
+					const tableData2 = await getTableByProjectDiagram(diagram.id, true);
+					console.log("tableData1", tableData1)
+					console.log("tableData2", tableData2)
+					return {
+						...diagram,
+						currentObj: {
+							connections: tableData1.data.midpoints || [],
+							installations: tableData1.data?.installations || [],
+							demolitions: tableData2.data?.midpoints || [],
+							demolitionInstallations: tableData2.data?.installations || [],
+							length: tableData1.data?.length || [],
+							length_demolition: tableData2.data?.length || [],
+							endpoints: tableData1.data?.endpoints || [],
+							endpointsDemolition: tableData2.data?.endpoints || [],
+						},
+						nodes: tableData1.data.nodes,
+						edges: tableData1.data.edges,
+						nodes_demolition: tableData2?.data?.nodes || [],
+						edges_demolition: tableData2?.data?.edges || [],
+						isEditing: false,
+						isEnd: true,
+						isDemolitionEnd: true,
+						firstOpen: false,
+						hasChanges: false,
+					};
+				})
+			);
 
-			const ids = data.map((diagram) => diagram.id)
-			setObjs(updatedData)
-			const maxId = Math.max(...ids)
-			setseqNumber(maxId + 1)
-			const minId = Math.min(...ids)
-			setExpanded(`panel${minId}`)
+			console.log('updatedData', updatedData);
+
+			const ids = data.map((diagram) => diagram.id);
+			setObjs(updatedData);
+			const maxId = Math.max(...ids);
+			setseqNumber(maxId + 1);
+			const minId = Math.min(...ids);
+			setExpanded(`panel${minId}`);
 		}
 	}
 
@@ -427,32 +453,80 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	}
 
 	const handleSaveButtonClick = async (currentNewObj) => {
-		setloading(true)
-		const { nodes, edges, currentObj, project, isDemolition, cable_name, cable_type, demolition_type, nodes_demolition, edges_demolition } = currentNewObj
-		const isEdit = project
-		const _obj = { project: id, nodes, edges, currentObj, isDemolition, cable_name, cable_type, demolition_type, nodes_demolition, edges_demolition }
+		setloading(true);
+		const { nodes, edges, currentObj, project, isDemolition, cable_name, cable_type, demolition_type, nodes_demolition, edges_demolition } = currentNewObj;
+		const isEdit = project;
+		const diagram_data = { project: id, isDemolition, cable_name, cable_type, demolition_type };
+		const _obj_new_section = {
+			nodes,
+			edges,
+			endpoints: currentObj?.endpoints || [],
+			midpoints: currentObj?.connections || [],
+			installations: currentObj?.installations || [],
+			length: currentObj?.length || [],
+			isDemolition: false,
+		};
+		const _obj_old_section = {
+			nodes: nodes_demolition,
+			edges: edges_demolition,
+			endpoints: currentObj?.endpointsDemolition || [],
+			midpoints: currentObj?.demolitions || [],
+			installations: currentObj?.demolitionInstallations || [],
+			length: currentObj?.length_demolition || [],
+			isDemolition
+		};
+	
 		if (isEdit) {
-			await updateProjectDiagram(_obj, id)
+			const res = await updateProjectDiagram(diagram_data, id)
+			if (res.data) {
+				const updated_obj_new_section = {
+					..._obj_new_section,
+					project_diagram: res.data[0].id,
+				};
+				const save1 = await updateProjectDiagramTable(updated_obj_new_section, res.data[0].id, false)
+				if (isDemolition) {
+					const updated_obj_old_section = {
+						..._obj_old_section,
+						project_diagram: res.data[0].id,
+					};
+					const save2 = await updateProjectDiagramTable(updated_obj_old_section, res.data[0].id, true)
+				}
+			}
 		} else {
-			const success = await createNewProjectDiagram(_obj)
-			if (success.data) {
-				setCurrentObj({
-					objId: currentNewObj.id,
-					currentObj,
-					nodes,
-					edges,
-					project: id,
-					isEditing: false,
-					cable_name,
-					cable_type,
-					demolition_type,
-					nodes_demolition,
-					edges_demolition,
-				})
+			const diagram_data_success = await createNewProjectDiagram(diagram_data);
+			if (diagram_data_success.data) {
+				const project_diagram_id = diagram_data_success.data[0].id;
+				const updated_obj_new_section = {
+					..._obj_new_section,
+					project_diagram: project_diagram_id,
+				};
+				const updated_obj_old_section = {
+					..._obj_old_section,
+					project_diagram: project_diagram_id,
+				};
+	
+				const newSectionSuccess = await createNewProjectDiagramTable(updated_obj_new_section);
+				const oldSectionSuccess = isDemolition ? await createNewProjectDiagramTable(updated_obj_old_section) : { data: true };
+	
+				if (newSectionSuccess.data && oldSectionSuccess.data) {
+					setCurrentObj({
+						objId: currentNewObj.id,
+						currentObj,
+						nodes,
+						edges,
+						project: id,
+						isEditing: false,
+						cable_name,
+						cable_type,
+						demolition_type,
+						nodes_demolition,
+						edges_demolition,
+					});
+				}
 			}
 		}
-		setloading(false)
-	}
+		setloading(false);
+	};
 
 	const handleNewObjChange = (value, field, objId, connIndex, statusIndex) => {
 		const updatedObjs = objs.map((obj) => {
@@ -460,9 +534,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 			const updatedMainObj = { ...obj.currentObj }
 			if (connIndex === undefined) {
-				updatedMainObj[field] = value
+				updatedMainObj.endpoints[field] = value
 			} else if (field === 'startStatuses' || field === 'endStatuses') {
-				updatedMainObj[field][connIndex] = value
+				updatedMainObj.endpoints[field][connIndex] = value
 			} else {
 				const updatedConnections = updatedMainObj.connections.map((conn, index) => {
 					if (index === connIndex) {
@@ -525,7 +599,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 			const updatedMainObj = { ...obj.currentObj }
 			if (connIndex === undefined) {
-				updatedMainObj[field] = value
+				updatedMainObj.endpointsDemolition[field] = value
+				obj.hasChanges = true
+			} else if (field === 'startStatuses' || field === 'endStatuses') {
+				updatedMainObj.endpointsDemolition[field][connIndex] = value
 				obj.hasChanges = true
 			} else {
 				const updatedDemolitions = updatedMainObj.demolitions.map((conn, index) => {
@@ -640,8 +717,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				return installation;
 			  });
 		  
-			  updatedMainObj.startStatuses = updateStatuses(updatedMainObj.startStatuses || []);
-			  updatedMainObj.endStatuses = updateStatuses(updatedMainObj.endStatuses || []);
+			  updatedMainObj.endpoints.startStatuses = updateStatuses(updatedMainObj.endpoints.startStatuses || []);
+			  updatedMainObj.endpoints.endStatuses = updateStatuses(updatedMainObj.endpoints.endStatuses || []);
 
 			  obj.cable_type.tlCount = midlines;
 			  obj.hasChanges = true;
@@ -656,6 +733,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				demolitionInstallation.statuses = updateStatuses(demolitionInstallation.statuses);
 				return demolitionInstallation;
 			});
+
+			updatedMainObj.endpointsDemolition.startStatuses = updateStatuses(updatedMainObj.endpointsDemolition.startStatuses || []);
+			updatedMainObj.endpointsDemolition.endStatuses = updateStatuses(updatedMainObj.endpointsDemolition.endStatuses || []);
 
 			obj.demolition_type.tlCount = midlines;
 			obj.hasChanges = true;
@@ -685,8 +765,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 			// Update startStatuses and endStatuses
 			for (let i = 0; i < midLines - 1; i += 1) {
-				updatedMainObj.startStatuses.push(STATUS[0].value)
-				updatedMainObj.endStatuses.push(STATUS[0].value)
+				updatedMainObj.endpoints.startStatuses.push(STATUS[0].value)
+				updatedMainObj.endpoints.endStatuses.push(STATUS[0].value)
 			}
 
 			updatedMainObj.connections = updatedMainObj.connections.map((connection) => {
@@ -724,11 +804,17 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 			for (let i =0 ;i < demolitionPoints; i += 1) {
 				const newInstallation = { statuses:[], note: ''}
+				console.log(i)
 				updatedMainObj.demolitionInstallations.push(newInstallation)
 				updatedMainObj.length_demolition.push(600)
 			}
 
 			obj.isDemolition = true
+
+			for (let i = 0; i < demolitionLines - 1; i += 1) {
+				updatedMainObj.endpointsDemolition.startStatuses.push(STATUS[0].value)
+				updatedMainObj.endpointsDemolition.endStatuses.push(STATUS[0].value)
+			}
 
 			updatedMainObj.connections = updatedMainObj.demolitions.map((newDemolition) => {
 				while (newDemolition.statuses.length < demolitionLines) {
@@ -758,9 +844,19 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			const updatedMainObj = { ...obj.currentObj };
 	
 			if (index === "start") {
-				updatedMainObj.startNote = value;
+				if (field === "connections") {
+					updatedMainObj.endpoints.startNote = value;
+				}
+				else {
+					updatedMainObj.endpointsDemolition.startNote = value;
+				}
 			} else if (index === "end") {
-				updatedMainObj.endNote = value;
+				if (field === "connections") {
+					updatedMainObj.endpoints.endNote = value;
+				}
+				else {
+					updatedMainObj.endpointsDemolition.endNote = value;
+				}
 			} else if (['connections', 'demolitions', 'installations', 'demolitionInstallations'].includes(field)) {
 				updatedMainObj[field] = updatedMainObj[field].map((conn, i) => {
 					if (i === index) {
@@ -807,6 +903,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const handleAdd = () => {
 		const updatedObjs = objs.map((obj) => {
+			console.log('obj', obj)
 			const yPos = 150
 			const objNodes = [
 				...generateNodesFromConnections({
@@ -817,13 +914,13 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				...generateStartEndNode({
 					seqNumber: obj.id,
 					yPos: 30,
-					startName: obj.currentObj.start,
-					endName: obj.currentObj.end,
+					startName: obj.currentObj.endpoints.start,
+					endName: obj.currentObj.endpoints.end,
 					connectionLength: obj.currentObj.connections.length,
-					startType: obj.currentObj.startConnector,
-					endType: obj.currentObj.endConnector,
-					startStatuses: obj.currentObj.startStatuses,
-					endStatuses: obj.currentObj.endStatuses,
+					startType: obj.currentObj.endpoints.startConnector,
+					endType: obj.currentObj.endpoints.endConnector,
+					startStatuses: obj.currentObj.endpoints.startStatuses,
+					endStatuses: obj.currentObj.endpoints.endStatuses,
 					startEndLength: obj.currentObj.connections[0]?.statuses.length,
 				}),
 			]
@@ -844,13 +941,13 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					...generateStartEndNode({
 						seqNumber: obj.id,
 						yPos: 30,
-						startName: obj.currentObj.start,
-						endName: obj.currentObj.end,
+						startName: obj.currentObj.endpointsDemolition.start,
+						endName: obj.currentObj.endpointsDemolition.end,
 						connectionLength: obj.currentObj.demolitions.length,
-						startType: obj.currentObj.startConnector,
-						endType: obj.currentObj.endConnector,
-						startStatuses: obj.currentObj.startStatuses,
-						endStatuses: obj.currentObj.endStatuses,
+						startType: obj.currentObj.endpointsDemolition.startConnector,
+						endType: obj.currentObj.endpointsDemolition.endConnector,
+						startStatuses: obj.currentObj.endpointsDemolition.startStatuses,
+						endStatuses: obj.currentObj.endpointsDemolition.endStatuses,
 						startEndLength: obj.currentObj.demolitions[0]?.statuses.length,
 					}),
 				]
@@ -916,6 +1013,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		edges,
 		project = null,
 		isEditing,
+		cable_name,
+		cable_type,
+		demolition_type,
 		edges_demolition,
 		nodes_demolition,
 		hasChanges = false,
@@ -927,6 +1027,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			edges: edges || obj.edges,
 			project: project || obj.project,
 			isEditing,
+			cable_name: cable_name || obj.cable_name,
+			cable_type: cable_type || obj.cable_type,
+			demolition_type: demolition_type || obj.demolition_type,
 			nodes_demolition: nodes_demolition || obj.nodes_demolition,
 			edges_demolition: edges_demolition || obj.edges_demolition,
 			hasChanges,

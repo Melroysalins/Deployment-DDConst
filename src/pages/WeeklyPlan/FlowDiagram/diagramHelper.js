@@ -195,25 +195,24 @@ export const defaultCableType = {
 	tlLength: '2.8',
 }
 
-export const defaultNewObj = {
+export const defaultEndpoints = {
 	start: JUNCTION_BOX[0].value,
 	end: JUNCTION_BOX[0].value,
 	startNote: '',
 	endNote: '',
-	connections: [defaultConnection],
-	// adding statuses and note for installations
-	installations: [{ statuses: [STATUS[0].value], note: ''}],
-	demolitions: [defaultConnection],
-	demolitionInstallations: [{ statuses: [STATUS[0].value], note: ''}],
-	cableType: CABLE_TYPE[0],
-	namyang: NAMYUNG[0],
-	// change length to array for multiple installation and demolition
-	length: [600],
-	length_demolition: [600],
-	// startStatus: STATUS[0].value,
-	// endStatus: STATUS[0].value,
 	startStatuses: [STATUS[0].value],
 	endStatuses: [STATUS[0].value],
 	startConnector: CONNECTORS[0].value,
 	endConnector: CONNECTORS[0].value,
+}
+
+export const defaultNewObj = {
+	connections: [defaultConnection],
+	installations: [{ statuses: [STATUS[0].value], note: ''}],
+	demolitions: [defaultConnection],
+	demolitionInstallations: [{ statuses: [STATUS[0].value], note: ''}],
+	length: [600],
+	length_demolition: [600],
+	endpoints: defaultEndpoints,
+	endpointsDemolition: defaultEndpoints,
 }
