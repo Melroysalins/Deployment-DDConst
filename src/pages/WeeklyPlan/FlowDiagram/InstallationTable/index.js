@@ -75,7 +75,7 @@ const renderTableCell = (text, cellWidth='3.73vw', isTableHead=false) => (
 	</TableCell>
 );
 
-const renderTableRow = (installation, index, handleChangeInstallation, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow) => {
+const renderTableRow = (installation, index, handleChangeInstallation, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen) => {
 	return (
 	<>
 	<TableRow  sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
@@ -109,7 +109,7 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
 			<>{renderStatus(installation, isEdit, handleChangeInstallation, newObj, index, statusIndex)}</>
 		))}
 		{hoveredRowIndex === index && isEdit && (
-			<HoverBox index={index} setVisibleNotes={handleOpenPopup} deleteRow={deleteRow} />
+			<HoverBox index={index} setVisibleNotes={handleOpenPopup}/>
 		)}
 	</TableRow>
 	</>
@@ -151,7 +151,7 @@ const renderStatus = (installation, isEdit, handleChangeInstallation, newObj, co
 	)
 }
 
-const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpanded, toggleExpand, handleAddNote, handleDeleteRow}) => {
+const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpanded, toggleExpand, handleAddNote}) => {
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
 	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
 	const [inputValue, setInputValue] = useState(); 
@@ -172,10 +172,6 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 		handleAddNote(newObj.id, inputValue, "installations", hoveredRowIndex)
 		setIsNotePopupOpen(false)
 		setInputValue('')
-	}
-
-	const deleteRow = (index) => {	
-		handleDeleteRow(newObj.id, index, "connections")
 	}
 
 	const button = { label: 'Continue', onClick: (() => AddNote()) }
@@ -230,7 +226,7 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 										JB_TYPE_MAP[joinType]
 									}#${index + 1}`
 								}
-								return <>{renderTableRow(installation, index, handleChangeInstallation, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow)}</>
+								return <>{renderTableRow(installation, index, handleChangeInstallation, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
 							})}
 
 						</TableBody>
@@ -277,7 +273,6 @@ InstallationTable.propTypes = {
 	isExpanded: PropTypes.bool.isRequired,
 	toggleExpand: PropTypes.func.isRequired,
 	handleAddNote: PropTypes.func.isRequired,
-	handleDeleteRow: PropTypes.func.isRequired,
 }
 
 export default InstallationTable

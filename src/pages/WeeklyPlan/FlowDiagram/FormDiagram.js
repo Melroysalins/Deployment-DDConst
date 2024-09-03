@@ -204,7 +204,6 @@ export default function FormDiagram({
 							isExpanded={isExpanded}
 							toggleExpand={toggleExpand}
 							handleAddNote={handleAddNote}
-							handleDeleteRow={handleDeleteRow}
 						/>
 					)}
 				</StyledInstallation>
@@ -240,7 +239,6 @@ export default function FormDiagram({
 								isDemolitionExpanded={isDemolitionExpanded}
 								toggleDemolitionExpand={toggleDemolitionExpand}
 								handleAddNote={handleAddNote}
-								handleDeleteRow={handleDeleteRow}
 							/>
 						)}
 					</StyledInstallation>

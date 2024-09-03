@@ -176,7 +176,7 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 			<>{renderStatus(demolition, isEdit, handleChangeDemolition, objId, index, statusIndex)}</>
 		))}
 		{hoveredRowIndex === index && isEdit && (
-			<HoverBox index={index} setVisibleNotes={handleOpenPopup} deleteRow={deleteRow} />
+			<HoverBox index={index} setVisibleNotes={handleOpenPopup} isDelete={true} deleteRow={deleteRow} />
 		)}
 	</TableRow>
 )
