@@ -954,8 +954,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				nodes_demolition: objNodesDemolition,
 				currentObj: {
 					...obj.currentObj,
-					demolitions: isDemolition ? obj.currentObj.demolitions : [defaultConnection],
-					length_demolition: isDemolition ? obj.currentObj.length_demolition : [600, 600],
 				},
 				hasChanges: false,
 			}
