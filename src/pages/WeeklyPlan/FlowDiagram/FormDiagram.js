@@ -117,10 +117,10 @@ const HeaderText = ({ title, color, newObj, isDemolition }) => (
 			{ title === 'Installation' ? (
 				<StyledTypography>
 					<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
-						{(newObj?.currentObj?.connections.length + 2) * newObj.currentObj?.connections[0]?.statuses?.length} Sections
+						{(newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length + 2) * newObj[isDemolition ? 'demolition_type' : 'cable_type'].tlCount} Sections
 					</StyledTypography>
 					<StyledTypography sx={{ lineHeight: '26px' }} component="span">
-						{`(${newObj?.currentObj?.connections.length + 2} Sections) x ${newObj.currentObj?.connections[0]?.statuses?.length} Lines`}
+						{`(${newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length + 2} Sections) x ${newObj[isDemolition ? 'demolition_type' : 'cable_type'].tlCount} Lines`}
 					</StyledTypography>
 				</StyledTypography>
 			) : (
@@ -230,7 +230,7 @@ export default function FormDiagram({
 						)}
 					</StyledDemolition>
 					<StyledInstallation>
-						<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
+						<HeaderText title="Installation" color="#6ac79b" newObj={newObj} isDemolition={true} />
 						{newObj?.currentObj?.endpointsDemolition?.startStatuses && (
 							<DemolitionInstallation
 								handleChangeInstallation={handleChangeInstallation}

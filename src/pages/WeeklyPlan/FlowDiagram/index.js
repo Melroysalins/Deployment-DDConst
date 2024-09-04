@@ -468,7 +468,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			midpoints: currentObj?.demolitions || [],
 			installations: currentObj?.demolitionInstallations || [],
 			length: currentObj?.length_demolition || [],
-			isDemolition
+			isDemolition: true,
 		};
 	
 		if (isEdit) {
@@ -479,13 +479,11 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					project_diagram: res.data[0].id,
 				};
 				const save1 = await updateProjectDiagramTable(updated_obj_new_section, res.data[0].id, false)
-				if (isDemolition) {
-					const updated_obj_old_section = {
-						..._obj_old_section,
-						project_diagram: res.data[0].id,
-					};
-					const save2 = await updateProjectDiagramTable(updated_obj_old_section, res.data[0].id, true)
-				}
+				const updated_obj_old_section = {
+					..._obj_old_section,
+					project_diagram: res.data[0].id,
+				};
+				const save2 = await updateProjectDiagramTable(updated_obj_old_section, res.data[0].id, true)
 			}
 		} else {
 			const diagram_data_success = await createNewProjectDiagram(diagram_data);
@@ -501,7 +499,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				};
 	
 				const newSectionSuccess = await createNewProjectDiagramTable(updated_obj_new_section);
-				const oldSectionSuccess = isDemolition ? await createNewProjectDiagramTable(updated_obj_old_section) : { data: true };
+				const oldSectionSuccess = await createNewProjectDiagramTable(updated_obj_old_section);
 	
 				if (newSectionSuccess.data && oldSectionSuccess.data) {
 					setCurrentObj({
@@ -796,7 +794,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				updatedMainObj.demolitions.push(newDemolition)
 			}
 
-			for (let i =0 ;i < demolitionPoints; i += 1) {
+			for (let i =0 ;i < demolitionPoints - 1; i += 1) {
 				const newInstallation = { statuses:[], note: ''}
 				updatedMainObj.demolitionInstallations.push(newInstallation)
 				updatedMainObj.length_demolition.push(600)
@@ -873,17 +871,17 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			if (field === 'connections') {
 				updatedMainObj[field] = updatedMainObj[field].filter((_, i) => i !== index);
 				// Also delete installations
-				updatedMainObj.installations = updatedMainObj.installations.filter((_, i) => i !== index);
+				updatedMainObj.installations.splice(index, 1);
 				if (updatedMainObj.length && index < updatedMainObj.length.length) {
-					delete updatedMainObj.length[index]; 
+					updatedMainObj.length.splice(index, 1);
 				}
 			} 
 			if (field === 'demolitions') {
 				updatedMainObj[field] = updatedMainObj[field].filter((_, i) => i !== index);
 				// Also delete installations
-				updatedMainObj.demolitionInstallations = updatedMainObj.demolitionInstallations.filter((_, i) => i !== index);
+				updatedMainObj.demolitionInstallations.splice(index, 1);
 				if (updatedMainObj.length_demolition && index < updatedMainObj.length_demolition.length) {
-					delete updatedMainObj.length_demolition[index]; 
+					updatedMainObj.length_demolition.splice(index, 1);
 				}
 			}
 	
