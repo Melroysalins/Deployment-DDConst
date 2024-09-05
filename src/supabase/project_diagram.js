@@ -5,8 +5,8 @@ export const createNewProjectDiagram = async (data) => {
 	return res
 }
 
-export const updateProjectDiagram = async (data, project) => {
-	const res = await supabase.from('project_diagrams').update(data).eq('project', project).select('*')
+export const updateProjectDiagram = async (data, project_diagram_id) => {
+	const res = await supabase.from('project_diagrams').update(data).eq('id', project_diagram_id).select('*')
 	return res
 }
 export const getProjectDiagram = async (id) => {

@@ -472,7 +472,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		};
 	
 		if (isEdit) {
-			const res = await updateProjectDiagram(diagram_data, id)
+			const res = await updateProjectDiagram(diagram_data, currentNewObj.id);
 			if (res.data) {
 				const updated_obj_new_section = {
 					..._obj_new_section,
