@@ -330,7 +330,6 @@ const defaultWholeObj = {
 	isEditing: true,
 	isDemolition: false,
 	firstOpen: true,
-	hasChanges: false,
 	cable_name: defaultCableName,
 	cable_type: defaultCableType,
 	demolition_type: defaultCableType,
@@ -342,6 +341,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	const [loading, setloading] = useState(false)
 	const [expanded, setExpanded] = useState()
 	const [objs, setObjs] = useState([])
+	const [hasChanges, setHasChanges] = useState(false)
 	const [seqNumber, setseqNumber] = useState(1)
 	const { id } = useParams()
 	const [popupProps, setPopupProps] = useState({
@@ -351,6 +351,13 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		description: '',
 		buttons: []
 	  });
+
+	  useEffect(() => {
+        if (objs !== null && hasChanges) {
+            handleAdd();
+			setHasChanges(false);
+        }
+	  }, [objs, hasChanges]);
 	
 	  const handleClosePopup = () => setPopupProps(prev => ({ ...prev, isOpen: false }));
 	
@@ -423,7 +430,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 						isEnd: true,
 						isDemolitionEnd: true,
 						firstOpen: false,
-						hasChanges: false,
 					};
 				})
 			);
@@ -543,10 +549,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				})
 				updatedMainObj.connections = updatedConnections
 			}
-			return { ...obj, currentObj: updatedMainObj, hasChanges: true }
+			return { ...obj, currentObj: updatedMainObj}
 		})
 		setObjs(updatedObjs)
-		
+		setHasChanges(true)
 	}
 
 	const handleChangeInstallation = (value, field, objId, connIndex, statusIndex) => {
@@ -568,7 +574,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					return conn
 				})
 				updatedMainObj.installations = updatedInstallations
-				obj.hasChanges = true
 			} else {
 				const updatedInstallations = updatedMainObj.demolitionInstallations.map((conn, index) => {
 					if (index === connIndex) {
@@ -578,11 +583,11 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					return conn
 				})
 				updatedMainObj.demolitionInstallations = updatedInstallations
-				obj.hasChanges = true
 			}
 			return { ...obj, currentObj: updatedMainObj }
 		})
 		setObjs(updatedObjs)
+		setHasChanges(true)
 	}
 
 	const handleChangeDemolition = (value, field, objId, connIndex, statusIndex) => {
@@ -592,10 +597,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			const updatedMainObj = { ...obj.currentObj }
 			if (connIndex === undefined) {
 				updatedMainObj.endpointsDemolition[field] = value
-				obj.hasChanges = true
 			} else if (field === 'startStatuses' || field === 'endStatuses') {
 				updatedMainObj.endpointsDemolition[field][connIndex] = value
-				obj.hasChanges = true
 			} else {
 				const updatedDemolitions = updatedMainObj.demolitions.map((conn, index) => {
 					if (index === connIndex) {
@@ -608,12 +611,11 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					return conn
 				})
 				updatedMainObj.demolitions = updatedDemolitions
-				obj.hasChanges = true
 			}
 			return { ...obj, currentObj: updatedMainObj}
 		})
 		setObjs(updatedObjs)
-		
+		setHasChanges(true)
 	}
 
 	const handleAddDemolition = (objId) => {
@@ -645,10 +647,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				demolitionInstallations: updatedInstallations,
 				length_demolition: [...obj.currentObj.length_demolition, 600],
 			};
-			return { ...obj, currentObj: updatedMainObj, hasChanges: true };
+			return { ...obj, currentObj: updatedMainObj};
 		});
 		setObjs(updatedObjs);
-		
+		setHasChanges(true)
 	}
 
 	const handleAddConnection = (objId) => {
@@ -679,9 +681,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				installations: updatedInstallations,
 				length: [...obj.currentObj.length, 600],
 			};
-			return { ...obj, currentObj: updatedMainObj, hasChanges: true };
+			return { ...obj, currentObj: updatedMainObj};
 		});
 		setObjs(updatedObjs);
+		setHasChanges(true)
 	}
 
 	const handleChangeStatus = (objId, midlines, type) => {
@@ -713,7 +716,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			  updatedMainObj.endpoints.endStatuses = updateStatuses(updatedMainObj.endpoints.endStatuses || []);
 
 			  obj.cable_type.tlCount = midlines;
-			  obj.hasChanges = true;
 		  } 
 		  if (type === 'demolition_type') {
 			updatedMainObj.demolitions = updatedMainObj.demolitions.map((demolition) => {
@@ -730,12 +732,12 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			updatedMainObj.endpointsDemolition.endStatuses = updateStatuses(updatedMainObj.endpointsDemolition.endStatuses || []);
 
 			obj.demolition_type.tlCount = midlines;
-			obj.hasChanges = true;
 		  }
 	  
 		  return { ...obj, currentObj: updatedMainObj};
 		});
 		setObjs(updatedObjs);
+		setHasChanges(true)
 	};
 
 	const handleAddMultipleConnection = (objId, midPoints = 1, midLines = 1, demolitionLines) => {
@@ -889,6 +891,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		});
 	
 		setObjs(updatedObjs);
+		setHasChanges(true)
 	};
 
 
@@ -955,7 +958,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				currentObj: {
 					...obj.currentObj,
 				},
-				hasChanges: false,
 			}
 		})
 		setObjs(updatedObjs)
@@ -993,6 +995,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			...obj,
 			isDemolition: !obj.isDemolition,
 		}))
+		setHasChanges(true)
 	}
 
 	const setCurrentObj = ({
@@ -1007,7 +1010,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		demolition_type,
 		edges_demolition,
 		nodes_demolition,
-		hasChanges = false,
 	}) => {
 		updateObjById(objId, (obj) => ({
 			...obj,
@@ -1021,7 +1023,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			demolition_type: demolition_type || obj.demolition_type,
 			nodes_demolition: nodes_demolition || obj.nodes_demolition,
 			edges_demolition: edges_demolition || obj.edges_demolition,
-			hasChanges,
 		}))
 	} 
 
@@ -1147,28 +1148,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							<Content>
 								<DiagramDemolitionParent>
 								<DiagramParent>
-									<DiagramHeader>
-										{newObj.hasChanges && <span style={{ color: '#cc8500'}}>Diagram outdated, please refresh</span>}
-										{(newObj.isEditing || !newObj.project) && (
-											<Button
-												onClick={handleAdd}
-												sx={{
-													backgroundColor: '#F3F3F5',
-													color: '#596570',
-													display: 'flex',
-													gap: '4px',
-													padding: '0px 12px',
-													height: '30px',
-													'@media (min-width:1440px)': {
-													  transform: 'scale(0.80)', // Scale down the switch for 1440p screens
-													},
-												}}
-											>
-												<Iconify icon="ic:baseline-cached" width={16} height={16} />
-												Update
-											</Button>
-										)}
-									</DiagramHeader>
+									<DiagramHeader />
 									<Diagram
 										nodes={newObj.nodes}
 										edges={newObj.edges}
@@ -1176,6 +1156,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 										currentObj={newObj.currentObj}
 										objId={newObj.id}
 										newObj={newObj}
+										isDemolition={false}
+										setHasChanges={setHasChanges}
 									/>
 
 									{newObj.isDemolition && !!newObj.nodes_demolition.length && (
@@ -1187,6 +1169,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											objId={newObj.id}
 											isDemolition={true}
 											newObj={newObj}
+											setHasChanges={setHasChanges}
 										/>
 									)}
 								</DiagramParent>

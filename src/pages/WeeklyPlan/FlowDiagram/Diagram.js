@@ -2,17 +2,18 @@ import { Handle, Position, ReactFlow } from 'reactflow'
 import { Box, Button, Container, Dialog, DialogTitle, FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 import 'reactflow/dist/style.css'
 import PropTypes from 'prop-types'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CONNECTORS, JUNCTION_BOX_MAP, PMJ, STATUS, STROKE_COLOR, getStrokeStatusByColor } from './diagramHelper'
 
 const Section = Box
 
-function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
+function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition, setHasChanges }) {
 	const [showEditModal, setshowEditModal] = useState(false)
 	const [editImageObj, seteditImageObj] = useState(null)
 	const [showEdgeModal, setshowEdgeModal] = useState(false)
 	const [editEdgeObj, seteditEdgeObj] = useState(null)
 	const [currentType, setCurrentType] = useState('')
+	const [oldStatus, setOldStatus] = useState('')
 	const midLines = newObj.currentObj?.[isDemolition ? 'demolitions' : 'connections']?.[0]?.statuses?.length
 	const diagramHeight = Math.min(230 + midLines * 20, newObj.isDemolition ? 230 : 350)
 
@@ -22,9 +23,16 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 		const _getCount = name.split('#')[1]
 		editImageObj.name = name
 		delete editImageObj.isEndbox
-		const updatedNodes = nodes.map((node) =>
-			node.id === editImageObj.id ? { ...node, data: { ...node.data, ...editImageObj } } : node
+		let updatedNodes = nodes.map((node) =>
+			node.id.split('.')[1] === editImageObj.id.split('.')[1] ? { ...node, data: { ...node.data, ...editImageObj } } : node
 		)
+
+		if (status !== oldStatus) {
+			updatedNodes = updatedNodes.map((node) => {
+				editImageObj.imageUrl = `/static/svg/${type}-${status}.svg`
+				return node.id === editImageObj.id ? { ...node, data: { ...node.data, ...editImageObj } } : node
+			})
+		}
 
 		const { currentObj } = newObj
 		let updatedCurrentObj = { ...currentObj }
@@ -45,7 +53,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 		} else {
 			const spilittedIds = editImageObj.id.split('.')
 			const connections = currentObj[isDemolition ? 'demolitions' : 'connections'].map((connection, index) =>
-				+spilittedIds[1] === index + 1
+				spilittedIds[1] === (index + 1).toString()
 					? {
 							...connection,
 							pmj: type,
@@ -66,6 +74,9 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 			hasChanges: type !== currentType,
 		})
 		handleEditingImageCancel()
+		setCurrentType('')
+		setOldStatus('')
+		setHasChanges(true)
 	}
 
 	const handleSelectChange = (value, key) => {
@@ -94,6 +105,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition }) {
 		const { isEndbox, name, status } = data.data
 		const type = data.data.imageUrl.split('svg/')[1].split('-')[0]
 		setCurrentType(type)
+		setOldStatus(status)
 		seteditImageObj({ id: data.id, isEndbox, name, status, type })
 	}
 
@@ -349,6 +361,7 @@ Diagram.propTypes = {
 	objId: PropTypes.number.isRequired,
 	isDemolition: PropTypes.bool,
 	newObj: PropTypes.object.isRequired,
+	setHasChanges: PropTypes.func.isRequired,
 }
 
 export default Diagram
