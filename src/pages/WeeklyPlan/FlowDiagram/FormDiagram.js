@@ -117,10 +117,10 @@ const HeaderText = ({ title, color, newObj, isDemolition }) => (
 			{ title === 'Installation' ? (
 				<StyledTypography>
 					<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
-						{(newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length + 2) * newObj[isDemolition ? 'demolition_type' : 'cable_type'].tlCount} Sections
+						{(newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length ) * newObj.currentObj?.[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length} Sections
 					</StyledTypography>
 					<StyledTypography sx={{ lineHeight: '26px' }} component="span">
-						{`(${newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length + 2} Sections) x ${newObj[isDemolition ? 'demolition_type' : 'cable_type'].tlCount} Lines`}
+						{`(${newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length + 2} Sections) x ${newObj.currentObj?.[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length} Lines`}
 					</StyledTypography>
 				</StyledTypography>
 			) : (
