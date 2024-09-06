@@ -357,6 +357,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
             handleAdd();
 			setHasChanges(false);
         }
+
+		console.log('objs:', objs);
 	  }, [objs, hasChanges]);
 	
 	  const handleClosePopup = () => setPopupProps(prev => ({ ...prev, isOpen: false }));
@@ -520,6 +522,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 						demolition_type,
 						nodes_demolition,
 						edges_demolition,
+						id: project_diagram_id,
 					});
 				}
 			}
@@ -1010,6 +1013,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		demolition_type,
 		edges_demolition,
 		nodes_demolition,
+		id,
 	}) => {
 		updateObjById(objId, (obj) => ({
 			...obj,
@@ -1023,6 +1027,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			demolition_type: demolition_type || obj.demolition_type,
 			nodes_demolition: nodes_demolition || obj.nodes_demolition,
 			edges_demolition: edges_demolition || obj.edges_demolition,
+			id : id || obj.id,
 		}))
 	} 
 

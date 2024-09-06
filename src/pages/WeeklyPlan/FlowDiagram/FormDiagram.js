@@ -170,14 +170,15 @@ export default function FormDiagram({
 	}
 
 	const statuses_length = newObj?.currentObj?.connections[0]?.statuses?.length;
-	const flexDirection = statuses_length > 2 ? 'column' : 'row';
-	const connectionTableWidth = statuses_length > 2 ? '100%' : '';
 	const demolition_length = newObj?.currentObj?.demolitions[0]?.statuses?.length;
-	const demolitionTableWidth = demolition_length > 2 ? '100%' : '';
+
+	// Determine the flexDirection and table widths based on the statuses length
+	const flexDirection = (statuses_length > 2 || demolition_length > 2) ? 'column' : 'row';
+	const tableWidth = (statuses_length > 2 || demolition_length > 2) ? '100%' : '';
 	return (
 		<>
 			<StyledRowTables flexDirection={flexDirection}>
-				<StyledConnection connectionTableWidth={connectionTableWidth}>
+				<StyledConnection connectionTableWidth={tableWidth}>
 					<Box sx={{ marginLeft: '19px'}}>
 						<HeaderText title="Connection" color="#ffa58d" newObj={newObj} />
 					</Box>
@@ -210,7 +211,7 @@ export default function FormDiagram({
 			</StyledRowTables>
 			{isDemolition && (
 				<StyledRowTables flexDirection={flexDirection}>
-					<StyledDemolition demolitionTableWidth={demolitionTableWidth}>
+					<StyledDemolition demolitionTableWidth={tableWidth}>
 						<Box sx={{ marginLeft: '19px'}}>
 							<HeaderText title="Demolition" color="#7FBCFE" newObj={newObj} isDemolition={true} />
 						</Box>
