@@ -167,7 +167,6 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 		setInputValue('')
 	};
 
-
 	const AddNote = () => {
 		handleAddNote(newObj.id, inputValue, "installations", hoveredRowIndex)
 		setIsNotePopupOpen(false)
@@ -180,59 +179,52 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 	<>
 	<Box sx={{ position: 'relative', width: '100%'}}>
 		<Collapse
-			sx={{ overflow: 'visible', position: 'relative', zIndex: 1}}
+			sx={{ overflow: 'hidden', position: 'relative', zIndex: 1}}
 			in={isExpanded}
 			collapsedSize={
 				newObj.currentObj.installations.length < 7 ? `${(newObj.currentObj.installations.length * 4.5) + 4}vh`: '34vh'
 			}
 		>
-			<Box
+			<TableContainer
 				sx={{
-					maxHeight: isExpanded ? 'none' : '34.7vh',
-					overflow: 'auto',
+					border: '1px solid lightgrey',
+					width: '100%',
+					borderRadius: '8px',
+					overflow: 'visible',
 				}}
 			>
-				<TableContainer
-					sx={{
-						border: '1px solid lightgrey',
-						width: '100%',
-						borderRadius: '8px',
-						overflow: 'visible',
-					}}
-				>
-					<Table>
-						<TableHead>
-							<TableRow style={{width: '100%', backgroundColor: '#f9f9fa' }}>
-								{renderTableCell('T/L Section', '10%', true)}
-								{renderTableCell('Length(m)', '40%', true)}
-								{newObj.currentObj.installations[0]?.statuses.map((_, index) => (
-									<>{renderTableCell(`${index + 1}T/L`, '10%', true)}</>
-								))}
-							</TableRow>
-						</TableHead>
-						<TableBody>
-							{newObj.currentObj.installations.map((installation, index) => {
-								let status = ''
-								const joinType = newObj.currentObj.connections[index]?.joinType
-								console.log(newObj, newObj.currentObj.installations)
-								if (index === 0) {
-									status = `${newObj?.cable_name?.startLocation}${newObj.currentObj.endpoints.start}#${index + 1}~${JB_TYPE_MAP[joinType]}#${
-										index + 1
-									}`
-								} else if (index === newObj.currentObj.installations.length - 1) {
-									status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1]?.joinType]}#${index}~${newObj?.cable_name?.endLocation}${newObj.currentObj.endpoints.end}`;
-								} else {
-									status = `${JB_TYPE_MAP[newObj.currentObj?.connections[index - 1]?.joinType]}#${index}~${
-										JB_TYPE_MAP[joinType]
-									}#${index + 1}`
-								}
-								return <>{renderTableRow(installation, index, handleChangeInstallation, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
-							})}
+				<Table>
+					<TableHead>
+						<TableRow style={{width: '100%', backgroundColor: '#f9f9fa' }}>
+							{renderTableCell('T/L Section', '10%', true)}
+							{renderTableCell('Length(m)', '40%', true)}
+							{newObj.currentObj.installations[0]?.statuses.map((_, index) => (
+								<>{renderTableCell(`${index + 1}T/L`, '10%', true)}</>
+							))}
+						</TableRow>
+					</TableHead>
+					<TableBody>
+						{newObj.currentObj.installations.map((installation, index) => {
+							let status = ''
+							const joinType = newObj.currentObj.connections[index]?.joinType
+							console.log(newObj, newObj.currentObj.installations)
+							if (index === 0) {
+								status = `${newObj?.cable_name?.startLocation}${newObj.currentObj.endpoints.start}#${index + 1}~${JB_TYPE_MAP[joinType]}#${
+									index + 1
+								}`
+							} else if (index === newObj.currentObj.installations.length - 1) {
+								status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1]?.joinType]}#${index}~${newObj?.cable_name?.endLocation}${newObj.currentObj.endpoints.end}`;
+							} else {
+								status = `${JB_TYPE_MAP[newObj.currentObj?.connections[index - 1]?.joinType]}#${index}~${
+									JB_TYPE_MAP[joinType]
+								}#${index + 1}`
+							}
+							return <>{renderTableRow(installation, index, handleChangeInstallation, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
+						})}
 
-						</TableBody>
-					</Table>
-				</TableContainer>
-			</Box>
+					</TableBody>
+				</Table>
+			</TableContainer>
 		</Collapse>
 		{newObj.currentObj.installations.length > 6 && (
 			<IconButton

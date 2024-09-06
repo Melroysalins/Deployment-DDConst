@@ -325,19 +325,6 @@ const ConnectionTable = ({
 		setInputValue('')
 	}
 
-
-	useEffect(() => {
-		const handleScroll = () => {
-		  if (boxRef.current) {
-			setScrollPosition(boxRef.current.scrollTop);
-		  }
-		};
-	  
-		const box = boxRef.current;
-		box.addEventListener('scroll', handleScroll);
-	   
-		return () => box.removeEventListener('scroll', handleScroll);
-	}, []);
 	const deleteRow = (index) => {	
 		handleDeleteRow(newObj.id, index, "connections") 
 	}
@@ -614,29 +601,27 @@ const ConnectionTable = ({
 					</Typography>
 				</Box>
 				<Collapse
-					sx={{width: '100%', paddingBottom: '8px', position: 'relative', overflow: 'visible'}}
+					sx={{width: '100%', paddingBottom: '8px', position: 'relative', overflow: 'hidden'}}
 					in={isExpanded}
 					collapsedSize={
 						newObj.currentObj.connections.length < 7 ? `${newObj.currentObj.connections.length * 4.7}vh` : '29vh'
 					}
 				>
-					<Box ref={boxRef} sx={{ maxHeight: isExpanded ? 'none' : '29vh', overflow: 'auto', width: '100%'}}>
-						<TableContainer
-							sx={{
-								borderRadius: '0px 0px 8px 0px',
-								border: '1px solid lightgrey',
-								overflow: 'visible'
-							}}
-						>
-							<Table>
-								<TableBody>
-									{newObj.currentObj.connections.map((connection, index) => (
-										<>{renderTableRow(connection, index, handleNewObjChange, newObj.id, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow)}</>
-									))}
-								</TableBody>
-							</Table>
-						</TableContainer>
-					</Box>
+					<TableContainer
+						sx={{
+							borderRadius: '0px 0px 8px 0px',
+							border: '1px solid lightgrey',
+							overflow: 'visible'
+						}}
+					>
+						<Table>
+							<TableBody>
+								{newObj.currentObj.connections.map((connection, index) => (
+									<>{renderTableRow(connection, index, handleNewObjChange, newObj.id, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow)}</>
+								))}
+							</TableBody>
+						</Table>
+					</TableContainer>
 				</Collapse>
 				{isEdit && (
 					<Box
