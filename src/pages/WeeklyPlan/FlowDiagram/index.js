@@ -743,7 +743,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		setHasChanges(true)
 	};
 
-	const handleAddMultipleConnection = (objId, midPoints = 1, midLines = 1, demolitionLines) => {
+	const handleAddMultipleConnection = (objId, midPoints = 1, midLines = 1) => {
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id !== objId) return obj
 
@@ -780,6 +780,27 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				}
 				return installation
 			})
+
+			if (!obj.isDemolition) {
+				updatedMainObj.demolitions = updatedMainObj.demolitions.map((demolition) => {
+					while (demolition.statuses.length < midLines) {
+						demolition.statuses.push(STATUS[0].value)
+					}
+					return demolition
+				})
+	
+				updatedMainObj.demolitionInstallations = updatedMainObj.demolitionInstallations.map((demolitionInstallation) => {
+					while (demolitionInstallation.statuses.length < midLines) {
+						demolitionInstallation.statuses.push(STATUS[0].value)
+					}
+					return demolitionInstallation
+				})
+	
+				for (let i = 0; i < midLines - 1; i += 1) {
+					updatedMainObj.endpointsDemolition.startStatuses.push(STATUS[0].value)
+					updatedMainObj.endpointsDemolition.endStatuses.push(STATUS[0].value)
+				}
+			}
 
 			return { ...obj, currentObj: updatedMainObj}
 		})
