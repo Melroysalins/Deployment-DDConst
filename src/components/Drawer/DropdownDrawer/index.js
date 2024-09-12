@@ -201,12 +201,6 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
           }}
         >
           <Grid container sx={{ padding: '24px 24px 6px 24px'}} spacing={2}>
-            { type === "demolition_type" && (
-              <>
-                {renderGridItem("Voltage level", "voltageLevel", "kV")}
-                {renderGridItem("Wiring Area", "wiringArea", "sq")}
-              </>
-            )} 
             <Grid item xs={12}>
               <InputLabel htmlFor="bigInput" sx={{ fontSize: '12px', color: '#212B36', marginBottom: '4px' }}>{type === "cable_name" ? "Voltage level": "Cable Type"}</InputLabel>
               <TextField
@@ -232,16 +226,10 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
                 {renderGridItem('End Location', 'endLocation', 'T/L')}
               </>
             )}
-            { type === "cable_type" && (
+            { (type === "demolition_type" || type === "cable_type") && (
               <>
                 {renderGridItem("Voltage level", "voltageLevel", "kV")}
                 {renderGridItem("Wiring Area", "wiringArea", "sq")}
-                {renderGridItem('# T/L', 'tlCount')}
-                {renderGridItem('T/L Length', 'tlLength', 'km')}
-              </>
-            )}
-            { type === "demolition_type" && (
-              <>
                 {renderGridItem('# T/L', 'tlCount')}
                 {renderGridItem('T/L Length', 'tlLength', 'km')}
               </>

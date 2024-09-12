@@ -358,7 +358,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			setHasChanges(false);
         }
 
-		console.log('objs:', objs);
 	  }, [objs, hasChanges]);
 	
 	  const handleClosePopup = () => setPopupProps(prev => ({ ...prev, isOpen: false }));
@@ -625,16 +624,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id !== objId) return obj;
 	
-			// Assuming the last demolition exists and has a structure we can replicate without the note
-			const lastDemolition = obj.currentObj.demolitions[obj.currentObj.demolitions.length - 1];
-			const numberOfStatuses = lastDemolition ? lastDemolition.statuses.length : 0;
+			const numberOfStatuses = obj.currentObj.endpointsDemolition.startStatuses.length;
 			const newDemolition = { 
 				...defaultConnection,
 				statuses: [ ...Array(numberOfStatuses).fill(STATUS[0].value)], // Add the number of statuses
 			}; // Copy last demolition without the note or with a reset note
 	
 			// Ensure not to add an undefined demolition if there's no last demolition
-			const updatedDemolitions = lastDemolition ? [...obj.currentObj.demolitions, newDemolition] : [...obj.currentObj.demolitions];
+			const updatedDemolitions = [...obj.currentObj.demolitions, newDemolition];
 	
 			// Define the structure of a new installation
 			const newInstallation = {
@@ -660,8 +657,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		const updatedObjs = objs.map((obj) => {
 			if (obj.id !== objId) return obj;
 	
-			const lastConnection = obj.currentObj.connections[obj.currentObj.connections.length - 1];
-			const numberOfStatuses = lastConnection ? lastConnection.statuses.length : 0;
+			const numberOfStatuses = obj.currentObj.endpoints.startStatuses.length;
 
 			// Create a new connection based on defaultConnection and add the number of statuses
 			const newConnection = { 
@@ -928,6 +924,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					id: obj.id,
 					connections: obj.currentObj.connections,
 					yPos,
+					cableType: obj.cable_type.bigInput
 				}),
 				...generateStartEndNode({
 					seqNumber: obj.id,
@@ -954,6 +951,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 						id: obj.id,
 						connections: obj.currentObj.demolitions,
 						yPos,
+						cableType: obj.demolition_type.bigInput,
 						isDemolition: true,
 					}),
 					...generateStartEndNode({

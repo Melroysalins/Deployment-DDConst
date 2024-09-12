@@ -40,7 +40,7 @@ export const STATUS_MAP = {
 	completed: 'Completed',
 }
 
-export const generateNodesFromConnections = ({ id, connections, yPos, isDemolition }) => {
+export const generateNodesFromConnections = ({ id, connections, yPos, cableType, isDemolition }) => {
 	const nodes = []
 	const step = NODES_GAP
 
@@ -59,7 +59,7 @@ export const generateNodesFromConnections = ({ id, connections, yPos, isDemoliti
 		})
 	})
 
-	const headingData = { name: isDemolition ? 'Old Of Section' : 'New CV Section' }
+	const headingData = { name: isDemolition ? `Old ${cableType} Section` : `New ${cableType} Section` }
 	const headingPosition = { x: START_POS + (connections.length * NODES_GAP - MIN_X) / 2, y: 50 }
 	nodes.push({ id: 'heading', type: 'nodeHeading', data: headingData, position: headingPosition })
 
