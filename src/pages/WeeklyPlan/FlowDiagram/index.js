@@ -109,36 +109,30 @@ const RightContent = styled(Box)({
 })
 
 const StyledButton = styled(Button)({
-	minWidth: '79px',
 	height: '48px',
 	borderRadius: '8px',
 	padding: '12px 16px 12px 16px',
 	border: '1px solid rgba(0, 0, 0, 0.1)',
-	flex: '1',
 	gap: '8px',
 	fontFamily: 'Manrope',
-	'@media (max-width: 1440px)': {
-		minWidth: '50px',
-		height: '35px',
+	'@media (max-width: 1680px)': {
+		height: '40px',
 		padding: '8px 12px 8px 12px',
-		fontSize: '10px',
+		fontSize: '14px',
 	},
 })
 
 const StyledLoadingButton = styled(LoadingButton)({
-	minWidth: '79px',
 	height: '48px',
 	borderRadius: '8px',
 	padding: '12px 16px 12px 16px',
 	border: '1px solid rgba(0, 0, 0, 0.1)',
-	flex: '1',
 	gap: '8px',
 	fontFamily: 'Manrope',
-	'@media (max-width: 1440px)': {
-		minWidth: '50px',
-		height: '35px',
+	'@media (max-width: 1680px)': {
+		height: '40px',
 		padding: '8px 12px 8px 12px',
-		fontSize: '10px',
+		fontSize: '14px',
 	},
 })
 
@@ -1090,8 +1084,11 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											style={{ boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)' }}
 											variant="outlined"
 											sx={{
+												width: '79px',
 												borderRadius: '8px',
 												backgroundColor: '#FFFFFF',
+												fontFamily: 'Manrope, sans-serif',
+												color: '#596570 !important',
 											}}
 										>
 											Cancel
@@ -1103,8 +1100,11 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											style={{ boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)' }}
 											variant="outlined"
 											sx={{
+												width: '105px',
 												borderRadius: '8px',
 												backgroundColor: '#FFFFFF',
+												fontFamily: 'Manrope, sans-serif',
+												color: '#596570 !important',
 											}}
 										>
 											<Stack gap={1} direction="row" alignItems="center">
@@ -1121,8 +1121,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											style={{ boxShadow: '0px 8px 16px rgba(141, 153, 255, 0.24)' }}
 											variant="contained"
 											sx={{
+												width: '93px',
 												borderRadius: '8px',
 												backgroundColor: '#8D99FF',
+												fontFamily: 'Manrope, sans-serif',
 											}}
 										>
 											<Iconify icon="heroicons-outline:save" width={20} height={20} />
@@ -1138,6 +1140,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 												width: '150px',
 												borderRadius: '8px',
 												backgroundColor: '#FFFFFF',
+												fontFamily: 'Manrope, sans-serif',
+												color: '#596570 !important',
 											}}
 										>
 											<Stack gap={1} direction="row" alignItems="center">

@@ -76,7 +76,7 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
         else if (key === 'voltageLevel') {
           formattedValues[0] = `${value}kV`;  
         } else if (key === 'wiringArea') {
-          formattedValues[2] = `${value}sq`;
+          formattedValues[2] = `${value}sq,`;
         } else if (key === 'tlLength') {
           formattedValues[4] = `${value}km`;
         } else if (key === 'tlCount') {
@@ -84,7 +84,7 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
         } else if (key === 'endLocation') {
           formattedValues[2] = `${value}T/L`;
         } else if (key === 'startLocation') {
-          formattedValues[1] = `${value}-`;
+          formattedValues[1] = `${value} -`;
         }
       }
     });
@@ -137,12 +137,13 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
         renderValue={(selected) => (
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              maxWidth: '100%',
+              width: '100%',
+              fontSize: '14px',
+              lineHeight: '28px',
+              fontWeight: 400,
             }}
           >
             {selected}
