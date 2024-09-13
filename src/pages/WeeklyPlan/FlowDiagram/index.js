@@ -48,8 +48,7 @@ const StyledButtonContainer = styled(Box)({
 	alignItems: 'flex-start',
 	justifyContent: 'flex-start',
 	gap: '10px',
-	padding: '24px',
-	maxWidth: '1752px',
+	padding: '16px',
 })
 
 const Container1 = styled('div')({
@@ -283,7 +282,6 @@ const ConnectionInstallationTable = styled('div')({
 
 const Accordion = styled((props) => <MuiAccordion disableGutters elevation={0} square {...props} />)(({ theme }) => ({
 	backgroundColor: theme.palette.background.paper,
-	border: '1px solid rgba(0, 0, 0, 0.1)',
 	overflow: 'hidden',
 	borderRadius: '12px',
 	width: '1704px',
