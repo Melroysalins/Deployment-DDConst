@@ -200,13 +200,13 @@ const DiagramDemolitionParent = styled('div')({
 	flexDirection: 'column',
 	alignItems: 'flex-end',
 	justifyContent: 'center',
-	width: '39.58%',
+	width: '34.77%',
 	height: '100%',
 	position: 'relative',
 })
 
 const TableParent = styled('div')({
-	width: '58%',
+	width: '63.5%',
 	height: '100%',
 	display: 'flex',
 	flexDirection: 'column',
@@ -1211,22 +1211,30 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 									<FormControlLabel
 										control={
 											<Switch
-												disabled={newObj.project && !newObj.isEditing}
-												checked={newObj.isDemolition}
-												onChange={() => toggleDemolition(newObj.id)}
-												color="primary"
-												sx={{
-													
-													'@media (min-width:1440px)': {
-													  transform: 'scale(0.75)', // Scale down the switch for 1440p screens
-													},
-												  }}
+											disabled={newObj.project && !newObj.isEditing}
+											checked={newObj.isDemolition}
+											onChange={() => toggleDemolition(newObj.id)}
+											color="primary"
+											sx={{
+												'& .MuiSwitch-switchBase.Mui-checked': {
+												color: 'white', // Set the color of the switch circle when turned on
+												},
+												'& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+												backgroundColor: 'green', // Set the color of the switch track when turned on
+												},
+											}}
 											/>
 										}
 										label="Demolition"
-										labelPlacement='start'
-										sx={{ color: 'black', '& .css-1yrymlm-MuiTypography-root': { '@media (max-width: 1440px)': { fontSize: '0.675rem', fontFamily: 'Manrope, sans-serif',} }, }}
-									/>
+										labelPlacement="start"
+										sx={{
+											color: 'black',
+											'& .css-1yrymlm-MuiTypography-root': {
+											fontFamily: 'Manrope, sans-serif',
+											color: '#596570 !important',
+											},
+										}}
+										/>
 								</Box>
 								</DiagramDemolitionParent>
 								<TableParent>
