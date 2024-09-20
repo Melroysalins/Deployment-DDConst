@@ -38,10 +38,11 @@ import NotePopup from 'components/NotePopup'
 import { getColorFromValue } from '../helper'
 
 const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
-	height: '2.2vh',
+	height: '24px',
 	borderRadius: '4px',
 	backgroundColor: bgColor,
-	width: '100%',
+	width: 'max-content',
+	minWidth: '79px',
 	fontFamily: "'Manrope', sans-serif",
 	fontWeight: 600,
 	lineHeight: '24px',
@@ -56,8 +57,8 @@ const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
 		gap: '4px',
 		color: textColor,
 		padding: '0.2rem !important',
-		'@media (max-width: 110.625rem)': {
-			fontSize: '11px',
+		'@media (max-width: 105rem)': {
+			fontSize: '13px',
 			height: '14px',
 		}, 
 	},
@@ -65,17 +66,18 @@ const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
 
 const Select = styled(MuiSelect)({
 	height: '3vh',
+	minHeight: '28px',
 	borderRadius: '8px',
 	width: '100%',
 	color: '#596570',
 	fontWeight: 400,
 	lineHeight: '24px',
-	'@media (min-width: 110.630rem)': {
+	fontSize: '14px',
+	'@media (min-width: 105rem)': {
 		maxWidth: '121px',
 	},
-	'@media (max-width: 110.625rem)': {
-		fontSize: '11px',
-		borderRadius: '6px',
+	'@media (max-width: 105rem)': {
+		fontSize: '13px',
 		// padding: '0.5556vh 0.3125vw',
 	},
 
@@ -93,10 +95,12 @@ const Select = styled(MuiSelect)({
 });
 
 const CustomSelectIcon = () => (
-	<>
-		<Box sx={{ width: '0px', height: '0px'}} />
-
-	</>
+	<Iconify
+		icon="iconamoon:arrow-down-2-light"
+		width="24px" // Adjusted size
+		height="24px" // Adjusted size
+		sx={{ color: '#596570', marginRight: '0.5rem' }}
+	/>
   );
 
 const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow) => (
@@ -106,14 +110,14 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
             setHoveredRowIndex(null);
         }
     }}>
-		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.7vw'}}>
+		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.86vw', height: '48px', minWidth: '70px' }}>
 			<Typography
 				className={style.Typography}
 				variant="body1"
 				sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', color: '#596570'  }}
 			>{`#${index + 1}`}</Typography>
 		</TableCell>
-		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.7vw'}}>
+		<TableCell className={style.TableCell}>
 			{isEdit ? (
 					<Select
 						className={style.Select}
@@ -143,7 +147,7 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 			)}
 		</TableCell>
 
-		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.7vw'}}>
+		<TableCell className={style.TableCell}>
 			{isEdit ? (
 					<Select
 						className={style.Select}
@@ -204,8 +208,8 @@ const renderInput = (index) => {
 					readOnly: true,
 				}}
 				sx={{
-					'& .MuiOutlinedInput-input': { padding: '0px 0px 0px 5px', fontSize: '11px', height: '3vh', color: '#596570' }, // Adjust padding for the input field
-					'& .MuiOutlinedInput-root': { borderRadius: '6px', backgroundColor: '#fff' }, // Adjust padding for the root if necessary
+					'& .MuiOutlinedInput-input': { padding: '0px 0px 0px 5px', fontSize: '13px', height: '28px', color: '#596570' }, // Adjust padding for the input field
+					'& .MuiOutlinedInput-root': { borderRadius: '7px', backgroundColor: '#fff' }, // Adjust padding for the root if necessary
 				}}
 			/>
 		</TableCell>
@@ -224,7 +228,7 @@ const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connInd
 						value={demolition.statuses?.[statusIndex]}
 						onChange={(e) => handleChangeDemolition(e.target.value, 'statuses', objId, connIndex, statusIndex)}
 						variant="outlined"
-						IconComponent={CustomSelectIcon}
+						IconComponent=""
 						bgColor={bgColor}
 						textColor={textColor} 
 					>
@@ -259,7 +263,7 @@ const renderStatusStartEnd = (isEdit, handleChangeDemolition, newObj, index, nam
 						value={newObj.currentObj.endpointsDemolition[name]?.[index]}
 						onChange={(e) => handleChangeDemolition(e.target.value, name, newObj.id, index)}
 						variant="outlined"
-						IconComponent={CustomSelectIcon}
+						IconComponent=""
 						bgColor={bgColor}
 						textColor={textColor} 
 					>
@@ -330,22 +334,23 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 					justifyContent: 'flex-start',
 					alignItems: 'flex-end',
 					width: '100%',
-					maxWidth: '100%', // Ensure the box does not exceed the width of its parent
 					overflow: 'visible', // Clip any overflowing content
-					flexShrink: 1, 
 				}}
 			>
 				<Box
 					sx={{
-						minHeight: '96px',
+						minHeight: '86px',
 						maxWidth: '28px',
 						borderRadius: '8px 0px 0px 8px',
 						backgroundColor: '#ffa58d',
 						display: 'flex',
 						alignItems: 'center',
 						justifyContent: 'center',
-						padding: '16px 2px',
+						padding: '12px 2px',
 						boxSizing: 'border-box',
+						'@media (max-width: 105rem)': {
+							padding: '12px 0.0001%',
+						},
 					}}
 				>
 					<Typography
@@ -355,16 +360,20 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 							fontWeight: '600',
 							color: '#fff',
 							transform: 'rotate(180deg)',
+							fontSize: '16px',
+							'@media (max-width: 105rem)': {
+								fontSize: '14px',
+							},
 						}}
 					>
 						End point
 					</Typography>
 				</Box>
-				<TableContainer sx={{ width: '100%', border: '1px solid lightgrey', borderTopRightRadius: '8px', overflow: 'visible' }}>
+				<TableContainer sx={{ width: '100%', border: '1px solid lightgrey', borderRadius: '8px 8px 8px 0px', overflow: 'visible' }}>
 					<Table >
 						<TableHead > 
 							<TableRow style={{ backgroundColor: '#f9f9fa' }}>
-								<TableCell className={style.TableCell} >
+								<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.86vw', height: '48px', minWidth: '70px' }} >
 									<Typography
 										className={style.Typography}
 										variant="body1"
@@ -400,7 +409,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 									setHoveredRowIndex(null);
 								}
 							}} >
-								<TableCell className={style.TableCell} >
+								<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.86vw', height: '48px', minWidth: '70px' }} >
 									<Typography
 										className={style.Typography}
 										variant="body1"
@@ -477,7 +486,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 									setHoveredRowIndex(null);
 								}
 							}} >
-								<TableCell className={style.TableCell} sx={{ width: '10%' }}>
+								<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.86vw', height: '48px', minWidth: '70px' }}>
 									<Typography
 										className={style.Typography}
 										variant="body1"
@@ -486,7 +495,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 										{newObj?.cable_name?.endLocation}
 									</Typography>
 								</TableCell>
-								<TableCell className={style.TableCell} sx={{ width: '15%' }}>
+								<TableCell className={style.TableCell} >
 									{isEdit ? (
 										<Select
 											className={style.Select}
@@ -569,7 +578,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 				<Box
 					sx={{
 						// maxHeight: '80px',
-						height: `${newObj.currentObj.demolitions.length > 1 ? '' : '39.5px' }`,
+						maxHeight: `${newObj.currentObj.demolitions.length > 1 ? '96px' : '39.5px' }`,
 						maxWidth: '28px',
 						borderRadius: '8px 0px 0px 8px',
 						backgroundColor: '#ffa58d',
@@ -578,6 +587,9 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 						justifyContent: 'center',
 						padding: '12px 2px',
 						boxSizing: 'border-box',
+						'@media (max-width: 105rem)': {
+							padding: '14px 0.0001%',
+						},
 					}}
 				>
 					<Typography
@@ -585,7 +597,11 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 							writingMode: 'vertical-rl',
 							fontWeight: '600',
 							color: '#fff',
+							fontSize: '16px',
 							transform: 'rotate(180deg)',
+							'@media (max-width: 105rem)': {
+								fontSize: '14px',
+							},
 						}}
 						className={style.Typography}
 					>
@@ -596,14 +612,15 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 					sx={{width: '100%', paddingBottom: '8px', position: 'relative', overflow: 'hidden'}}
 					in={isDemolitionExpanded}
 					collapsedSize={
-						newObj.currentObj.demolitions.length < 7 ? `${newObj.currentObj.demolitions.length * 4.7}vh` : '29vh'
+						newObj.currentObj.demolitions.length < 7 ? `${newObj.currentObj.demolitions.length * 49}px` : '290px'
 					}
 				>
 					<TableContainer
 						sx={{
-							borderRadius: '0px 0px 8px 0px',
+							borderRadius: '0px 8px 8px 8px',
 							border: '1px solid lightgrey',
-							overflow: 'visible'
+							overflow: 'visible',
+							minWidth: '430px',
 						}}
 					>
 						<Table>
@@ -634,8 +651,8 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 								backgroundColor: '#ffa58d',
 								boxShadow: '0px 8px 16px rgba(255, 165, 141, 0.24)',
 								borderRadius: '32px',
-								width: window.innerWidth < 1600 ? '20px' : '24px', // Adjusted size
-								height: window.innerHeight < 900 ? '20px' : '24px', // Adjusted size
+								width: '24px', // Adjusted size
+								height: '24px', // Adjusted size
 							}}
 							onClick={addPanel} // Add onClick event handler here
 						>
@@ -651,12 +668,12 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 								backgroundColor: '#fff',
 								boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
 								borderRadius: '32px',
-								width: window.innerWidth < 1600 ? '20px' : '24px', // Adjusted size
-								height: window.innerHeight < 900 ? '20px' : '24px', // Adjusted size
+								width: '24px', // Adjusted size
+								height: '24px', // Adjusted size
 								boxSizing: 'border-box',
 								zIndex: '5',
 								position: 'absolute',
-								right: '100px',
+								right: '20px',
 								bottom: '-12px',
 								padding: '0px',
 							}}

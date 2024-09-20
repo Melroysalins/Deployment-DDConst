@@ -226,6 +226,10 @@ const Content = styled('div')({
 	'@media (max-width: 1440px)': {
 		width: '100%',
 		minHeight: '450.41px',
+		gap: '0px',
+	},
+	'@media (max-width: 1680px)': {
+		gap: '8px',
 	},
 })
 

@@ -17,6 +17,12 @@ const StyledRowTables = styled(Box)(({ flexDirection }) => ({
 	width: '100%',
 	gap: '16px',
 	marginBottom: '20px',
+	'@media (max-width: 1440px)': {
+		gap: '0px',
+	},
+	'@media (max-width: 1680px)': {
+		gap: '8px',
+	},
 }));
 
 const StyledConnection = styled(Box)(({ connectionTableWidth }) => ({
@@ -58,12 +64,12 @@ const StyledTypography = styled(Typography)({
 		fontSize: '14px',
 		padding: '2px',
 	},
-	'@media (max-width: 1610px)': {
-		fontSize: '13px',
-	},
-	'@media (max-width: 1530px)': {
-		fontSize: '12px',
-	},
+	// '@media (max-width: 1610px)': {
+	// 	fontSize: '13px',
+	// },
+	// '@media (max-width: 1530px)': {
+	// 	fontSize: '12px',
+	// },
 })
 
 const HeaderText = ({ title, color, newObj, isDemolition }) => (
@@ -92,7 +98,7 @@ const HeaderText = ({ title, color, newObj, isDemolition }) => (
 		<Box
 			sx={{
 				position: 'relative',
-				lineHeight: '24px',
+				lineHeight: '23px',
 				fontWeight: '600',
 				whiteSpace: 'nowrap', // Keep this text in a single line
                 overflow: 'hidden', // Hide overflow
@@ -137,7 +143,7 @@ const HeaderText = ({ title, color, newObj, isDemolition }) => (
 							(e) => e.pmj === PMJ[0]
 						).length
 					} Points) x `}</StyledTypography>
-					<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
+					<StyledTypography sx={{ lineHeight: '28px' }} component="span">
 					{`${(newObj.currentObj?.[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length || 0)} Lines`}
 					</StyledTypography>
 				</StyledTypography>
