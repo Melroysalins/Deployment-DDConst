@@ -203,10 +203,16 @@ const DiagramDemolitionParent = styled('div')({
 	width: '34.77%',
 	height: '100%',
 	position: 'relative',
+	'@media (min-width: 1590px)': {
+		width: '40.77%',
+	},
+	'@media (min-width: 1710px)': {
+		width: '46.77%',
+	},
 })
 
 const TableParent = styled('div')({
-	width: '63.5%',
+	width: '64.5%',
 	height: '100%',
 	display: 'flex',
 	flexDirection: 'column',

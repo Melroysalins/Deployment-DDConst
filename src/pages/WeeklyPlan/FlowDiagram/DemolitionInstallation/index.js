@@ -17,19 +17,19 @@ import {
 	styled,
 } from '@mui/material'
 import style from './DemolitionInstallation.module.scss'
-import { JB_TYPE_MAP, JUNCTION_BOX_MAP, STATUS, STATUS_MAP, COLOR_MAP } from '../diagramHelper'
+import { JB_TYPE_MAP, STATUS, STATUS_MAP } from '../diagramHelper'
 import Iconify from 'components/Iconify'
 import HoverBox from 'components/hover'
-import { visitNode } from 'typescript'
-import Label from 'components/Label'
 import NotePopup from 'components/NotePopup'
 import { getColorFromValue } from '../helper'
 
 const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
-	height: '2.2vh',
+	height: '24px',
 	borderRadius: '4px',
 	backgroundColor: bgColor,
-	width: '100%',
+	width: 'max-content',
+	minWidth: '79px',
+	maxWidth: '87px',
 	fontFamily: "'Manrope', sans-serif",
 	fontWeight: 600,
 	lineHeight: '24px',
@@ -44,8 +44,8 @@ const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
 		gap: '4px',
 		color: textColor,
 		padding: '0.2rem !important',
-		'@media (max-width: 110.625rem)': {
-			fontSize: '11px',
+		'@media (max-width: 105rem)': {
+			fontSize: '13px',
 			height: '14px',
 		}, 
 	},
@@ -57,24 +57,28 @@ const CustomSelectIcon = () => (
 	</>
   );
 
-const renderTableCell = (text, cellWidth='3.73vw', isTableHead=false) => (
-	<TableCell sx={{ padding: '0.425rem 0.175rem', width: cellWidth }}>
-	  <Typography
-		variant="body1"
-		sx={{ 
-		  padding: '0px', 
-		  fontSize: '14px', 
-		  textAlign: 'center', 
-		  color: isTableHead ? '#000' : '#596570', // Conditional color
-		  fontWeight: isTableHead ? 600 : 'normal' // Conditional fontWeight
-		}}
-		className={style.Typography}
-	  >
-		{text}
-	  </Typography>
+  const renderTableCell = (text, cellWidth='3.73vw', isTableHead=false, BoxWidth) => (
+	<TableCell sx={{ padding: '0.425rem 0.175rem', width: '100%', height: '48px'}}>
+	  <Box 
+	  	sx={{ 
+			width: '100%', 
+			whiteSpace: 'nowrap', 
+			overflow: 'hidden', 
+			textOverflow: 'ellipsis', 
+			padding: '0px', 
+			fontSize: '14px', 
+			textAlign: isTableHead && 'center', 
+			color: isTableHead ? '#000' : '#596570', // Conditional color
+			fontWeight: isTableHead ? 600 : 'normal', // Conditional fontWeight
+			'@media (max-width: 1520px)': {
+				width: BoxWidth,
+			}
+		}}>
+		  {text}
+	  </Box>
 	</TableCell>
-);
-
+  );
+  
 const renderTableRow = (demolitionInstallation, index, handleChangeInstallation, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen) => {
 	return (
 	<>
@@ -84,13 +88,13 @@ const renderTableRow = (demolitionInstallation, index, handleChangeInstallation,
             setHoveredRowIndex(null);
         }
     }} >
-		{renderTableCell(`${displayName}`)}
-		<TableCell className={style.TableCell} sx={{ width: '20%'}} >
+		{renderTableCell(`${displayName}`, '10%', false, '105px')}
+		<TableCell className={style.TableCell} >
 			{isEdit ? (
 				<TextField
 					className={style.TextField}
 					variant="outlined"
-					sx={{ '& .MuiInputBase-root': { height: '3vh', borderRadius: '6px' } }}
+					sx={{ '& .MuiInputBase-root': { height: '32px', borderRadius: '8px', maxWidth: '98px' } }}
 					placeholder="320"
 					onChange={(e) => handleChangeInstallation(e.target.value, 'length_demolition', newObj.id, index)}
 					value={newObj.currentObj.length_demolition[index]}
@@ -120,7 +124,7 @@ const renderStatus = (demolitionInstallation, isEdit, handleChangeInstallation, 
 	const { bgColor, textColor } = getColorFromValue(demolitionInstallation.statuses?.[statusIndex]);
 
 	return (
-		<TableCell className={style.TableCell} sx={{ width: '20%'}}>
+		<TableCell className={style.TableCell} >
 			{isEdit ? (
 				<StyledSelect
 					value={demolitionInstallation.statuses?.[statusIndex]}
@@ -181,7 +185,7 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isDemolit
 			sx={{ overflow: 'hidden', position: 'relative', zIndex: 1}}
 			in={isDemolitionExpanded}
 			collapsedSize={
-				newObj.currentObj.demolitionInstallations.length < 7 ? `${(newObj.currentObj.demolitionInstallations.length * 4.5) + 4}vh`: '34vh'
+				newObj.currentObj.installations.length < 7 ? `${(newObj.currentObj.installations.length * 49) + 49}px`: '340px'
 			}
 		>
 			<TableContainer
@@ -232,8 +236,8 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isDemolit
 					backgroundColor: '#fff',
 					boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
 					borderRadius: '32px',
-					width: window.innerWidth < 1600 ? '20px' : '24px', // Adjusted size
-					height: window.innerHeight < 900 ? '20px' : '24px', // Adjusted size
+					width: '24px', // Adjusted size
+					height: '24px', // Adjusted size
 					boxSizing: 'border-box',
 					zIndex: '5',
 					position: 'absolute',
