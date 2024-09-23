@@ -56,30 +56,34 @@ const CustomSelectIcon = () => (
 	</>
   );
 
-  const renderTableCell = (text, cellWidth='3.73vw', isTableHead=false, BoxWidth) => (
+  const renderTableCell = (text, cellWidth='3.73vw', isTableHead=false, BoxWidth) => { 
+	const shouldEllipsis = BoxWidth === 2;
+	return (
 	<TableCell sx={{ padding: '0.425rem 0.175rem', width: '100%', height: '48px'}}>
-	  <Box 
+	  <Typography 
 	  	sx={{ 
-			width: '100%', 
+			maxWidth: '10.47vw', 
 			whiteSpace: 'nowrap', 
 			overflow: 'hidden', 
 			textOverflow: 'ellipsis', 
 			padding: '0px', 
 			fontSize: '14px', 
-			textAlign: isTableHead && 'center',  
+			textAlign: isTableHead && 'center', 
 			color: isTableHead ? '#000' : '#596570', // Conditional color
 			fontWeight: isTableHead ? 600 : 'normal', // Conditional fontWeight
-			'@media (max-width: 1520px)': {
-				width: BoxWidth,
-			}
+			'@media (max-width: 1510px)': {
+				maxWidth: shouldEllipsis ? '6.47vw': 'none',
+			},
 		}}>
 		  {text}
-	  </Box>
+	  </Typography>
 	</TableCell>
-  );
+  )
+  };
   
 
 const renderTableRow = (installation, index, handleChangeInstallation, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen) => {
+	const BoxWidth = installation.statuses.length
 	return (
 	<>
 	<TableRow  sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
@@ -88,7 +92,7 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
             setHoveredRowIndex(null);
         }
     }} >
-		{renderTableCell(`${displayName}`, '10%', false, '105px')}
+		{renderTableCell(`${displayName}`, '10%', false, BoxWidth)}
 		<TableCell sx={{ padding: '0.425rem 0.175rem', height: '48px', minWidth: '85px', maxWidth: '98px'}}>
 			{isEdit ? (
 				<TextField
@@ -183,17 +187,15 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 	<>
 	<Box sx={{ position: 'relative', width: '100%'}}>
 		<Collapse
-			sx={{ overflow: 'hidden', position: 'relative', zIndex: 1}}
+			sx={{ overflow: 'hidden', position: 'relative', zIndex: 1, border: '1px solid lightgrey', borderRadius: '8px' }}
 			in={isExpanded}
 			collapsedSize={
-				newObj.currentObj.installations.length < 7 ? `${(newObj.currentObj.installations.length * 49) + 49}px`: '340px'
+				newObj.currentObj.installations.length < 7 ? `${(newObj.currentObj.installations.length * 48) + 48}px`: '338px'
 			}
 		>
 			<TableContainer
 				sx={{
-					border: '1px solid lightgrey',
 					width: '100%',
-					borderRadius: '8px',
 					overflow: 'visible',
 				}}
 			>
@@ -242,7 +244,7 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 					boxSizing: 'border-box',
 					zIndex: '5',
 					position: 'absolute',
-					right: `50px`,
+					right: `20px`,
 					bottom: '-12px',
 					padding: '0px',
 				}}

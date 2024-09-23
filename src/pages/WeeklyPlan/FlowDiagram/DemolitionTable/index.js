@@ -73,9 +73,6 @@ const Select = styled(MuiSelect)({
 	fontWeight: 400,
 	lineHeight: '24px',
 	fontSize: '14px',
-	'@media (min-width: 105rem)': {
-		maxWidth: '121px',
-	},
 	'@media (max-width: 105rem)': {
 		fontSize: '13px',
 		// padding: '0.5556vh 0.3125vw',
@@ -609,16 +606,14 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 					</Typography>
 				</Box>
 				<Collapse
-					sx={{width: '100%', paddingBottom: '8px', position: 'relative', overflow: 'hidden'}}
+					sx={{width: '100%', position: 'relative', overflow: 'hidden', borderRadius: '0px 8px 8px 8px', border: '1px solid lightgrey' }}
 					in={isDemolitionExpanded}
 					collapsedSize={
-						newObj.currentObj.demolitions.length < 7 ? `${newObj.currentObj.demolitions.length * 49}px` : '290px'
+						newObj.currentObj.demolitions.length < 7 ? `${newObj.currentObj.demolitions.length * 48}px` : '290px'
 					}
 				>
 					<TableContainer
 						sx={{
-							borderRadius: '0px 8px 8px 8px',
-							border: '1px solid lightgrey',
 							overflow: 'visible',
 							minWidth: '430px',
 						}}

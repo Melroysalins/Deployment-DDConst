@@ -35,7 +35,7 @@ const StyledConnection = styled(Box)(({ connectionTableWidth }) => ({
 	width: connectionTableWidth,
 }));
 
-const StyledInstallation = styled(Box)({
+const StyledInstallation = styled(Box)(({ installationTableWidth }) => ({
 	flex: '1 1 auto',
 	alignSelf: 'stretch',
 	borderRadius: '8px',
@@ -47,7 +47,8 @@ const StyledInstallation = styled(Box)({
 	color: '#596570',
 	gap: '8px',
 	marginBottom: 10,
-})
+	maxWidth: installationTableWidth,
+}));
 
 const StyledDemolition = styled(Box)(({ demolitionTableWidth }) => ({
 	display: 'flex',
@@ -201,7 +202,7 @@ export default function FormDiagram({
 						/>
 					)}
 				</StyledConnection>
-				<StyledInstallation>
+				<StyledInstallation installationTableWidth={statuses_length < 3 ? '462px' : ''}>
 					<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
 					{newObj?.currentObj?.endpoints?.startStatuses && (
 						<InstallationTable
