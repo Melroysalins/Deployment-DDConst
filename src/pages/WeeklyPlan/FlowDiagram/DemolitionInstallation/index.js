@@ -31,7 +31,7 @@ const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
 	minWidth: '79px',
 	maxWidth: '87px',
 	fontFamily: "'Manrope', sans-serif",
-	fontWeight: 600,
+	fontWeight: 500,
 	lineHeight: '24px',
 	fontSize: '14px',
 	'& .MuiOutlinedInput-notchedOutline': {
@@ -39,13 +39,14 @@ const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
 	},
 	'& .MuiSelect-select': {
 		display: 'flex',
-		alignItems: 'center',
+        alignItems: 'center',
+        justifyContent: 'center', // Center the text horizontally
 		paddingRight: '0.2rem !important',
 		gap: '4px',
 		color: textColor,
 		padding: '0.2rem !important',
 		'@media (max-width: 105rem)': {
-			fontSize: '13px',
+			fontSize: '12px',
 			height: '14px',
 		}, 
 	},

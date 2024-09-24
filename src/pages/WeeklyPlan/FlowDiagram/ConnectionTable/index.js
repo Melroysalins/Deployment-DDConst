@@ -38,30 +38,31 @@ import NotePopup from 'components/NotePopup'
 import { getColorFromValue } from '../helper'
 
 const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
-	height: '24px',
-	borderRadius: '4px',
-	backgroundColor: bgColor,
-	width: 'max-content',
-	minWidth: '79px',
-	fontFamily: "'Manrope', sans-serif",
-	fontWeight: 600,
-	lineHeight: '24px',
-	fontSize: '14px',
-	'& .MuiOutlinedInput-notchedOutline': {
-		border: 'none',
-	},
-	'& .MuiSelect-select': {
-		display: 'flex',
-		alignItems: 'center',
-		paddingRight: '0.2rem !important',
-		gap: '4px',
-		color: textColor,
-		padding: '0.2rem !important',
-		'@media (max-width: 105rem)': {
-			fontSize: '13px',
-			height: '14px',
-		}, 
-	},
+    height: '24px',
+    borderRadius: '4px',
+    backgroundColor: bgColor,
+    width: 'max-content',
+    minWidth: '79px',
+    fontFamily: "'Manrope', sans-serif",
+    fontWeight: 500,
+    lineHeight: '24px',
+    fontSize: '14px',
+    '& .MuiOutlinedInput-notchedOutline': {
+        border: 'none',
+    },
+    '& .MuiSelect-select': {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center', // Center the text horizontally
+        paddingRight: '0.2rem !important',
+        gap: '4px',
+        color: textColor,
+        padding: '0.2rem !important',
+        '@media (max-width: 105rem)': {
+            fontSize: '12px',
+            height: '14px',
+        }, 
+    },
 }));
 
 const Select = styled(MuiSelect)({
