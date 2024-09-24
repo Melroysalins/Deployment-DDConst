@@ -1,6 +1,6 @@
 export const MIN_X = 45
 export const NODES_GAP = 75
-export const START_POS = 10
+export const START_POS = 2
 const GAP_LINES_Y_AXIS = 40
 const GAP_LINES_X_AXIS = 33
 
@@ -49,7 +49,7 @@ export const generateNodesFromConnections = ({ id, connections, yPos, cableType,
 		statuses.forEach((status, statusIndex) => {
 			const imageUrl = `/static/svg/${pmj}-${status}.svg`
 
-			const x = START_POS + MIN_X + index * step
+			const x = START_POS + GAP_LINES_X_AXIS * (statuses.length - 1) + MIN_X + index * step
 			const nodeId = `${id}.${index + 1}.${statusIndex + 1}`
 			const nodeName = `${JB_TYPE_MAP[joinType]}#${index + 1}`
 			const position = { x, y: yPos + statusIndex * GAP_LINES_Y_AXIS } // Adjust yPos for each status
@@ -60,7 +60,7 @@ export const generateNodesFromConnections = ({ id, connections, yPos, cableType,
 	})
 
 	const headingData = { name: isDemolition ? `Old ${cableType} Section` : `New ${cableType} Section` }
-	const headingPosition = { x: START_POS + (connections.length * NODES_GAP - MIN_X) / 2, y: 50 }
+	const headingPosition = { x: START_POS + GAP_LINES_X_AXIS * (connections[0].statuses.length - 1)  + (connections.length * NODES_GAP - MIN_X) / 2, y: 50 }
 	nodes.push({ id: 'heading', type: 'nodeHeading', data: headingData, position: headingPosition })
 
 	return nodes
@@ -78,7 +78,7 @@ export const generateStartEndNode = ({
 	endStatuses,
 	startEndLength,
 }) => {
-	const startX = START_POS
+	const startX = START_POS + GAP_LINES_X_AXIS * (startStatuses.length - 1)
 	const step = NODES_GAP
 	const endX = startX + MIN_X + step * connectionLength
 
