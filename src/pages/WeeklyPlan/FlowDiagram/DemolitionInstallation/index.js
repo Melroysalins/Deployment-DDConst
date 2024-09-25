@@ -68,7 +68,7 @@ const CustomSelectIcon = () => (
 			whiteSpace: 'nowrap', 
 			overflow: 'hidden', 
 			textOverflow: 'ellipsis', 
-			padding: '0px', 
+			paddingLeft: '8px', 
 			fontSize: '14px', 
 			textAlign: isTableHead && 'center', 
 			color: isTableHead ? '#000' : '#596570', // Conditional color
