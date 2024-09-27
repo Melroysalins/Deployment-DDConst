@@ -183,16 +183,13 @@ const DiagramParent = styled('div')({
 	backgroundColor: '#fff',
 	border: '1px solid rgba(0, 0, 0, 0.1)',
 	boxSizing: 'border-box',
-	minHeight: '584.41px',
 	display: 'flex',
 	flexDirection: 'column',
 	alignItems: 'center',
 	justifyContent: 'center',
 	width: '100%',
 	position: 'relative',
-	'@media (max-width: 1440px)': {
-		minHeight: '450.41px',
-	},
+	minHeight: '580px',
 })
 
 const DiagramDemolitionParent = styled('div')({
@@ -266,7 +263,7 @@ const Tables = styled('div')({
 	flexDirection: 'column',
 	alignItems: 'flex-end',
 	justifyContent: 'flex-start',
-	overflow: 'auto',
+	overflow: 'visible',
 })
 
 const ConnectionInstallationTable = styled('div')({
