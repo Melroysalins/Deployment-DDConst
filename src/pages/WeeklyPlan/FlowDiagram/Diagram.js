@@ -4,6 +4,7 @@ import 'reactflow/dist/style.css'
 import PropTypes from 'prop-types'
 import { useEffect, useState } from 'react'
 import { CONNECTORS, JUNCTION_BOX_MAP, PMJ, STATUS, STROKE_COLOR, getStrokeStatusByColor } from './diagramHelper'
+import { useTranslation } from 'react-i18next'
 
 const Section = Box
 
@@ -152,86 +153,115 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition, set
 		handleEditingEdgeCancel();
 	};
 
-	const UpdateImageView = () => (
-		<Dialog onClose={handleEditingImageCancel} open={showEditModal}>
-			{editImageObj && (
-				<Box
-					sx={{ minWidth: 400, margin: 'auto', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 2 }}
-				>
-					<DialogTitle>Update {editImageObj.name}</DialogTitle>
-					<FormControl style={{ width: 200 }}>
-						<InputLabel>Status</InputLabel>
-						<Select
-							size="small"
-							value={editImageObj?.status}
-							label="Status"
-							onChange={(e) => handleSelectChange(e.target.value, 'status')}
-						>
-							{STATUS.map((e) => (
-								<MenuItem value={e.value} key={e.value}>
-									{e.label}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
-					{editImageObj.isEndbox ? (
+	const UpdateImageView = () => {
+		const { t } = useTranslation(['diagram','common'])
+	
+		return (
+			<Dialog onClose={handleEditingImageCancel} open={showEditModal}>
+				{editImageObj && (
+					<Box
+						sx={{ minWidth: 400, margin: 'auto', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 2 }}
+					>
+						<DialogTitle>{t('update')} {editImageObj.name}</DialogTitle>
 						<FormControl style={{ width: 200 }}>
-							<InputLabel>Junction Type</InputLabel>
+							<InputLabel>{t('status')}</InputLabel>
 							<Select
 								size="small"
-								value={editImageObj.type}
-								label="Junction box"
-								onChange={(e) => handleSelectChange(e.target.value, 'type')}
+								value={editImageObj?.status}
+								label="Status"
+								onChange={(e) => handleSelectChange(e.target.value, 'status')}
 							>
-								{CONNECTORS.map((e) => (
+								{STATUS.map((e) => (
 									<MenuItem value={e.value} key={e.value}>
 										{e.label}
 									</MenuItem>
 								))}
 							</Select>
 						</FormControl>
-					) : (
-						<FormControl style={{ width: 200 }}>
-							<InputLabel>Jb Type</InputLabel>
-							<Select
-								size="small"
-								value={editImageObj.type}
-								label="Jb Type"
-								onChange={(e) => handleSelectChange(e.target.value, 'type')}
-							>
-								{PMJ.map((e) => (
-									<MenuItem value={e} key={e}>
-										{e}
-									</MenuItem>
-								))}
-							</Select>
-						</FormControl>
-					)}
+						{editImageObj.isEndbox ? (
+							<FormControl style={{ width: 200 }}>
+								<InputLabel>Junction Type</InputLabel>
+								<Select
+									size="small"
+									value={editImageObj.type}
+									label="Junction box"
+									onChange={(e) => handleSelectChange(e.target.value, 'type')}
+								>
+									{CONNECTORS.map((e) => (
+										<MenuItem value={e.value} key={e.value}>
+											{e.label}
+										</MenuItem>
+									))}
+								</Select>
+							</FormControl>
+						) : (
+							<FormControl style={{ width: 200 }}>
+								<InputLabel>{t('jb_type')}</InputLabel>
+								<Select
+									size="small"
+									value={editImageObj.type}
+									label="Jb Type"
+									onChange={(e) => handleSelectChange(e.target.value, 'type')}
+								>
+									{PMJ.map((e) => (
+										<MenuItem value={e} key={e}>
+											{e}
+										</MenuItem>
+									))}
+								</Select>
+							</FormControl>
+						)}
 
-					<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }} mb={2}>
-						<Button size="small" variant="outlined" onClick={handleEditingImageCancel}>
-							Cancel
-						</Button>
-						<Button size="small" variant="contained" onClick={applyImageChanges}>
-							Apply
-						</Button>
+						<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }} mb={2}>
+							<Button size="small" variant="outlined" onClick={handleEditingImageCancel}>
+								{t('Cancel')}
+							</Button>
+							<Button size="small" variant="contained" onClick={applyImageChanges}>
+								{t('apply')}
+							</Button>
+						</Box>
 					</Box>
-				</Box>
-			)}
-		</Dialog>
-	)
+				)}
+			</Dialog>
+		)
+	}
 	const UpdateEdgeView = () => {
-		const startNode = editEdgeObj?.source.split('.')[1] === 'start' ? `s/s${editEdgeObj?.source.split('.')[2]}` : `m/h${editEdgeObj?.source.split('.')[1]}`
-		const endNode = editEdgeObj?.target.split('.')[1] === 'end' ? `s/s${editEdgeObj?.target.split('.')[2]}` : `m/h${editEdgeObj?.target.split('.')[1]}`
+		const { t } = useTranslation(['diagram','common'])
+		const connections = newObj.currentObj[isDemolition ? 'demolitions' : 'connections'];
+		const endpoints = newObj.currentObj[isDemolition ? 'endpointsDemolition' : 'endpoints'];
+
+		// const startNode = editEdgeObj?.source.split('.')[1] === 'start' ? `${t(`${endpoints.start}`)}${editEdgeObj?.source.split('.')[2]}` : `${joinType}${editEdgeObj?.source.split('.')[1]}`
+		// const endNode = editEdgeObj?.target.split('.')[1] === 'end' ? `${t(`${endpoints.end}`)}${editEdgeObj?.target.split('.')[2]}` : `${joinType}${editEdgeObj?.target.split('.')[1]}`
+
+		let startNode = '';
+		let endNode = '';
+		
+		if (editEdgeObj?.source.split('.')[1] === 'start') {
+			const connectionIndex = parseInt(editEdgeObj?.target.split('.')[1], 10)- 1
+			startNode = `${t(`${endpoints.start}`)}${editEdgeObj?.source.split('.')[2]}`
+			endNode = `${t(`${connections[connectionIndex]?.joinType}`)}${editEdgeObj?.target.split('.')[1]}`
+		}
+		else if (editEdgeObj?.target.split('.')[1] === 'end') {
+			const connectionIndex = parseInt(editEdgeObj?.source.split('.')[1], 10)- 1
+			startNode = `${t(`${connections[connectionIndex]?.joinType}`)}${editEdgeObj?.source.split('.')[1]}`
+			endNode = `${t(`${endpoints.end}`)}${editEdgeObj?.target.split('.')[2]}`
+		}
+		else {
+			const startConnectionIndex = parseInt(editEdgeObj?.source.split('.')[1], 10)- 1
+			const endConnectionIndex = parseInt(editEdgeObj?.target.split('.')[1], 10)- 1
+			startNode = `${t(`${connections[startConnectionIndex]?.joinType}`)}${editEdgeObj?.source.split('.')[1]}`
+			endNode = `${t(`${connections[endConnectionIndex]?.joinType}`)}${editEdgeObj?.target.split('.')[1]}`
+		}
+
 		return (
 		<Dialog onClose={handleEditingEdgeCancel} open={showEdgeModal}>
 			{editEdgeObj && (
 				<Box
 					sx={{ minWidth: 400, margin: 'auto', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 2 }}
 				>
-					<DialogTitle>Update {startNode}-{endNode}</DialogTitle>
+					<DialogTitle>{t('update')} {startNode}-{endNode}</DialogTitle>
 					<FormControl style={{ width: 200 }}>
-						<InputLabel>Status</InputLabel>
+						<InputLabel>{t('status')}</InputLabel>
 						<Select
 							size="small"
 							value={editEdgeObj?.status}
@@ -248,10 +278,10 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition, set
 
 					<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }} mb={2}>
 						<Button size="small" variant="outlined" onClick={handleEditingEdgeCancel}>
-							Cancel
+							{t('Cancel')}
 						</Button>
 						<Button size="small" variant="contained" onClick={applyEdgeChanges}>
-							Apply
+							{t('apply')}
 						</Button>
 					</Box>
 				</Box>
@@ -263,7 +293,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition, set
 		image: (data) => (
 			<div>
 				{data.data.name && (
-					<div style={{ position: 'absolute', top: -23 }}>
+					<div style={{ position: 'absolute', top: -23, minWidth: 100 }}>
 						<span
 							style={{
 								padding: '3px',
@@ -312,6 +342,7 @@ function Diagram({ nodes, edges, newObj, objId, setCurrentObj, isDemolition, set
 	}
 
 	const onEdgeClick = (_, edge) => {
+		console.log(edge)
 		if (!newObj.isEditing) return
 		const {
 			style: { stroke },

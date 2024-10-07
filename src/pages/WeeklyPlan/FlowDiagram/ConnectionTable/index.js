@@ -36,6 +36,7 @@ import {
 import HoverBox from 'components/hover'
 import NotePopup from 'components/NotePopup'
 import { getColorFromValue } from '../helper'
+import { useTranslation } from 'react-i18next';
 
 const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
     height: '24px',
@@ -101,7 +102,7 @@ const CustomSelectIcon = () => (
 	/>
   );
 
-const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow) => (
+const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow, t) => (
 	<TableRow key={index} sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
 	onMouseLeave={() => {
         if (!isNotePopupOpen) { // Check if NotePopup is not open
@@ -126,11 +127,11 @@ const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, ho
 						disableUnderline
 						displayEmpty
 						IconComponent={CustomSelectIcon}
-
+						renderValue={(value) => t(value)}
 					>
 						{JB_TYPE.map((e) => (
 							<MenuItem value={e.value} key={e}>
-								{e.label}
+								{t(e.label)}
 							</MenuItem>
 						))}
 					</Select>
@@ -140,7 +141,7 @@ const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, ho
 					variant="body1"
 					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 				>
-					{JB_TYPE_MAP[connection.joinType]}
+					{t(JB_TYPE_MAP[connection.joinType])}
 				</Typography>
 			)}
 		</TableCell>
@@ -156,11 +157,11 @@ const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, ho
 						disableUnderline
 						displayEmpty
 						IconComponent={CustomSelectIcon}
-
+						renderValue={(value) => t(value)}
 					>
 						{PMJ.map((e) => (
 							<MenuItem value={e} key={e}>
-								{e}
+								{t(e)}
 							</MenuItem>
 						))}
 					</Select>
@@ -170,12 +171,12 @@ const renderTableRow = (connection, index, handleNewObjChange, objId, isEdit, ho
 					variant="body1"
 					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 				>
-					{connection.pmj}
+					{t(connection.pmj)}
 				</Typography>
 			)}
 		</TableCell>
 		{connection.statuses.map((e, statusIndex) => (
-			<>{renderStatus(connection, isEdit, handleNewObjChange, objId, index, statusIndex)}</>
+			<>{renderStatus(connection, isEdit, handleNewObjChange, objId, index, statusIndex, t)}</>
 		))}
 		{hoveredRowIndex === index && isEdit && (
 			<HoverBox index={index} setVisibleNotes={handleOpenPopup} isDelete={true} deleteRow={deleteRow} />
@@ -195,13 +196,13 @@ const renderTypography = (index) => (
 	</TableCell>
 )
 
-const renderInput = (index) => {
+const renderInput = (index, t) => {
 	return (
 		<TableCell index={index} className={style.TableCell} sx={{ width: '13%' , borderTopRightRadius: '8px' }}>
 			<TextField
 				variant="outlined"
 				placeholder="320"
-				value={`${index + 1}T/L`}
+				value={t('TLWithNumber', { number: index + 1, tl: t('T/L') })}
 				InputProps={{
 					readOnly: true,
 				}}
@@ -214,7 +215,7 @@ const renderInput = (index) => {
 	)
 }
 
-const renderStatus = (connection, isEdit, handleNewObjChange, objId, connIndex, statusIndex) => {
+const renderStatus = (connection, isEdit, handleNewObjChange, objId, connIndex, statusIndex, t) => {
 	const { bgColor, textColor } = getColorFromValue(connection.statuses?.[statusIndex]);
 	
 	return (
@@ -222,17 +223,18 @@ const renderStatus = (connection, isEdit, handleNewObjChange, objId, connIndex, 
 			{isEdit ? (
 					<StyledSelect
 						className={style.StyledSelect}
-						label="Status"
+						label={t('Status')}
 						value={connection.statuses?.[statusIndex]}
 						onChange={(e) => handleNewObjChange(e.target.value, 'statuses', objId, connIndex, statusIndex)}
 						variant="outlined"
 						IconComponent=""
 						bgColor={bgColor}
 						textColor={textColor} 
+						renderValue={(value) => t(value)}
 					>
 						{STATUS.map((e) => (
 							<MenuItem value={e.value} key={e.value}>
-								{e.label}
+								{t(e.label)}
 							</MenuItem>
 						))}
 					</StyledSelect>
@@ -242,42 +244,43 @@ const renderStatus = (connection, isEdit, handleNewObjChange, objId, connIndex, 
 					variant="body1"
 					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 				>
-					{STATUS_MAP[connection.statuses?.[statusIndex]]}
+					{t(STATUS_MAP[connection.statuses?.[statusIndex]])}
 				</Typography>
 			)}
 		</TableCell>
 	)
 }
 
-const renderStatusStartEnd = (isEdit, handleNewObjChange, newObj, index, name) => {
+const renderStatusStartEnd = (isEdit, handleNewObjChange, newObj, index, name, t) => {
 	const { bgColor, textColor } = getColorFromValue(newObj.currentObj.endpoints[name]?.[index]);
 	
 	return (
 		<TableCell sx={{ width: '0%', padding: ' 0.425rem 0.175rem'}} index={index}>
 			{isEdit ? (
 					<StyledSelect
-						className={style.StyledSelect}
-						label="Status"
-						value={newObj.currentObj.endpoints[name]?.[index]}
-						onChange={(e) => handleNewObjChange(e.target.value, name, newObj.id, index)}
-						variant="outlined"
-						IconComponent=""
-						bgColor={bgColor}
-						textColor={textColor} 
-					>
-						{STATUS.map((e) => (
-							<MenuItem value={e.value} key={e.value}>
-								{e.label}
-							</MenuItem>
-						))}
-					</StyledSelect>
+					className={style.StyledSelect}
+					label={t('Status')}
+					value={newObj.currentObj.endpoints[name]?.[index]}
+					onChange={(e) => handleNewObjChange(e.target.value, name, newObj.id, index)}
+					variant="outlined"
+					IconComponent=""
+					bgColor={bgColor}
+					textColor={textColor}
+					renderValue={(value) => t(value)}
+				  >
+					{STATUS.map((e) => (
+					  <MenuItem value={e.value} key={e.value}>
+						{t(e.label)}
+					  </MenuItem>
+					))}
+				  </StyledSelect>
 			) : (
 				<Typography
 					className={style.Typography}
 					variant="body1"
 					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 				>
-					{STATUS_MAP[newObj.currentObj.endpoints[name]?.[index]]}
+					{t(STATUS_MAP[newObj.currentObj.endpoints[name]?.[index]])}
 				</Typography>
 			)}
 		</TableCell>
@@ -297,6 +300,8 @@ const ConnectionTable = ({
 	const addPanel = () => {
 		handleAddConnection(newObj.id)
 	}
+
+	const { t } = useTranslation(['diagram']);
 
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
 	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
@@ -374,7 +379,7 @@ const ConnectionTable = ({
 							},
 						}}
 					>
-						End point
+						{t('End point')}
 					</Typography>
 				</Box>
 				<TableContainer sx={{ width: '100%', border: '1px solid lightgrey', borderRadius: '8px 8px 8px 0px', overflow: 'visible' }}>
@@ -387,7 +392,7 @@ const ConnectionTable = ({
 										variant="body1"
 										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', fontWeight: 600 }}
 									>
-										Location
+										{t('location')}
 									</Typography>
 								</TableCell>
 								<TableCell className={style.TableCell} >
@@ -396,7 +401,7 @@ const ConnectionTable = ({
 										variant="body1"
 										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', fontWeight: 600 }}
 									>
-										Transformer
+										{t('Transformer')}
 									</Typography>
 								</TableCell>
 								<TableCell className={style.TableCell} >
@@ -405,10 +410,10 @@ const ConnectionTable = ({
 										variant="body1"
 										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', fontWeight: 600 }}
 									>
-										Connector
+										{t('Connector')}
 									</Typography>
 								</TableCell>
-								{newObj.currentObj.endpoints.startStatuses.map((e, index) => renderInput(index))}
+								{newObj.currentObj.endpoints.startStatuses.map((e, index) => renderInput(index, t))}
 							</TableRow>
 						</TableHead>
 						<TableBody>
@@ -428,29 +433,29 @@ const ConnectionTable = ({
 								</TableCell>
 								<TableCell className={style.TableCell} >
 									{isEdit ? (
-											<Select
-												className={style.Select}
-												color="primary"
-												value={newObj.currentObj.endpoints.start}
-												onChange={(e) => handleNewObjChange(e.target.value, 'start', newObj.id)}
-												disableUnderline
-												displayEmpty
-												IconComponent={CustomSelectIcon}
-
-											>
-												{JUNCTION_BOX.map((e) => (
-													<MenuItem value={e.value} key={e.value}>
-														{e.label}
-													</MenuItem>
-												))}
-											</Select>	
+										<Select
+										className={style.Select}
+										color="primary"
+										value={newObj.currentObj.endpoints.start}
+										onChange={(e) => handleNewObjChange(e.target.value, 'start', newObj.id)}
+										disableUnderline
+										displayEmpty
+										IconComponent={CustomSelectIcon}
+										renderValue={(value) => t(value)}
+									  >
+										{JUNCTION_BOX.map((e) => (
+										  <MenuItem value={e.value} key={e.value}>
+											{t(e.label)}
+										  </MenuItem>
+										))}
+									  </Select>	
 									) : (
 										<Typography
 											className={style.Typography}
 											variant="body1"
 											sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 										>
-											{newObj.currentObj.endpoints.start}
+											{t(newObj.currentObj.endpoints.start)}
 										</Typography>
 									)}
 								</TableCell>
@@ -483,7 +488,7 @@ const ConnectionTable = ({
 									)}
 								</TableCell>
 								{newObj.currentObj.endpoints.startStatuses.map((e, index) => (
-									<>{renderStatusStartEnd(isEdit, handleNewObjChange, newObj, index, 'startStatuses')}</>
+									<>{renderStatusStartEnd(isEdit, handleNewObjChange, newObj, index, 'startStatuses', t)}</>
 								))}
 								{hoveredRowIndex === 'start' && isEdit && (
 									<HoverBox index={'start'} setVisibleNotes={handleOpenPopup} />
@@ -512,12 +517,12 @@ const ConnectionTable = ({
 											onChange={(e) => handleNewObjChange(e.target.value, 'end', newObj.id)}
 											disableUnderline
 											displayEmpty
-												IconComponent={CustomSelectIcon}
-
+											IconComponent={CustomSelectIcon}
+											renderValue={(value) => t(value)}
 										>
 											{JUNCTION_BOX.map((e) => (
 												<MenuItem value={e.value} key={e.value}>
-													{e.label}
+													{t(e.label)}
 												</MenuItem>
 											))}
 										</Select>	
@@ -527,7 +532,7 @@ const ConnectionTable = ({
 											variant="body1"
 											sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 										>
-											{newObj.currentObj.endpoints.end}
+											{t(newObj.currentObj.endpoints.end)}
 										</Typography>
 									)}
 								</TableCell>
@@ -561,7 +566,7 @@ const ConnectionTable = ({
 									)}
 								</TableCell>
 								{newObj.currentObj.endpoints.endStatuses.map((e, index) => (
-									<>{renderStatusStartEnd(isEdit, handleNewObjChange, newObj, index, 'endStatuses')}</>
+									<>{renderStatusStartEnd(isEdit, handleNewObjChange, newObj, index, 'endStatuses', t)}</>
 								))}
 								{hoveredRowIndex === 'end' && isEdit && (
 									<HoverBox index={'end'} setVisibleNotes={handleOpenPopup} />
@@ -611,7 +616,7 @@ const ConnectionTable = ({
 						}}
 						className={style.Typography}
 					>
-						Mid {newObj.currentObj.connections.length > 1 ? 'point' : ''}
+						{newObj.currentObj.connections.length > 1 ? 'Mid point' : 'Mid'}
 					</Typography>
 				</Box>
 				<Collapse
@@ -630,7 +635,7 @@ const ConnectionTable = ({
 						<Table>
 							<TableBody>
 								{newObj.currentObj.connections.map((connection, index) => (
-									<>{renderTableRow(connection, index, handleNewObjChange, newObj.id, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow)}</>
+									<>{renderTableRow(connection, index, handleNewObjChange, newObj.id, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow, t)}</>
 								))}
 							</TableBody>
 						</Table>

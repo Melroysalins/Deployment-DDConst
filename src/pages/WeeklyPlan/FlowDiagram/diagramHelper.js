@@ -40,7 +40,7 @@ export const STATUS_MAP = {
 	completed: 'Completed',
 }
 
-export const generateNodesFromConnections = ({ id, connections, yPos, cableType, isDemolition }) => {
+export const generateNodesFromConnections = ({ id, connections, yPos, cableType, t, isDemolition}) => {
 	const nodes = []
 	const step = NODES_GAP
 
@@ -51,7 +51,7 @@ export const generateNodesFromConnections = ({ id, connections, yPos, cableType,
 
 			const x = START_POS + GAP_LINES_X_AXIS * (statuses.length - 1) + MIN_X + index * step
 			const nodeId = `${id}.${index + 1}.${statusIndex + 1}`
-			const nodeName = `${JB_TYPE_MAP[joinType]}#${index + 1}`
+			const nodeName = `${t(`${joinType}`)}#${index + 1}`
 			const position = { x, y: yPos + statusIndex * GAP_LINES_Y_AXIS } // Adjust yPos for each status
 			const data = { imageUrl, name: nodeName, status }
 
@@ -59,7 +59,7 @@ export const generateNodesFromConnections = ({ id, connections, yPos, cableType,
 		})
 	})
 
-	const headingData = { name: isDemolition ? `Old ${cableType} Section` : `New ${cableType} Section` }
+	const headingData = { name: isDemolition ? `${t('old')} ${cableType} ${t('section')}` : `${t('new')} ${cableType} ${t('section')}` }
 	const headingPosition = { x: START_POS + GAP_LINES_X_AXIS * (connections[0].statuses.length - 1)  + (connections.length * NODES_GAP - MIN_X) / 2, y: 50 }
 	nodes.push({ id: 'heading', type: 'nodeHeading', data: headingData, position: headingPosition })
 
@@ -77,6 +77,7 @@ export const generateStartEndNode = ({
 	startStatuses,
 	endStatuses,
 	startEndLength,
+	t
 }) => {
 	const startX = START_POS + GAP_LINES_X_AXIS * (startStatuses.length - 1)
 	const step = NODES_GAP
@@ -91,7 +92,7 @@ export const generateStartEndNode = ({
 		nodes.push({
 			id: `${seqNumber}.start.${index + 1}`,
 			type: 'image',
-			data: { imageUrl: startImageUrl, name: `${startName}#${index + 1}`, isEndbox: true, status: startStatus },
+			data: { imageUrl: startImageUrl, name: `${t(`${startName}`)}#${index + 1}`, isEndbox: true, status: startStatus },
 			position: { x: xPosition + 5, y: yPos },
 		})
 	})
@@ -104,7 +105,7 @@ export const generateStartEndNode = ({
 		nodes.push({
 			id: `${seqNumber}.end.${index + 1}`,
 			type: 'image',
-			data: { imageUrl: endImageUrl, name: `${endName}#${index + 1}`, isEndbox: true, status: endStatus },
+			data: { imageUrl: endImageUrl, name: `${t(`${endName}`)}#${index + 1}`, isEndbox: true, status: endStatus },
 			position: { x: xPosition - 5, y: yPos },
 		})
 	})
@@ -114,6 +115,7 @@ export const generateStartEndNode = ({
 
 export const generateEdges = (startId, newObj, isDemolition) => {
     const items = newObj.currentObj[isDemolition ? 'demolitionInstallations' : 'installations'];
+	const connections = newObj.currentObj[isDemolition ? 'demolitions' : 'connections'];
     const edges = [];
     const type = 'step';
 
@@ -126,6 +128,8 @@ export const generateEdges = (startId, newObj, isDemolition) => {
 					source: `${startId}.start.${j + 1}`,
 					target: `${startId}.${i + 1}.${j + 1}`,
 					style: { stroke: STROKE_COLOR[status] },
+					startNodeHeading: `${newObj.currentObj.endpoints.start}`,
+					endNodeHeading: `${connections[j].joinType}`,
 					type,
 				});
 			} 
@@ -135,6 +139,8 @@ export const generateEdges = (startId, newObj, isDemolition) => {
 					source: `${startId}.${items.length-1}.${j + 1}`,
 					target: `${startId}.end.${j + 1}`,
 					style: { stroke: STROKE_COLOR[status] },
+					startNodeHeading: `${connections[j].joinType}`,
+					endNodeHeading: `${newObj.currentObj.endpoints.end}`,
 					type,
 				});
 			} 
@@ -144,6 +150,8 @@ export const generateEdges = (startId, newObj, isDemolition) => {
 					source: `${startId}.${i}.${j + 1}`,
 					target: `${startId}.${i + 1}.${j + 1}`,
 					style: { stroke: STROKE_COLOR[status] },
+					startNodeHeading: `${connections[j].joinType}`,
+					endNodeHeading: `${connections[j].joinType}`,
 					type,
 				});
 			}

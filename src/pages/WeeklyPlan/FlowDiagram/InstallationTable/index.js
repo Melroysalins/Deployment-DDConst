@@ -22,6 +22,7 @@ import Iconify from 'components/Iconify'
 import HoverBox from 'components/hover'
 import NotePopup from 'components/NotePopup'
 import { getColorFromValue } from '../helper'
+import { useTranslation } from 'react-i18next';
 
 const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
 	height: '24px',
@@ -83,7 +84,7 @@ const CustomSelectIcon = () => (
   };
   
 
-const renderTableRow = (installation, index, handleChangeInstallation, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen) => {
+const renderTableRow = (installation, index, handleChangeInstallation, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, t) => {
 	const BoxWidth = installation.statuses.length
 	return (
 	<>
@@ -115,7 +116,7 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
 			)}
 		</TableCell>
 		{installation.statuses.map((e, statusIndex) => (
-			<>{renderStatus(installation, isEdit, handleChangeInstallation, newObj, index, statusIndex)}</>
+			<>{renderStatus(installation, isEdit, handleChangeInstallation, newObj, index, statusIndex, t)}</>
 		))}
 		{hoveredRowIndex === index && isEdit && (
 			<HoverBox index={index} setVisibleNotes={handleOpenPopup}/>
@@ -125,7 +126,7 @@ const renderTableRow = (installation, index, handleChangeInstallation, displayNa
 	
 )}
 
-const renderStatus = (installation, isEdit, handleChangeInstallation, newObj, connIndex, statusIndex) => {
+const renderStatus = (installation, isEdit, handleChangeInstallation, newObj, connIndex, statusIndex, t) => {
 	const { bgColor, textColor } = getColorFromValue(installation.statuses?.[statusIndex]);
 
 	return (
@@ -133,17 +134,18 @@ const renderStatus = (installation, isEdit, handleChangeInstallation, newObj, co
 			{isEdit ? (
 				<StyledSelect
 					value={installation.statuses?.[statusIndex]}
-					label="Status"
+					label={t('Status')}
 					onChange={(e) => handleChangeInstallation(e.target.value, 'statuses_installation', newObj.id, connIndex, statusIndex)}
 					variant="outlined"
 					className={style.StyledSelect}
 					IconComponent={CustomSelectIcon}
 					bgColor={bgColor}
 					textColor={textColor}
+					renderValue={(value) => t(value)}
 				>
 					{STATUS.map((e) => (
 						<MenuItem value={e.value} key={e.value}>
-							{e.label}
+							{t(e.label)}
 						</MenuItem>
 					))}
 				</StyledSelect>
@@ -153,7 +155,7 @@ const renderStatus = (installation, isEdit, handleChangeInstallation, newObj, co
 					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', whiteSpace: 'nowrap'  }}
 					className={style.Typography}
 				>
-					{STATUS_MAP[installation.statuses?.[statusIndex]]}
+					{t(STATUS_MAP[installation.statuses?.[statusIndex]])}
 				</Typography>
 			)}
 		</TableCell>
@@ -164,6 +166,8 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
 	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
 	const [inputValue, setInputValue] = useState(); 
+
+	const { t } = useTranslation(['diagram']);
 
 	const handleOpenPopup = (index) => {
 		setIsNotePopupOpen(true);
@@ -203,10 +207,10 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 				<Table>
 					<TableHead>
 						<TableRow style={{width: '100%', backgroundColor: '#f9f9fa' }}>
-							{renderTableCell('T/L Section', '10%', true)}
-							{renderTableCell('Length(m)', '98px', true)}
+							{renderTableCell(t('T/L Section'), '10%', true)}
+							{renderTableCell(t('Length(m)'), '98px', true)}
 							{newObj.currentObj.installations[0]?.statuses.map((_, index) => (
-								<>{renderTableCell(`${index + 1}T/L`, '10%', true)}</>
+								<>{renderTableCell(t('TLWithNumber', { number: index + 1, tl: t('T/L') }), '10%', true)}</>
 							))}
 						</TableRow>
 					</TableHead>
@@ -216,17 +220,17 @@ const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isExpande
 							const joinType = newObj.currentObj.connections[index]?.joinType
 							console.log(newObj, newObj.currentObj.installations)
 							if (index === 0) {
-								status = `${newObj?.cable_name?.startLocation}${newObj.currentObj.endpoints.start}#${index + 1}~${JB_TYPE_MAP[joinType]}#${
+								status = `${newObj?.cable_name?.startLocation}${t(`${newObj.currentObj.endpoints.start}`)}#${index + 1}~${t(`${joinType}`)}#${
 									index + 1
 								}`
 							} else if (index === newObj.currentObj.installations.length - 1) {
-								status = `${JB_TYPE_MAP[newObj.currentObj.connections[index - 1]?.joinType]}#${index}~${newObj?.cable_name?.endLocation}${newObj.currentObj.endpoints.end}`;
+								status = `${t(`${newObj.currentObj.connections[index - 1]?.joinType}`)}#${index}~${newObj?.cable_name?.endLocation}${t(`${newObj.currentObj.endpoints.end}`)}`;
 							} else {
-								status = `${JB_TYPE_MAP[newObj.currentObj?.connections[index - 1]?.joinType]}#${index}~${
-									JB_TYPE_MAP[joinType]
+								status = `${t(`${newObj.currentObj.connections[index - 1]?.joinType}`)}#${index}~${
+									t(`${joinType}`)
 								}#${index + 1}`
 							}
-							return <>{renderTableRow(installation, index, handleChangeInstallation, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen)}</>
+							return <>{renderTableRow(installation, index, handleChangeInstallation, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, t)}</>
 						})}
 
 					</TableBody>

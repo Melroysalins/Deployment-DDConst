@@ -40,6 +40,7 @@ import { popupConfig } from './WarningDialog/dialogConfig'
 import WarningDialog from './WarningDialog'
 import DropdownPopover from 'components/Drawer/DropdownDrawer'
 import { createNewProjectDiagramTable, getTableByProjectDiagram, updateProjectDiagramTable } from 'supabase/project_diagrams_table'
+import { useTranslation } from 'react-i18next';
 
 const StyledButtonContainer = styled(Box)({
 	alignSelf: 'stretch',
@@ -351,7 +352,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		buttons: []
 	  });
 
+	  const { t } = useTranslation(['diagram']);
+
 	  useEffect(() => {
+		console.log(hasChanges)
         if (objs !== null && hasChanges) {
             handleAdd();
 			setHasChanges(false);
@@ -395,7 +399,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		  title: config.title,
 		  dialogHeading: config.dialogHeading,
 		  description: config.description,
-		  buttons
+		  buttons,
+		  actionType: type,
 		});
 	  };
 
@@ -923,7 +928,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					id: obj.id,
 					connections: obj.currentObj.connections,
 					yPos,
-					cableType: obj.cable_type.bigInput
+					cableType: obj.cable_type.bigInput,
+					t
 				}),
 				...generateStartEndNode({
 					seqNumber: obj.id,
@@ -936,6 +942,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					startStatuses: obj.currentObj.endpoints.startStatuses,
 					endStatuses: obj.currentObj.endpoints.endStatuses,
 					startEndLength: obj.currentObj.connections[0]?.statuses.length,
+					t
 				}),
 			]
 			const objEdges = generateEdges(obj.id, obj)
@@ -951,6 +958,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 						connections: obj.currentObj.demolitions,
 						yPos,
 						cableType: obj.demolition_type.bigInput,
+						t,
 						isDemolition: true,
 					}),
 					...generateStartEndNode({
@@ -964,6 +972,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 						startStatuses: obj.currentObj.endpointsDemolition.startStatuses,
 						endStatuses: obj.currentObj.endpointsDemolition.endStatuses,
 						startEndLength: obj.currentObj.demolitions[0]?.statuses.length,
+						t
 					}),
 				]
 
@@ -1072,15 +1081,15 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							>
 								<LeftContent onClick={(event) => event.stopPropagation()} sx={{ position: 'relative', left: '2rem', textAlign: 'center', gap: '0px', display: 'flex', flexDirection: 'row', alignItems: 'center', whiteSpace: 'nowrap' }}>
 									<CableContent style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300, color: '#606380' }}>
-										Cable Name
+										{t('cable_name')}
 										<DropdownPopover type="cable_name" newObj={newObj} handleChangeStatus={handleChangeStatus}/>
 									</CableContent>
 									<CableContent style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300, color: '#606380'  }}>
-										Cable Type
+										{t('cable_type')}
 										<DropdownPopover type="cable_type" newObj={newObj} handleChangeStatus={handleChangeStatus}/>
 									</CableContent>
 									<CableContent style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300, color: '#606380'  }}>
-										Demolition
+										{t('Demolition')}
 										<DropdownPopover type="demolition_type" newObj={newObj} handleChangeStatus={handleChangeStatus}/>
 									</CableContent>
 								</LeftContent>
@@ -1098,7 +1107,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 												color: '#596570 !important',
 											}}
 										>
-											Cancel
+											{t('diagram.Cancel')}
 										</StyledButton>
 									)}
 									{delete1 && (
@@ -1116,7 +1125,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 										>
 											<Stack gap={1} direction="row" alignItems="center">
 												<Iconify icon="mi:delete" width={20} height={20} />
-												Delete
+												{t('Delete')}
 											</Stack>
 										</StyledButton>
 									)}
@@ -1135,7 +1144,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											}}
 										>
 											<Iconify icon="heroicons-outline:save" width={20} height={20} />
-											Save
+											{t('Save')}
 										</StyledLoadingButton>
 									)}
 									{isEditable && newObj.project && !newObj.isEditing && (
@@ -1153,7 +1162,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 										>
 											<Stack gap={1} direction="row" alignItems="center">
 												<Iconify icon="mi:edit" width={20} height={20} />
-												Edit
+												{t('Edit')}
 											</Stack>
 										</StyledButton>
 									)}
@@ -1232,7 +1241,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											}}
 											/>
 										}
-										label="Demolition"
+										label={t('Demolition')}
 										labelPlacement="start"
 										sx={{
 											color: 'black',
@@ -1302,7 +1311,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 									color: '#fff',
 								}}
 							>
-								Summary
+								{t('Summary')}
 							</Typography>
 						</Box>
 					)}
@@ -1310,7 +1319,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			))}
 			<CustomButton onClick={handleAddNewObj}>
 				<Iconify icon="ic:round-plus" width={20} height={20} />
-				<CustomButtonText>Add Diagram</CustomButtonText>
+				<CustomButtonText>{t('Add Diagram')}</CustomButtonText>
 			</CustomButton>
 			<StyledButtonRow sx={{ paddingTop: '8px' }}>
 				<StyledButton
@@ -1318,13 +1327,13 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					sx={{ marginRight: '16px', borderRadius: '8px', backgroundColor: '#8D99FF', width: '200px', height: '40px' }}
 				>
 					<Iconify icon="heroicons-outline:save" width={20} height={20} />
-					Save
+					{t('Save')}
 				</StyledButton>
 				<StyledButton
 					variant="contained"
 					sx={{ borderRadius: '8px', backgroundColor: '#FFA58D', width: '200px', height: '40px' }}
 				>
-					Continue
+					{t('Continue')}
 					<Iconify icon="lucide:arrow-right" width={20} height={20} />
 				</StyledButton>
 			</StyledButtonRow>

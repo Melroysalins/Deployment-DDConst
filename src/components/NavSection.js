@@ -45,7 +45,7 @@ const handleTargetLink = (link) => {
 
 function NavItem({ item, active, leftDrawerOpened }) {
 	const theme = useTheme()
-	const { t } = useTranslation()
+	const { t } = useTranslation(['common'])
 	const { openaccoutReview, setopenaccoutReview } = useMain()
 
 	const isActiveRoot = active(item.path)

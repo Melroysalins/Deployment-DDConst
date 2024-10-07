@@ -73,7 +73,7 @@ export const colorApprovalSubTask = {
 }
 
 function WeeklyPlan() {
-	const { i18n, t } = useTranslation()
+	const { i18n, t } = useTranslation(['weekly_plan', 'common'])
 	const isEng = i18n.language === 'en'
 	const [popupData, setPopupData] = React.useState(null)
 	const {
