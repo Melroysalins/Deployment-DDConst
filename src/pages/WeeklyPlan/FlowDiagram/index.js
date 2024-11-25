@@ -1107,7 +1107,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 												color: '#596570 !important',
 											}}
 										>
-											{t('diagram.Cancel')}
+											{t('Cancel')}
 										</StyledButton>
 									)}
 									{delete1 && (

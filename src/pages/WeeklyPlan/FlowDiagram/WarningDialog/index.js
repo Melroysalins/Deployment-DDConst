@@ -46,14 +46,15 @@ const DialogHeading = styled(DialogContent)({
 
 const WarningDialog = ({ isOpen, onClose, title, dialogHeading, description, buttons, actionType }) => {
   const { t } = useTranslation(['diagram']);
+  const dialogButtonLabel = actionType === 'delete' ? t('Yes, delete') : t('Confirm');
 
   return (
     <Dialog open={isOpen} onClose={onClose}>
       <AddProjectPopupRoot>
-        <PopupTitle sx={{ backgroundColor: actionType === 'delete' ? '#DA4C57' : '#8d99ff' }}>{dialogContent}</PopupTitle>
+        <PopupTitle sx={{ backgroundColor: actionType === 'delete' ? '#DA4C57' : '#8d99ff' }}>{title}</PopupTitle>
         <DialogHeading>
-          <DialogTitle sx={{ fontWeight: 600}}>{dialogHeadingContent}</DialogTitle>
-          <DialogContentText sx={{ fontSize: '14px'}}>{dialogDescription}</DialogContentText>
+          <DialogTitle sx={{ fontWeight: 600}}>{dialogHeading}</DialogTitle>
+          <DialogContentText sx={{ fontSize: '14px'}}>{description}</DialogContentText>
         </DialogHeading>
           <Box
             sx={{
