@@ -5,3 +5,5 @@
 - Install dependencies: `npm install` / `yarn install`
 - get a copy of .env file
 - Start the project: `npm run start` / `yarn start`
+
+- test
