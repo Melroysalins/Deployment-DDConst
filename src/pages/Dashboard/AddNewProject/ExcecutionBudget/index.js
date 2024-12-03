@@ -14,7 +14,7 @@ function Main() {
 		<>
 			<Tabs variant="fullWidth" value={value} onChange={handleChange}>
 				<Tab label="Current flow" />
-				<Tab label="New xl sheet flow" />
+				<Tab label="New Flow - XL sheet" />
 			</Tabs>
 			<br />
 			{!value ? <ExecutionBudget /> : <SpreadSheet />}
