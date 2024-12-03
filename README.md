@@ -6,4 +6,4 @@
 - get a copy of .env file
 - Start the project: `npm run start` / `yarn start`
 
-- test
+- test again
