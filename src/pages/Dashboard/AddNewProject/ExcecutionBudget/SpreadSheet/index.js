@@ -11,7 +11,36 @@ import { useParams } from 'react-router-dom'
 jspreadsheet.setLicense(
 	'ZGIyOTJhNzQ4YmIxN2UyYzYzNmNhNTg0NmU5MDRkOTU1ODBkZGU3MDlmOGU2NTM3YjgxYmM5ZmJjNThjZTU1MjcwZTViMmY3NjMyNThiYzAzYzk4NWQ3NTdmMWFhNDdlNTcwOTBiYjQyMjU4ZjY3Mjg4MzdmMWQwMGRiZTczZjMsZXlKamJHbGxiblJKWkNJNklqUTFPVE0yWlRRMk5HSXdaalJtWWpreVptVmtNVFExTURSbU9XTTFNR0U1TURrM01qbGxPVGtpTENKdVlXMWxJam9pVkdGc2FHRWdUWFZ6ZEdGbVlTSXNJbVJoZEdVaU9qRTNNelUxTVRZNE1EQXNJbVJ2YldGcGJpSTZXeUozWldJaUxDSnNiMk5oYkdodmMzUWlYU3dpY0d4aGJpSTZNekVzSW5OamIzQmxJanBiSW5ZM0lpd2lkamdpTENKMk9TSXNJbll4TUNJc0luWXhNU0lzSW1admNtMTFiR0VpTENKbWIzSnRjeUlzSW5KbGJtUmxjaUlzSW5CaGNuTmxjaUlzSW1sdGNHOXlkR1Z5SWl3aWMyVmhjbU5vSWl3aVkyOXRiV1Z1ZEhNaUxDSjJZV3hwWkdGMGFXOXVjeUlzSW1Ob1lYSjBjeUlzSW5CeWFXNTBJaXdpWW1GeUlpd2ljMmhsWlhSeklpd2ljMmhoY0dWeklpd2ljMlZ5ZG1WeUlsMTk='
 )
-const minDimensions = [11, 11]
+
+const worksheets = [
+	{
+		worksheetName: 'Consumables',
+		nestedHeaders: [
+			[
+				{
+					title: 'Consumables',
+					colspan: '10',
+				},
+			],
+		],
+		minDimensions: [4, 3],
+		data: [
+			['EB-A', 1, 1, '=B1*C1'],
+			['', null, null, '=B2*C2'],
+			['Total', null, null, '=SUM(D1:D2)'],
+		],
+		columns: [
+			{ title: 'Junction Box', width: '200px' },
+			{ title: 'Count', width: '200px' },
+			{ title: 'Unit Price', width: '200px' },
+			{ title: 'SubTotal', width: '200px' },
+		],
+		allowInsertColumn: false,
+		allowManualInsertColumn: false,
+		allowDeleteColumn: false,
+		allowRenameColumn: false,
+	},
+]
 
 export default function SpreadSheet() {
 	const spreadsheet = useRef(null)
@@ -24,14 +53,24 @@ export default function SpreadSheet() {
 		const grid = window.jspreadsheet(spreadsheet.current, {
 			tabs: true,
 			toolbar: true,
-			worksheets: [
-				{
-					minDimensions,
-				},
-			],
+			worksheets,
+			oninsertrow: (instance, cell) => {
+				const lastRowNum = instance.getData().length - 1
+				const currentRowNum = cell[0].row
+				if (currentRowNum !== lastRowNum) {
+					// Add Data and Update the last Row
+					instance.setRowData(currentRowNum, ['', 1, 1, `=B${currentRowNum + 1}*C${currentRowNum + 1}`])
+					instance.setRowData(lastRowNum, ['Total', null, null, `=SUM(D1:D${lastRowNum})`])
+				} else {
+					// Last row ("Total") adjustment logic
+					// instance.setRowData(lastRowNum, instance.getRowData(lastRowNum - 1))
+					instance.setRowData(lastRowNum, ['Total', null, null, `=SUM(D1:D${lastRowNum})`])
+					instance.setRowData(lastRowNum - 1, ['', 1, 1, `=B${currentRowNum}*C${currentRowNum}`])
+				}
+				// instance.updateCell(lastRowNum, 2, `=SUM(D1:D${lastRowNum})`)
+			},
 		})
 		setGridInstance(grid)
-
 		return () => {
 			window.jspreadsheet.destroyAll()
 		}
@@ -58,8 +97,8 @@ export default function SpreadSheet() {
 	}, [id])
 
 	const handleSave = async () => {
-		const config = gridInstance[0].parent.getConfig()
-		const object = { data: config, project: id }
+		// All Sheet Data
+		const object = { data: gridInstance[0].parent.getConfig(), project: id, consumablesData: gridInstance[0].data() }
 		let result = null
 		if (styleSheetId) {
 			result = await updateSpreadsheet(object, styleSheetId)
