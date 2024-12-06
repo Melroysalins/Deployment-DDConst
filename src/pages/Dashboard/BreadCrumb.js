@@ -8,9 +8,15 @@ import { MainActionType } from 'pages/context/types'
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import { listAllProjects } from 'supabase/projects'
 
 export default function CustomSeparator(props) {
 	const { state, dispatch } = useMain()
+	const [loader, setLoader] = React.useState(true)
+	const [data, setData] = React.useState([])
+	const [filterData, setfilterData] = React.useState([])
+	const [toast, setToast] = React.useState(null)
 	const { isfilterOpen } = state.filters || {}
 	const { t } = useTranslation()
 	const { selected, typeName } = props
@@ -25,46 +31,74 @@ export default function CustomSeparator(props) {
 		dispatch({ type: MainActionType.CHANGE_FILTER, bool: !isfilterOpen })
 	}
 
+	const fetchData = async () => {
+		setLoader(true);
+		try {
+			const res = await listAllProjects();
+			if (res.error) {
+				setToast({ severity: 'danger', message: 'Something went wrong!' });
+			} else {
+				setData(res.data);
+				setfilterData(res.data);
+			}
+		} catch (err) {
+			setToast({ severity: 'danger', message: 'Something went wrong!' });
+		}
+		setLoader(false);
+	};
+	
+	  React.useEffect(() => {
+		// Check if there's an `id` in the pathnames for fetching data
+		fetchData();
+	  }, []); // Dependency array to run effect when pathnames change
+	
+	  const handleClose = () => {
+		setToast(null);
+	  };
+
 	return (
-		<Stack padding={1} spacing={2}>
-			<Breadcrumbs separator="›" aria-label="breadcrumb">
-				{pathname.includes('travel-expenses') && (
-					<MuiButton
-						size="small"
-						variant="contained"
-						color={`${isfilterOpen ? 'secondary' : 'inherit'}`}
-						sx={{ padding: 1, minWidth: 0, width: 35 }}
-						onClick={openFilter}
-					>
-						<Iconify icon="heroicons-funnel" width={20} height={20} />
-					</MuiButton>
-				)}
-				{pathname !== MainPath && (
-					<Stack direction={'row'} spacing={1}>
-						{pathnames.length > 0 ? (
-							<Link onClick={() => history(MainPath)}>Main</Link>
-						) : (
-							<Typography> Main </Typography>
-						)}
-						{pathnames.map((name, index) => {
-							const routeTo = `${basePath}+/${pathnames.slice(0, index + 1).join('/')}`
-							const isLast = index === pathnames.length - 1
-							if (index === 0) return <CustomizedMenus key={2} option={name} typeName={typeName} />
-							if (isLast)
-								return (
-									<Typography fontWeight="600" key={name}>
-										{_.startCase(name)}
-									</Typography>
-								)
-							return (
-								<Link key={name} onClick={() => history(routeTo)}>
-									{name}
-								</Link>
-							)
-						})}
-					</Stack>
-				)}
+		<Stack direction="row" padding={1} spacing={2}>
+			{pathname.includes('travel-expenses') && (
+				<MuiButton
+					size="small"
+					variant="contained"
+					color={`${isfilterOpen ? 'secondary' : 'inherit'}`}
+					sx={{ padding: 1, minWidth: 0, width: 35 }}
+					onClick={openFilter}
+				>
+					<Iconify icon="heroicons-funnel" width={20} height={20} />
+				</MuiButton>
+			)}
+			<Breadcrumbs 
+				separator={<NavigateNextIcon fontSize="small" />} 
+				aria-label="breadcrumb"
+				sx={{ display: 'flex', alignItems: 'center' }}
+				>
+				<Link onClick={() => history(MainPath)} sx={{ display: 'flex', alignItems: 'center' }}>Main</Link>
+				{pathnames.map((name, index) => {
+					const routeTo = `${basePath}/${pathnames.slice(0, index + 1).join('/')}`;
+					const isLast = index === pathnames.length - 1;
+					const id = parseInt(name, 10); // Convert name to an integer ID
+
+					// Find the project that matches the ID
+					const project = data.find(proj => proj.id === id);
+
+					if (isLast) {
+					return (
+						<Typography fontWeight="600" key={name} sx={{ display: 'flex', alignItems: 'center' }}>
+						{project ? project.title : _.startCase(name)}
+						</Typography>
+					);
+					}
+
+					return (
+					<Link key={name} onClick={() => history(routeTo)} sx={{ display: 'flex', alignItems: 'center' }}>
+						{project ? project.title : _.startCase(name)}
+					</Link>
+					);
+				})}
 			</Breadcrumbs>
+
 		</Stack>
 	)
 }
@@ -162,18 +196,7 @@ function CustomizedMenus({ option, typeName }) {
 		)
 	return (
 		<div>
-			<Typography
-				display="flex"
-				direction="row"
-				alignItems="center"
-				key="3"
-				color="text.primary"
-				label="Accessories"
-				onClick={handleClick}
-			>
-				{titles(option)}
-				<KeyboardArrowDownIcon />
-			</Typography>
+			
 
 			<StyledMenu
 				id="demo-customized-menu"

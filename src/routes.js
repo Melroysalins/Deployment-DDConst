@@ -46,10 +46,10 @@ export default function Router() {
 						{ path: ':id', element: <ProjectDetails /> },
 
 						{ path: ':id/weekly-plan', element: <WeeklyPlan /> },
+						{ path: ':project/workforce-planning', element: <WorkforcePlanning /> },
+						{ path: ':project/project-schedule', element: <ProjectImplementationSchedule /> },		
 					],
 				},
-				{ path: ':project/workforce-planning', element: <WorkforcePlanning /> },
-				{ path: 'project-schedule/:project', element: <ProjectImplementationSchedule /> },
 				{ path: 'user', element: <User /> },
 				{ path: 'products', element: <Products /> },
 				{ path: 'blog', element: <Blog /> },

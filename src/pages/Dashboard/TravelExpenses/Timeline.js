@@ -209,7 +209,7 @@ export default function Timeline() {
 				employees = [...employees, ...teamEmployees]
 				return {
 					...team,
-					collapsed: true,
+					collapsed: false,
 					children: updatedEmployees,
 				}
 			}),
