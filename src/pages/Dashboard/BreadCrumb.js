@@ -6,55 +6,39 @@ import _ from 'lodash'
 import useMain from 'pages/context/context'
 import { MainActionType } from 'pages/context/types'
 import * as React from 'react'
-import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
-import { listAllProjects } from 'supabase/projects'
+import { getProjectDetails } from 'supabase'
 
 export default function CustomSeparator(props) {
 	const { state, dispatch } = useMain()
-	const [loader, setLoader] = React.useState(true)
-	const [data, setData] = React.useState([])
-	const [filterData, setfilterData] = React.useState([])
-	const [toast, setToast] = React.useState(null)
+	const [ projectDetails, setProjectDetails ] = React.useState({})
 	const { isfilterOpen } = state.filters || {}
-	const { t } = useTranslation()
-	const { selected, typeName } = props
 	const history = useNavigate()
 	const { pathname } = useLocation()
 	const pathnames = pathname.split('/').filter((x) => x)
 	const basePath = `/${pathnames.slice(0, 2).join('/')}`
-	const MainPath = `${basePath}/list`
+	// Determine MainPath based on the current route
+	const MainPath = pathname.includes('/manageEmp') ? `${basePath}/empList` : `${basePath}/list`;
 	pathnames.splice(0, 2)
 
 	const openFilter = () => {
 		dispatch({ type: MainActionType.CHANGE_FILTER, bool: !isfilterOpen })
 	}
 
-	const fetchData = async () => {
-		setLoader(true);
-		try {
-			const res = await listAllProjects();
-			if (res.error) {
-				setToast({ severity: 'danger', message: 'Something went wrong!' });
-			} else {
-				setData(res.data);
-				setfilterData(res.data);
+	React.useEffect(() => {
+		const fetchProjectDetails = async () => {
+			if (basePath === '/dashboard/projects' && parseInt(pathnames[0], 10)) { // Check if pathnames[2] is a number
+				const { data, error } = await getProjectDetails(pathnames[0]); // Fetch project details
+				if (error) {
+					console.error("Error fetching project details:", error);
+				} else {
+					setProjectDetails(data); // Set project details in state
+				}
 			}
-		} catch (err) {
-			setToast({ severity: 'danger', message: 'Something went wrong!' });
-		}
-		setLoader(false);
-	};
-	
-	  React.useEffect(() => {
-		// Check if there's an `id` in the pathnames for fetching data
-		fetchData();
-	  }, []); // Dependency array to run effect when pathnames change
-	
-	  const handleClose = () => {
-		setToast(null);
-	  };
+		};
+		fetchProjectDetails();
+	}, [pathnames[0]]); 
 
 	return (
 		<Stack direction="row" padding={1} spacing={2}>
@@ -74,27 +58,36 @@ export default function CustomSeparator(props) {
 				aria-label="breadcrumb"
 				sx={{ display: 'flex', alignItems: 'center' }}
 				>
-				<Link onClick={() => history(MainPath)} sx={{ display: 'flex', alignItems: 'center' }}>Main</Link>
+				<Link onClick={() => { history(MainPath); setProjectDetails({}); }} sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer'}}>Main</Link>
 				{pathnames.map((name, index) => {
 					const routeTo = `${basePath}/${pathnames.slice(0, index + 1).join('/')}`;
 					const isLast = index === pathnames.length - 1;
 					const id = parseInt(name, 10); // Convert name to an integer ID
 
-					// Find the project that matches the ID
-					const project = data.find(proj => proj.id === id);
-
 					if (isLast) {
 					return (
 						<Typography fontWeight="600" key={name} sx={{ display: 'flex', alignItems: 'center' }}>
-						{project ? project.title : _.startCase(name)}
+							{id && !pathname.includes('/manageEmp') ? projectDetails.title : _.startCase(name)}
 						</Typography>
 					);
 					}
 
 					return (
-					<Link key={name} onClick={() => history(routeTo)} sx={{ display: 'flex', alignItems: 'center' }}>
-						{project ? project.title : _.startCase(name)}
-					</Link>
+						<>
+					
+					{(id && pathname.includes('/manageEmp')) ? 
+						(
+							<Typography fontWeight="600" key={name} sx={{ display: 'flex', alignItems: 'center' }}>
+								Employee
+							</Typography>
+						): 
+						(
+							<Link key={name} onClick={() => history(routeTo)} sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer'}}>
+								{projectDetails.title}
+							</Link>
+						)	
+					}
+					</>
 					);
 				})}
 			</Breadcrumbs>

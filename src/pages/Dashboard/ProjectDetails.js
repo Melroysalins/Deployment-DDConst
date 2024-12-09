@@ -183,7 +183,7 @@ export default function Projects() {
 					size="medium"
 					color="inherit"
 					sx={{ color: '#8D99FF', marginLeft: 1 }}
-					onClick={() => navigate(`/dashboard/projects/edit/${id}`)}
+					onClick={() => navigate(`/dashboard/projects/${id}/edit`)}
 				>
 					Edit project
 				</Button>

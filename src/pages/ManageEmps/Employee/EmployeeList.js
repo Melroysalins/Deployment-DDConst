@@ -81,10 +81,10 @@ export default function EmployeeList({ isTeamEmployees }) {
 	}, [])
 
 	const handleView = (id) => {
-		navigate(`/manageEmp/employee/view/${id}`)
+		navigate(`/manageEmp/employee/${id}/view`)
 	}
 	const handleEdit = (id) => {
-		navigate(`/manageEmp/employee/edit/${id}`)
+		navigate(`/manageEmp/employee/${id}/edit`)
 	}
 	const handleDelete = async (id) => {
 		setselectedId(id)
