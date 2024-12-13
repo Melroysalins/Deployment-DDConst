@@ -7,8 +7,8 @@ import Contract from './Contract'
 import ExecutionBudget from './ExcecutionBudget'
 import Tasks from './Tasks/Tasks'
 import FlowDiagram from 'pages/WeeklyPlan/FlowDiagram'
-import FlowDiagram2 from 'pages/WeeklyPlan/FlowDiagram2'
 import { styled } from '@mui/material/styles'
+import SpreadSheet2 from './Spreadsheet2'
 
 const StyledBox = styled(Box)({
 	padding: '8px 16px 16px',
@@ -117,7 +117,7 @@ const AddNewProject = ({ edit = false }) => {
 								width={20}
 								height={20}
 							/>{' '}
-							Old Diagram Builder
+							SpreadSheet
 						</Stack>
 					}
 					disabled={!edit}
@@ -147,7 +147,7 @@ const AddNewProject = ({ edit = false }) => {
 				)}
 				{selectedTab === '5' && edit && (
 					<StyledBox>
-						<FlowDiagram2 isEditable={true} />
+						<SpreadSheet2 />
 					</StyledBox>
 				)}
 			</Box>
