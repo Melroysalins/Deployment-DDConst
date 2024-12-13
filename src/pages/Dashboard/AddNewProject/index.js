@@ -11,7 +11,7 @@ import { styled } from '@mui/material/styles'
 import SpreadSheet2 from './Spreadsheet2'
 
 const StyledBox = styled(Box)({
-	padding: '8px 16px 16px',
+	padding: '0px',
 })
 
 const AddNewProject = ({ edit = false }) => {
@@ -31,7 +31,20 @@ const AddNewProject = ({ edit = false }) => {
 	}
 
 	return (
-		<Box border={1} borderColor={'lightgrey'} borderRadius={1} sx={{ overflow: 'hidden' }}>
+		<Box 
+			border={1} 
+			borderColor={'lightgrey'} 
+			borderRadius={1} 
+			sx={{ 
+				overflow: 'hidden', 
+				'@media (min-width: 1680px)': {
+					marginLeft: '16px',
+				},
+				'@media (min-width: 1920px)': {
+					marginLeft: '32px',
+				},
+			}}
+			>
 			<Tabs
 				value={selectedTab}
 				onChange={handleChange}
@@ -124,7 +137,7 @@ const AddNewProject = ({ edit = false }) => {
 					sx={{ borderRight: 1, borderColor: 'divider' }}
 				/>
 			</Tabs>
-			<Box>
+			<Box  sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
 				{selectedTab === '1' && (
 					<StyledBox>
 						<Contract edit={edit} />

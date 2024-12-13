@@ -40,6 +40,7 @@ import { popupConfig } from './WarningDialog/dialogConfig'
 import WarningDialog from './WarningDialog'
 import DropdownPopover from 'components/Drawer/DropdownDrawer'
 import { createNewProjectDiagramTable, getTableByProjectDiagram, updateProjectDiagramTable } from 'supabase/project_diagrams_table'
+import { useTranslation } from 'react-i18next';
 
 const StyledButtonContainer = styled(Box)({
 	alignSelf: 'stretch',
@@ -48,8 +49,7 @@ const StyledButtonContainer = styled(Box)({
 	alignItems: 'flex-start',
 	justifyContent: 'flex-start',
 	gap: '10px',
-	padding: '24px',
-	maxWidth: '1752px',
+	padding: '16px',
 })
 
 const Container1 = styled('div')({
@@ -110,36 +110,30 @@ const RightContent = styled(Box)({
 })
 
 const StyledButton = styled(Button)({
-	minWidth: '79px',
 	height: '48px',
 	borderRadius: '8px',
 	padding: '12px 16px 12px 16px',
 	border: '1px solid rgba(0, 0, 0, 0.1)',
-	flex: '1',
 	gap: '8px',
 	fontFamily: 'Manrope',
-	'@media (max-width: 1440px)': {
-		minWidth: '50px',
-		height: '35px',
+	'@media (max-width: 1680px)': {
+		height: '40px',
 		padding: '8px 12px 8px 12px',
-		fontSize: '10px',
+		fontSize: '14px',
 	},
 })
 
 const StyledLoadingButton = styled(LoadingButton)({
-	minWidth: '79px',
 	height: '48px',
 	borderRadius: '8px',
 	padding: '12px 16px 12px 16px',
 	border: '1px solid rgba(0, 0, 0, 0.1)',
-	flex: '1',
 	gap: '8px',
 	fontFamily: 'Manrope',
-	'@media (max-width: 1440px)': {
-		minWidth: '50px',
-		height: '35px',
+	'@media (max-width: 1680px)': {
+		height: '40px',
 		padding: '8px 12px 8px 12px',
-		fontSize: '10px',
+		fontSize: '14px',
 	},
 })
 
@@ -190,16 +184,13 @@ const DiagramParent = styled('div')({
 	backgroundColor: '#fff',
 	border: '1px solid rgba(0, 0, 0, 0.1)',
 	boxSizing: 'border-box',
-	minHeight: '584.41px',
 	display: 'flex',
 	flexDirection: 'column',
 	alignItems: 'center',
 	justifyContent: 'center',
 	width: '100%',
 	position: 'relative',
-	'@media (max-width: 1440px)': {
-		minHeight: '450.41px',
-	},
+	minHeight: '580px',
 })
 
 const DiagramDemolitionParent = styled('div')({
@@ -207,13 +198,19 @@ const DiagramDemolitionParent = styled('div')({
 	flexDirection: 'column',
 	alignItems: 'flex-end',
 	justifyContent: 'center',
-	width: '39.58%',
+	width: '34.77%',
 	height: '100%',
 	position: 'relative',
+	'@media (min-width: 1590px)': {
+		width: '40.77%',
+	},
+	'@media (min-width: 1710px)': {
+		width: '46.77%',
+	},
 })
 
 const TableParent = styled('div')({
-	width: '58%',
+	width: '64.5%',
 	height: '100%',
 	display: 'flex',
 	flexDirection: 'column',
@@ -233,6 +230,10 @@ const Content = styled('div')({
 	'@media (max-width: 1440px)': {
 		width: '100%',
 		minHeight: '450.41px',
+		gap: '0px',
+	},
+	'@media (max-width: 1680px)': {
+		gap: '8px',
 	},
 })
 
@@ -263,7 +264,7 @@ const Tables = styled('div')({
 	flexDirection: 'column',
 	alignItems: 'flex-end',
 	justifyContent: 'flex-start',
-	overflow: 'auto',
+	overflow: 'visible',
 })
 
 const ConnectionInstallationTable = styled('div')({
@@ -283,7 +284,6 @@ const ConnectionInstallationTable = styled('div')({
 
 const Accordion = styled((props) => <MuiAccordion disableGutters elevation={0} square {...props} />)(({ theme }) => ({
 	backgroundColor: theme.palette.background.paper,
-	border: '1px solid rgba(0, 0, 0, 0.1)',
 	overflow: 'hidden',
 	borderRadius: '12px',
 	width: '1704px',
@@ -352,7 +352,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		buttons: []
 	  });
 
+	  const { t } = useTranslation(['diagram']);
+
 	  useEffect(() => {
+		console.log(hasChanges)
         if (objs !== null && hasChanges) {
             handleAdd();
 			setHasChanges(false);
@@ -396,7 +399,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		  title: config.title,
 		  dialogHeading: config.dialogHeading,
 		  description: config.description,
-		  buttons
+		  buttons,
+		  actionType: type,
 		});
 	  };
 
@@ -924,7 +928,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					id: obj.id,
 					connections: obj.currentObj.connections,
 					yPos,
-					cableType: obj.cable_type.bigInput
+					cableType: obj.cable_type.bigInput,
+					t
 				}),
 				...generateStartEndNode({
 					seqNumber: obj.id,
@@ -937,6 +942,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					startStatuses: obj.currentObj.endpoints.startStatuses,
 					endStatuses: obj.currentObj.endpoints.endStatuses,
 					startEndLength: obj.currentObj.connections[0]?.statuses.length,
+					t
 				}),
 			]
 			const objEdges = generateEdges(obj.id, obj)
@@ -952,6 +958,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 						connections: obj.currentObj.demolitions,
 						yPos,
 						cableType: obj.demolition_type.bigInput,
+						t,
 						isDemolition: true,
 					}),
 					...generateStartEndNode({
@@ -965,6 +972,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 						startStatuses: obj.currentObj.endpointsDemolition.startStatuses,
 						endStatuses: obj.currentObj.endpointsDemolition.endStatuses,
 						startEndLength: obj.currentObj.demolitions[0]?.statuses.length,
+						t
 					}),
 				]
 
@@ -1073,15 +1081,15 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							>
 								<LeftContent onClick={(event) => event.stopPropagation()} sx={{ position: 'relative', left: '2rem', textAlign: 'center', gap: '0px', display: 'flex', flexDirection: 'row', alignItems: 'center', whiteSpace: 'nowrap' }}>
 									<CableContent style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300, color: '#606380' }}>
-										Cable Name
+										{t('cable_name')}
 										<DropdownPopover type="cable_name" newObj={newObj} handleChangeStatus={handleChangeStatus}/>
 									</CableContent>
 									<CableContent style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300, color: '#606380'  }}>
-										Cable Type
+										{t('cable_type')}
 										<DropdownPopover type="cable_type" newObj={newObj} handleChangeStatus={handleChangeStatus}/>
 									</CableContent>
 									<CableContent style={{ fontFamily: 'Manrope, sans-serif', fontWeight: 300, color: '#606380'  }}>
-										Demolition
+										{t('Demolition')}
 										<DropdownPopover type="demolition_type" newObj={newObj} handleChangeStatus={handleChangeStatus}/>
 									</CableContent>
 								</LeftContent>
@@ -1092,11 +1100,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											style={{ boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)' }}
 											variant="outlined"
 											sx={{
+												width: '79px',
 												borderRadius: '8px',
 												backgroundColor: '#FFFFFF',
+												fontFamily: 'Manrope, sans-serif',
+												color: '#596570 !important',
 											}}
 										>
-											Cancel
+											{t('Cancel')}
 										</StyledButton>
 									)}
 									{delete1 && (
@@ -1105,13 +1116,16 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											style={{ boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)' }}
 											variant="outlined"
 											sx={{
+												width: '105px',
 												borderRadius: '8px',
 												backgroundColor: '#FFFFFF',
+												fontFamily: 'Manrope, sans-serif',
+												color: '#596570 !important',
 											}}
 										>
 											<Stack gap={1} direction="row" alignItems="center">
 												<Iconify icon="mi:delete" width={20} height={20} />
-												Delete
+												{t('Delete')}
 											</Stack>
 										</StyledButton>
 									)}
@@ -1123,12 +1137,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											style={{ boxShadow: '0px 8px 16px rgba(141, 153, 255, 0.24)' }}
 											variant="contained"
 											sx={{
+												width: '93px',
 												borderRadius: '8px',
 												backgroundColor: '#8D99FF',
+												fontFamily: 'Manrope, sans-serif',
 											}}
 										>
 											<Iconify icon="heroicons-outline:save" width={20} height={20} />
-											Save
+											{t('Save')}
 										</StyledLoadingButton>
 									)}
 									{isEditable && newObj.project && !newObj.isEditing && (
@@ -1140,11 +1156,13 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 												width: '150px',
 												borderRadius: '8px',
 												backgroundColor: '#FFFFFF',
+												fontFamily: 'Manrope, sans-serif',
+												color: '#596570 !important',
 											}}
 										>
 											<Stack gap={1} direction="row" alignItems="center">
 												<Iconify icon="mi:edit" width={20} height={20} />
-												Edit
+												{t('Edit')}
 											</Stack>
 										</StyledButton>
 									)}
@@ -1209,22 +1227,30 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 									<FormControlLabel
 										control={
 											<Switch
-												disabled={newObj.project && !newObj.isEditing}
-												checked={newObj.isDemolition}
-												onChange={() => toggleDemolition(newObj.id)}
-												color="primary"
-												sx={{
-													
-													'@media (min-width:1440px)': {
-													  transform: 'scale(0.75)', // Scale down the switch for 1440p screens
-													},
-												  }}
+											disabled={newObj.project && !newObj.isEditing}
+											checked={newObj.isDemolition}
+											onChange={() => toggleDemolition(newObj.id)}
+											color="primary"
+											sx={{
+												'& .MuiSwitch-switchBase.Mui-checked': {
+												color: 'white', // Set the color of the switch circle when turned on
+												},
+												'& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+												backgroundColor: 'green', // Set the color of the switch track when turned on
+												},
+											}}
 											/>
 										}
-										label="Demolition"
-										labelPlacement='start'
-										sx={{ color: 'black', '& .css-1yrymlm-MuiTypography-root': { '@media (max-width: 1440px)': { fontSize: '0.675rem', fontFamily: 'Manrope, sans-serif',} }, }}
-									/>
+										label={t('Demolition')}
+										labelPlacement="start"
+										sx={{
+											color: 'black',
+											'& .css-1yrymlm-MuiTypography-root': {
+											fontFamily: 'Manrope, sans-serif',
+											color: '#596570 !important',
+											},
+										}}
+										/>
 								</Box>
 								</DiagramDemolitionParent>
 								<TableParent>
@@ -1285,7 +1311,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 									color: '#fff',
 								}}
 							>
-								Summary
+								{t('Summary')}
 							</Typography>
 						</Box>
 					)}
@@ -1293,7 +1319,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			))}
 			<CustomButton onClick={handleAddNewObj}>
 				<Iconify icon="ic:round-plus" width={20} height={20} />
-				<CustomButtonText>Add Diagram</CustomButtonText>
+				<CustomButtonText>{t('Add Diagram')}</CustomButtonText>
 			</CustomButton>
 			<StyledButtonRow sx={{ paddingTop: '8px' }}>
 				<StyledButton
@@ -1301,13 +1327,13 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					sx={{ marginRight: '16px', borderRadius: '8px', backgroundColor: '#8D99FF', width: '200px', height: '40px' }}
 				>
 					<Iconify icon="heroicons-outline:save" width={20} height={20} />
-					Save
+					{t('Save')}
 				</StyledButton>
 				<StyledButton
 					variant="contained"
 					sx={{ borderRadius: '8px', backgroundColor: '#FFA58D', width: '200px', height: '40px' }}
 				>
-					Continue
+					{t('Continue')}
 					<Iconify icon="lucide:arrow-right" width={20} height={20} />
 				</StyledButton>
 			</StyledButtonRow>

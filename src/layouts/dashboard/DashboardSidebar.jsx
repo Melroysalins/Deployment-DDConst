@@ -52,7 +52,7 @@ const RootStyle = styled('div', { shouldForwardProp: (prop) => prop !== 'open' }
 const AccountStyle = styled('div')(({ theme }) => ({
 	display: 'flex',
 	alignItems: 'center',
-	padding: theme.spacing(2, 2.5),
+	padding: theme.spacing(2, 1.5),
 	borderRadius: Number(theme.shape.borderRadius) * 1.5,
 	backgroundColor: theme.palette.grey[500_12],
 }))
@@ -75,7 +75,7 @@ const ListItemStyle = styled((props) => <ListItemButton disableGutters {...props
 }))
 
 const MaterialUISwitch = styled(Switch)(({ theme }) => ({
-	width: 62,
+	width: 50,
 	height: 35,
 	padding: 12,
 	'& .MuiSwitch-switchBase': {
@@ -187,7 +187,7 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 				'& .simplebar-content': { height: 1, display: 'flex', flexDirection: 'column' },
 			}}
 		>
-			<Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
+			<Box sx={{ px: 1.5, py: 3, display: 'inline-flex' }}>
 				<Logo disabledLink handleClick={onCloseSidebar} />
 			</Box>
 
@@ -196,7 +196,7 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 			<Box sx={{ flexGrow: 1 }} />
 
 			{leftDrawerOpened ? (
-				<Box sx={{ px: 2.5, pb: 3, mt: 10 }}>
+				<Box sx={{ px: 1.5, pb: 3, mt: 10 }}>
 					<Stack alignItems="center" spacing={3} sx={{ pt: 5, position: 'relative', overflow: 'hidden' }}>
 
 						<Box display="flex" justifyContent="center" alignItems="center" p={2}>

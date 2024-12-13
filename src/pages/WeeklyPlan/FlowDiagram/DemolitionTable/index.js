@@ -36,14 +36,16 @@ import {
 import HoverBox from 'components/hover'
 import NotePopup from 'components/NotePopup'
 import { getColorFromValue } from '../helper'
+import { useTranslation } from 'react-i18next';
 
 const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
-	height: '2.2vh',
+	height: '24px',
 	borderRadius: '4px',
 	backgroundColor: bgColor,
-	width: '100%',
+	width: 'max-content',
+	minWidth: '79px',
 	fontFamily: "'Manrope', sans-serif",
-	fontWeight: 600,
+	fontWeight: 500,
 	lineHeight: '24px',
 	fontSize: '14px',
 	'& .MuiOutlinedInput-notchedOutline': {
@@ -52,12 +54,13 @@ const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
 	'& .MuiSelect-select': {
 		display: 'flex',
 		alignItems: 'center',
+		justifyContent: 'center', // Center the text horizontally
 		paddingRight: '0.2rem !important',
 		gap: '4px',
 		color: textColor,
 		padding: '0.2rem !important',
-		'@media (max-width: 110.625rem)': {
-			fontSize: '11px',
+		'@media (max-width: 105rem)': {
+			fontSize: '12px',
 			height: '14px',
 		}, 
 	},
@@ -65,17 +68,15 @@ const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
 
 const Select = styled(MuiSelect)({
 	height: '3vh',
+	minHeight: '28px',
 	borderRadius: '8px',
 	width: '100%',
 	color: '#596570',
 	fontWeight: 400,
 	lineHeight: '24px',
-	'@media (min-width: 110.630rem)': {
-		maxWidth: '121px',
-	},
-	'@media (max-width: 110.625rem)': {
-		fontSize: '11px',
-		borderRadius: '6px',
+	fontSize: '14px',
+	'@media (max-width: 105rem)': {
+		fontSize: '13px',
 		// padding: '0.5556vh 0.3125vw',
 	},
 
@@ -93,27 +94,29 @@ const Select = styled(MuiSelect)({
 });
 
 const CustomSelectIcon = () => (
-	<>
-		<Box sx={{ width: '0px', height: '0px'}} />
-
-	</>
+	<Iconify
+		icon="iconamoon:arrow-down-2-light"
+		width="24px" // Adjusted size
+		height="24px" // Adjusted size
+		sx={{ color: '#596570', marginRight: '0.5rem' }}
+	/>
   );
 
-const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow) => (
+const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow, t) => (
 	<TableRow key={index} sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
 	onMouseLeave={() => {
         if (!isNotePopupOpen) { // Check if NotePopup is not open
             setHoveredRowIndex(null);
         }
     }}>
-		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.7vw'}}>
+		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.86vw', height: '48px', minWidth: '70px' }}>
 			<Typography
 				className={style.Typography}
 				variant="body1"
 				sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', color: '#596570'  }}
 			>{`#${index + 1}`}</Typography>
 		</TableCell>
-		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.7vw'}}>
+		<TableCell className={style.TableCell}>
 			{isEdit ? (
 					<Select
 						className={style.Select}
@@ -124,11 +127,12 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 						disableUnderline
 						displayEmpty
 						IconComponent={CustomSelectIcon}
+						renderValue={(value) => t(value)}
 
 					>
 						{JB_TYPE.map((e) => (
 							<MenuItem value={e.value} key={e}>
-								{e.label}
+								{t(e.label)}
 							</MenuItem>
 						))}
 					</Select>
@@ -138,12 +142,12 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 					variant="body1"
 					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 				>
-					{JB_TYPE_MAP[demolition.joinType]}
+					{t(JB_TYPE_MAP[demolition.joinType])}
 				</Typography>
 			)}
 		</TableCell>
 
-		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.7vw'}}>
+		<TableCell className={style.TableCell}>
 			{isEdit ? (
 					<Select
 						className={style.Select}
@@ -154,11 +158,11 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 						disableUnderline
 						displayEmpty
 						IconComponent={CustomSelectIcon}
-
+						renderValue={(value) => t(value)}
 					>
 						{PMJ.map((e) => (
 							<MenuItem value={e} key={e}>
-								{e}
+								{t(e)}
 							</MenuItem>
 						))}
 					</Select>
@@ -168,12 +172,12 @@ const renderTableRow = (demolition, index, handleChangeDemolition, objId, isEdit
 					variant="body1"
 					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 				>
-					{demolition.pmj}
+					{t(demolition.pmj)}
 				</Typography>
 			)}
 		</TableCell>
 		{demolition.statuses.map((e, statusIndex) => (
-			<>{renderStatus(demolition, isEdit, handleChangeDemolition, objId, index, statusIndex)}</>
+			<>{renderStatus(demolition, isEdit, handleChangeDemolition, objId, index, statusIndex, t)}</>
 		))}
 		{hoveredRowIndex === index && isEdit && (
 			<HoverBox index={index} setVisibleNotes={handleOpenPopup} isDelete={true} deleteRow={deleteRow} />
@@ -193,26 +197,26 @@ const renderTypography = (index) => (
 	</TableCell>
 )
 
-const renderInput = (index) => {
+const renderInput = (index, t) => {
 	return (
 		<TableCell index={index} className={style.TableCell} sx={{ width: '13%' , borderTopRightRadius: '8px' }}>
 			<TextField
 				variant="outlined"
 				placeholder="320"
-				value={`${index + 1}T/L`}
+				value={t('TLWithNumber', { number: index + 1, tl: t('T/L') })}
 				InputProps={{
 					readOnly: true,
 				}}
 				sx={{
-					'& .MuiOutlinedInput-input': { padding: '0px 0px 0px 5px', fontSize: '11px', height: '3vh', color: '#596570' }, // Adjust padding for the input field
-					'& .MuiOutlinedInput-root': { borderRadius: '6px', backgroundColor: '#fff' }, // Adjust padding for the root if necessary
+					'& .MuiOutlinedInput-input': { padding: '0px 0px 0px 5px', fontSize: '13px', height: '28px', color: '#596570' }, // Adjust padding for the input field
+					'& .MuiOutlinedInput-root': { borderRadius: '7px', backgroundColor: '#fff' }, // Adjust padding for the root if necessary
 				}}
 			/>
 		</TableCell>
 	)
 }
 
-const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connIndex, statusIndex) => {
+const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connIndex, statusIndex, t) => {
 	const { bgColor, textColor } = getColorFromValue(demolition.statuses?.[statusIndex]);
 	
 	return (
@@ -220,17 +224,18 @@ const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connInd
 			{isEdit ? (
 					<StyledSelect
 						className={style.StyledSelect}
-						label="Status"
+						label={t('Status')}
 						value={demolition.statuses?.[statusIndex]}
 						onChange={(e) => handleChangeDemolition(e.target.value, 'statuses', objId, connIndex, statusIndex)}
 						variant="outlined"
-						IconComponent={CustomSelectIcon}
+						IconComponent=""
 						bgColor={bgColor}
 						textColor={textColor} 
+						renderValue={(value) => t(value)}
 					>
 						{STATUS.map((e) => (
 							<MenuItem value={e.value} key={e.value}>
-								{e.label}
+								{t(e.label)}
 							</MenuItem>
 						))}
 					</StyledSelect>
@@ -240,14 +245,14 @@ const renderStatus = (demolition, isEdit, handleChangeDemolition, objId, connInd
 					variant="body1"
 					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 				>
-					{STATUS_MAP[demolition.statuses?.[statusIndex]]}
+					{t(STATUS_MAP[demolition.statuses?.[statusIndex]])}
 				</Typography>
 			)}
 		</TableCell>
 	)
 }
 
-const renderStatusStartEnd = (isEdit, handleChangeDemolition, newObj, index, name) => {
+const renderStatusStartEnd = (isEdit, handleChangeDemolition, newObj, index, name, t) => {
 	const { bgColor, textColor } = getColorFromValue(newObj.currentObj.endpointsDemolition[name]?.[index]);
 	
 	return (
@@ -255,17 +260,18 @@ const renderStatusStartEnd = (isEdit, handleChangeDemolition, newObj, index, nam
 			{isEdit ? (
 					<StyledSelect
 						className={style.StyledSelect}
-						label="Status"
+						label={t('Status')}
 						value={newObj.currentObj.endpointsDemolition[name]?.[index]}
 						onChange={(e) => handleChangeDemolition(e.target.value, name, newObj.id, index)}
 						variant="outlined"
-						IconComponent={CustomSelectIcon}
+						IconComponent=""
 						bgColor={bgColor}
 						textColor={textColor} 
+						renderValue={(value) => t(value)}
 					>
 						{STATUS.map((e) => (
 							<MenuItem value={e.value} key={e.value}>
-								{e.label}
+								{t(e.label)}
 							</MenuItem>
 						))}
 					</StyledSelect>
@@ -275,7 +281,7 @@ const renderStatusStartEnd = (isEdit, handleChangeDemolition, newObj, index, nam
 					variant="body1"
 					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 				>
-					{STATUS_MAP[newObj.currentObj.endpointsDemolition[name]?.[index]]}
+					{t(STATUS_MAP[newObj.currentObj.endpointsDemolition[name]?.[index]])}
 				</Typography>
 			)}
 		</TableCell>
@@ -293,6 +299,9 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 	const addPanel = () => {
 		handleAddDemolition(newObj.id)
 	}
+
+	const { t } = useTranslation(['diagram']);
+
 	const handleOpenPopup = (index) => {
 		setIsNotePopupOpen(true);
 		if (index === 'start') {
@@ -330,22 +339,23 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 					justifyContent: 'flex-start',
 					alignItems: 'flex-end',
 					width: '100%',
-					maxWidth: '100%', // Ensure the box does not exceed the width of its parent
 					overflow: 'visible', // Clip any overflowing content
-					flexShrink: 1, 
 				}}
 			>
 				<Box
 					sx={{
-						minHeight: '96px',
+						minHeight: '86px',
 						maxWidth: '28px',
 						borderRadius: '8px 0px 0px 8px',
 						backgroundColor: '#ffa58d',
 						display: 'flex',
 						alignItems: 'center',
 						justifyContent: 'center',
-						padding: '16px 2px',
+						padding: '12px 2px',
 						boxSizing: 'border-box',
+						'@media (max-width: 105rem)': {
+							padding: '12px 0.0001%',
+						},
 					}}
 				>
 					<Typography
@@ -355,22 +365,26 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 							fontWeight: '600',
 							color: '#fff',
 							transform: 'rotate(180deg)',
+							fontSize: '16px',
+							'@media (max-width: 105rem)': {
+								fontSize: '14px',
+							},
 						}}
 					>
-						End point
+						{t('End point')}
 					</Typography>
 				</Box>
-				<TableContainer sx={{ width: '100%', border: '1px solid lightgrey', borderTopRightRadius: '8px', overflow: 'visible' }}>
+				<TableContainer sx={{ width: '100%', border: '1px solid lightgrey', borderRadius: '8px 8px 8px 0px', overflow: 'visible' }}>
 					<Table >
 						<TableHead > 
 							<TableRow style={{ backgroundColor: '#f9f9fa' }}>
-								<TableCell className={style.TableCell} >
+								<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.86vw', height: '48px', minWidth: '70px' }} >
 									<Typography
 										className={style.Typography}
 										variant="body1"
 										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', fontWeight: 600 }}
 									>
-										Location
+										{t('Location')}
 									</Typography>
 								</TableCell>
 								<TableCell className={style.TableCell} >
@@ -379,7 +393,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 										variant="body1"
 										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', fontWeight: 600 }}
 									>
-										Transformer
+										{t('Transformer')}
 									</Typography>
 								</TableCell>
 								<TableCell className={style.TableCell} >
@@ -388,10 +402,10 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 										variant="body1"
 										sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', fontWeight: 600 }}
 									>
-										Connector
+										{t('Connector')}
 									</Typography>
 								</TableCell>
-								{newObj.currentObj.endpointsDemolition.startStatuses.map((e, index) => renderInput(index))}
+								{newObj.currentObj.endpointsDemolition.startStatuses.map((e, index) => renderInput(index, t))}
 							</TableRow>
 						</TableHead>
 						<TableBody>
@@ -400,7 +414,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 									setHoveredRowIndex(null);
 								}
 							}} >
-								<TableCell className={style.TableCell} >
+								<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.86vw', height: '48px', minWidth: '70px' }} >
 									<Typography
 										className={style.Typography}
 										variant="body1"
@@ -419,11 +433,11 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 												disableUnderline
 												displayEmpty
 												IconComponent={CustomSelectIcon}
-
+												renderValue={(value) => t(value)}
 											>
 												{JUNCTION_BOX.map((e) => (
 													<MenuItem value={e.value} key={e.value}>
-														{e.label}
+														{t(e.label)}
 													</MenuItem>
 												))}
 											</Select>	
@@ -433,7 +447,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 											variant="body1"
 											sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 										>
-											{newObj.currentObj.endpointsDemolition.start}
+											{t(newObj.currentObj.endpointsDemolition.start)}
 										</Typography>
 									)}
 								</TableCell>
@@ -466,7 +480,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 									)}
 								</TableCell>
 								{newObj.currentObj.endpointsDemolition.startStatuses.map((e, index) => (
-									<>{renderStatusStartEnd(isEdit, handleChangeDemolition, newObj, index, 'startStatuses')}</>
+									<>{renderStatusStartEnd(isEdit, handleChangeDemolition, newObj, index, 'startStatuses', t)}</>
 								))}
 								{hoveredRowIndex === 'start' && isEdit && (
 									<HoverBox index={'start'} setVisibleNotes={handleOpenPopup} />
@@ -477,7 +491,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 									setHoveredRowIndex(null);
 								}
 							}} >
-								<TableCell className={style.TableCell} sx={{ width: '10%' }}>
+								<TableCell sx={{ padding: '0.425rem 0.175rem', width: '4.86vw', height: '48px', minWidth: '70px' }}>
 									<Typography
 										className={style.Typography}
 										variant="body1"
@@ -486,7 +500,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 										{newObj?.cable_name?.endLocation}
 									</Typography>
 								</TableCell>
-								<TableCell className={style.TableCell} sx={{ width: '15%' }}>
+								<TableCell className={style.TableCell} >
 									{isEdit ? (
 										<Select
 											className={style.Select}
@@ -495,12 +509,12 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 											onChange={(e) => handleChangeDemolition(e.target.value, 'end', newObj.id)}
 											disableUnderline
 											displayEmpty
-												IconComponent={CustomSelectIcon}
-
+											IconComponent={CustomSelectIcon}
+											renderValue={(value) => t(value)}
 										>
 											{JUNCTION_BOX.map((e) => (
 												<MenuItem value={e.value} key={e.value}>
-													{e.label}
+													{t(e.label)}
 												</MenuItem>
 											))}
 										</Select>	
@@ -510,7 +524,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 											variant="body1"
 											sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
 										>
-											{newObj.currentObj.endpointsDemolition.end}
+											{t(newObj.currentObj.endpointsDemolition.end)}
 										</Typography>
 									)}
 								</TableCell>
@@ -544,7 +558,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 									)}
 								</TableCell>
 								{newObj.currentObj.endpointsDemolition.endStatuses.map((e, index) => (
-									<>{renderStatusStartEnd(isEdit, handleChangeDemolition, newObj, index, 'endStatuses')}</>
+									<>{renderStatusStartEnd(isEdit, handleChangeDemolition, newObj, index, 'endStatuses', t)}</>
 								))}
 								{hoveredRowIndex === 'end' && isEdit && (
 									<HoverBox index={'end'} setVisibleNotes={handleOpenPopup} />
@@ -569,7 +583,7 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 				<Box
 					sx={{
 						// maxHeight: '80px',
-						height: `${newObj.currentObj.demolitions.length > 1 ? '' : '39.5px' }`,
+						maxHeight: `${newObj.currentObj.demolitions.length > 1 ? '96px' : '39.5px' }`,
 						maxWidth: '28px',
 						borderRadius: '8px 0px 0px 8px',
 						backgroundColor: '#ffa58d',
@@ -578,6 +592,9 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 						justifyContent: 'center',
 						padding: '12px 2px',
 						boxSizing: 'border-box',
+						'@media (max-width: 105rem)': {
+							padding: '14px 0.0001%',
+						},
 					}}
 				>
 					<Typography
@@ -585,7 +602,11 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 							writingMode: 'vertical-rl',
 							fontWeight: '600',
 							color: '#fff',
+							fontSize: '16px',
 							transform: 'rotate(180deg)',
+							'@media (max-width: 105rem)': {
+								fontSize: '14px',
+							},
 						}}
 						className={style.Typography}
 					>
@@ -593,23 +614,22 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 					</Typography>
 				</Box>
 				<Collapse
-					sx={{width: '100%', paddingBottom: '8px', position: 'relative', overflow: 'hidden'}}
+					sx={{width: '100%', position: 'relative', overflow: 'hidden', borderRadius: '0px 8px 8px 8px', border: '1px solid lightgrey' }}
 					in={isDemolitionExpanded}
 					collapsedSize={
-						newObj.currentObj.demolitions.length < 7 ? `${newObj.currentObj.demolitions.length * 4.7}vh` : '29vh'
+						newObj.currentObj.demolitions.length < 7 ? `${newObj.currentObj.demolitions.length * 48}px` : '290px'
 					}
 				>
 					<TableContainer
 						sx={{
-							borderRadius: '0px 0px 8px 0px',
-							border: '1px solid lightgrey',
-							overflow: 'visible'
+							overflow: 'visible',
+							minWidth: '430px',
 						}}
 					>
 						<Table>
 							<TableBody>
 								{newObj.currentObj.demolitions.map((demolition, index) => (
-									<>{renderTableRow(demolition, index, handleChangeDemolition, newObj.id, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow)}</>
+									<>{renderTableRow(demolition, index, handleChangeDemolition, newObj.id, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, deleteRow, t)}</>
 								))}
 							</TableBody>
 						</Table>
@@ -634,8 +654,8 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 								backgroundColor: '#ffa58d',
 								boxShadow: '0px 8px 16px rgba(255, 165, 141, 0.24)',
 								borderRadius: '32px',
-								width: window.innerWidth < 1600 ? '20px' : '24px', // Adjusted size
-								height: window.innerHeight < 900 ? '20px' : '24px', // Adjusted size
+								width: '24px', // Adjusted size
+								height: '24px', // Adjusted size
 							}}
 							onClick={addPanel} // Add onClick event handler here
 						>
@@ -651,12 +671,12 @@ const DemolitionTable = ({ handleAddDemolition, handleChangeDemolition, newObj, 
 								backgroundColor: '#fff',
 								boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
 								borderRadius: '32px',
-								width: window.innerWidth < 1600 ? '20px' : '24px', // Adjusted size
-								height: window.innerHeight < 900 ? '20px' : '24px', // Adjusted size
+								width: '24px', // Adjusted size
+								height: '24px', // Adjusted size
 								boxSizing: 'border-box',
 								zIndex: '5',
 								position: 'absolute',
-								right: '100px',
+								right: '20px',
 								bottom: '-12px',
 								padding: '0px',
 							}}

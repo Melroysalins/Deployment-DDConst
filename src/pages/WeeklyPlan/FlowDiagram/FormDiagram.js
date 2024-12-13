@@ -8,6 +8,7 @@ import DemolitionTable from './DemolitionTable'
 import DemolitionInstallation from './DemolitionInstallation'
 import PropTypes from 'prop-types'
 import { JB_TYPE, PMJ } from './diagramHelper'
+import { useTranslation } from 'react-i18next';
 
 const StyledRowTables = styled(Box)(({ flexDirection }) => ({
 	display: 'flex',
@@ -17,6 +18,12 @@ const StyledRowTables = styled(Box)(({ flexDirection }) => ({
 	width: '100%',
 	gap: '16px',
 	marginBottom: '20px',
+	'@media (max-width: 1440px)': {
+		gap: '0px',
+	},
+	'@media (max-width: 1680px)': {
+		gap: '8px',
+	},
 }));
 
 const StyledConnection = styled(Box)(({ connectionTableWidth }) => ({
@@ -29,7 +36,7 @@ const StyledConnection = styled(Box)(({ connectionTableWidth }) => ({
 	width: connectionTableWidth,
 }));
 
-const StyledInstallation = styled(Box)({
+const StyledInstallation = styled(Box)(({ installationTableWidth }) => ({
 	flex: '1 1 auto',
 	alignSelf: 'stretch',
 	borderRadius: '8px',
@@ -41,7 +48,8 @@ const StyledInstallation = styled(Box)({
 	color: '#596570',
 	gap: '8px',
 	marginBottom: 10,
-})
+	maxWidth: installationTableWidth,
+}));
 
 const StyledDemolition = styled(Box)(({ demolitionTableWidth }) => ({
 	display: 'flex',
@@ -58,15 +66,15 @@ const StyledTypography = styled(Typography)({
 		fontSize: '14px',
 		padding: '2px',
 	},
-	'@media (max-width: 1610px)': {
-		fontSize: '13px',
-	},
-	'@media (max-width: 1530px)': {
-		fontSize: '12px',
-	},
+	// '@media (max-width: 1610px)': {
+	// 	fontSize: '13px',
+	// },
+	// '@media (max-width: 1530px)': {
+	// 	fontSize: '12px',
+	// },
 })
 
-const HeaderText = ({ title, color, newObj, isDemolition }) => (
+const HeaderText = ({ title, color, newObj, isDemolition, t }) => (
 	<Box
 		sx={{
 			display: 'flex',
@@ -92,14 +100,14 @@ const HeaderText = ({ title, color, newObj, isDemolition }) => (
 		<Box
 			sx={{
 				position: 'relative',
-				lineHeight: '24px',
+				lineHeight: '23px',
 				fontWeight: '600',
 				whiteSpace: 'nowrap', // Keep this text in a single line
                 overflow: 'hidden', // Hide overflow
                 textOverflow: 'ellipsis', // Add ellipsis for overflow
 			}}
 		>
-			{title}
+			{t(title)}
 		</Box>
 		<Box
 			sx={{
@@ -117,28 +125,28 @@ const HeaderText = ({ title, color, newObj, isDemolition }) => (
 			{ title === 'Installation' ? (
 				<StyledTypography>
 					<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
-						{(newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length ) * newObj.currentObj?.[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length} Sections
+						{(newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length ) * newObj.currentObj?.[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length} {t('Sections')}
 					</StyledTypography>
 					<StyledTypography sx={{ lineHeight: '26px' }} component="span">
-						{`(${newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length + 2} Sections) x ${newObj.currentObj?.[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length} Lines`}
+						{`(${newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length + 2} ${t('Sections')}) x ${newObj.currentObj?.[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length} ${t('Lines')}`}
 					</StyledTypography>
 				</StyledTypography>
 			) : (
 				<StyledTypography>
 					<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
-						{newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length} Points
+						{newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].length} {t('Points')}
 					</StyledTypography>
-					<StyledTypography sx={{ lineHeight: '26px' }} component="span">{`(IJ ${
+					<StyledTypography sx={{ lineHeight: '26px' }} component="span">{`(${t('IJ')} ${
 						newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].filter(
 							(e) => e.pmj === PMJ[1]
 						).length
-					} Points, NJ ${
+					} ${t('Points')}, ${t('NJ')} ${
 						newObj?.currentObj?.[isDemolition ? 'demolitions' : 'connections'].filter(
 							(e) => e.pmj === PMJ[0]
 						).length
-					} Points) x `}</StyledTypography>
-					<StyledTypography sx={{ lineHeight: '28px', fontWeight: '600' }} component="span">
-					{`${(newObj.currentObj?.[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length || 0)} Lines`}
+					} ${t('Points')}) x `}</StyledTypography>
+					<StyledTypography sx={{ lineHeight: '28px' }} component="span">
+					{`${(newObj.currentObj?.[isDemolition ? 'demolitions' : 'connections'][0]?.statuses?.length || 0)} ${t('Lines')}`}
 					</StyledTypography>
 				</StyledTypography>
 			)}
@@ -158,6 +166,7 @@ export default function FormDiagram({
 	handleAddNote,
 	handleDeleteRow,
 }) {
+	const { t } = useTranslation(['diagram']);
 	const [isExpanded, setIsExpanded] = useState(false)
 	const [isDemolitionExpanded, setIsDemolitionExpanded] = useState(false)
 	const toggleExpand = () => {
@@ -180,7 +189,7 @@ export default function FormDiagram({
 			<StyledRowTables flexDirection={flexDirection}>
 				<StyledConnection connectionTableWidth={connectionTableWidth}>
 					<Box sx={{ marginLeft: '19px'}}>
-						<HeaderText title="Connection" color="#ffa58d" newObj={newObj} />
+						<HeaderText title="Connection" color="#ffa58d" newObj={newObj} t={t}/>
 					</Box>
 					{newObj?.currentObj?.endpoints?.startStatuses && (
 						<ConnectionTable
@@ -195,8 +204,8 @@ export default function FormDiagram({
 						/>
 					)}
 				</StyledConnection>
-				<StyledInstallation>
-					<HeaderText title="Installation" color="#6ac79b" newObj={newObj} />
+				<StyledInstallation installationTableWidth={statuses_length < 3 ? '462px' : ''}>
+					<HeaderText title="Installation" color="#6ac79b" newObj={newObj} t={t}/>
 					{newObj?.currentObj?.endpoints?.startStatuses && (
 						<InstallationTable
 							handleChangeInstallation={handleChangeInstallation}
@@ -213,7 +222,7 @@ export default function FormDiagram({
 				<StyledRowTables flexDirection={flexDirectionDemolition}>
 					<StyledDemolition demolitionTableWidth={demolitionTableWidth}>
 						<Box sx={{ marginLeft: '19px'}}>
-							<HeaderText title="Demolition" color="#7FBCFE" newObj={newObj} isDemolition={true} />
+							<HeaderText title="Demolition" color="#7FBCFE" newObj={newObj} isDemolition={true} t={t}/>
 						</Box>
 						{newObj?.currentObj?.endpointsDemolition?.startStatuses && (
 							<DemolitionTable
@@ -231,7 +240,7 @@ export default function FormDiagram({
 						)}
 					</StyledDemolition>
 					<StyledInstallation>
-						<HeaderText title="Installation" color="#6ac79b" newObj={newObj} isDemolition={true} />
+						<HeaderText title="Installation" color="#6ac79b" newObj={newObj} isDemolition={true} t={t}/>
 						{newObj?.currentObj?.endpointsDemolition?.startStatuses && (
 							<DemolitionInstallation
 								handleChangeInstallation={handleChangeInstallation}

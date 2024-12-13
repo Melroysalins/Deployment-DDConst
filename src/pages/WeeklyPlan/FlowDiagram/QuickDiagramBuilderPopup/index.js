@@ -14,6 +14,7 @@ import {
 	Backdrop,
 } from '@mui/material'
 import Iconify from 'components/Iconify'
+import { useTranslation } from 'react-i18next'
 
 const PopupTitle = styled('div')({
 	alignSelf: 'stretch',
@@ -108,6 +109,7 @@ const renderInputBox = (BoxText, value, handleChange, name) => (
 )
 
 const QuickDiagramBuilderPopup = ({ objId, obj, handleAddConnection, handleAddDemolition, updateObjById }) => {
+	const { t } = useTranslation('diagram')
 	const [anchorEl, setAnchorEl] = useState(null)
 	const [warningShown, setWarningShown] = useState(false)
 	const [popoverOpen, setPopoverOpen] = useState(obj.firstOpen)
@@ -170,33 +172,33 @@ const QuickDiagramBuilderPopup = ({ objId, obj, handleAddConnection, handleAddDe
 			>
 				<AddProjectPopupRoot>
 					<PopupTitle>
-						<span style={{ color: '#fff' }}>Quick Diagram Builder</span>
+						<span style={{ color: '#fff' }}>{t('Quick Diagram Builder')}</span>
 						{warningShown ? (
 							<Alert severity="warning" icon={false} sx={{ backgroundColor: 'transparent', padding: 0 }}>
-								Add these points to save 75% of your time
+								{t('warning')}
 							</Alert>
 						): (
 							<Alert severity="warning" icon={false} sx={{ backgroundColor: 'transparent', padding: 0, color: '#f1f0f0' }}>
-								Add in minimal details before to speed up your diagram creation.
+								{t('warning2')}
 							</Alert>
 						)}
 					</PopupTitle>
 					<Grid container spacing={1} sx={{ padding: '24px 24px 0px 24px' }}>
 						<Grid item xs={10}>
 							<InputLabel htmlFor="input-field" sx={{ fontSize: '12px' }}>
-								MidPoint Connections({' '}
+								{t('MidPoint Connections')}({' '}
 								{inputValues.midLines
 									? Number(inputValues.midPoints) * Number(inputValues.midLines)
 									: inputValues.midPoints}{' '}
-								units)
+								{t('units')})
 							</InputLabel>
 						</Grid>
 						<Grid item xs={2} sx={{ fontSize: '12px' }}>
-							Demolition
+							{t('Demolition')}
 						</Grid>
 						<Grid item xs={10} container spacing={1}>
 							<Grid item xs={5.5}>
-								{renderInputBox('units', inputValues.midPoints, handleChange, 'midPoints')}
+								{renderInputBox(t('units'), inputValues.midPoints, handleChange, 'midPoints')}
 							</Grid>
 							<Grid item xs={1} sx={{ display: 'flex', alignContent: 'center' }}>
 								<Iconify
@@ -207,7 +209,7 @@ const QuickDiagramBuilderPopup = ({ objId, obj, handleAddConnection, handleAddDe
 								/>
 							</Grid>
 							<Grid item xs={5.5}>
-								{renderInputBox('lines', inputValues.midLines, handleChange, 'midLines')}
+								{renderInputBox(t('lines'), inputValues.midLines, handleChange, 'midLines')}
 							</Grid>
 						</Grid>
 						<Grid item xs={2}>
@@ -217,16 +219,16 @@ const QuickDiagramBuilderPopup = ({ objId, obj, handleAddConnection, handleAddDe
 							<>
 								<Grid item xs={10}>
 									<InputLabel htmlFor="input-field" sx={{ fontSize: '12px' }}>
-										Demolition MidPoint Connections(
+										{t('Demolition')} {t('MidPoint Connections')}(
 										{inputValues.demolitionLines
 											? Number(inputValues.demolitionPoints) * Number(inputValues.demolitionLines)
 											: inputValues.demolitionPoints}{' '}
-										units)
+										{t('units')})
 									</InputLabel>
 								</Grid>
 								<Grid item xs={10} container spacing={1}>
 									<Grid item xs={5.5}>
-										{renderInputBox('units', inputValues.demolitionPoints, handleChange, 'demolitionPoints')}
+										{renderInputBox(t('units'), inputValues.demolitionPoints, handleChange, 'demolitionPoints')}
 									</Grid>
 									<Grid item xs={1} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
 										<Iconify
@@ -237,7 +239,7 @@ const QuickDiagramBuilderPopup = ({ objId, obj, handleAddConnection, handleAddDe
 										/>
 									</Grid>
 									<Grid item xs={5.5}>
-										{renderInputBox('lines', inputValues.demolitionLines, handleChange, 'demolitionLines')}
+										{renderInputBox(t('lines'), inputValues.demolitionLines, handleChange, 'demolitionLines')}
 									</Grid>
 								</Grid>
 							</>
@@ -301,7 +303,7 @@ const QuickDiagramBuilderPopup = ({ objId, obj, handleAddConnection, handleAddDe
 										minWidth: '47px',
 									}}
 								>
-									Cancel
+									{t('Cancel')}
 								</Typography>
 							</Button>
 							<Button
@@ -330,7 +332,7 @@ const QuickDiagramBuilderPopup = ({ objId, obj, handleAddConnection, handleAddDe
 										minWidth: '33px',
 									}}
 								>
-									Okay
+									{t('okay')}
 								</Typography>
 							</Button>
 						</Box>

@@ -49,7 +49,7 @@ BasicTabs.propTypes = {
 
 export default function BasicTabs({ open, setopen }) {
 	const [value, setValue] = React.useState(2)
-	const { t } = useTranslation()
+	const { t } = useTranslation(['weekly_plan'])
 	const handleChange = (event, newValue) => {
 		setValue(newValue)
 	}

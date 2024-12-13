@@ -1,0 +1,11 @@
+{
+    "hello":"Hello",
+    "status_2023":"Stats for 2023",
+    "projects_progress":"projects in progress",
+    "projects_completed":"projects completed",
+    "revenue":"revenue",
+    "profit":"profit",
+    "margin":"margin",
+    "no_project":"No Project Found!", 
+    "add_new_project":"Add New Project"
+}

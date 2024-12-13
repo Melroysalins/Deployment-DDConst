@@ -25,7 +25,7 @@ const rows = [
 ]
 
 function ProgressRate() {
-	const { t } = useTranslation()
+	const { t } = useTranslation(['weekly_plan', 'common'])
 	const [isCollapsed, setisCollapsed] = useState(false)
 	return (
 		<>
