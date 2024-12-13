@@ -9,9 +9,11 @@ import * as React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import { getProjectDetails } from 'supabase'
+import { useTranslation } from 'react-i18next'
 
 export default function CustomSeparator(props) {
 	const { state, dispatch } = useMain()
+	const { t } = useTranslation(['common'])
 	const [ projectDetails, setProjectDetails ] = React.useState({})
 	const { isfilterOpen } = state.filters || {}
 	const history = useNavigate()
@@ -58,7 +60,7 @@ export default function CustomSeparator(props) {
 				aria-label="breadcrumb"
 				sx={{ display: 'flex', alignItems: 'center' }}
 				>
-				<Link onClick={() => { history(MainPath); setProjectDetails({}); }} sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer'}}>Main</Link>
+				<Link onClick={() => { history(MainPath); setProjectDetails({}); }} sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer'}}>{t('Main')}</Link>
 				{pathnames.map((name, index) => {
 					const routeTo = `${basePath}/${pathnames.slice(0, index + 1).join('/')}`;
 					const isLast = index === pathnames.length - 1;
@@ -67,7 +69,7 @@ export default function CustomSeparator(props) {
 					if (isLast) {
 					return (
 						<Typography fontWeight="600" key={name} sx={{ display: 'flex', alignItems: 'center' }}>
-							{id && !pathname.includes('/manageEmp') ? projectDetails.title : _.startCase(name)}
+							{id && !pathname.includes('/manageEmp') ? projectDetails.title : t(_.startCase(name))}
 						</Typography>
 					);
 					}

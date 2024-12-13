@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import '@mobiscroll/react/dist/css/mobiscroll.min.css'
 import { styled } from '@mui/material/styles'
 import { Avatar, Typography, Box, Button as MuiButton } from '@mui/material'
-
+import { useTranslation } from 'react-i18next'
 import './calendar.scss'
 
 // components
@@ -32,10 +32,11 @@ function TravelExpenses() {
 	const { state } = useMain()
 	const { isfilterOpen } = state.filters || {}
 	const [showTotal, setshowTotal] = useState(false)
+	const { t } = useTranslation(['travel_expenses'])
 
 	return (
 		<>
-			<Header />
+			<Header t={t} />
 
 			{isfilterOpen ? (
 				<Filters />
@@ -43,7 +44,7 @@ function TravelExpenses() {
 				<Box position="relative" marginLeft={3} marginRight={6} sx={{ boxShadow: (theme) => theme.customShadows.z8 }}>
 					<Drawer />
 					<TotalsButton size="small" variant="contained" color="inherit" onClick={() => setshowTotal(!showTotal)}>
-						{showTotal ? 'Timeline' : 'Totals'}
+						{showTotal ? t('Timeline') : t('Totals')}
 					</TotalsButton>
 					<Loader open={loader} setOpen={setLoader} />
 					{showTotal ? <TotalExpense /> : <Timeline />}

@@ -13,7 +13,7 @@ const StyledCheckbox = styled(Checkbox)(({ theme }) => ({
 
 const initialFilters = { te: false, ste: false };
 
-export default function Filters() {
+export default function Filters({t}) {
   const [searchParams] = useSearchParams();
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -56,12 +56,12 @@ export default function Filters() {
       <FormControlLabel
         componentsProps={{ typography: { variant: 'body2' } }}
         control={<StyledCheckbox name="te" checked={filters.te} onChange={handleChange} size="small" />}
-        label="Travel expenses"
+        label={t('Travel expenses')}
       />
       <FormControlLabel
         componentsProps={{ typography: { variant: 'body2' } }}
         control={<StyledCheckbox name="ste" checked={filters.ste} onChange={handleChange} size="small" />}
-        label="Special travel expenses"
+        label={t('Special travel expenses')}
       />
       {/* <FormControlLabel
         componentsProps={{ typography: { variant: 'body2' } }}

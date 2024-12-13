@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { getTeTotals } from 'supabase/travelExpenses';
 import Project from './Project';
 import {  useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const headerCol = [
   'Lodging days requested',
@@ -59,6 +60,7 @@ export default function CollapsibleTable() {
   const { state } = useMain();
   const { dateRange } = state.filters || {};
   const { id } = useParams();
+  const { t } = useTranslation(['travel_expenses'])
 
   const [rows, setrows] = useState([]);
   const fetchTotals = async (id) => {
@@ -75,9 +77,10 @@ export default function CollapsibleTable() {
       mainCol={mainCol}
       headerCol={headerCol}
       rows={rows}
-      startRow={<Project />}
+      startRow={<Project t={t} />}
       className="travelExpense"
       rowLength={12}
+      t={t}
     />
   );
 }

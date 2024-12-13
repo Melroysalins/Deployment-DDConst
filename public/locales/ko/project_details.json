@@ -1,0 +1,22 @@
+{
+    "edit": "프로젝트 수정",
+    "Expenditures": "지출",
+    "error": "문제가 발생했습니다!",
+
+    "Project info": "프로젝트 정보",
+    "TeamMates": "팀원들",
+    "No TeamMates Exist": "팀원이 없습니다",
+
+    "Fixed Cost": "고정 비용",
+    "Labor Cost": "노동 비용",
+    "Administrative Expenses": "관리 경비",
+    "Asset Maintenance Cost": "자산 유지 비용",
+    "Operating Profit": "영업 이익",
+
+    "Contract Execution Budget": "계약 실행 예산",
+    "Implementation Schedule": "구현 일정",
+    "Daily Workforce Planning": "일일 인력 계획",
+    "Weekly Process Planning": "주간 프로세스 계획",
+    "Travel Expenses / Overtime": "여행 경비 / 초과 근무",
+    "Profit & Loss Reports": "손익 보고서"
+}

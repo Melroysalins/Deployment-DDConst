@@ -49,5 +49,21 @@
     "approval_completion_date":"승인 완료 날짜",
     "approval_progress":"승인 진행",
     "open_detail_approval_view":"세부 승인 보기 열기",
-    "project_info":"프로젝트 정보"
+    "project_info":"프로젝트 정보",
+
+    "Dessert": "디저트",
+    "Calories": "칼로리",
+    "Fat": "지방",
+    "Col1": "열1",
+    "Col2": "열2",
+    "Col3": "열3",
+    "Protein": "단백질",
+
+    "week_progress": "주간 진행",
+    "next_week_plan": "다음 주 계획",
+    "last_week_plan": "지난 주 계획",
+    "approval_satus": "승인 상태",
+    "work": "작업",
+    "location": "위치"
+
   }

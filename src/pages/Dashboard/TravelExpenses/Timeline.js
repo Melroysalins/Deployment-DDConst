@@ -9,6 +9,7 @@ import {
 	formatDate,
 	momentTimezone,
 	setOptions,
+	localeKo
 } from '@mobiscroll/react'
 import { Alert, Avatar, Box, Button as MuiButton, Snackbar, Stack, Tooltip, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
@@ -26,6 +27,7 @@ import { TEActionType } from './context/types'
 import getHolidays from './getHolidays'
 import AddFormPopup from './popups/AddFormPopup'
 import ViewEventPopup from './popups/ViewEventPopup'
+import { useTranslation } from 'react-i18next'
 
 // components
 setOptions({
@@ -92,7 +94,8 @@ export const Rating = styled(Avatar, {
 export default function Timeline() {
 	const { state, dispatch } = useTE()
 	const { id } = useParams()
-
+	const { i18n } = useTranslation()
+	const isEng = i18n.language === 'en'
 	const [isEdit, setEdit] = React.useState(false)
 	const [anchor, setAnchor] = React.useState(null)
 	const [anchorTeam, setAnchorTeam] = React.useState(null)
@@ -740,6 +743,7 @@ export default function Timeline() {
 				renderDay={renderCustomDay}
 				colors={holidays}
 				dayNamesMin={['S', 'M', 'T', 'W', 'T', 'F', 'S']}
+				locale={isEng ? null : localeKo}
 			/>
 
 			<Popup variant="secondary" anchor={anchorTeam} handleClose={onClose}>

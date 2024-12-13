@@ -48,6 +48,22 @@
     "approval_request_date":"Request Date",
     "approval_completion_date":"Completion Date",
     "approval_progress":"Approval progress",
-    "open_detail_approval_view":"Open detailed approval view"
+    "open_detail_approval_view":"Open detailed approval view",
+
+    "Dessert": "Dessert",
+    "Calories": "Calories",
+    "Fat": "Fat",
+    "Col1": "Col1",
+    "Col2": "Col1",
+    "Col3": "Col1",
+    "Protein": "Protein",
+
+    "week_progress": "week_progress",
+    "next_week_plan": "next_week_plan",
+    "last_week_plan": "last_week_plan",
+    "approval_satus": "approval_satus",
+    "work": "work",
+    "location": "location"
+
 
 }
