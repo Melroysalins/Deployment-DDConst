@@ -2,6 +2,7 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
+import '../../../../ag-theme-ddconst.scss' 
 
 import { momentTimezone, setOptions } from '@mobiscroll/react'
 import {
@@ -385,7 +386,7 @@ const Task = ({ task_group }) => {
 				</Alert>
 			</Snackbar>
 			<div style={containerStyle}>
-				<div style={gridStyle} className=" ag-theme-ddconst">
+				<div style={gridStyle} className="ag-theme-ddconst">
 					<Stack gap={2}>
 						<AgGridReact
 							ref={gridRef}

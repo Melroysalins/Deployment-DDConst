@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 // material
 import {
@@ -13,6 +13,7 @@ import {
 	Switch,
 	Typography,
 	useMediaQuery,
+	Button
 } from '@mui/material'
 import { styled, useTheme } from '@mui/material/styles'
 // mock
@@ -120,10 +121,39 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
 	},
 }))
 
+const ToggleButton = styled(Button)(({ theme }) => ({
+	padding: theme.spacing(1, 2),
+	minWidth: 80,
+	borderRadius: 0,
+	'&:first-of-type': {
+	  borderTopLeftRadius: 24,
+	  borderBottomLeftRadius: 24,
+	},
+	'&:last-of-type': {
+	  borderTopRightRadius: 24,
+	  borderBottomRightRadius: 24,
+	},
+}))
+
+const ToggleButton2 = styled(Button)(({ theme }) => ({
+	padding: theme.spacing(1, 0),
+	minWidth: 30,
+	borderRadius: 0,
+	'&:first-of-type': {
+	  borderTopLeftRadius: 27,
+	  borderTopRightRadius: 27,
+	},
+	'&:last-of-type': {
+	  borderBottomLeftRadius: 27,
+	  borderBottomRightRadius: 27,
+	},
+  }))
+
 export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 	const { user, openNotification, openaccoutReview, setopenNotification, currentEmployee } = useMain()
 	const { pathname } = useLocation()
 	const theme = useTheme()
+	const [isKorean, setIsKorean] = useState(false);
 	// const isDesktop = useResponsive('up', 'lg')
 	const matchUpMd = useMediaQuery(theme.breakpoints.up('md'))
 
@@ -150,7 +180,7 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [pathname])
 
-	const renderContent = (leftDrawerOpened) => (
+	const renderContent = (leftDrawerOpened, isKorean) => (
 		<Scrollbar
 			sx={{
 				height: 1,
@@ -168,6 +198,30 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 			{leftDrawerOpened ? (
 				<Box sx={{ px: 2.5, pb: 3, mt: 10 }}>
 					<Stack alignItems="center" spacing={3} sx={{ pt: 5, position: 'relative', overflow: 'hidden' }}>
+
+						<Box display="flex" justifyContent="center" alignItems="center" p={2}>
+							<Box position="relative" display="inline-flex">
+								<ToggleButton
+								variant={i18n.language === "ko" ? "outlined" : "contained"}
+								color="primary"
+								onClick={() => i18n.changeLanguage('en')}
+								>
+								<Typography variant="body2">
+									English
+								</Typography>
+								</ToggleButton>
+								<ToggleButton
+								variant={i18n.language === "en" ? "outlined" : "contained"}
+								color="primary"
+								onClick={() => i18n.changeLanguage('ko')}
+								>
+								<Typography variant="body2">
+									한국어
+								</Typography>
+								</ToggleButton>
+							</Box>
+						</Box>
+
 						<Box component="a" href="/dashboard/profile" sx={{ width: 100, height: 100 }}>
 							<Avatar
 								src={employee?.profile}
@@ -199,18 +253,28 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 						</ListItemIconStyle>
 					</ListItemStyle>
 
-					<ListItemStyle>
-						<FormControlLabel
-							control={
-								<MaterialUISwitch
-									sx={{ transform: 'rotate(90deg)', marginLeft: 1 }}
-									defaultChecked
-									value={isEng}
-									onChange={handleChangeLanguage}
-								/>
-							}
-						/>
-					</ListItemStyle>
+					<Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", p: 2 }}>
+						<Box style={{ display: 'inline-flex', flexDirection: 'column' }}>
+							<ToggleButton2
+							variant={i18n.language === "ko" ? "outlined" : "contained"}
+							color="primary"
+							onClick={() => i18n.changeLanguage('en')}
+							>
+							<Typography variant="body2">
+								en
+							</Typography>
+							</ToggleButton2>
+							<ToggleButton2
+							variant={i18n.language === "en" ? "outlined" : "contained"}
+							color="primary"
+							onClick={() => i18n.changeLanguage('ko')}
+							>
+							<Typography variant="body2">
+								ko
+							</Typography>
+							</ToggleButton2>
+						</Box>
+					</Box>
 
 					<Link underline="none" component={RouterLink} to="/dashboard/profile">
 						<AccountStyle>
@@ -246,7 +310,7 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 					},
 				}}
 			>
-				{renderContent(leftDrawerOpened)}
+				{renderContent(leftDrawerOpened, isKorean)}
 			</Drawer>
 			{openNotification && <Notifications />}
 			{openaccoutReview && <ApprovalRequest />}
