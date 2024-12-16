@@ -38,7 +38,7 @@ ProcessListItem.propTypes = {
 }
 
 function ProcessListItem({ event }) {
-	const { t } = useTranslation()
+	const { t } = useTranslation(['weekly_plan', 'common'])
 	return (
 		<>
 			{event.id > 1 && <Divider />}
@@ -66,7 +66,7 @@ LeftMenu.propTypes = {
 }
 
 function LeftMenu({ project }) {
-	const { t } = useTranslation()
+	const { t } = useTranslation(['weekly_plan', 'common'])
 	const { start, end, rate_of_completion, title, created_at, contract_value, contracted_source, construction_type } =
 		project || {}
 	const [isCollapsed, setisCollapsed] = useState(false)

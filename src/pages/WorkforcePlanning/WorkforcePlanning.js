@@ -18,15 +18,17 @@ import moment from 'moment-timezone'
 import './calendar.scss'
 
 import { Loader, getHolidays } from 'reusables'
-
+import BasicTabs from 'components/Drawer/BasicTabs'
 import { listAllEvents, createNewEvent, deleteEvent } from 'supabase/events'
 import { listAllEmployees } from 'supabase/employees'
 import { getProjectDetails, listAllProjects } from 'supabase/projects'
 
 import Page from '../../components/Page'
 import EventHeader from 'components/EventHeader'
-import { Stack, Typography, Button as MuiButton, styled, Avatar } from '@mui/material'
+import { Stack, Typography, Button as MuiButton, styled, Avatar, Box } from '@mui/material'
 import { useParams } from 'react-router-dom'
+import Iconify from 'components/Iconify'
+import useMain from 'pages/context/context'
 
 setOptions({
 	theme: 'ios',
@@ -120,7 +122,11 @@ function App() {
 	const [loader, setLoader] = React.useState(false)
 	const [projectError, setProjectError] = React.useState(false)
 	const [holidays, setHolidays] = React.useState(defaultHolidays)
-
+	const {
+		setisDrawerOpen,
+		isDrawerOpen,
+		setapprovalIdDrawerRight,
+	} = useMain()
 	const handleSetEvent = (data) => {
 		setMyEvents(data.map((e) => ({ ...e, resource: e.employee })))
 	}
@@ -402,7 +408,23 @@ function App() {
 	return (
 		<>
 			<Page title="WP">
-				<EventHeader title={data?.title} breadcrumbElements={breadcrumbElements} />
+				<Box sx={{ display: 'flex', gap: '10px', position: 'absolute', top: 28, right: 44 }}>
+					<MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 1, minWidth: 0 }}>
+						<Iconify icon="material-symbols:download-rounded" width={20} height={20} />
+					</MuiButton>
+					<MuiButton
+						onClick={() => {
+							setapprovalIdDrawerRight(null)
+							setisDrawerOpen(true)
+						}}
+						variant="contained"
+						size="medium"
+						color="inherit"
+						sx={{ background: '#8D99FF', marginLeft: 1, minWidth: 40, width: 40, padding: '5px 0', height: 37 }}
+					>
+						<Iconify icon="uil:bars" width={25} height={25} color="white" />
+					</MuiButton>
+				</Box>
 				<Stack px={2} mt={7}>
 					<Loader open={loader} setOpen={setLoader} />
 					<Eventcalendar
@@ -485,6 +507,7 @@ function App() {
 							)}
 						</div>
 					</Popup>
+					{isDrawerOpen && <BasicTabs open={isDrawerOpen} setopen={setisDrawerOpen} />}
 				</Stack>
 			</Page>
 		</>

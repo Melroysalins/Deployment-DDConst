@@ -2,8 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Popover, Grid, Select, FormControl, Box, Button, TextField, InputLabel, Typography, InputAdornment, Divider } from '@mui/material';
 import Iconify from 'components/Iconify';
 import Proptypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 
 const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
+  const { t } = useTranslation(['diagram', 'common'])
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [inputValues, setInputValues] = useState({});
@@ -76,7 +78,7 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
         else if (key === 'voltageLevel') {
           formattedValues[0] = `${value}kV`;  
         } else if (key === 'wiringArea') {
-          formattedValues[2] = `${value}sq`;
+          formattedValues[2] = `${value}sq,`;
         } else if (key === 'tlLength') {
           formattedValues[4] = `${value}km`;
         } else if (key === 'tlCount') {
@@ -84,7 +86,7 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
         } else if (key === 'endLocation') {
           formattedValues[2] = `${value}T/L`;
         } else if (key === 'startLocation') {
-          formattedValues[1] = `${value}-`;
+          formattedValues[1] = `${value} -`;
         }
       }
     });
@@ -103,7 +105,7 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
   const renderGridItem = (label, id, inputAdornment) => {
     return (
       <Grid item xs={6}>
-        <InputLabel htmlFor={id} sx={{ fontSize: '12px', color: '#212B36', marginBottom: '4px' }}>{label}</InputLabel>
+        <InputLabel htmlFor={id} sx={{ fontSize: '12px', color: '#212B36', marginBottom: '4px' }}>{t(label)}</InputLabel>
         <TextField
           fullWidth
           size="small"
@@ -137,12 +139,13 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
         renderValue={(selected) => (
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              maxWidth: '100%',
+              width: '100%',
+              fontSize: '14px',
+              lineHeight: '28px',
+              fontWeight: 400,
             }}
           >
             {selected}
@@ -202,7 +205,7 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
         >
           <Grid container sx={{ padding: '24px 24px 6px 24px'}} spacing={2}>
             <Grid item xs={12}>
-              <InputLabel htmlFor="bigInput" sx={{ fontSize: '12px', color: '#212B36', marginBottom: '4px' }}>{type === "cable_name" ? "Voltage level": "Cable Type"}</InputLabel>
+              <InputLabel htmlFor="bigInput" sx={{ fontSize: '12px', color: '#212B36', marginBottom: '4px' }}>{t(type === "cable_name" ? "voltageLevel" : "cableType")}</InputLabel>
               <TextField
                 fullWidth
                 size="small"
@@ -222,16 +225,16 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
             </Grid>
             { type === "cable_name" && (
               <>
-                {renderGridItem('Start Location', 'startLocation')}
-                {renderGridItem('End Location', 'endLocation', 'T/L')}
+                {renderGridItem('startLocation', 'startLocation')}
+                {renderGridItem('endLocation', 'endLocation', 'T/L')}
               </>
             )}
             { (type === "demolition_type" || type === "cable_type") && (
               <>
-                {renderGridItem("Voltage level", "voltageLevel", "kV")}
-                {renderGridItem("Wiring Area", "wiringArea", "sq")}
-                {renderGridItem('# T/L', 'tlCount')}
-                {renderGridItem('T/L Length', 'tlLength', 'km')}
+                {renderGridItem("voltageLevel", "voltageLevel", "kV")}
+                {renderGridItem("wiringArea", "wiringArea", "sq")}
+                {renderGridItem('tlCount', 'tlCount')}
+                {renderGridItem('tlLength', 'tlLength', 'km')}
               </>
             )}
           </Grid>
@@ -267,7 +270,7 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
                   minWidth: '33px',
                 }}
               >
-                Cancel
+                {t('Cancel')}
               </Typography>
             </Button>
             <Button
@@ -301,7 +304,7 @@ const DropdownPopover = ({ type, newObj, handleChangeStatus }) => {
                   minWidth: '33px',
                 }}
               >
-                Okay
+                {t('okay')}
               </Typography>
             </Button>
           </Box>

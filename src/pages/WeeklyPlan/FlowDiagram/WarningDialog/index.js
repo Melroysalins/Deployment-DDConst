@@ -2,6 +2,7 @@ import React from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Box, Typography, styled } from '@mui/material';
 import { ICONS_MAP } from './dialogConfig';
 import Iconify from 'components/Iconify';
+import { useTranslation } from 'react-i18next';
 
 const PopupTitle = styled(DialogTitle)({
 	alignSelf: 'stretch',
@@ -42,14 +43,15 @@ const DialogHeading = styled(DialogContent)({
   padding: '16px 24px 0px 24px',
 })
 
-const WarningDialog = ({ isOpen, onClose, title, dialogHeading, description, buttons }) => {
 
-  console.log('Dialog', { isOpen, onClose, title, dialogHeading, description, buttons })
+const WarningDialog = ({ isOpen, onClose, title, dialogHeading, description, buttons, actionType }) => {
+  const { t } = useTranslation(['diagram']);
+  const dialogButtonLabel = actionType === 'delete' ? t('Yes, delete') : t('Confirm');
 
   return (
     <Dialog open={isOpen} onClose={onClose}>
       <AddProjectPopupRoot>
-        <PopupTitle sx={{ backgroundColor: buttons[1]?.label === 'Yes, delete' ? '#DA4C57' : '#8d99ff' }}>{title}</PopupTitle>
+        <PopupTitle sx={{ backgroundColor: actionType === 'delete' ? '#DA4C57' : '#8d99ff' }}>{title}</PopupTitle>
         <DialogHeading>
           <DialogTitle sx={{ fontWeight: 600}}>{dialogHeading}</DialogTitle>
           <DialogContentText sx={{ fontSize: '14px'}}>{description}</DialogContentText>
@@ -97,7 +99,7 @@ const WarningDialog = ({ isOpen, onClose, title, dialogHeading, description, but
                   minWidth: '47px',
                 }}
               >
-                {buttons[1]?.label === 'Yes, delete' ? 'No, don\'t delete ' : 'Cancel'}
+                {actionType === 'delete' ? t('No, don\'t delete') : t('Cancel')}
               </Typography>
             </Button>
             <Button
@@ -114,10 +116,10 @@ const WarningDialog = ({ isOpen, onClose, title, dialogHeading, description, but
               onClick={() => buttons[1]?.onClick()}
             >
               <Iconify
-                icon={ICONS_MAP[buttons[1]?.label]}
+                icon={ICONS_MAP[dialogButtonLabel]}
                 width={20}
                 height={20}
-                style={{ color: `${buttons[1]?.label === 'Yes, delete' ? '#DA4C57' : '#8d99ff'}`, margin: 'auto' }}
+                style={{ color: `${actionType === 'delete' ? '#DA4C57' : '#8d99ff'}`, margin: 'auto' }}
               />
               <Typography
                 variant="body2"
@@ -126,12 +128,12 @@ const WarningDialog = ({ isOpen, onClose, title, dialogHeading, description, but
                   fontSize: '14px',
                   lineHeight: '24px',
                   fontWeight: 600,
-                  color: `${buttons[1]?.label === 'Yes, delete' ? '#DA4C57' : '#8d99ff'}`,
+                  color: `${actionType === 'delete' ? '#DA4C57' : '#8d99ff'}`,
                   textAlign: 'left',
                   minWidth: '33px',
                 }}
               >
-                {buttons[1]?.label}
+                {dialogButtonLabel}
               </Typography>
             </Button>
           </Box>

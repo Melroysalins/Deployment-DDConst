@@ -25,7 +25,7 @@ const rows = [
 ]
 
 function ProgressRate() {
-	const { t } = useTranslation()
+	const { t } = useTranslation(['weekly_plan', 'common'])
 	const [isCollapsed, setisCollapsed] = useState(false)
 	return (
 		<>
@@ -56,13 +56,13 @@ function ProgressRate() {
 						<Table sx={{ minWidth: 200 }} size="small">
 							<TableHead>
 								<TableRow>
-									<TableCell>Dessert </TableCell>
-									<TableCell>Calories</TableCell>
-									<TableCell>Fat</TableCell>
-									<TableCell>Col1</TableCell>
-									<TableCell>Col2</TableCell>
-									<TableCell>Col3</TableCell>
-									<TableCell>Protein</TableCell>
+									<TableCell>{t('Dessert')}</TableCell>
+									<TableCell>{t('Calories')}</TableCell>
+									<TableCell>{t('Fat')}</TableCell>
+									<TableCell>{t('Col1')}</TableCell>
+									<TableCell>{t('Col2')}</TableCell>
+									<TableCell>{t('Col3')}</TableCell>
+									<TableCell>{t('Protein')}</TableCell>
 								</TableRow>
 							</TableHead>
 							<TableBody sx={{ background: '#F9FAFB' }}>

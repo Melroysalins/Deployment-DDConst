@@ -6,13 +6,13 @@ import Filters from './Filters';
 import BasicTabs from 'components/Drawer/BasicTabs';
 
 // components
-const Header = () => {
+const Header = ({t}) => {
   const [isDrawerOpen, setisDrawerOpen] = React.useState(false);
 
   return (
     <Stack direction="row" alignItems="center" spacing={2} sx={{ position: 'absolute', top: '24px', right: '40px' }}>
       {/* Not responsive */}
-      <Filters />
+      <Filters t={t} />
       <MuiButton
         size="small"
         variant="contained"
@@ -32,7 +32,7 @@ const Header = () => {
         color="inherit"
         sx={{ padding: '8px 24px', minWidth: 0 }}
       >
-        Pending
+        {t('Pending')}
       </MuiButton>
       {isDrawerOpen &&  <BasicTabs open={isDrawerOpen} setopen={setisDrawerOpen} />}
      

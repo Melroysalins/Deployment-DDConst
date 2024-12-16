@@ -65,7 +65,7 @@ const findDatesInApproval = (approvals, newStart, newEnd) => {
 }
 
 function Approval({ setopen, isLeftMenu }) {
-	const { t } = useTranslation()
+	const { t } = useTranslation(['weekly_plan', 'common'])
 	const {
 		currentEmployee,
 		setallowTaskCursor,

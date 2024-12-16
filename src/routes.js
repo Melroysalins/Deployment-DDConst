@@ -42,14 +42,14 @@ export default function Router() {
 						{ path: ':id/travel-expenses', element: <TravelExpenses /> },
 
 						{ path: 'add', element: <AddNewProject /> },
-						{ path: 'edit/:id', element: <AddNewProject edit /> },
+						{ path: ':id/edit', element: <AddNewProject edit /> },
 						{ path: ':id', element: <ProjectDetails /> },
 
 						{ path: ':id/weekly-plan', element: <WeeklyPlan /> },
+						{ path: ':project/workforce-planning', element: <WorkforcePlanning /> },
+						{ path: ':project/project-schedule', element: <ProjectImplementationSchedule /> },		
 					],
 				},
-				{ path: ':project/workforce-planning', element: <WorkforcePlanning /> },
-				{ path: 'project-schedule/:project', element: <ProjectImplementationSchedule /> },
 				{ path: 'user', element: <User /> },
 				{ path: 'products', element: <Products /> },
 				{ path: 'blog', element: <Blog /> },
@@ -82,18 +82,16 @@ export default function Router() {
 					path: 'employee',
 					element: <MangeEmpLayout />,
 					children: [
-						{ path: '', element: <EmployeeList /> },
 						{ path: 'emplist', element: <EmployeeList /> },
 						{ path: 'add', element: <AddEmployee /> },
-						{ path: 'edit/:id', element: <AddEmployee /> },
-						{ path: 'view/:id', element: <EmployeeProfile /> },
+						{ path: ':id/edit', element: <AddEmployee /> },
+						{ path: ':id/view', element: <EmployeeProfile /> },
 					],
 				},
 				{
 					path: 'team',
 					element: <MangeEmpLayout />,
 					children: [
-						{ path: '', element: <TeamList /> },
 						{ path: 'teamlist', element: <TeamList /> },
 						{ path: 'teamadd', element: <AddTeam /> },
 						{ path: 'teamedit/:id', element: <AddTeam /> },

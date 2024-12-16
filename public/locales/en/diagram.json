@@ -1,0 +1,80 @@
+{
+   "cable_name":"Cable Name",
+   "cable_type":"Cable Type",
+   "Demolition":"Demolition",
+   "Installation":"Installation",
+   "Connection":"Connection",
+   "SS":"S/S",
+   "TR":"T/R",
+   "square":"EB-A",
+   "recTri":"EB-G",
+   "mh":"M/H",
+   "jb":"J/B",
+   "NJ":"NJ",
+   "IJ":"IJ",
+   "notStarted":"Not Started",
+   "inProgress":"In Progress",
+   "completed":"Completed",
+   "location":"Location",
+   "Transformer":"Transformer",
+   "Connector": "Connector",
+   "T/L Section": "T/L Section",
+   "Length(m)": "Length(m)",
+   "T/L": "T/L",
+   "TLWithNumber": "{{number}} {{tl}}",
+   "Sections":"Sections",
+   "Lines":"Lines",
+   "Points":"Points",
+   "End point":"End point",
+   "Mid point":"Mid point",
+   "Add Diagram":"Add Diagram",
+   "Summary":"Summary",
+   "Continue":"Continue",
+   "Mid":"Mid",
+
+   "Delete": "Delete",
+   "Edit": "Edit",
+   "Save": "Save",
+   "Cancel": "Cancel",
+
+   "voltageLevel": "Voltage level",
+  "startLocation": "Start Location",
+  "endLocation": "End Location",
+  "cableType": "Cable Type",
+  "wiringArea": "Wiring Area",
+  "tlCount": "# T/L",
+  "tlLength": "T/L Length",
+  "okay": "Okay",
+
+  "apply":"Apply",
+
+  "update":"Update",
+  "status":"Status",
+  "jb_type":"Jb Type",
+  "section":"Section",
+  "new":"New",
+  "old":"Old",
+  
+  "warning": "Add these points to save 75% of your time",
+  "warning2": "Add in minimal details before to speed up your diagram creation.",
+  "Quick Diagram Builder":"Quick Diagram Builder",
+  "MidPoint Connections":"MidPoint Connections",
+  "units":"units",
+  "lines":"lines",
+
+  "delete": {
+    "title": "Confirm Diagram Deletion",
+    "dialogHeading": "Are you sure you want to delete this entire diagram?",
+    "description": "This action cannot be undone. All associated data and configurations will be permanently removed. Please confirm your decision to proceed with this deletion.",
+    "buttonLabel": "Yes, delete"
+  },
+  "save": {
+    "title": "Confirm Save",
+    "dialogHeading": "Are you sure you don't want a change?",
+    "description": "Please confirm your satisfaction or let us know if any adjustments are needed.",
+    "buttonLabel": "Save"
+  },
+  
+  "No, don't delete":"No, don't delete"
+
+}

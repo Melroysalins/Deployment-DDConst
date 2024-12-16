@@ -25,6 +25,7 @@ import { useQuery } from 'react-query'
 import { listEmployeesByProject } from 'supabase/employees'
 import { getProjectDetails, getProjectFileLink } from 'supabase/projects'
 import { formatNumber } from 'utils/helper'
+import { useTranslation } from 'react-i18next'
 
 // ----------------------------------------------------------------------
 
@@ -35,6 +36,8 @@ export default function Projects() {
 	const [loading, setLoading] = useState(false)
 	const [empData, setempData] = useState(null)
 	const navigate = useNavigate()
+	const { t } = useTranslation(['project_details'])
+
 
 	// const fetchData = async (id) => {
 	// 	setLoading(true)
@@ -83,25 +86,25 @@ export default function Projects() {
 			icon: <Iconify width={40} height={40} color="#7FBCFE" icon="fluent:clipboard-bullet-list-ltr-16-regular" />,
 			title: 'Implementation Schedule',
 			description: ' 15/06/2022 - 14/08/2022',
-			redirect: `/dashboard/project-schedule/${id}`,
+			redirect: `/dashboard/projects/${id}/project-schedule`,
 		},
 		{
 			icon: <Iconify width={40} height={40} color="#8D99FF" icon="ph:users-light" />,
 			title: 'Daily Workforce Planning',
 			description: 'Installation team, Connection Team 1, Connection Team 2',
-			redirect: `/dashboard/${id}/workforce-planning`,
+			redirect: `/dashboard/projects/${id}/workforce-planning`,
 		},
 		{
 			icon: <Iconify width={40} height={40} color="#FFA58D" icon="heroicons-outline:calendar" />,
 			title: 'Weekly Process Planning',
 			description: '24/02/2022 - 02/03/2022 - 45.78%',
-			redirect: `weekly-plan`,
+			redirect: `/dashboard/projects/${id}/weekly-plan`,
 		},
 		{
 			icon: <Iconify width={40} height={40} color="#8D99FF" icon="heroicons:truck" />,
 			title: 'Travel Expenses / Overtime',
 			description: '3 day shifts, 54 night shifts, 5 Overtime, 3 Nighttime, 4 Move on rest day',
-			redirect: 'travel-expenses?filters=te,ste',
+			redirect: `/dashboard/projects/${id}/travel-expenses?filters=te,ste`,
 		},
 		{
 			icon: <Iconify width={40} height={40} color="#FF62B5" icon="heroicons:chart-bar" />,
@@ -174,7 +177,7 @@ export default function Projects() {
 					color="inherit"
 					sx={{ color: '#6AC79B' }}
 				>
-					Expenditures
+					{t('Expenditures')}
 				</Button>
 
 				<Button
@@ -183,9 +186,9 @@ export default function Projects() {
 					size="medium"
 					color="inherit"
 					sx={{ color: '#8D99FF', marginLeft: 1 }}
-					onClick={() => navigate(`/dashboard/projects/edit/${id}`)}
+					onClick={() => navigate(`/dashboard/projects/${id}/edit`)}
 				>
-					Edit project
+					{t('edit')}
 				</Button>
 			</Box>
 			<Container maxWidth="xl">
@@ -196,7 +199,7 @@ export default function Projects() {
 					onClose={handleClose}
 				>
 					<Alert onClose={handleClose} severity="danger" sx={{ width: '100%' }}>
-						Something went wrong!
+						{t('error')}
 					</Alert>
 				</Snackbar>
 
@@ -225,7 +228,7 @@ export default function Projects() {
 					{eventCost.map((event, index) => (
 						<>
 							<Grid item xs={12} sm={6} md={4} lg={2}>
-								<EventCardCost event={event} key={index} />
+								<EventCardCost event={event} t={t} key={index} />
 							</Grid>
 						</>
 					))}
@@ -233,11 +236,11 @@ export default function Projects() {
 					{data && (
 						<>
 							<Grid item xs={12} sm={4} md={3}>
-								<ProjectInfo projectInfo={projectInfo} id={id} />
+								<ProjectInfo projectInfo={projectInfo} t={t} id={id} />
 							</Grid>
 
 							<Grid item xs={12} sm={8} md={9}>
-								<TeamMates empData={empData} title={data?.title} />
+								<TeamMates empData={empData} t={t} title={data?.title} />
 							</Grid>
 						</>
 					)}
@@ -248,7 +251,7 @@ export default function Projects() {
 						events.map((event, index) => (
 							<>
 								<Grid item xs={12} sm={6} md={4} lg={2}>
-									<EventCard event={event} key={index} />
+									<EventCard event={event} t={t} key={index} />
 								</Grid>
 							</>
 						))
@@ -268,7 +271,7 @@ EventCard.propTypes = {
 	}),
 }
 
-function EventCard({ event, key }) {
+function EventCard({ event, t, key }) {
 	const navigate = useNavigate()
 	const redirectCard = () => {
 		navigate(event.redirect)
@@ -293,7 +296,7 @@ function EventCard({ event, key }) {
 			>
 				{event?.icon}
 				<Typography m={1} align="center" sx={{ fontWeight: 600 }}>
-					{event?.title}
+					{t(`${event?.title}`)}
 				</Typography>
 				<Typography align="center" variant="caption">
 					{event?.description}
@@ -303,7 +306,7 @@ function EventCard({ event, key }) {
 	)
 }
 
-function EventCardCost({ event, key }) {
+function EventCardCost({ event, t, key }) {
 	return (
 		<>
 			<Box
@@ -322,7 +325,7 @@ function EventCardCost({ event, key }) {
 				maxHeight={'sm'}
 			>
 				<Typography m={1} align="center" sx={{ fontWeight: 600, fontSize: 14 }}>
-					{event?.title}
+					{t(`${event?.title}`)}
 				</Typography>
 				<Typography align="center" variant="caption" color={event?.color} fontSize={16}>
 					{event?.cost}
@@ -357,7 +360,7 @@ function Loading() {
 	)
 }
 
-function ProjectInfo({ projectInfo, id }) {
+function ProjectInfo({ projectInfo, t, id }) {
 	return (
 		<>
 			<Box
@@ -369,7 +372,7 @@ function ProjectInfo({ projectInfo, id }) {
 				p={2}
 			>
 				<Typography m={1} sx={{ fontWeight: 600, fontSize: 16 }}>
-					Project info
+					{t('Project info')}
 				</Typography>
 				{projectInfo[0]
 					? projectInfo[0]?.map((e) => (
@@ -426,7 +429,7 @@ const pickColor = (rating) => {
 	}
 }
 
-function TeamMates({ empData, title }) {
+function TeamMates({ empData, t, title }) {
 	const theme = useTheme()
 
 	return (
@@ -440,13 +443,13 @@ function TeamMates({ empData, title }) {
 				p={2}
 			>
 				<Typography m={1} sx={{ fontWeight: 600, fontSize: 16 }}>
-					TeamMates
+					{t('TeamMates')}
 				</Typography>
 
 				{empData?.length === 0 && (
 					<Grid sx={{ display: 'flex', height: '70%' }} justifyContent="center" alignItems={'center'}>
 						<Typography m={1} sx={{ fontWeight: 900, fontSize: 20 }}>
-							No TeamMates Exist
+							{t('No TeamMates Exist')}
 						</Typography>
 					</Grid>
 				)}
@@ -532,7 +535,7 @@ const eventCost = [
 		color: '#7FBCFE',
 	},
 	{
-		title: 'Operating Profit (%)',
+		title: 'Operating Profit',
 		cost: '-4%',
 		color: '#FF62B5',
 	},

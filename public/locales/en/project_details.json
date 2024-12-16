@@ -1,0 +1,22 @@
+{
+    "edit": "Edit Project",
+    "Expenditures": "Expenditures",
+    "error": "Something went wrong!",
+
+    "Project info": "Project info",
+    "TeamMates": "TeamMates",
+    "No TeamMates Exist": "No TeamMates Exist",
+
+    "Fixed Cost": "Fixed Cost",
+    "Labor Cost": "Labor Cost",
+    "Administrative Expenses": "Administrative Expenses",
+    "Asset Maintenance Cost": "Asset Maintenance Cost",
+    "Operating Profit": "Operating Profit",
+
+    "Contract Execution Budget": "Contract Execution Budget",
+    "Implementation Schedule": "Implementation Schedule",
+    "Daily Workforce Planning": "Daily Workforce Planning",
+    "Weekly Process Planning": "Weekly Process Planning",
+    "Travel Expenses / Overtime": "Travel Expenses / Overtime",
+    "Profit & Loss Reports": "Profit & Loss Reports"
+}

@@ -74,7 +74,8 @@ function Row({ row, isChild, rowLength }) {
 	)
 }
 
-export default function CollapsibleTable({ mainCol, headerCol, rows, startRow, className = '', rowLength }) {
+export default function CollapsibleTable({ mainCol, headerCol, rows, startRow, className = '', rowLength, t }) {
+
 	return (
 		<TableContainer component={Paper} className={`cutomTable ${className}`}>
 			<Table aria-label="collapsible table">
@@ -84,7 +85,7 @@ export default function CollapsibleTable({ mainCol, headerCol, rows, startRow, c
 							<TableCell />
 							{mainCol.map((e, index) => (
 								<TableCell key={index} colSpan={e.col} className={style.seperation}>
-									{e.name}
+									{t(`${e.name}`)}
 								</TableCell>
 							))}
 						</TableRow>
@@ -92,7 +93,7 @@ export default function CollapsibleTable({ mainCol, headerCol, rows, startRow, c
 					<TableRow>
 						<TableCell> {startRow} </TableCell>
 						{headerCol.map((e, index) => (
-							<TableCell key={index}>{e}</TableCell>
+							<TableCell key={index}>{t(`${e}`)}</TableCell>
 						))}
 					</TableRow>
 				</TableHead>

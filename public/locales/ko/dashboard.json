@@ -1,0 +1,12 @@
+{
+    "hello":"안녕하세요",
+    "status_2023":"2023년 통계",
+    "projects_progress":"진행 중인 프로젝트",
+    "projects_completed":"완료된 프로젝트",
+    "revenue":"수익",
+    "profit":"이익",
+    "margin":"여유",
+    "no_project":"프로젝트를 찾을 수 없습니다!",
+    "add_new_project":"새 프로젝트 추가"
+
+}

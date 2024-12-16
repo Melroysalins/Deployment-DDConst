@@ -7,11 +7,11 @@ import Contract from './Contract'
 import ExecutionBudget from './ExcecutionBudget'
 import Tasks from './Tasks/Tasks'
 import FlowDiagram from 'pages/WeeklyPlan/FlowDiagram'
-import FlowDiagram2 from 'pages/WeeklyPlan/FlowDiagram2'
 import { styled } from '@mui/material/styles'
+import SpreadSheet2 from './Spreadsheet2'
 
 const StyledBox = styled(Box)({
-	padding: '8px 16px 16px',
+	padding: '0px',
 })
 
 const AddNewProject = ({ edit = false }) => {
@@ -31,7 +31,20 @@ const AddNewProject = ({ edit = false }) => {
 	}
 
 	return (
-		<Box border={1} borderColor={'lightgrey'} borderRadius={1} sx={{ overflow: 'hidden' }}>
+		<Box 
+			border={1} 
+			borderColor={'lightgrey'} 
+			borderRadius={1} 
+			sx={{ 
+				overflow: 'hidden', 
+				'@media (min-width: 1680px)': {
+					marginLeft: '16px',
+				},
+				'@media (min-width: 1920px)': {
+					marginLeft: '32px',
+				},
+			}}
+			>
 			<Tabs
 				value={selectedTab}
 				onChange={handleChange}
@@ -117,14 +130,14 @@ const AddNewProject = ({ edit = false }) => {
 								width={20}
 								height={20}
 							/>{' '}
-							Old Diagram Builder
+							SpreadSheet
 						</Stack>
 					}
 					disabled={!edit}
 					sx={{ borderRight: 1, borderColor: 'divider' }}
 				/>
 			</Tabs>
-			<Box>
+			<Box  sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
 				{selectedTab === '1' && (
 					<StyledBox>
 						<Contract edit={edit} />
@@ -147,7 +160,7 @@ const AddNewProject = ({ edit = false }) => {
 				)}
 				{selectedTab === '5' && edit && (
 					<StyledBox>
-						<FlowDiagram2 isEditable={true} />
+						<SpreadSheet2 />
 					</StyledBox>
 				)}
 			</Box>

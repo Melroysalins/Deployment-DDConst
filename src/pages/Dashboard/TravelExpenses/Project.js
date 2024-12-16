@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { Typography, Stack, Button as MuiButton, Tooltip } from '@mui/material';
 import Iconify from 'components/Iconify';
 
-export default function Project() {
+export default function Project({t}) {
   const [open, setOpenActions] = useState(false);
   const handleToggle = () => setOpenActions((prev) => !prev);
 
   const renderCustomHeader = () => (
     <Stack width="100%" flexDirection="row" justifyContent="space-between">
       <Typography textAlign="center" variant="subtitle2">
-        Project
+        {t('Project')}
       </Typography>
       <Stack flexDirection="row">
         {open && (

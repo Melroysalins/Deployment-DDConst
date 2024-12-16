@@ -39,7 +39,7 @@ const defaultFilters = {
 
 // eslint-disable-next-line react/prop-types
 function Approvals({ setopen }) {
-	const { t, i18n } = useTranslation()
+	const { t, i18n } = useTranslation(['weekly_plan', 'common'])
 	const { setopenRequestApproval, setapprovalIdDrawerRight, approvalIdDrawerRight } = useMain()
 	const isEng = i18n.language === 'en'
 	const [openFilter, setopenFilter] = useState(false)

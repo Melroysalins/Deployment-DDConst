@@ -33,7 +33,7 @@ export default function ProjectList() {
 	const [filterData, setfilterData] = React.useState([])
 	const [toast, setToast] = React.useState(null)
 	const [rightDrawer, setrightDrawer] = useState(false)
-	const { t } = useTranslation()
+	const { t } = useTranslation(['dashboard','translation'])
 	const { currentEmployee, mainFilters } = useMain()
 	const theme = useTheme()
 	const matchUpMd = useMediaQuery(theme.breakpoints.up('md'))
