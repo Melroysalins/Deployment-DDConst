@@ -42,7 +42,7 @@ BasicTabs.propTypes = {
 	setopen: PropTypes.func,
 }
 
-export default function BasicTabs({ open, setopen }) {
+export default function BasicTabs({ open, setopen,onAiFilterResponseData }) {
 	const [value, setValue] = React.useState(0)
 	const { t } = useTranslation()
 	const handleChange = (event, newValue) => {
@@ -72,7 +72,7 @@ export default function BasicTabs({ open, setopen }) {
 					</Tabs>
 				</Box>
 				<TabPanel value={value} index={0}>
-					<Filters setopen={setopen} />
+					<Filters setopen={setopen} onAiFilterResponseData={onAiFilterResponseData} />
 				</TabPanel>
 				<TabPanel value={value} index={1}>
 					<Settings />

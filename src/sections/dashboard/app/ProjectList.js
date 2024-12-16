@@ -181,17 +181,11 @@ export default function ProjectList() {
 					{toast?.message}
 				</Alert>
 			</Snackbar>
-			<Box
-				sx={{
-					width: {
-						xs: '100%',
-						sm: '400px',
-						md: '500px',
-					},
-				}}
-			>
-				<AiFilterGeneration onAiResponseData={(d) => setData(d)} />
+
+			<Box display={'flex'} marginY={2} justifyContent={'center'} alignItems={'center'}>
+				<AiFilterGeneration showFilterData={false} onAiResponseData={(d) => setData(d)} />
 			</Box>
+
 			<Grid container spacing={3}>
 				{loader && <Skeleton />}
 				{!loader && !filterData.length && (
@@ -206,7 +200,7 @@ export default function ProjectList() {
 				))}
 			</Grid>
 
-			<BasicTabs open={rightDrawer} setopen={setrightDrawer} />
+			<BasicTabs open={rightDrawer} setopen={setrightDrawer} onAiFilterResponseData={(d) => setData(d)} />
 		</>
 	)
 }
