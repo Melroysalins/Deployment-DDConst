@@ -4,9 +4,9 @@ import { Box, Card, Container, Link, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 // hooks
 import useResponsive from '../hooks/useResponsive'
-import { useTranslation } from 'react-i18next'
 // components
 import Page from '../components/Page'
+import { useTranslation } from 'react-i18next'
 // sections
 import { LoginForm } from '../sections/auth/login'
 
@@ -87,14 +87,19 @@ export default function Login() {
 
 				{mdUp && (
 					<SectionStyle>
-						<Box sx={{ width: 60, height: 60 }}>
-							<img src={`/static/logos/gwalli_purple_with_slogan.png`} alt="gwalli slogan" />
-						</Box>
-						<Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
-							{t('greetings')}
-						</Typography>
-						<img src="/static/illustrations/illustration_login.png" alt="login" />
-					</SectionStyle>
+											<Box sx={{ width: 200, height: 300 }}>
+												<img src={`/static/logos/gwalli_purple_with_slogan.png`} alt="gwalli slogan" />
+											</Box>
+										</SectionStyle>
+					// <SectionStyle>
+					// 	<Box sx={{ width: 60, height: 60 }}>
+					// 		<img src={`/static/logos/gwalli_purple_with_slogan.png`} alt="gwalli slogan" />
+					// 	</Box>
+					// 	<Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
+					// 		{t('greetings')}
+					// 	</Typography>
+					// 	<img src="/static/illustrations/illustration_login.png" alt="login" />
+					// </SectionStyle>
 				)}
 
 				<Container maxWidth="sm">
