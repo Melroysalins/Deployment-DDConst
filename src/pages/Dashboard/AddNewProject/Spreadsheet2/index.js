@@ -4,7 +4,7 @@ import { jspreadsheet } from '@jspreadsheet/react'
 import 'jsuites/dist/jsuites.css'
 import 'jspreadsheet/dist/jspreadsheet.css'
 import 'material-icons/iconfont/material-icons.css'
-import { createNewSpreadsheet, getSpreadsheetByProject, updateSpreadsheet } from 'supabase/spreadsheets'
+import { createNewSpreadsheet, getSpreadsheetByProjectAndType, updateSpreadsheet } from 'supabase/spreadsheets'
 import { Button } from '@mui/material'
 import { useParams } from 'react-router-dom'
 
@@ -59,7 +59,7 @@ export default function SpreadSheet() {
 
 	useEffect(() => {
 		const clone = async () => {
-			const { data } = await getSpreadsheetByProject(id)
+			const { data } = await getSpreadsheetByProjectAndType(id, true)
 			const config = data?.data || {}
 
 			if (!config?.worksheets || config?.worksheets.length === 0) {
@@ -79,7 +79,7 @@ export default function SpreadSheet() {
 
 	const handleSave = async () => {
 		// All Sheet Data
-		const object = { data: gridInstance[0].parent.getConfig(), project: id, consumablesData: gridInstance[0].data() }
+		const object = { data: gridInstance[0].parent.getConfig(), project: id, consumablesData: gridInstance[0].data(), isFromSpreadsheetTwo: true }
 		let result = null
 		if (styleSheetId) {
 			result = await updateSpreadsheet(object, styleSheetId)
