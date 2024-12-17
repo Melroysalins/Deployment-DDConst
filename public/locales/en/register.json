@@ -1,0 +1,15 @@
+{
+    "sign_up_title":"Sign up and enter a new world of project management.",
+    "first_name":"First name",
+    "last_name":"Last Name",
+    "email_address":"Email address",
+    "password":"Password",
+    "register":"Register",
+    "login":"Login",
+    "signup_agreements":"By registering, I agree to the minimal Terms of Service",
+    "and":"and",
+    "is_required":"is required",
+    "terms_of_service":"Terms of Service",
+    "privacy_policy":"Privacy Policy",
+    "already_have_account":"Already have an account?"
+}

@@ -12,6 +12,7 @@ import Iconify from '../../../components/Iconify';
 import { FormProvider, RHFTextField } from '../../../components/hook-form';
 import { supabase } from '../../../supabaseClient';
 import useAlert from 'hooks/useAlert';
+import { useTranslation } from 'react-i18next';
 
 // ----------------------------------------------------------------------
 
@@ -19,6 +20,7 @@ export default function RegisterForm() {
   const navigate = useNavigate();
   const { ShowAlert, setmessage } = useAlert();
   const [showPassword, setShowPassword] = useState(false);
+  const { t } = useTranslation(['register'])
 
   const RegisterSchema = Yup.object().shape({
     firstName: Yup.string().required('First name required'),
@@ -58,15 +60,15 @@ export default function RegisterForm() {
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={3}>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-          <RHFTextField name="firstName" label="First name" />
-          <RHFTextField name="lastName" label="Last name" />
+          <RHFTextField name="firstName" label={t('first_name')} />
+          <RHFTextField name="lastName" label={t('last_name')} />
         </Stack>
 
-        <RHFTextField name="email" label="Email address" />
+        <RHFTextField name="email" label={t('email_address')} />
 
         <RHFTextField
           name="password"
-          label="Password"
+          label={t('password')}
           type={showPassword ? 'text' : 'password'}
           InputProps={{
             endAdornment: (
@@ -82,7 +84,7 @@ export default function RegisterForm() {
         <ShowAlert />
 
         <LoadingButton fullWidth size="large" type="submit" variant="contained" loading={isSubmitting}>
-          Register
+          {t('register')}
         </LoadingButton>
       </Stack>
     </FormProvider>

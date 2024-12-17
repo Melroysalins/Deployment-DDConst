@@ -5,20 +5,18 @@ import { Link as RouterLink, useLocation } from 'react-router-dom'
 import {
 	Avatar,
 	Box,
+	Button,
 	Drawer,
-	FormControlLabel,
 	Link,
 	ListItemButton,
 	Stack,
 	Switch,
 	Typography,
-	useMediaQuery,
-	Button
+	useMediaQuery
 } from '@mui/material'
 import { styled, useTheme } from '@mui/material/styles'
 // mock
 // components
-import Logo from '../../components/Logo'
 import NavSection, { ListItemIconStyle } from '../../components/NavSection'
 import Scrollbar from '../../components/Scrollbar'
 //
@@ -126,12 +124,12 @@ const ToggleButton = styled(Button)(({ theme }) => ({
 	minWidth: 80,
 	borderRadius: 0,
 	'&:first-of-type': {
-	  borderTopLeftRadius: 24,
-	  borderBottomLeftRadius: 24,
+		borderTopLeftRadius: 24,
+		borderBottomLeftRadius: 24,
 	},
 	'&:last-of-type': {
-	  borderTopRightRadius: 24,
-	  borderBottomRightRadius: 24,
+		borderTopRightRadius: 24,
+		borderBottomRightRadius: 24,
 	},
 }))
 
@@ -140,20 +138,20 @@ const ToggleButton2 = styled(Button)(({ theme }) => ({
 	minWidth: 30,
 	borderRadius: 0,
 	'&:first-of-type': {
-	  borderTopLeftRadius: 27,
-	  borderTopRightRadius: 27,
+		borderTopLeftRadius: 27,
+		borderTopRightRadius: 27,
 	},
 	'&:last-of-type': {
-	  borderBottomLeftRadius: 27,
-	  borderBottomRightRadius: 27,
+		borderBottomLeftRadius: 27,
+		borderBottomRightRadius: 27,
 	},
-  }))
+}))
 
 export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 	const { user, openNotification, openaccoutReview, setopenNotification, currentEmployee } = useMain()
 	const { pathname } = useLocation()
 	const theme = useTheme()
-	const [isKorean, setIsKorean] = useState(false);
+	const [isKorean, setIsKorean] = useState(false)
 	// const isDesktop = useResponsive('up', 'lg')
 	const matchUpMd = useMediaQuery(theme.breakpoints.up('md'))
 
@@ -187,8 +185,8 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 				'& .simplebar-content': { height: 1, display: 'flex', flexDirection: 'column' },
 			}}
 		>
-			<Box sx={{ px: 1.5, py: 3, display: 'inline-flex' }}>
-				<Logo disabledLink handleClick={onCloseSidebar} />
+			<Box sx={{ px: 2, py: 2, display: 'inline-flex' }}>
+				<img src={`/static/logos/gwalli_white.png`} alt="gwalli" />
 			</Box>
 
 			<NavSection leftDrawerOpened={leftDrawerOpened} navConfig={navConfig} />
@@ -198,26 +196,21 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 			{leftDrawerOpened ? (
 				<Box sx={{ px: 1.5, pb: 3, mt: 10 }}>
 					<Stack alignItems="center" spacing={3} sx={{ pt: 5, position: 'relative', overflow: 'hidden' }}>
-
 						<Box display="flex" justifyContent="center" alignItems="center" p={2}>
 							<Box position="relative" display="inline-flex">
 								<ToggleButton
-								variant={i18n.language === "ko" ? "outlined" : "contained"}
-								color="primary"
-								onClick={() => i18n.changeLanguage('en')}
+									variant={i18n.language === 'ko' ? 'outlined' : 'contained'}
+									color="primary"
+									onClick={() => i18n.changeLanguage('en')}
 								>
-								<Typography variant="body2">
-									English
-								</Typography>
+									<Typography variant="body2">English</Typography>
 								</ToggleButton>
 								<ToggleButton
-								variant={i18n.language === "en" ? "outlined" : "contained"}
-								color="primary"
-								onClick={() => i18n.changeLanguage('ko')}
+									variant={i18n.language === 'en' ? 'outlined' : 'contained'}
+									color="primary"
+									onClick={() => i18n.changeLanguage('ko')}
 								>
-								<Typography variant="body2">
-									한국어
-								</Typography>
+									<Typography variant="body2">한국어</Typography>
 								</ToggleButton>
 							</Box>
 						</Box>
@@ -253,25 +246,21 @@ export default function DashboardSidebar({ leftDrawerOpened, onCloseSidebar }) {
 						</ListItemIconStyle>
 					</ListItemStyle>
 
-					<Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", p: 2 }}>
+					<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2 }}>
 						<Box style={{ display: 'inline-flex', flexDirection: 'column' }}>
 							<ToggleButton2
-							variant={i18n.language === "ko" ? "outlined" : "contained"}
-							color="primary"
-							onClick={() => i18n.changeLanguage('en')}
+								variant={i18n.language === 'ko' ? 'outlined' : 'contained'}
+								color="primary"
+								onClick={() => i18n.changeLanguage('en')}
 							>
-							<Typography variant="body2">
-								en
-							</Typography>
+								<Typography variant="body2">en</Typography>
 							</ToggleButton2>
 							<ToggleButton2
-							variant={i18n.language === "en" ? "outlined" : "contained"}
-							color="primary"
-							onClick={() => i18n.changeLanguage('ko')}
+								variant={i18n.language === 'en' ? 'outlined' : 'contained'}
+								color="primary"
+								onClick={() => i18n.changeLanguage('ko')}
 							>
-							<Typography variant="body2">
-								ko
-							</Typography>
+								<Typography variant="body2">ko</Typography>
 							</ToggleButton2>
 						</Box>
 					</Box>

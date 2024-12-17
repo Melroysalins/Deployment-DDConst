@@ -13,6 +13,7 @@ import useAlert from 'hooks/useAlert'
 import Iconify from '../../../components/Iconify'
 import { FormProvider, RHFCheckbox, RHFTextField } from '../../../components/hook-form'
 import { supabase } from '../../../supabaseClient'
+import { useTranslation } from 'react-i18next'
 // ----------------------------------------------------------------------
 
 export default function LoginForm() {
@@ -20,6 +21,8 @@ export default function LoginForm() {
 
 	const [showPassword, setShowPassword] = useState(false)
 	const { ShowAlert, setmessage } = useAlert()
+
+	const { t } = useTranslation(['login'])
 
 	const LoginSchema = Yup.object().shape({
 		email: Yup.string().email('Email must be a valid email address').required('Email is required'),
@@ -55,11 +58,11 @@ export default function LoginForm() {
 	return (
 		<FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
 			<Stack spacing={3}>
-				<RHFTextField name="email" label="Email address" />
+				<RHFTextField name="email" label={t('email_address')} />
 
 				<RHFTextField
 					name="password"
-					label="Password"
+					label={t('password')}
 					type={showPassword ? 'text' : 'password'}
 					InputProps={{
 						endAdornment: (
@@ -76,14 +79,14 @@ export default function LoginForm() {
 			<ShowAlert />
 
 			<Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ my: 2 }}>
-				<RHFCheckbox name="remember" label="Remember me" />
+				<RHFCheckbox name="remember" label={t('remember_me')} />
 				<Link component={RouterLink} to="/forgot-password" variant="subtitle2" underline="hover">
-					Forgot password?
+				{t('forgot_password')}
 				</Link>
 			</Stack>
 
 			<LoadingButton fullWidth size="large" type="submit" variant="contained" loading={isSubmitting}>
-				Login
+				{t('login')}
 			</LoadingButton>
 		</FormProvider>
 	)
