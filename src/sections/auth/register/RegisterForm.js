@@ -65,7 +65,7 @@ export default function RegisterForm() {
 					job_title: e.jobTitle,
 				})
         console.log('profile response',res)
-				// navigate('/dashboard/projects/list', { replace: true })
+				navigate('/dashboard/projects/list', { replace: true })
 			}
 		} catch (error) {
 			setmessage(error.error_description || error.message)
