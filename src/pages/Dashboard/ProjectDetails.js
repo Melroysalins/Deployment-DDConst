@@ -15,6 +15,7 @@ import {
 	Snackbar,
 	Stack,
 	Typography,
+	Zoom
 } from '@mui/material'
 // components
 import Page from '../../components/Page'
@@ -26,6 +27,9 @@ import { listEmployeesByProject } from 'supabase/employees'
 import { getProjectDetails, getProjectFileLink } from 'supabase/projects'
 import { formatNumber } from 'utils/helper'
 import { useTranslation } from 'react-i18next'
+import ChatIcon from '@mui/icons-material/Chat';
+import CloseIcon from '@mui/icons-material/Close';
+import ChatIframe from '../../components/ChatIframe';
 
 // ----------------------------------------------------------------------
 
@@ -37,7 +41,11 @@ export default function Projects() {
 	const [empData, setempData] = useState(null)
 	const navigate = useNavigate()
 	const { t } = useTranslation(['project_details'])
+	const [isChatbotVisible, setIsChatbotVisible] = useState(false); // Initially hidden
 
+	const toggleIframe = () => {
+		setIsChatbotVisible((prev) => !prev); // Toggle visibility
+	};
 
 	// const fetchData = async (id) => {
 	// 	setLoading(true)
@@ -258,6 +266,34 @@ export default function Projects() {
 					)}
 				</Grid>
 			</Container>
+			<Box
+				sx={{
+				position: 'absolute',
+				zIndex: 9999,
+				bottom: '4%',
+				right: '2%',
+				width: '40px', // Adjust size as needed
+				height: '40px', // Adjust size as needed
+				borderRadius: '50%',
+				backgroundColor: '#7382ff', // Use theme color
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				cursor: 'pointer',
+				}}
+				onClick={toggleIframe}
+			>
+				<Box sx={{ position:'relative' }}>
+					<Zoom in={isChatbotVisible} timeout={500}>
+						<CloseIcon sx={{ color: 'white', display:'block', position: 'absolute', top: '-12px', left: '-12px' }} />
+					</Zoom>
+					<Zoom in={!isChatbotVisible} timeout={500}>
+						<ChatIcon sx={{ color: 'white', display:'block', position: 'absolute', top: '-12px', left: '-12px' }} />
+					</Zoom>
+				</Box>
+			</Box>
+
+			<ChatIframe isVisible={isChatbotVisible} />
 		</Page>
 	)
 }
