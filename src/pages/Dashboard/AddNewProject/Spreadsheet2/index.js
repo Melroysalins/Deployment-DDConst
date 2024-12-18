@@ -34,6 +34,7 @@ export default function SpreadSheet() {
 	useEffect(() => {
 		const grid = window.jspreadsheet(spreadsheet.current, {
 			tabs: true,
+			toolbar: true,
 			worksheets,
 			oninsertrow: (instance, cell) => {
 				const lastRowNum = instance.getData().length - 1
