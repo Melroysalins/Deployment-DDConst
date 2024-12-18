@@ -9,6 +9,7 @@ import Tasks from './Tasks/Tasks'
 import FlowDiagram from 'pages/WeeklyPlan/FlowDiagram'
 import { styled } from '@mui/material/styles'
 import SpreadSheet2 from './Spreadsheet2'
+import { useTranslation } from 'react-i18next'
 
 const StyledBox = styled(Box)({
 	padding: '0px',
@@ -18,6 +19,7 @@ const AddNewProject = ({ edit = false }) => {
 	const [searchParams] = useSearchParams()
 	const { pathname } = useLocation()
 	const navigate = useNavigate()
+	const { t } = useTranslation(['add_or_edit_project'])
 
 	const tab = searchParams.get('tab')
 	const [selectedTab, setSelectedTab] = useState(tab || '1')
@@ -67,7 +69,7 @@ const AddNewProject = ({ edit = false }) => {
 							) : (
 								<img style={{ height: 15 }} src="/static/images/contract.svg" alt="" />
 							)}
-							Contract / Project Information
+							{t('contract_or_project_information')}
 						</Stack>
 					}
 					sx={{ borderRight: 1, borderColor: 'divider' }}
@@ -82,7 +84,7 @@ const AddNewProject = ({ edit = false }) => {
 								width={20}
 								height={20}
 							/>{' '}
-							Tasks
+							{t('tasks')}
 						</Stack>
 					}
 					disabled={!edit}
@@ -98,7 +100,7 @@ const AddNewProject = ({ edit = false }) => {
 								width={20}
 								height={20}
 							/>{' '}
-							Execution Budget
+							{t('execution_budget')}
 						</Stack>
 					}
 					disabled={!edit}
@@ -114,7 +116,7 @@ const AddNewProject = ({ edit = false }) => {
 								width={20}
 								height={20}
 							/>{' '}
-							Diagram Builder
+							{t('diagram_builder')}
 						</Stack>
 					}
 					disabled={!edit}
@@ -130,14 +132,14 @@ const AddNewProject = ({ edit = false }) => {
 								width={20}
 								height={20}
 							/>{' '}
-							SpreadSheet
+							{t('spread_sheet')}
 						</Stack>
 					}
 					disabled={!edit}
 					sx={{ borderRight: 1, borderColor: 'divider' }}
 				/>
 			</Tabs>
-			<Box  sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+			<Box  sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%',marginTop:'24px' }}>
 				{selectedTab === '1' && (
 					<StyledBox>
 						<Contract edit={edit} />
