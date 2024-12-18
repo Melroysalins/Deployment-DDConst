@@ -6,6 +6,8 @@
     "password":"Password",
     "register":"Register",
     "login":"Login",
+    "compant":"Company",
+    "job_title":"Job title",
     "signup_agreements":"By registering, I agree to the minimal Terms of Service",
     "and":"and",
     "is_required":"is required",
