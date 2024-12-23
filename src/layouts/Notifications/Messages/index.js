@@ -133,14 +133,14 @@ function TaskNotification({ notification }) {
 // ----------------------------------------------------------------------
 
 function RenderContent(notification) {
-	const { setopenaccoutReview, setcurrentApproval, setopenNotification, currentEmployee } = useMain()
+	const { setopenaccoutReview, currentApproval, setcurrentApproval, setopenNotification, currentEmployee } = useMain()
 	const navigate = useNavigate()
 	const { t } = useTranslation()
 
 	const handlePageNavigation = (detail) => {
 		setcurrentApproval(detail)
 		setopenaccoutReview(true)
-		navigate(`/dashboard/projects/${detail.approval.project.id}/weekly-plan`, { replace: true })
+		navigate(`/dashboard/projects/${detail.approval.project.id}/${detail.approval.from_page === 'weekly_plan' ? 'weekly-plan' : 'travel-expenses'}`, { replace: true })
 		setopenNotification(false)
 	}
 

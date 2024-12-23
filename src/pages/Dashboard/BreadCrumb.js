@@ -84,8 +84,20 @@ export default function CustomSeparator(props) {
 							</Typography>
 						): 
 						(
-							<Link key={name} onClick={() => history(routeTo)} sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer'}}>
-								{projectDetails.title}
+							<Link 
+								key={name} 
+								onClick={() => history(routeTo)} 
+								sx={{ 
+									display: 'flex', 
+									alignItems: 'center', 
+									cursor: 'pointer', 
+									overflow: 'hidden', 
+									textOverflow: 'ellipsis', 
+									whiteSpace: 'nowrap', 
+									maxWidth: '150px', // Adjust the maxWidth as needed
+								}}
+							>
+								{projectDetails?.title?.length > 20 ? `${projectDetails.title.substring(0, 20)}...` : projectDetails.title}
 							</Link>
 						)	
 					}

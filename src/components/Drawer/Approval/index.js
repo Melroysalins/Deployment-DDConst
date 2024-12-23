@@ -221,7 +221,7 @@ function Approval({ setopen, isLeftMenu }) {
 								<Select
 									label={t('page_stage')}
 									sx={{ mb: 1, mt: 0 }}
-									name="page"
+									name="from_page"  // Changed from "page" to "from_page"
 									size="small"
 									value={values.from_page}
 									onChange={handleChange}

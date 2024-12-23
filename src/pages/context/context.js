@@ -29,6 +29,7 @@ export const MainProvider = ({ children }) => {
 	const [currentApproval, setcurrentApproval] = useState(null)
 	const [refetchApprovals, setrefetchApprovals] = useState(false)
 	const [refetchtaskProjects, setrefetchtaskProjects] = useState(false)
+	const [fromPage, setFromPage] = useState("")
 	// for right side approvals log info
 	const [isDrawerOpen, setisDrawerOpen] = useState(false)
 	const [approvalIdDrawerRight, setapprovalIdDrawerRight] = useState(null)
@@ -90,6 +91,8 @@ export const MainProvider = ({ children }) => {
 				setapprovalIdDrawerRight,
 				mainFilters,
 				setmainFilters,
+				fromPage,
+				setFromPage
 			}}
 		>
 			{userLoading ? <></> : children}

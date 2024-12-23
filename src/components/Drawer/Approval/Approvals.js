@@ -40,7 +40,7 @@ const defaultFilters = {
 // eslint-disable-next-line react/prop-types
 function Approvals({ setopen }) {
 	const { t, i18n } = useTranslation(['weekly_plan', 'common'])
-	const { setopenRequestApproval, setapprovalIdDrawerRight, approvalIdDrawerRight } = useMain()
+	const { setopenRequestApproval, setapprovalIdDrawerRight, approvalIdDrawerRight, fromPage} = useMain()
 	const isEng = i18n.language === 'en'
 	const [openFilter, setopenFilter] = useState(false)
 	const [filters, setfilters] = useState(defaultFilters)
@@ -66,7 +66,7 @@ function Approvals({ setopen }) {
 
 	const { isFetching } = useQuery(
 		['ApprovalsByProjectDetail', projectId],
-		({ queryKey }) => getApprovalsByProjectDetail(queryKey[1]),
+		({ queryKey }) => getApprovalsByProjectDetail(queryKey[1], fromPage),
 		{
 			select: (r) => r.data,
 			onSuccess(data) {

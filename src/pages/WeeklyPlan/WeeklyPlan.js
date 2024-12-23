@@ -89,6 +89,7 @@ function WeeklyPlan() {
 		isDrawerOpen,
 		setisDrawerOpen,
 		setapprovalIdDrawerRight,
+		setFromPage
 	} = useMain()
 	const [myEvents, setMyEvents] = React.useState([])
 	const [isOpen, setOpen] = React.useState(false)
@@ -468,6 +469,7 @@ function WeeklyPlan() {
 						onClick={() => {
 							setapprovalIdDrawerRight(null)
 							setisDrawerOpen(true)
+							setFromPage("weekly_plan")
 						}}
 						variant="contained"
 						size="medium"

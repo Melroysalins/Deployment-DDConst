@@ -28,7 +28,8 @@ import getHolidays from './getHolidays'
 import AddFormPopup from './popups/AddFormPopup'
 import ViewEventPopup from './popups/ViewEventPopup'
 import { useTranslation } from 'react-i18next'
-
+import useMain from 'pages/context/context'
+import { useQuery } from 'react-query'
 // components
 setOptions({
 	theme: 'ios',
@@ -94,6 +95,7 @@ export const Rating = styled(Avatar, {
 export default function Timeline() {
 	const { state, dispatch } = useTE()
 	const { id } = useParams()
+	const { handleCommentTask,  allowTaskCursor } = useMain()
 	const { i18n } = useTranslation()
 	const isEng = i18n.language === 'en'
 	const [isEdit, setEdit] = React.useState(false)
@@ -244,12 +246,23 @@ export default function Timeline() {
 		dispatch({ type: TEActionType.UPDATE_EVENTS, payload: [...res.events, ...teamEvents] })
 	}
 
-	const fetchEvents = async (filters) => {
-		const events = await listAllEvents(filters)
-		const teamEvents = await getTeamTitleEvents(id)
-		const res = updateCalendarData(state.resources, events)
-		dispatch({ type: TEActionType.UPDATE_EVENTS, payload: [...res.events, ...teamEvents] })
-	}
+	const { data: events, refetch: fetchEvents } = useQuery(
+		['events', id, filters],
+		async () => {
+			const events = await listAllEvents(filters);
+			const teamEvents = await getTeamTitleEvents(id);
+			return { events, teamEvents };
+		},
+		{
+			select: (data) => {
+				return { events: data.events, teamEvents: data.teamEvents };
+			},
+			onSuccess: (combinedEvents) => {
+				const res = updateCalendarData(state.resources, combinedEvents.events)
+				dispatch({ type: TEActionType.UPDATE_EVENTS, payload: [...res.events, ...combinedEvents.teamEvents] });
+			},
+		}
+	);
 
 	React.useEffect(() => {
 		fetchData(filters)
@@ -331,42 +344,48 @@ export default function Timeline() {
 	}
 
 	const renderScheduleEvent = (event) => {
-		const bgColor = color(event.original.sub_type)
-		const startDate = moment(event.startDate)
-		const endDate = moment(event.endDate)
-		const diff = endDate.diff(startDate, 'days') + 1
+	  console.log("event", event)
+	  const bgColor = color(event.original.sub_type);
+	  console.log()
+      const startDate = moment(event.startDate);
+      const endDate = moment(event.endDate);
+      const diff = endDate.diff(startDate, 'days') + 1;
 
-		if (event.original.type === 'te' || event.original.type === 'task') {
-			return (
-				<>
-					<Stack
-						component="div"
-						justifyContent="flex-between"
-						className="timeline-event"
-						sx={{
-							background: bgColor,
-							color: bgColor === '#fff' ? '#000 !important' : '#fff !important',
-							boxShadow: (theme) => theme.customShadows.z8,
-							justifyContent: 'flex-between',
-							alignItems: 'initial !important',
-							padding: '0 !important',
-							...styles(event.original.status, bgColor),
-						}}
-					>
-						{event.original.status === 'Rejected' ? (
-							<Typography
-								variant="caption"
-								sx={{ background: (theme) => theme.palette.background.paper, lineHeight: 'inherit' }}
-							>
-								{diff}하숙
-							</Typography>
-						) : (
-							<>{diff}하숙</>
-						)}
-					</Stack>
-				</>
-			)
-		}
+      if (event.original.type === 'te' || event.original.type === 'task') {
+          return (
+              <Stack
+                  component="div"
+                  justifyContent="flex-between"
+                  className="timeline-event"
+                  sx={{
+                      background: bgColor,
+                      color: bgColor === '#fff' ? '#000 !important' : '#fff !important',
+                      boxShadow: (theme) => theme.customShadows.z8,
+                      justifyContent: 'flex-between',
+                      alignItems: 'initial !important',
+                      padding: '0 !important',
+                      ...styles(event.original.status, bgColor),
+                  }}
+                  onClick={(e) => {
+                      if (allowTaskCursor && !event.original?.task_id) {
+                          e.stopPropagation();
+                          handleCommentTask(event.id, `${diff}하숙` , event.original?.status); // Add to commentTasks
+                      }
+                  }}
+              >
+                  {event.original.status === 'Rejected' ? (
+                      <Typography
+                          variant="caption"
+                          sx={{ background: (theme) => theme.palette.background.paper, lineHeight: 'inherit' }}
+                      >
+                          {diff}하숙
+                      </Typography>
+                  ) : (
+                      <>{diff}하숙</>
+                  )}
+              </Stack>
+          );
+      }
 
 		return (
 			<>
