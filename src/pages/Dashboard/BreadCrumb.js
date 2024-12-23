@@ -44,7 +44,7 @@ console.log('pathnames ',pathnames)
 	}, [pathnames[0]])
 
 	return (
-		<Stack direction="row" padding={1} spacing={2}>
+		<Stack direction="row"  spacing={2}>
 			{pathname.includes('travel-expenses') && (
 				<MuiButton
 					size="small"
@@ -59,14 +59,16 @@ console.log('pathnames ',pathnames)
 			<Breadcrumbs
 				separator={<NavigateNextIcon fontSize="small" />}
 				aria-label="breadcrumb"
-				sx={{ display: 'flex', alignItems: 'center' }}
+				sx={{ display: 'flex', alignItems: 'center',color:'#212B36'}}
 			>
 				<Link
 					onClick={() => {
 						history(MainPath)
 						setProjectDetails({})
 					}}
-					sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+					color={'#596570'}
+					fontWeight={600}
+					sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer',fontSize:'18px',fontWeight:600,textDecoration:'none' }}
 				>
 					{t('Main')}
 				</Link>
@@ -91,9 +93,11 @@ console.log('pathnames ',pathnames)
 								</Typography>
 							) : (
 								<Link
+								color={'#596570'}
+								fontWeight={600}
 									key={name}
 									onClick={() => history(routeTo)}
-									sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+									sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer',textDecoration:'none' }}
 								>
 									{projectDetails.title}
 								</Link>
@@ -211,7 +215,7 @@ function CustomizedMenus({ option, typeName }) {
 				{typeName ? (
 					<>
 						<MenuItem selected={option === 'emplist'} onClick={handleClose} disableRipple>
-							<Link underline="hover" color="inherit" href={`/${typeName}/employee/emplist`}>
+							<Link  underline="hover" color="inherit" href={`/${typeName}/employee/emplist`}>
 								Employees
 							</Link>
 						</MenuItem>
