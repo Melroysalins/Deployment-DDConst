@@ -3,12 +3,13 @@ import { Link as RouterLink } from 'react-router-dom'
 import { Box, Card, Container, Link, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 // hooks
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import useResponsive from '../hooks/useResponsive'
 // components
 import Page from '../components/Page'
 // sections
 import { RegisterForm } from '../sections/auth/register'
+import LinkText from 'components/LinkText'
 
 // ----------------------------------------------------------------------
 
@@ -107,7 +108,15 @@ export default function Register() {
 						<RegisterForm />
 
 						<Typography variant="body2" align="center" sx={{ color: 'text.secondary', mt: 3 }}>
-							{t('signup_agreements')}&nbsp;
+
+						<Trans
+      i18nKey="register:signup_agreements"
+      components={{
+        link1: <LinkText to="#" />,
+        link2: <LinkText to="#" />
+      }}
+    />
+							{/* {t('signup_agreements')}&nbsp;
 							<Link underline="always" color="text.primary" href="#">
 								{t('terms_of_service')}
 							</Link>
@@ -115,7 +124,7 @@ export default function Register() {
 							<Link underline="always" color="text.primary" href="#">
 								{t('privacy_policy')}
 							</Link>
-							.
+							. */}
 						</Typography>
 
 						{!smUp && (

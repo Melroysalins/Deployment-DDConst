@@ -58,5 +58,25 @@
 }
 
 body {
-    font-family: 'Manrope', sans-serif;
+	font-family: 'Manrope', sans-serif;
+}
+
+/* Scroll bar CSS file */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #888;
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #555;
+}
+
+::-webkit-scrollbar-track {
+	background: #f1f1f1;
+	border-radius: 4px;
 }
