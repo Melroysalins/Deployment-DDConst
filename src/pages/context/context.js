@@ -35,6 +35,8 @@ export const MainProvider = ({ children }) => {
 	const [approvalIdDrawerRight, setapprovalIdDrawerRight] = useState(null)
 	const [mainFilters, setmainFilters] = useState(null)
 
+	console.log(commentTasks)
+
 	useEffect(() => {
 		if (!openRequestApproval) {
 			setallowTaskCursor(false)

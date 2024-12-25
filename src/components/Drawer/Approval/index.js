@@ -74,6 +74,7 @@ function Approval({ setopen, isLeftMenu }) {
 		allowTaskCursor,
 		setopenRequestApproval,
 		setrefetchtaskProjects,
+		fromPage
 	} = useMain()
 	const { id: projectId } = useParams()
 	const [addedEmp, setaddedEmp] = React.useState([])
@@ -123,7 +124,7 @@ function Approval({ setopen, isLeftMenu }) {
 					end: null,
 					deadline: null,
 					status: ApprovalStatus.Planned,
-					from_page: 'weekly_plan',
+					from_page: fromPage,
 					comment: '',
 				}}
 				validationSchema={validationSchema}

@@ -461,7 +461,10 @@ function WeeklyPlan() {
 						size="medium"
 						color="inherit"
 						sx={{ border: '1px solid #596570' }}
-						onClick={() => setopenRequestApproval(!openRequestApproval)}
+						onClick={() => {
+							setopenRequestApproval(!openRequestApproval)
+							setFromPage("weekly_plan")
+						}}
 					>
 						{t('request_approval')}
 					</MuiButton>

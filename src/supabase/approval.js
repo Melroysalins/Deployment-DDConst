@@ -50,6 +50,7 @@ export const getApprovalsByProjectDetail = async (projectId, fromPage) => { // A
 		.select(`*,  project(id, title), owner(id, name, email_address, profile)`) // Fixed the extra parenthesis
 		.eq('project', projectId)
 		.eq('from_page', fromPage) // Added condition to check from_page
+	console.log(res)
 	const promises = await res.data?.map(async (approval) => {
 		const approvers = await getApproversByApproval(approval.id)
 		approval.approvers = approvers?.data || []

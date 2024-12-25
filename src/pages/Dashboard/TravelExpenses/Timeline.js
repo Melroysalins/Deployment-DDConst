@@ -344,12 +344,11 @@ export default function Timeline() {
 	}
 
 	const renderScheduleEvent = (event) => {
-	  console.log("event", event)
 	  const bgColor = color(event.original.sub_type);
-	  console.log()
       const startDate = moment(event.startDate);
       const endDate = moment(event.endDate);
       const diff = endDate.diff(startDate, 'days') + 1;
+	  console.log(event)
 
       if (event.original.type === 'te' || event.original.type === 'task') {
           return (
@@ -369,7 +368,7 @@ export default function Timeline() {
                   onClick={(e) => {
                       if (allowTaskCursor && !event.original?.task_id) {
                           e.stopPropagation();
-                          handleCommentTask(event.id, `${diff}하숙` , event.original?.status); // Add to commentTasks
+                          handleCommentTask(event.original.id, `${diff}하숙`, event.original?.status);
                       }
                   }}
               >
@@ -555,12 +554,10 @@ export default function Timeline() {
 
 	const onEventCreated = React.useCallback(
 		(args) => {
-			console.log(args)
 			setEdit(false)
 			const expense_type = args.event.resource?.split('-')
 			if ((expense_type.length > 1 && expense_type[1] !== 'task') || args.event.type === 'te') {
 				handlePopupTypeChange('te')
-				console.log(args)
 				// handleOpenPopup(args.target)
 				const data = loadPopupForm(args.event)
 				addTeEvent({ ...data, type: 'te' })

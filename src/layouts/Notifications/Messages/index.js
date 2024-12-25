@@ -18,7 +18,7 @@ import PropTypes from 'prop-types'
 import { fDateLocale } from 'utils/formatTime'
 import useMain from 'pages/context/context'
 import { useNavigate } from 'react-router-dom'
-import { ApprovalStatus } from 'constant'
+import { APPROVAL_PAGE, ApprovalStatus } from 'constant'
 import { useTranslation } from 'react-i18next'
 
 const currentDate = moment()
@@ -56,6 +56,8 @@ export default function Messages() {
 			setapprovalsArr(groupObjectsByDate(data))
 		},
 	})
+
+	console.log(approvalsArr)
 	return (
 		<>
 			<Scrollbar>
@@ -140,7 +142,7 @@ function RenderContent(notification) {
 	const handlePageNavigation = (detail) => {
 		setcurrentApproval(detail)
 		setopenaccoutReview(true)
-		navigate(`/dashboard/projects/${detail.approval.project.id}/${detail.approval.from_page === 'weekly_plan' ? 'weekly-plan' : 'travel-expenses'}`, { replace: true })
+		navigate(`/dashboard/projects/${detail.approval.project.id}/${APPROVAL_PAGE[detail.approval.from_page]}`, { replace: true })
 		setopenNotification(false)
 	}
 

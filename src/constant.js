@@ -18,12 +18,21 @@ export const certificateColors = {
 export const approvalStatus = [
 	{ id: 'weekly_plan', name: 'Weekly Process Planning' },
 	{ id: 'travel_expenses', name: 'Travel Expenses' },
+	{ id: 'project_schedule', name: 'Implementation Schedule'},
 	{ id: 'project', name: 'Project' },
 ]
 
 export const getNameApprovalStatus = {
 	weekly_plan: 'Weekly Process Planning',
 	travel_expenses: 'Travel Expenses',
+	project_schedule: 'Implementation Schedule',
+	project: 'Project',
+}
+
+export const APPROVAL_PAGE = {
+	weekly_plan: 'weekly-plan',
+	travel_expenses: 'travel-expenses',
+	project_schedule: 'project-schedule',
 	project: 'Project',
 }
 
