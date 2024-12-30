@@ -68,7 +68,7 @@ export default function Login() {
 	const { t } = useTranslation(['login'])
 
 	return (
-		<Page title="Login">
+		<Page title={t('login')}>
 			<RootStyle>
 				<HeaderStyle>
 					<Box sx={{ width: 60, height: 60 }}>
