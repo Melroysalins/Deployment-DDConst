@@ -183,7 +183,7 @@ export default function ProjectList() {
 			</Snackbar>
 
 			<Box display={'flex'} marginY={2} justifyContent={'center'} alignItems={'center'}>
-				<AiFilterGeneration showFilterData={false} onAiResponseData={(d) => setData(d)} />
+				<AiFilterGeneration showFilterData={false} onAiFilterResponseData={(d) => setData(d)} />
 			</Box>
 
 			<Grid container spacing={3}>
