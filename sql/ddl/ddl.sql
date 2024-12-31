@@ -88,6 +88,8 @@ CREATE TABLE public.profiles (
 	id uuid NOT NULL,
 	updated_at timestamptz NULL,
 	username text NULL,
+	company text NULL,
+	job_title text NULL,
 	avatar_url text NULL,
 	website text NULL,
 	CONSTRAINT profiles_pkey PRIMARY KEY (id),

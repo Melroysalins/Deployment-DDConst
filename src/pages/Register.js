@@ -1,125 +1,143 @@
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom'
 // @mui
-import { styled } from '@mui/material/styles';
-import { Card, Link, Container, Typography } from '@mui/material';
+import { Box, Card, Container, Link, Typography } from '@mui/material'
+import { styled } from '@mui/material/styles'
 // hooks
-import useResponsive from '../hooks/useResponsive';
+import { Trans, useTranslation } from 'react-i18next'
+import useResponsive from '../hooks/useResponsive'
 // components
-import Page from '../components/Page';
-import Logo from '../components/Logo';
+import Page from '../components/Page'
 // sections
-import { RegisterForm } from '../sections/auth/register';
-import AuthSocial from '../sections/auth/AuthSocial';
+import { RegisterForm } from '../sections/auth/register'
+import LinkText from 'components/LinkText'
 
 // ----------------------------------------------------------------------
 
 const RootStyle = styled('div')(({ theme }) => ({
-  [theme.breakpoints.up('md')]: {
-    display: 'flex',
-  },
-}));
+	[theme.breakpoints.up('md')]: {
+		display: 'flex',
+	},
+}))
 
 const HeaderStyle = styled('header')(({ theme }) => ({
-  top: 0,
-  zIndex: 9,
-  lineHeight: 0,
-  width: '100%',
-  display: 'flex',
-  alignItems: 'center',
-  position: 'absolute',
-  padding: theme.spacing(3),
-  justifyContent: 'space-between',
-  [theme.breakpoints.up('md')]: {
-    alignItems: 'flex-start',
-    padding: theme.spacing(7, 5, 0, 7),
-  },
-}));
+	top: 0,
+	zIndex: 9,
+	lineHeight: 0,
+	width: '100%',
+	display: 'flex',
+	alignItems: 'center',
+	position: 'absolute',
+	padding: theme.spacing(3),
+	background: 'transparent',
+	justifyContent: 'space-between',
+	[theme.breakpoints.down('sm')]: {
+		justifyContent: 'center',
+	},
+	[theme.breakpoints.up('md')]: {
+		alignItems: 'flex-start',
+		padding: theme.spacing(7, 5, 0, 7),
+	},
+}))
 
 const SectionStyle = styled(Card)(({ theme }) => ({
-  width: '100%',
-  maxWidth: 464,
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  margin: theme.spacing(2, 0, 2, 2),
-}));
+	width: '100%',
+	maxWidth: 464,
+	display: 'flex',
+	flexDirection: 'column',
+	justifyContent: 'center',
+	alignItems: 'center',
+	margin: theme.spacing(2, 0, 2, 2),
+}))
 
 const ContentStyle = styled('div')(({ theme }) => ({
-  maxWidth: 480,
-  margin: 'auto',
-  minHeight: '100vh',
-  display: 'flex',
-  justifyContent: 'center',
-  flexDirection: 'column',
-  padding: theme.spacing(12, 0),
-}));
+	maxWidth: 480,
+	margin: 'auto',
+	minHeight: '100vh',
+	display: 'flex',
+	justifyContent: 'center',
+	flexDirection: 'column',
+	padding: theme.spacing(12, 0),
+	[theme.breakpoints.down('sm')]: {
+		justifyContent: 'center',
+		margin: theme.spacing(5, 0, 2, 2),
+	},
+}))
 
 // ----------------------------------------------------------------------
 
 export default function Register() {
-  const smUp = useResponsive('up', 'sm');
+	const smUp = useResponsive('up', 'sm')
 
-  const mdUp = useResponsive('up', 'md');
+	const mdUp = useResponsive('up', 'md')
 
-  return (
-    <Page title="Register">
-      <RootStyle>
-        <HeaderStyle>
-          <Logo />
-          {smUp && (
-            <Typography variant="body2" sx={{ mt: { md: -2 } }}>
-              Already have an account? {''}
-              <Link variant="subtitle2" component={RouterLink} to="/login">
-                Login
-              </Link>
-            </Typography>
-          )}
-        </HeaderStyle>
+	const { t } = useTranslation(['register'])
 
-        {mdUp && (
-          <SectionStyle>
-            <Typography variant="h3" sx={{ px: 5, mt: 10, mb: 5 }}>
-              Manage the job more effectively with Minimal
-            </Typography>
-            <img alt="register" src="/static/illustrations/illustration_register.png" />
-          </SectionStyle>
-        )}
+	return (
+		<Page title="Register">
+			<RootStyle>
+				<HeaderStyle>
+					<Box sx={{ width: 60, height: 60 }}>
+						{!smUp && <img src={`/static/logos/gwalli_purple_with_slogan.png`} alt="gwalli slogan" />}
+					</Box>
+					{smUp && (
+						<Typography variant="body2" sx={{ mt: { md: -2 } }}>
+							{t("already_have_account")} {''}
+							<Link variant="subtitle2" component={RouterLink} to="/login">
+								{t("login")}
+							</Link>
+						</Typography>
+					)}
+				</HeaderStyle>
 
-        <Container>
-          <ContentStyle>
-            <Typography variant="h4" gutterBottom>
-              Get started absolutely free.
-            </Typography>
+				{mdUp && (
+					<SectionStyle>
+						<Box sx={{ width: 200, height: 300 }}>
+							<img src={`/static/logos/gwalli_purple_with_slogan.png`} alt="gwalli slogan" />
+						</Box>
+					</SectionStyle>
+				)}
 
-            <Typography sx={{ color: 'text.secondary', mb: 5 }}>Free forever. No credit card needed.</Typography>
+				<Container>
+					<ContentStyle>
+						<Typography variant="h4" gutterBottom>
+							{t('sign_up_title')}
+						</Typography>
 
-            <AuthSocial />
+						{/* <AuthSocial /> */}
 
-            <RegisterForm />
+						<RegisterForm />
 
-            <Typography variant="body2" align="center" sx={{ color: 'text.secondary', mt: 3 }}>
-              By registering, I agree to Minimal&nbsp;
-              <Link underline="always" color="text.primary" href="#">
-                Terms of Service
-              </Link>
-              {''}and{''}
-              <Link underline="always" color="text.primary" href="#">
-                Privacy Policy
-              </Link>
-              .
-            </Typography>
+						<Typography variant="body2" align="center" sx={{ color: 'text.secondary', mt: 3 }}>
 
-            {!smUp && (
-              <Typography variant="body2" sx={{ mt: 3, textAlign: 'center' }}>
-                Already have an account?{' '}
-                <Link variant="subtitle2" to="/login" component={RouterLink}>
-                  Login
-                </Link>
-              </Typography>
-            )}
-          </ContentStyle>
-        </Container>
-      </RootStyle>
-    </Page>
-  );
+						<Trans
+      i18nKey="register:signup_agreements"
+      components={{
+        link1: <LinkText to="#" />,
+        link2: <LinkText to="#" />
+      }}
+    />
+							{/* {t('signup_agreements')}&nbsp;
+							<Link underline="always" color="text.primary" href="#">
+								{t('terms_of_service')}
+							</Link>
+							{' '}{t('and')}{' '}
+							<Link underline="always" color="text.primary" href="#">
+								{t('privacy_policy')}
+							</Link>
+							. */}
+						</Typography>
+
+						{!smUp && (
+							<Typography variant="body2" sx={{ mt: 3, textAlign: 'center' }}>
+								{t('already_have_account')}{' '}
+								<Link variant="subtitle2" to="/login" component={RouterLink}>
+									{t('login')}
+								</Link>
+							</Typography>
+						)}
+					</ContentStyle>
+				</Container>
+			</RootStyle>
+		</Page>
+	)
 }

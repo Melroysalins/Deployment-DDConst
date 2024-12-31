@@ -10,6 +10,8 @@ import EventHeader from 'components/EventHeader'
 import Page from 'components/Page'
 import useMain from 'pages/context/context'
 import BasicTabs from 'components/Drawer/BasicTabs'
+import { useTranslation } from 'react-i18next'
+import RequestApproval from 'layouts/RequestApproval'
 
 const ProjectIntro = styled(Box)(({ theme }) => ({
 	backgroundColor: theme.palette.background.paper,
@@ -24,15 +26,19 @@ const breadcrumbElements = [
 ]
 
 const ProjectImplementationSchedule = () => {
-	const { project } = useParams()
+	const { id } = useParams()
 	const [loading, setLoading] = useState(false)
 	const [data, setData] = useState({})
 	const {
 		isDrawerOpen,
+		setopenRequestApproval,
+		openRequestApproval,
 		setisDrawerOpen,
 		setapprovalIdDrawerRight,
+		setFromPage
 	} = useMain()
-
+	
+	const { t } = useTranslation(['weekly_plan', 'common'])
 	const fetchData = async (id) => {
 		setLoading(true)
 		const res = await getProjectDetails(id)
@@ -42,8 +48,8 @@ const ProjectImplementationSchedule = () => {
 	}
 
 	useEffect(() => {
-		if (project) fetchData(project)
-	}, [project])
+		if (id) fetchData(id)
+	}, [id])
 
 	return (
 		<div>
@@ -63,6 +69,18 @@ const ProjectImplementationSchedule = () => {
 			</Box> */}
 
 			<Box sx={{ display: 'flex', gap: '10px', position: 'absolute', top: 28, right: 44 }}>
+				<MuiButton
+					variant="contained"
+					size="medium"
+					color="inherit"
+					sx={{ border: '1px solid #596570' }}
+					onClick={() => {
+						setopenRequestApproval(!openRequestApproval)
+						setFromPage("project_schedule")
+					}}
+				>
+					{t('request_approval')}
+				</MuiButton>
 				<MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 1, minWidth: 0 }}>
 					<Iconify icon="material-symbols:download-rounded" width={20} height={20} />
 				</MuiButton>
@@ -70,6 +88,7 @@ const ProjectImplementationSchedule = () => {
 					onClick={() => {
 						setapprovalIdDrawerRight(null)
 						setisDrawerOpen(true)
+						setFromPage("project_schedule")
 					}}
 					variant="contained"
 					size="medium"
@@ -86,7 +105,7 @@ const ProjectImplementationSchedule = () => {
 				</Stack>
 			</Page>
 			{isDrawerOpen && <BasicTabs open={isDrawerOpen} setopen={setisDrawerOpen} />}
-
+			{openRequestApproval && <RequestApproval />}
 		</div>
 	)
 }

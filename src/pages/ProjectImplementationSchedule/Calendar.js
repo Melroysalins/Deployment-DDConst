@@ -16,12 +16,12 @@ import {
 } from '@mobiscroll/react'
 import moment from 'moment-timezone'
 import './calendar.scss'
-
+import useMain from 'pages/context/context'
 import { Loader, getHolidays } from 'reusables'
 import { useParams } from 'react-router'
 import { listAllTasksByProject, updateNestedTasks, updateTask } from 'supabase'
 import { differenceInDays } from 'utils/formatTime'
-import { Stack, Typography, Button as MuiButton } from '@mui/material'
+import { Stack, Typography, Button as MuiButton, Box } from '@mui/material'
 import Legends from './Legends'
 
 setOptions({
@@ -52,7 +52,7 @@ const defaultHolidays = [
 ]
 
 function App() {
-	const { project } = useParams()
+	const { id } = useParams()
 	const [myEvents, setMyEvents] = React.useState([])
 	const [tempEvent, setTempEvent] = React.useState(null)
 	const [isOpen, setOpen] = React.useState(false)
@@ -67,7 +67,7 @@ function App() {
 	const [mySelectedDate, setSelectedDate] = React.useState(new Date())
 	const [checkedResources, setCheckedResources] = React.useState([])
 	const [myResources, setMyResources] = React.useState([])
-
+	const { allowTaskCursor, handleCommentTask } = useMain()
 	const [loader, setLoader] = React.useState(false)
 	const [projectError, setProjectError] = React.useState(false)
 	const [holidays, setHolidays] = React.useState(defaultHolidays)
@@ -95,7 +95,7 @@ function App() {
 	}
 
 	const createEventsByProject = () => {
-		listAllTasksByProject(project).then((data) => {
+		listAllTasksByProject(id).then((data) => {
 			handleSetEvent(data?.data)
 			handlesetMyResources(data?.data)
 		})
@@ -148,8 +148,43 @@ function App() {
 			title += ` (${differenceInDays(start, end) + 1} DAYS, ${last} WORK DAYS)`
 		}
 		return (
-			<div className="timeline-event" style={{ background: bg, color, border }}>
-				{title}
+			<div 
+				className="timeline-event" 
+				style={{ background: bg, color, border }} 
+				onClick={(e) => {
+					if (allowTaskCursor && !event.original?.task_id) {
+						e.stopPropagation()
+						handleCommentTask(event.id, event.title, event.original?.approval_status)
+					}
+				}}
+				role="button"
+				tabIndex={0}
+				onKeyPress={(e) => {
+					if (e.key === 'Enter' || e.key === ' ') {
+						e.preventDefault()
+						if (allowTaskCursor && !event.original?.task_id) {
+							handleCommentTask(event.id, event.title, event.original?.approval_status)
+						}
+					}
+				}}
+			>
+				{event.original?.comments?.length ? (
+                    <>
+                        <Box>
+                            <img
+                                width={16}
+                                height={16}
+                                src={'/static/icons/Message.svg'} // Path to the message icon
+                                alt={'message'}
+                                style={{ position: 'absolute', right: 5, top: -5 }} // Positioning the icon
+                            />
+                        </Box>
+
+                        {title}
+                    </>
+                ) : (
+                    <>{title}</>
+                )}
 			</div>
 		)
 	}

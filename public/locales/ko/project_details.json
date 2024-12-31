@@ -13,10 +13,10 @@
     "Asset Maintenance Cost": "자산 유지 비용",
     "Operating Profit": "영업 이익",
 
-    "Contract Execution Budget": "계약 실행 예산",
-    "Implementation Schedule": "구현 일정",
-    "Daily Workforce Planning": "일일 인력 계획",
-    "Weekly Process Planning": "주간 프로세스 계획",
-    "Travel Expenses / Overtime": "여행 경비 / 초과 근무",
-    "Profit & Loss Reports": "손익 보고서"
+    "Contract Execution Budget": "실행예산",
+    "Implementation Schedule": "예정공정표",
+    "Daily Workforce Planning": "일일 인력 계획표",
+    "Weekly Process Planning": "주간공정표",
+    "Travel Expenses / Overtime": "충장비 및 특근비 계획표",
+    "Profit & Loss Reports": "P/L 보고서"
 }

@@ -89,6 +89,7 @@ function WeeklyPlan() {
 		isDrawerOpen,
 		setisDrawerOpen,
 		setapprovalIdDrawerRight,
+		setFromPage
 	} = useMain()
 	const [myEvents, setMyEvents] = React.useState([])
 	const [isOpen, setOpen] = React.useState(false)
@@ -460,7 +461,10 @@ function WeeklyPlan() {
 						size="medium"
 						color="inherit"
 						sx={{ border: '1px solid #596570' }}
-						onClick={() => setopenRequestApproval(!openRequestApproval)}
+						onClick={() => {
+							setopenRequestApproval(!openRequestApproval)
+							setFromPage("weekly_plan")
+						}}
 					>
 						{t('request_approval')}
 					</MuiButton>
@@ -468,6 +472,7 @@ function WeeklyPlan() {
 						onClick={() => {
 							setapprovalIdDrawerRight(null)
 							setisDrawerOpen(true)
+							setFromPage("weekly_plan")
 						}}
 						variant="contained"
 						size="medium"
@@ -477,11 +482,13 @@ function WeeklyPlan() {
 						<Iconify icon="uil:bars" width={25} height={25} color="white" />
 					</MuiButton>
 				</Box>
-				<Grid container spacing={3}>
-					<Grid item sm={12} md={3}>
+				<Box sx={{ display: "flex", gap: "16px" }}>
+
+					<Box sx={{ display: "flex", flexDirection: "column", width: '25% ', gap: "16px" }}> 
 						<LeftMenu project={project} />
-					</Grid>
-					<Grid item sm={12} md={9}>
+						<ProgressRate />
+					</Box>
+					<Box sx={{ display: "flex", flexDirection: "column", width: '100%' }}>
 						<Box className="weekly-calender" position={'relative'}>
 							<Loader open={loader} setOpen={setLoader} />
 							<Drawer />
@@ -512,10 +519,11 @@ function WeeklyPlan() {
 								extendDefaultEvent={extendDefaultEvent}
 								colors={holidays}
 								renderDay={renderCustomDay}
-								cssClass="md-resource-header-template mbsc-calendar-projects md-timeline-height"
+								cssClass="md-resource-header-template .mbsc-timeline.mbsc-ltr mbsc-calendar-projects md-timeline-height"
 								dayNamesMin={['S', 'M', 'T', 'W', 'T', 'F', 'S']}
 								locale={isEng ? undefined : localeKo}
-							/>
+								
+ 							/>
 
 							<AddFormPopup
 								data={popupData}
@@ -525,17 +533,8 @@ function WeeklyPlan() {
 								myEvents={myEvents}
 							/>
 						</Box>
-					</Grid>
-				</Grid>
-				<Grid container spacing={3} mt={1}>
-					<Grid item sm={12} md={3}>
-						<ProgressRate />
-					</Grid>
-					<Grid item sm={12} md={9}>
-						<FlowDiagram />
-						{/* <img src={'/static/images/Weekly-HardCode.png'} alt={'weekly'} /> */}
-					</Grid>
-				</Grid>
+					</Box>
+				</Box>
 			</Container>
 
 			{isDrawerOpen && <BasicTabs open={isDrawerOpen} setopen={setisDrawerOpen} />}

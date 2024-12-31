@@ -1,0 +1,12 @@
+{
+    "greetings":"Hi, Welcome Back",
+    "title":"Sign in to Minimal",
+    "description":"Enter your details below.",
+    "dont_have_account":"Don’t have an account?",
+    "get_started":"Get started",
+    "remember_me":"Remember me",
+    "forgot_password":"Forgot password?",
+    "login":"Login",
+    "email_address":"Email address",
+    "password":"Password"
+}

@@ -1,0 +1,12 @@
+{
+    "greetings": "안녕하세요, 다시 오신 것을 환영합니다",
+    "title": "관리넷에 로그인",
+    "description": "아래에 세부 정보를 입력하세요.",
+    "dont_have_account": "계정이 없으신가요?",
+    "get_started": "시작하기",
+    "remember_me": "아이디 저장",
+    "forgot_password": "비밀번호를 잊으셨나요?",
+    "login": "로그인",
+    "email_address": "이메일 주소",
+    "password": "비밀번호"
+}

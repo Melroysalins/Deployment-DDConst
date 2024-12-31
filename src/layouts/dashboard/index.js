@@ -26,9 +26,9 @@ const MainStyle = styled('div')(({ theme }) => ({
   borderRadius: `20px`,
   position: 'relative',
   [theme.breakpoints.up('lg')]: {
-    paddingTop: APP_BAR_DESKTOP + 24,
-    paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(2),
+    paddingTop: APP_BAR_DESKTOP + 12,
+    paddingLeft: theme.spacing(3.5),
+    paddingRight: theme.spacing(3.5),
     paddingBottom: theme.spacing(2),
   },
 }));

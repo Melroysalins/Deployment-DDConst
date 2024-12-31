@@ -44,11 +44,13 @@ export const getApprovalsByProject = async (projectId) => {
 	return res
 }
 
-export const getApprovalsByProjectDetail = async (projectId) => {
+export const getApprovalsByProjectDetail = async (projectId, fromPage) => { // Added fromPage parameter
 	const res = await supabase
 		.from('approval')
-		.select(`*,  project(id, title), owner(id, name, email_address, profile))`)
+		.select(`*,  project(id, title), owner(id, name, email_address, profile)`) // Fixed the extra parenthesis
 		.eq('project', projectId)
+		.eq('from_page', fromPage) // Added condition to check from_page
+	console.log(res)
 	const promises = await res.data?.map(async (approval) => {
 		const approvers = await getApproversByApproval(approval.id)
 		approval.approvers = approvers?.data || []

@@ -29,10 +29,13 @@ export const MainProvider = ({ children }) => {
 	const [currentApproval, setcurrentApproval] = useState(null)
 	const [refetchApprovals, setrefetchApprovals] = useState(false)
 	const [refetchtaskProjects, setrefetchtaskProjects] = useState(false)
+	const [fromPage, setFromPage] = useState("")
 	// for right side approvals log info
 	const [isDrawerOpen, setisDrawerOpen] = useState(false)
 	const [approvalIdDrawerRight, setapprovalIdDrawerRight] = useState(null)
 	const [mainFilters, setmainFilters] = useState(null)
+
+	console.log(commentTasks)
 
 	useEffect(() => {
 		if (!openRequestApproval) {
@@ -90,6 +93,8 @@ export const MainProvider = ({ children }) => {
 				setapprovalIdDrawerRight,
 				mainFilters,
 				setmainFilters,
+				fromPage,
+				setFromPage
 			}}
 		>
 			{userLoading ? <></> : children}

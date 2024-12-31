@@ -7,3 +7,7 @@
 - get a copy of .env file
 - Start the project: `npm run start` / `yarn start`
 - deployment on vercel.com
+- Documentation on loom videos and clickup.com
+- database supabase
+- css material ui
+- language support for korean and english

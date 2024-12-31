@@ -15,17 +15,21 @@ import {
 	Snackbar,
 	Stack,
 	Typography,
+	Zoom,
 } from '@mui/material'
 // components
 import Page from '../../components/Page'
 // sections
+import ChatIcon from '@mui/icons-material/Chat'
+import CloseIcon from '@mui/icons-material/Close'
 import { useTheme } from '@mui/material/styles'
 import Iconify from 'components/Iconify'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from 'react-query'
 import { listEmployeesByProject } from 'supabase/employees'
 import { getProjectDetails, getProjectFileLink } from 'supabase/projects'
 import { formatNumber } from 'utils/helper'
-import { useTranslation } from 'react-i18next'
+import ChatIframe from '../../components/ChatIframe'
 
 // ----------------------------------------------------------------------
 
@@ -37,7 +41,11 @@ export default function Projects() {
 	const [empData, setempData] = useState(null)
 	const navigate = useNavigate()
 	const { t } = useTranslation(['project_details'])
+	const [isChatbotVisible, setIsChatbotVisible] = useState(false) // Initially hidden
 
+	const toggleIframe = () => {
+		setIsChatbotVisible((prev) => !prev) // Toggle visibility
+	}
 
 	// const fetchData = async (id) => {
 	// 	setLoading(true)
@@ -169,7 +177,7 @@ export default function Projects() {
 
 	return (
 		<Page title="Dashboard">
-			<Box sx={{ position: 'absolute', top: 28, right: 44 }}>
+			<Box sx={{ position: 'absolute', top: 12, right: 44 }}>
 				<Button
 					variant="contained"
 					startIcon={<Iconify icon="material-symbols:account-balance-wallet-outline" width={15} height={15} />}
@@ -258,6 +266,34 @@ export default function Projects() {
 					)}
 				</Grid>
 			</Container>
+			<Box
+				sx={{
+					position: 'absolute',
+					zIndex: 9999,
+					bottom: '4%',
+					right: '2%',
+					width: '40px', // Adjust size as needed
+					height: '40px', // Adjust size as needed
+					borderRadius: '50%',
+					backgroundColor: '#7382ff', // Use theme color
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'center',
+					cursor: 'pointer',
+				}}
+				onClick={toggleIframe}
+			>
+				<Box sx={{ position: 'relative' }}>
+					<Zoom in={isChatbotVisible} timeout={500}>
+						<CloseIcon sx={{ color: 'white', display: 'block', position: 'absolute', top: '-12px', left: '-12px' }} />
+					</Zoom>
+					<Zoom in={!isChatbotVisible} timeout={500}>
+						<ChatIcon sx={{ color: 'white', display: 'block', position: 'absolute', top: '-12px', left: '-12px' }} />
+					</Zoom>
+				</Box>
+			</Box>
+
+			<ChatIframe isVisible={isChatbotVisible} />
 		</Page>
 	)
 }
@@ -369,50 +405,62 @@ function ProjectInfo({ projectInfo, t, id }) {
 					borderRadius: 2,
 					height: '100%',
 				}}
-				p={2}
+				p={1.5}
 			>
 				<Typography m={1} sx={{ fontWeight: 600, fontSize: 16 }}>
 					{t('Project info')}
 				</Typography>
-				{projectInfo[0]
-					? projectInfo[0]?.map((e) => (
-							<>
-								{!!e.title && (
-									<Grid key={e.title} container spacing={2} style={{ alignItems: 'center', flex: 1 }} mt={1} pl={3}>
-										<Iconify sx={{ minWidth: 15 }} width={15} height={15} icon={e.icon} />
+				<Box
+					sx={{
+						height: '200px',
+						overflowY: 'auto',
+					}}
+				>
+					{projectInfo[0]
+						? projectInfo[0]?.map((e) => (
+								<>
+									{!!e.title && (
+										<Grid key={e.title} container spacing={2} style={{ alignItems: 'center', flex: 1 }} mt={1} pl={3}>
+											<Iconify sx={{ minWidth: 15 }} width={15} height={15} icon={e.icon} />
 
-										<Typography m={1} sx={{ fontSize: 12, color: 'text.secondary' }}>
-											{e.title}
-										</Typography>
-									</Grid>
-								)}
-							</>
-					  ))
-					: null}
-				<Divider />
-				{projectInfo[1]
-					? projectInfo[1]?.map((e) => (
-							<>
-								{e.value && (
-									<Grid key={e.title} container spacing={2} style={{ alignItems: 'center', flex: 1 }} mt={1} pl={3}>
-										<Iconify sx={{ minWidth: 15 }} width={15} height={15} icon={e.icon} />
+											<Typography m={1} sx={{ fontSize: 12, color: 'text.secondary' }}>
+												{e.title}
+											</Typography>
+										</Grid>
+									)}
+								</>
+						  ))
+						: null}
+					<Divider />
+					{projectInfo[1]
+						? projectInfo[1]?.map((e) => (
+								<>
+									{e.value && (
+										<Grid key={e.title} container spacing={2} style={{ alignItems: 'center', flex: 1 }} mt={1} pl={3}>
+											<Iconify sx={{ minWidth: 15 }} width={15} height={15} icon={e.icon} />
 
-										<Typography flexGrow={1} m={1} sx={{ fontSize: 12, color: 'text.secondary' }}>
-											{e.title}
-										</Typography>
-										<IconButton
-											onClick={async () => {
-												const link = await getProjectFileLink(e.value)
-												window.open(link, '_blank')
-											}}
-										>
-											<Iconify sx={{ minWidth: 15 }} width={15} height={15} icon="material-symbols:download-rounded" />
-										</IconButton>
-									</Grid>
-								)}
-							</>
-					  ))
-					: null}
+											<Typography flexGrow={1} m={1} sx={{ fontSize: 12, color: 'text.secondary' }}>
+												{e.title}
+											</Typography>
+											<IconButton
+												onClick={async () => {
+													const link = await getProjectFileLink(e.value)
+													window.open(link, '_blank')
+												}}
+											>
+												<Iconify
+													sx={{ minWidth: 15 }}
+													width={15}
+													height={15}
+													icon="material-symbols:download-rounded"
+												/>
+											</IconButton>
+										</Grid>
+									)}
+								</>
+						  ))
+						: null}
+				</Box>
 			</Box>
 		</>
 	)

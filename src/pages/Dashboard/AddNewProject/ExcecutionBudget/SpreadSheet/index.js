@@ -4,23 +4,42 @@ import { jspreadsheet } from '@jspreadsheet/react'
 import 'jsuites/dist/jsuites.css'
 import 'jspreadsheet/dist/jspreadsheet.css'
 import 'material-icons/iconfont/material-icons.css'
-import { createNewSpreadsheet, getSpreadsheetByProject, updateSpreadsheet } from 'supabase/spreadsheets'
+import { createNewSpreadsheet, getSpreadsheetByProjectAndType, updateSpreadsheet } from 'supabase/spreadsheets'
 import { Button } from '@mui/material'
 import { useParams } from 'react-router-dom'
 
 jspreadsheet.setLicense(
-	'ODQ5NjVmNTViYTUwMzMxMDEwZDQzZTQ5MjNhZjljMTQyNTYxMDdiOGEzZGY0NzVlZTQxYzcxM2M4YjI1OWU1YzY3YmQwNWM1OGFjN2IxOGRjZTJjZmQzNzAxMzEyNjkwYThhNWNlMThhZDZmN2RmYTVjZTk2MTNmMjVlMzkzNzEsZXlKamJHbGxiblJKWkNJNklqVTJNR1UyWlRBd05UUTNOV00wTnprM1lUSm1ORGN6TlRZNE56VmtaV0l5TmpJMk5UQXpZMlVpTENKdVlXMWxJam9pYzNkbFpXdGhjaUlzSW1SaGRHVWlPakUzTXpVMU1UWTRNREFzSW1SdmJXRnBiaUk2V3lKa1pHTnZibk4wTFdSaGMyaGliMkZ5WkM1MlpYSmpaV3d1WVhCd0lpd2lkMlZpSWl3aWJHOWpZV3hvYjNOMElsMHNJbkJzWVc0aU9qTXhMQ0p6WTI5d1pTSTZXeUoyTnlJc0luWTRJaXdpZGpraUxDSjJNVEFpTENKMk1URWlMQ0ptYjNKdGRXeGhJaXdpWm05eWJYTWlMQ0p5Wlc1a1pYSWlMQ0p3WVhKelpYSWlMQ0pwYlhCdmNuUmxjaUlzSW5ObFlYSmphQ0lzSW1OdmJXMWxiblJ6SWl3aWRtRnNhV1JoZEdsdmJuTWlMQ0pqYUdGeWRITWlMQ0p3Y21sdWRDSXNJbUpoY2lJc0luTm9aV1YwY3lJc0luTm9ZWEJsY3lJc0luTmxjblpsY2lKZGZRPT0='
-	// 'ZGIyOTJhNzQ4YmIxN2UyYzYzNmNhNTg0NmU5MDRkOTU1ODBkZGU3MDlmOGU2NTM3YjgxYmM5ZmJjNThjZTU1MjcwZTViMmY3NjMyNThiYzAzYzk4NWQ3NTdmMWFhNDdlNTcwOTBiYjQyMjU4ZjY3Mjg4MzdmMWQwMGRiZTczZjMsZXlKamJHbGxiblJKWkNJNklqUTFPVE0yWlRRMk5HSXdaalJtWWpreVptVmtNVFExTURSbU9XTTFNR0U1TURrM01qbGxPVGtpTENKdVlXMWxJam9pVkdGc2FHRWdUWFZ6ZEdGbVlTSXNJbVJoZEdVaU9qRTNNelUxTVRZNE1EQXNJbVJ2YldGcGJpSTZXeUozWldJaUxDSnNiMk5oYkdodmMzUWlYU3dpY0d4aGJpSTZNekVzSW5OamIzQmxJanBiSW5ZM0lpd2lkamdpTENKMk9TSXNJbll4TUNJc0luWXhNU0lzSW1admNtMTFiR0VpTENKbWIzSnRjeUlzSW5KbGJtUmxjaUlzSW5CaGNuTmxjaUlzSW1sdGNHOXlkR1Z5SWl3aWMyVmhjbU5vSWl3aVkyOXRiV1Z1ZEhNaUxDSjJZV3hwWkdGMGFXOXVjeUlzSW1Ob1lYSjBjeUlzSW5CeWFXNTBJaXdpWW1GeUlpd2ljMmhsWlhSeklpd2ljMmhoY0dWeklpd2ljMlZ5ZG1WeUlsMTk='
+	'ODQ5NjVmNTViYTUwMzMxMDEwZDQzZTQ5MjNhZjljMTQyNTYxMDdiOGEzZGY0NzVlZTQxYzcxM2M4YjI1OWU1YzY3YmQwNWM1OGFjN2IxOGRjZTJjZmQzNzAxMzEyNjkwYThhNWNlMThhZDZmN2RmYTVjZTk2MTNmMjVlMzkzNzEsZXlKamJHbGxiblJKWkNJNklqVTJNR1UyWlRRMk5HSXdaalJtWWpreVptVmtNVFExTURSbU9XTTFNR0U1TURrM01qbGxPVGtpTENKdVlXMWxJam9pVkdGc2FHRWdUWFZ6ZEdGbVlTSXNJbVJoZEdVaU9qRTNNelUxTVRZNE1EQXNJbVJ2YldGcGJpSTZXeUozWldJaUxDSnNiMk5oYkdodmMzUWlYU3dpY0d4aGJpSTZNekVzSW5OamIzQmxJanBiSW5ZM0lpd2lkamdpTENKMk9TSXNJbll4TUNJc0luWXhNU0lzSW1admNtMTFiR0VpTENKbWIzSnRjeUlzSW5KbGJtUmxjaUlzSW5CaGNuTmxjaUlzSW1sdGNHOXlkR1Z5SWl3aWMyVmhjbU5vSWl3aVkyOXRiV1Z1ZEhNaUxDSjJZV3hwWkdGMGFXOXVjeUlzSW1Ob1lYSjBjeUlzSW5CeWFXNTBJaXdpWW1GeUlpd2ljMmhsWlhSeklpd2ljMmhoY0dWeklpd2ljMlZ5ZG1WeUlsMTk='
 )
 
 const worksheets = [
 	{
-		
+		worksheetName: 'Consumables',
+		nestedHeaders: [
+			[
+				{
+					title: 'Consumables',
+					colspan: '10',
+				},
+			],
+		],
 		minDimensions: [4, 3],
+		data: [
+			['EB-A', 1, 1, '=B1*C1'],
+			['', null, null, '=B2*C2'],
+			['Total', null, null, '=SUM(D1:D2)'],
+		],
+		columns: [
+			{ title: 'Junction Box', width: '200px' },
+			{ title: 'Count', width: '200px' },
+			{ title: 'Unit Price', width: '200px' },
+			{ title: 'SubTotal', width: '200px' },
+		],
 		allowInsertColumn: false,
 		allowManualInsertColumn: false,
 		allowDeleteColumn: false,
 		allowRenameColumn: false,
+		toolbar: false, // Removed toolbar from worksheet
 	},
 ]
 
@@ -34,7 +53,6 @@ export default function SpreadSheet() {
 	useEffect(() => {
 		const grid = window.jspreadsheet(spreadsheet.current, {
 			tabs: true,
-			toolbar: true,
 			worksheets,
 			oninsertrow: (instance, cell) => {
 				const lastRowNum = instance.getData().length - 1
@@ -60,7 +78,7 @@ export default function SpreadSheet() {
 
 	useEffect(() => {
 		const clone = async () => {
-			const { data } = await getSpreadsheetByProject(id)
+			const { data } = await getSpreadsheetByProjectAndType(id, false)
 			const config = data?.data || {}
 
 			if (!config?.worksheets || config?.worksheets.length === 0) {
@@ -80,7 +98,7 @@ export default function SpreadSheet() {
 
 	const handleSave = async () => {
 		// All Sheet Data
-		const object = { data: gridInstance[0].parent.getConfig(), project: id, consumablesData: gridInstance[0].data() }
+		const object = { data: gridInstance[0].parent.getConfig(), project: id, consumablesData: gridInstance[0].data(), isFromSpreadsheetTwo: false }
 		let result = null
 		if (styleSheetId) {
 			result = await updateSpreadsheet(object, styleSheetId)

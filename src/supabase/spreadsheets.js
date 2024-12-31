@@ -19,3 +19,8 @@ export const getSpreadsheetByProject = async (project) => {
 	const res = await supabase.from('spreadsheets').select('*').eq('project', project).single()
 	return res
 }
+
+export const getSpreadsheetByProjectAndType = async (project, isFromSpreadsheetTwo) => {
+	const res = await supabase.from('spreadsheets').select('*').eq('project', project).eq('isFromSpreadsheetTwo', isFromSpreadsheetTwo).single()
+	return res
+}

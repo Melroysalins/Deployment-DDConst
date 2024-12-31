@@ -14,36 +14,37 @@ import { useTranslation } from 'react-i18next'
 export default function CustomSeparator(props) {
 	const { state, dispatch } = useMain()
 	const { t } = useTranslation(['common'])
-	const [ projectDetails, setProjectDetails ] = React.useState({})
+	const [projectDetails, setProjectDetails] = React.useState({})
 	const { isfilterOpen } = state.filters || {}
 	const history = useNavigate()
 	const { pathname } = useLocation()
 	const pathnames = pathname.split('/').filter((x) => x)
 	const basePath = `/${pathnames.slice(0, 2).join('/')}`
 	// Determine MainPath based on the current route
-	const MainPath = pathname.includes('/manageEmp') ? `${basePath}/empList` : `${basePath}/list`;
+	const MainPath = pathname.includes('/manageEmp') ? `${basePath}/empList` : `${basePath}/list`
 	pathnames.splice(0, 2)
-
+console.log('pathnames ',pathnames)
 	const openFilter = () => {
 		dispatch({ type: MainActionType.CHANGE_FILTER, bool: !isfilterOpen })
 	}
 
 	React.useEffect(() => {
 		const fetchProjectDetails = async () => {
-			if (basePath === '/dashboard/projects' && parseInt(pathnames[0], 10)) { // Check if pathnames[2] is a number
-				const { data, error } = await getProjectDetails(pathnames[0]); // Fetch project details
+			if (basePath === '/dashboard/projects' && parseInt(pathnames[0], 10)) {
+				// Check if pathnames[2] is a number
+				const { data, error } = await getProjectDetails(pathnames[0]) // Fetch project details
 				if (error) {
-					console.error("Error fetching project details:", error);
+					console.error('Error fetching project details:', error)
 				} else {
-					setProjectDetails(data); // Set project details in state
+					setProjectDetails(data) // Set project details in state
 				}
 			}
-		};
-		fetchProjectDetails();
-	}, [pathnames[0]]); 
+		}
+		fetchProjectDetails()
+	}, [pathnames[0]])
 
 	return (
-		<Stack direction="row" padding={1} spacing={2}>
+		<Stack direction="row"  spacing={2}>
 			{pathname.includes('travel-expenses') && (
 				<MuiButton
 					size="small"
@@ -55,23 +56,33 @@ export default function CustomSeparator(props) {
 					<Iconify icon="heroicons-funnel" width={20} height={20} />
 				</MuiButton>
 			)}
-			<Breadcrumbs 
-				separator={<NavigateNextIcon fontSize="small" />} 
+			<Breadcrumbs
+				separator={<NavigateNextIcon fontSize="small" />}
 				aria-label="breadcrumb"
-				sx={{ display: 'flex', alignItems: 'center' }}
+				sx={{ display: 'flex', alignItems: 'center',color:'#212B36'}}
+			>
+				<Link
+					onClick={() => {
+						history(MainPath)
+						setProjectDetails({})
+					}}
+					color={'#596570'}
+					fontWeight={600}
+					sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer',fontSize:'18px',fontWeight:600,textDecoration:'none' }}
 				>
-				<Link onClick={() => { history(MainPath); setProjectDetails({}); }} sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer'}}>{t('Main')}</Link>
+					{t('Main')}
+				</Link>
 				{pathnames.map((name, index) => {
-					const routeTo = `${basePath}/${pathnames.slice(0, index + 1).join('/')}`;
-					const isLast = index === pathnames.length - 1;
-					const id = parseInt(name, 10); // Convert name to an integer ID
+					const routeTo = `${basePath}/${pathnames.slice(0, index + 1).join('/')}`
+					const isLast = index === pathnames.length - 1
+					const id = parseInt(name, 10) // Convert name to an integer ID
 
 					if (isLast) {
-					return (
-						<Typography fontWeight="600" key={name} sx={{ display: 'flex', alignItems: 'center' }}>
-							{id && !pathname.includes('/manageEmp') ? projectDetails.title : t(_.startCase(name))}
-						</Typography>
-					);
+						return (
+							<Typography fontWeight="600" key={name} sx={{ display: 'flex', alignItems: 'center' }}>
+								{id && !pathname.includes('/manageEmp') ? projectDetails.title : t(_.startCase(name))}
+							</Typography>
+						)
 					}
 
 					return (
@@ -84,8 +95,22 @@ export default function CustomSeparator(props) {
 							</Typography>
 						): 
 						(
-							<Link key={name} onClick={() => history(routeTo)} sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer'}}>
-								{projectDetails.title}
+							<Link
+							color={'#596570'}
+							fontWeight={600} 
+								key={name} 
+								onClick={() => history(routeTo)} 
+								sx={{ 
+									display: 'flex', 
+									alignItems: 'center', 
+									cursor: 'pointer', 
+									overflow: 'hidden', 
+									textOverflow: 'ellipsis', 
+									whiteSpace: 'nowrap', 
+									maxWidth: '150px', // Adjust the maxWidth as needed
+								}}
+							>
+								{projectDetails?.title?.length > 20 ? `${projectDetails.title.substring(0, 20)}...` : projectDetails.title}
 							</Link>
 						)	
 					}
@@ -93,7 +118,6 @@ export default function CustomSeparator(props) {
 					);
 				})}
 			</Breadcrumbs>
-
 		</Stack>
 	)
 }
@@ -191,8 +215,6 @@ function CustomizedMenus({ option, typeName }) {
 		)
 	return (
 		<div>
-			
-
 			<StyledMenu
 				id="demo-customized-menu"
 				MenuListProps={{
@@ -205,7 +227,7 @@ function CustomizedMenus({ option, typeName }) {
 				{typeName ? (
 					<>
 						<MenuItem selected={option === 'emplist'} onClick={handleClose} disableRipple>
-							<Link underline="hover" color="inherit" href={`/${typeName}/employee/emplist`}>
+							<Link  underline="hover" color="inherit" href={`/${typeName}/employee/emplist`}>
 								Employees
 							</Link>
 						</MenuItem>
