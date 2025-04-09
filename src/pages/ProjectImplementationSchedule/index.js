@@ -12,6 +12,7 @@ import useMain from 'pages/context/context'
 import BasicTabs from 'components/Drawer/BasicTabs'
 import { useTranslation } from 'react-i18next'
 import RequestApproval from 'layouts/RequestApproval'
+import Calendar2 from './Calender2'
 
 const ProjectIntro = styled(Box)(({ theme }) => ({
 	backgroundColor: theme.palette.background.paper,
@@ -106,6 +107,11 @@ const ProjectImplementationSchedule = () => {
 			</Page>
 			{isDrawerOpen && <BasicTabs open={isDrawerOpen} setopen={setisDrawerOpen} />}
 			{openRequestApproval && <RequestApproval />}
+			<Page title="PS">
+				<Stack px={2} mt={7}>
+					<Calendar2 />
+				</Stack>
+			</Page>
 		</div>
 	)
 }
