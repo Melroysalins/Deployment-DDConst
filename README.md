@@ -10,3 +10,5 @@
 - Documentation on loom videos and clickup.com
 - database supabase
 - css material ui
+- language support for korean and english
+- mobiscoll for timeline
