@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next'
 import BasicTabs from '../Drawer/BasicTabs'
 import useMain from 'pages/context/context'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
+import AiFilterGeneration from '../Drawer/Filters/AiFilterGeneration'
 
 export default function ProjectList() {
 	const [loader, setLoader] = React.useState(true)
@@ -180,6 +181,11 @@ export default function ProjectList() {
 					{toast?.message}
 				</Alert>
 			</Snackbar>
+
+			<Box display={'flex'} marginY={2} justifyContent={'center'} alignItems={'center'}>
+				<AiFilterGeneration showFilterData={false} onAiFilterResponseData={(d) => setData(d)} />
+			</Box>
+
 			<Grid container spacing={3}>
 				{loader && <Skeleton />}
 				{!loader && !filterData.length && (
@@ -194,7 +200,7 @@ export default function ProjectList() {
 				))}
 			</Grid>
 
-			<BasicTabs open={rightDrawer} setopen={setrightDrawer} />
+			<BasicTabs open={rightDrawer} setopen={setrightDrawer} onAiFilterResponseData={(d) => setData(d)} />
 		</>
 	)
 }

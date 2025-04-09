@@ -2,29 +2,30 @@
 import {
 	Box,
 	Button,
-	MenuItem,
-	TextField,
-	Select,
+	CircularProgress,
 	FormControl,
 	InputLabel,
-	Typography,
-	CircularProgress,
+	MenuItem,
+	Select,
 	Stack,
+	TextField,
+	Typography,
 } from '@mui/material'
-import React, { useState } from 'react'
-import { listAllProjects } from 'supabase'
-import { useQuery } from 'react-query'
-import { Form, Formik } from 'formik'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterMoment } from '@mui/x-date-pickers/AdapterMoment'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
+import Iconify from 'components/Iconify'
+import { Form, Formik } from 'formik'
 import moment from 'moment'
 import useMain from 'pages/context/context'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Iconify from 'components/Iconify'
-import SaveFilterDialog from './SaveFilterDialog'
+import { useQuery } from 'react-query'
+import { listAllProjects } from 'supabase'
 import { createView, listAllViewsByEmp, updateView } from 'supabase/view'
 import { countTruthyLengths } from 'utils/helper'
+import AiFilterGeneration from './AiFilterGeneration'
+import SaveFilterDialog from './SaveFilterDialog'
 
 const defaultValues = {
 	id: '',
@@ -39,7 +40,7 @@ const defaultValues = {
 }
 
 // eslint-disable-next-line react/prop-types
-function Filters({ setopen }) {
+function Filters({ setopen, onAiFilterResponseData }) {
 	const { t } = useTranslation()
 	const { currentEmployee, setmainFilters, mainFilters } = useMain()
 	const [loader, setLoader] = useState(false)
@@ -73,6 +74,9 @@ function Filters({ setopen }) {
 
 	return (
 		<>
+		<Box>
+					<AiFilterGeneration onAiFilterResponseData={onAiFilterResponseData} showFilterData={true} />
+				</Box>
 			<Formik
 				initialValues={mainFilters || defaultValues}
 				onSubmit={async (values) => {
@@ -382,6 +386,8 @@ function Filters({ setopen }) {
 					</>
 				)}
 			</Formik>
+			
+			
 		</>
 	)
 }
