@@ -35,15 +35,7 @@ import {
 	updateTask,
 	updateNestedTasks,
 } from 'supabase'
-import { createNewProjectDiagramTable, getTableByProjectDiagram, updateProjectDiagramTable } from 'supabase/project_diagrams_table'
-import {
-	createNewProjectDiagram,
-	deleteDiagramById,
-	getDiagramsByProject,
-	updateProjectDiagram,
-} from 'supabase/project_diagram'
 import TimeRangeEditor from './TimeRangeEditor'
-import useMain from 'pages/context/context'
 
 setOptions({
 	theme: 'ios',
@@ -91,100 +83,7 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 	padding: theme.spacing(2),
 }))
 
-const Tasks = () => {
-	const { id } = useParams()
-	const { objs, setObjs } = useMain()
-	const [ toast, setToast ] = useState(false)
-
-	const getDiagram = useCallback(async () => {
-		const { data } = await getDiagramsByProject(id);
-		if (data?.length) {
-			const updatedData = await Promise.all(
-				data.map(async (diagram) => {
-					const tableData1 = await getTableByProjectDiagram(diagram.id, false);
-					const tableData2 = await getTableByProjectDiagram(diagram.id, true);
-
-					// Set initial start time as current time
-					const currentDate = new Date();
-					const dayInMilliseconds = 24 * 60 * 60 * 1000; // One day in milliseconds
-					const twoDaysInMilliseconds = 2 * dayInMilliseconds; // Two days in milliseconds
-
-					const connections = tableData1.data.midpoints?.map((connection, i) => {
-						// Calculate start and end dates for each connection with 2-day gaps
-						const startDate = new Date(currentDate.getTime() + (i * twoDaysInMilliseconds));
-						const endDate = new Date(startDate.getTime() + dayInMilliseconds);
-
-						return {
-							approval_status: connection.approval_status || null,
-							created_at: connection.created_at || new Date().toISOString(),
-							end: endDate.toISOString(),
-							from_page: "projects",
-							id: connection.id,
-							notes: connection.notes || "",
-							project: connection.project || id,
-							start: startDate.toISOString(),
-							task_group: connection.task_group || "Connection",
-							task_group_id: connection.task_group_id || null,
-							task_id: connection.task_id || null,
-							task_period: [startDate.toISOString(), endDate.toISOString()],
-							task_type: connection.task_type || null,
-							team: connection.team || null,
-							title: `#${connection.joinType + (i + 1)}` || ""
-						};
-					}) || [];
-
-					// Updated installations to also use two-day gaps
-					const installations = tableData1.data.installations?.map((installation, i) => {
-						// Calculate start and end dates for each installation with 2-day gaps
-						const startDate = new Date(currentDate.getTime() + (i * twoDaysInMilliseconds));
-						const endDate = new Date(startDate.getTime() + dayInMilliseconds);
-
-						return {
-							approval_status: installation.approval_status || null,
-							created_at: installation.created_at || new Date().toISOString(),
-							end: endDate.toISOString(),
-							from_page: "projects",
-							id: installation.id,
-							notes: installation.notes || "",
-							project: installation.project || id,
-							start: startDate.toISOString(),
-							task_group: installation.task_group || "Installation",
-							task_group_id: installation.task_group_id || null,
-							task_id: installation.task_id || null,
-							task_period: [startDate.toISOString(), endDate.toISOString()],
-							task_type: installation.task_type || null,
-							team: installation.team || null,
-							title: i + 1 || ""
-						};
-					}) || [];
-
-					return {
-						...diagram,
-						currentObj: {
-							connections,
-							installations,
-							demolitions: tableData2.data?.midpoints || [],
-							demolitionInstallations: tableData2.data?.installations || [],
-							endpoints: tableData1.data?.endpoints || [],
-							endpointsDemolition: tableData2.data?.endpoints || [],
-						},
-					};
-				})
-			);
-
-			setObjs(updatedData);
-		}
-	}, [id, setObjs]);
-
-	useEffect(() => {
-		getDiagram()
-	}, [id])
-
-	useEffect(() => {
-		console.log("objs con", objs?.[0]?.currentObj?.connections)
-	}, [objs])
-
-	return (
+const Tasks = () => (
 	<>
 		<Stack gap={2}>
 			<Accordion>
@@ -204,7 +103,7 @@ const Tasks = () => {
 					</Typography>
 				</AccordionSummary>
 				<AccordionDetails>
-					<Task task_group="Installation" rowData={objs?.[0]?.currentObj?.installations}  />
+					<Task task_group="Installation" />
 				</AccordionDetails>
 			</Accordion>
 			<Accordion>
@@ -214,10 +113,7 @@ const Tasks = () => {
 					</Typography>
 				</AccordionSummary>
 				<AccordionDetails>
-					<Task 
-						task_group="Connection" 
-						rowData={objs?.[0]?.currentObj?.connections} 
-					/>
+					<Task task_group="Connection" />
 				</AccordionDetails>
 			</Accordion>
 			<Accordion>
@@ -232,11 +128,11 @@ const Tasks = () => {
 			</Accordion>
 		</Stack>
 	</>
-)}
+)
 
-const Task = ({ task_group, rowData }) => {
+const Task = ({ task_group }) => {
 	const { id } = useParams()
-	const { objs, setObjs } = useMain()
+
 	const [toast, setToast] = useState(false)
 
 	const handleClose = () => {
@@ -253,13 +149,7 @@ const Task = ({ task_group, rowData }) => {
 		select: (r) => r?.data.map((itm) => ({ ...itm, task_period: [itm.start, itm.end] })),
 	})
 
-	useEffect(() => {
-		console.log("list", list)
-	}, [list])
-
-	useEffect(() => {
-		console.log("row_data", rowData)
-	}, [list])
+	// DELETE CELL BUTTON
 
 	const DeleteCellRenderer = useCallback(({ value }) => {
 		const handleDelete = () => {
@@ -500,7 +390,7 @@ const Task = ({ task_group, rowData }) => {
 					<Stack gap={2}>
 						<AgGridReact
 							ref={gridRef}
-							rowData={rowData}
+							rowData={list}
 							columnDefs={columnDefs}
 							defaultColDef={defaultColDef}
 							rowSelection={'multiple'}
@@ -511,6 +401,7 @@ const Task = ({ task_group, rowData }) => {
 							onRowSelected={() => {
 								setSelectedRows(gridRef.current.api.getSelectedRows().map(({ id }) => id))
 							}}
+							//   onFirstDataRendered={onFirstDataRendered}
 						/>
 						<Box display="flex" justifyContent="space-between">
 							<Button onClick={handleAdd}>Add Task</Button>
@@ -530,7 +421,6 @@ const Task = ({ task_group, rowData }) => {
 
 Task.propTypes = {
 	task_group: PropTypes.string.isRequired,
-	rowData: PropTypes.array
 }
 
 export default Tasks
