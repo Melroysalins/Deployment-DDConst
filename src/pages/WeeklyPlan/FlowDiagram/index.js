@@ -41,6 +41,7 @@ import WarningDialog from './WarningDialog'
 import DropdownPopover from 'components/Drawer/DropdownDrawer'
 import { createNewProjectDiagramTable, getTableByProjectDiagram, updateProjectDiagramTable } from 'supabase/project_diagrams_table'
 import { useTranslation } from 'react-i18next';
+import { createNewTasks, deleteTask, listFilteredTasks, updateTask } from 'supabase/tasks'
 
 const StyledButtonContainer = styled(Box)({
 	alignSelf: 'stretch',
@@ -439,6 +440,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				})
 			);
 			const ids = data.map((diagram) => diagram.id);
+			console.log(updatedData)
 			setObjs(updatedData);
 			const maxId = Math.max(...ids);
 			setseqNumber(maxId + 1);
@@ -481,7 +483,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			length: currentObj?.length_demolition || [],
 			isDemolition: true,
 		};
-	
+		
 		if (isEdit) {
 			const res = await updateProjectDiagram(diagram_data, currentNewObj.id);
 			if (res.data) {
@@ -495,27 +497,234 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					project_diagram: res.data[0].id,
 				};
 				const save2 = await updateProjectDiagramTable(updated_obj_old_section, res.data[0].id, true)
+				
+				// Update tasks for connections and installations
+				// First, get existing tasks
+				const connectionTasksResponse = await listFilteredTasks(3, id);
+				const installationTasksResponse = await listFilteredTasks(2, id);
+				
+				const connectionTasks = connectionTasksResponse.data || [];
+				const installationTasks = installationTasksResponse.data || [];
+				
+				// Update connection tasks
+				currentObj.connections?.forEach((connection, i) => {
+					const taskTitle = `#${connection.joinType}${i + 1}`;
+					
+					// If connection already has a task_id, use it to find the task
+					if (connection.task_id) {
+						const existingTask = connectionTasks.find(task => task.id === connection.task_id);
+						
+						if (existingTask) {
+							// Update existing task using the stored ID
+							updateTask({
+								title: taskTitle,
+								notes: connection.notes || "",
+								approval_status: "Approved",
+							}, connection.task_id);
+						}
+					}  else {
+						// Task ID exists but task not found - create new task
+						const startDate = new Date();
+						startDate.setDate(startDate.getDate() + (i * 2));
+						const endDate = new Date(startDate);
+						endDate.setDate(endDate.getDate() + 1);
+						
+						createNewTasks({
+							approval_status: "Planned",
+							created_at: connection.created_at || new Date().toISOString(),
+							from_page: "projects",
+							notes: connection.notes || "",
+							project: id,
+							task_group_id: 3,
+							task_type: null,
+							title: taskTitle,
+							project_diagram_id: currentNewObj.id
+						}).then(response => {
+							// Store the new task ID in the connection object
+							if (response.data && response.data.length > 0) {
+								connection.task_id = response.data[0].id;
+								
+								// Update the connection in the database with the task_id
+								const updatedConnections = [...currentObj.connections];
+								updatedConnections[i] = connection;
+								
+								// Update the project diagram table with the new connections
+								updateProjectDiagramTable({
+									midpoints: updatedConnections,
+									project_diagram: res.data[0].id,
+								}, res.data[0].id, false);
+							}
+						});
+					}
+				});
+				
+				// Update installation tasks
+				currentObj.installations?.forEach((installation, i) => {
+					let title = '';
+					if (i === 0) {
+						title = `${cable_name.startLocation}${t(`${currentObj.endpoints.start}`)}#${i + 1}~${t(`${currentObj.connections[i]?.joinType}`)}#${i + 1}`;
+					} else if (i === currentObj.installations.length - 1) {
+						title = `${t(`${currentObj.connections[i - 1]?.joinType}`)}#${i}~${cable_name.endLocation}${t(`${currentObj.endpoints.end}`)}`;
+					} else {
+						title = `${t(`${currentObj.connections[i - 1]?.joinType}`)}#${i}~${t(`${currentObj.connections[i]?.joinType}`)}#${i + 1}`;
+					}
+					
+					// If installation already has a task_id, use it to find the task
+					if (installation.task_id) {
+						const existingTask = installationTasks.find(task => task.id === installation.task_id);
+						
+						if (existingTask) {
+							// Update existing task using the stored ID
+							updateTask({
+								title,
+								notes: installation.notes || "",
+								approval_status: "Approved"
+							}, installation.task_id);
+						} 
+					} else {
+						// Task ID exists but task not found - create new task
+						const startDate = new Date();
+						startDate.setDate(startDate.getDate() + (i * 2));
+						const endDate = new Date(startDate);
+						endDate.setDate(endDate.getDate() + 1);
+						
+						createNewTasks({
+							approval_status: "Planned",
+							created_at: installation.created_at || new Date().toISOString(),
+							from_page: "projects",
+							notes: installation.notes || "",
+							project: id,
+							task_group_id: 2,
+							task_type: null,
+							title,
+							project_diagram_id: currentNewObj.id
+						}).then(response => {
+							// Store the new task ID in the installation object
+							if (response.data && response.data.length > 0) {
+								installation.task_id = response.data[0].id;
+								
+								// Update the installations in the database with the task_id
+								const updatedInstallations = [...currentObj.installations];
+								updatedInstallations[i] = installation;
+								
+								// Update the project diagram table with the new installations
+								updateProjectDiagramTable({
+									installations: updatedInstallations,
+									project_diagram: res.data[0].id,
+								}, res.data[0].id, false);
+							}
+						});
+					}
+				});
+				
+
 			}
 		} else {
 			const diagram_data_success = await createNewProjectDiagram(diagram_data);
 			if (diagram_data_success.data) {
 				const project_diagram_id = diagram_data_success.data[0].id;
+				
+				// Set initial start time as current time
+				const currentDate = new Date();
+				const dayInMilliseconds = 24 * 60 * 60 * 1000; // One day in milliseconds
+				const twoDaysInMilliseconds = 2 * dayInMilliseconds; // Two days in milliseconds
+				
+				// Create all tasks first and store their IDs
+				const updatedMidpoints = [..._obj_new_section.midpoints];
+				const updatedInstallations = [..._obj_new_section.installations];
+				
+				// Create tasks for midpoints (connections)
+				const midpointTaskPromises = updatedMidpoints.map(async (connection, i) => {
+					const startDate = new Date(currentDate.getTime() + (i * twoDaysInMilliseconds));
+					const endDate = new Date(startDate.getTime() + dayInMilliseconds);
+					
+					const response = await createNewTasks({
+						approval_status: "Planned",
+						created_at: connection.created_at || new Date().toISOString(),
+						from_page: "projects",
+						notes: connection.notes || "",
+						project: id,
+						task_group_id: 3,
+						start_date: startDate.toISOString(),
+						end_date: endDate.toISOString(),
+						task_type: null,
+						title: `#${connection.joinType + (i + 1)}` || "",
+						project_diagram_id
+					});
+					
+					if (response.data && response.data.length > 0) {
+						connection.task_id = response.data[0].id;
+					}
+					return connection;
+				});
+				
+				// Create tasks for installations
+				const installationTaskPromises = updatedInstallations.map(async (installation, i) => {
+					const startDate = new Date(currentDate.getTime() + (i * twoDaysInMilliseconds));
+					const endDate = new Date(startDate.getTime() + dayInMilliseconds);
+					
+					let title = '';
+					if (i === 0) {
+						title = `${diagram_data_success.data[0].cable_name.startLocation}${t(`${_obj_new_section.endpoints.start}`)}#${i + 1}~${t(`${updatedMidpoints[i]?.joinType}`)}#${i + 1}`;
+					} else if (i === updatedInstallations.length - 1) {
+						title = `${t(`${updatedMidpoints[i - 1]?.joinType}`)}#${i}~${diagram_data_success.data[0].cable_name.endLocation}${t(`${_obj_new_section.endpoints.end}`)}`;
+					} else {
+						title = `${t(`${updatedMidpoints[i - 1]?.joinType}`)}#${i}~${t(`${updatedMidpoints[i]?.joinType}`)}#${i + 1}`;
+					}
+					
+					const response = await createNewTasks({
+						approval_status: "Planned",
+						created_at: installation.created_at || new Date().toISOString(),
+						from_page: "projects",
+						notes: installation.notes || "",
+						project: id,
+						task_group_id: 2,
+						start_date: startDate.toISOString(),
+						end_date: endDate.toISOString(),
+						task_type: null,
+						title,
+						project_diagram_id
+					});
+					
+					if (response.data && response.data.length > 0) {
+						installation.task_id = response.data[0].id;
+					}
+					return installation;
+				});
+		  
+				// Wait for all tasks to be created
+				const updatedMidpointsWithTasks = await Promise.all(midpointTaskPromises);
+				const updatedInstallationsWithTasks = await Promise.all(installationTaskPromises);
+				
+				// Update currentObj with task IDs
+				const updatedCurrentObj = {
+					...currentObj,
+					connections: updatedMidpointsWithTasks,
+					installations: updatedInstallationsWithTasks
+				};
+				
+				// Create the project diagram table with task IDs already included
 				const updated_obj_new_section = {
 					..._obj_new_section,
+					midpoints: updatedMidpointsWithTasks,
+					installations: updatedInstallationsWithTasks,
 					project_diagram: project_diagram_id,
 				};
+				
+				const newSectionSuccess = await createNewProjectDiagramTable(updated_obj_new_section);
+				
+				// Handle demolition section if needed
 				const updated_obj_old_section = {
 					..._obj_old_section,
 					project_diagram: project_diagram_id,
 				};
-	
-				const newSectionSuccess = await createNewProjectDiagramTable(updated_obj_new_section);
+				
 				const oldSectionSuccess = await createNewProjectDiagramTable(updated_obj_old_section);
-	
+				
 				if (newSectionSuccess.data && oldSectionSuccess.data) {
 					setCurrentObj({
 						objId: currentNewObj.id,
-						currentObj,
+						currentObj: updatedCurrentObj,
 						nodes,
 						edges,
 						project: id,
