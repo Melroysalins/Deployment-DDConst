@@ -19,6 +19,8 @@ export const customMonthViewPreset = {
 export const resources = [
     { id: 'connection', name: 'Connection', width: 100 },
     { id: 'installation', name: 'Installation', width: 100 },
+    { id: 'metal_fittings', name: 'Metal Fittings', width: 100 },
+    { id: 'completion_test', name: 'Completion Test (AC)', width: 100 },
 ];
 
 
