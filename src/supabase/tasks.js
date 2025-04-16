@@ -2,7 +2,7 @@ import { supabase } from 'lib/api'
 import { deleteByTaskId } from './nestedTasks'
 
 export const createNewTasks = async (data) => {
-	const res = await supabase.from('project_tasks').insert(data)
+	const res = await supabase.from('project_tasks').insert(data).select()
 	return res
 }
 
@@ -25,8 +25,8 @@ export const listAllTasksByProject = async (project) => {
 	return res
 }
 
-export const listFilteredTasks = async (task_group, project) => {
-	const res = await supabase.from('project_tasks').select('*').match({ task_group, project })
+export const listFilteredTasks = async (task_group_id, project) => {
+	const res = await supabase.from('project_tasks').select('*').match({ task_group_id, project })
 	return res
 }
 
