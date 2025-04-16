@@ -34,6 +34,7 @@ import {
 	listFilteredTasks,
 	updateTask,
 	updateNestedTasks,
+	listAllTaskGroups,
 } from 'supabase'
 import TimeRangeEditor from './TimeRangeEditor'
 
@@ -83,54 +84,71 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 	padding: theme.spacing(2),
 }))
 
-const Tasks = () => (
-	<>
-		<Stack gap={2}>
-			<Accordion>
-				<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-					<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-						Metal Fittings Installation
-					</Typography>
-				</AccordionSummary>
-				<AccordionDetails>
-					<Task task_group="Metal Fittings Installation" />
-				</AccordionDetails>
-			</Accordion>
-			<Accordion>
-				<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-					<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-						Installation
-					</Typography>
-				</AccordionSummary>
-				<AccordionDetails>
-					<Task task_group="Installation" />
-				</AccordionDetails>
-			</Accordion>
-			<Accordion>
-				<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-					<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-						Connection
-					</Typography>
-				</AccordionSummary>
-				<AccordionDetails>
-					<Task task_group="Connection" />
-				</AccordionDetails>
-			</Accordion>
-			<Accordion>
-				<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-					<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-						Completion Test (AC)
-					</Typography>
-				</AccordionSummary>
-				<AccordionDetails>
-					<Task task_group="Completion Test (AC)" />
-				</AccordionDetails>
-			</Accordion>
-		</Stack>
-	</>
-)
+const Tasks = () => {
+	const { data: taskGroups, isLoading } = useQuery(['taskGroups'], () => listAllTaskGroups(),
+		{
+			select: (data) => {
+				const workToIdMap = {};
+				console.log('taskGroups', data.data)
+				if (!data) return workToIdMap;
+				data.data.forEach((taskGroup) => {
+					const key = taskGroup.work;
+					workToIdMap[key] = taskGroup.id;
+				});
+				return workToIdMap;
+			}
+		}
+	)
 
-const Task = ({ task_group }) => {
+	if (isLoading) return <div>Loading ...</div>;
+	return (
+		<>
+			<Stack gap={2}>
+				<Accordion>
+					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+							Metal Fittings Installation
+						</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+						<Task task_group="Metal Fittings Installation" task_group_id={taskGroups["Metal Fittings Installation"]} />
+					</AccordionDetails>
+				</Accordion>
+				<Accordion>
+					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+							Installation
+						</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+					<Task task_group="Installation" task_group_id={taskGroups.Installation} />
+					</AccordionDetails>
+				</Accordion>
+				<Accordion>
+					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+							Connection
+						</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+					<Task task_group="Connection" task_group_id={taskGroups.Connection} />
+					</AccordionDetails>
+				</Accordion>
+				<Accordion>
+					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+							Completion Test (AC)
+						</Typography>
+					</AccordionSummary>
+					<AccordionDetails>
+					<Task task_group="Completion Test (AC)" task_group_id={taskGroups["Connection Test (AC)"]} />
+					</AccordionDetails>
+				</Accordion>
+			</Stack>
+		</>)
+}
+
+const Task = ({ task_group, task_group_id }) => {
 	const { id } = useParams()
 
 	const [toast, setToast] = useState(false)
@@ -144,11 +162,13 @@ const Task = ({ task_group }) => {
 	const [selectedRows, setSelectedRows] = useState([])
 
 	const { data: teams } = useQuery(['Teams teams'], () => listAllTeams())
-
-	const { refetch, data: list } = useQuery([`task ${task_group}`], () => listFilteredTasks(task_group, id), {
-		select: (r) => r?.data.map((itm) => ({ ...itm, task_period: [itm.start, itm.end] })),
+	// first we need to find the task_group_id
+	const { refetch, data: list } = useQuery([`task ${task_group}`], () => listFilteredTasks(task_group_id , id), {
+		select: (r) => r?.data.map((itm) => ({ ...itm, task_period: [itm.start_date, itm.end_date] })),
 	})
-
+	// const data = await listFilteredTasks(task_group, id)
+	console.log('list', list)
+	// console.log('data', data)
 	// DELETE CELL BUTTON
 
 	const DeleteCellRenderer = useCallback(({ value }) => {
@@ -421,6 +441,7 @@ const Task = ({ task_group }) => {
 
 Task.propTypes = {
 	task_group: PropTypes.string.isRequired,
+	task_group_id: PropTypes.string.isRequired,
 }
 
 export default Tasks

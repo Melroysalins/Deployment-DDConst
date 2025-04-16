@@ -25,6 +25,17 @@ export const listAllTasksByProject = async (project) => {
 	return res
 }
 
+export const listAllTasksByProject2 = async (project) => {
+	const res = await supabase
+		.from('project_tasks')
+		.select(
+			'*'
+		)
+		.eq('project', project)
+	console.log('res', res)
+	return res
+}
+
 export const listFilteredTasks = async (task_group_id, project) => {
 	const res = await supabase.from('project_tasks').select('*').match({ task_group_id, project })
 	return res
