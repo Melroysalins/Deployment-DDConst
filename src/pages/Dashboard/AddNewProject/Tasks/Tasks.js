@@ -345,8 +345,14 @@ const Task = ({ task_group, task_group_id }) => {
 			{
 				headerName: '',
 				field: 'id',
-				cellRenderer: DeleteCellRenderer,
-				headerComponent: AddButton,
+				cellRenderer: (params) => {
+					// Only render delete button if task_group_id is not 2 and not 3
+					if (params.data.task_group_id !== 2 && params.data.task_group_id !== 3) {
+						return DeleteCellRenderer(params);
+					}
+					return null;
+				},
+				headerComponent: task_group_id !== 2 && task_group_id !== 3 ? AddButton : null,
 				cellStyle: { display: 'flex', justifyContent: 'flex-end' },
 				headerClass: 'header',
 				editable: false,
@@ -364,7 +370,7 @@ const Task = ({ task_group, task_group_id }) => {
 	)
 
 	const handleAdd = () => {
-		createNewTasks({ title: '', notes: '', task_group, project: id }).then(() => refetch())
+		createNewTasks({ title: '', notes: '', task_group_id, project: id }).then(() => refetch())
 	}
 
 	const onCellEditRequest = (event) => {
@@ -377,19 +383,28 @@ const Task = ({ task_group, task_group_id }) => {
 		newItem[field] = newValue
 		const { id } = newItem
 		if (typeof id !== 'string') {
-			if (newItem.task_period[0] && newItem.task_period[1]) {
-				updateNestedTasks(newItem.task_period, newItem.id)
-			}
+			// if (newItem.task_period[0] && newItem.task_period[1]) {
+			// 	updateNestedTasks(newItem.task_period, newItem.id)
+			// }
+			console.log('newItem', newItem)
 			updateTask(
 				{
 					title: newItem.title,
 					team: newItem.team,
 					notes: newItem.notes,
-					start: newItem.task_period ? newItem.task_period[0] : null,
-					end: newItem.task_period ? newItem.task_period[1] : null,
+					start_date: newItem.task_period ? newItem.task_period[0] : null,
+					end_date: newItem.task_period ? newItem.task_period[1] : null,
 				},
 				newItem.id
-			).then(() => refetch())
+			)
+			.then(() => refetch())
+			.catch(error => {
+				console.error('Error updating task:', error);
+				setToast({
+					severity: 'error',
+					message: 'Failed to update task. Please try again.'
+				});
+			});
 		}
 	}
 

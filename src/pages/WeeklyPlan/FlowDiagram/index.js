@@ -505,6 +505,83 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				
 				const connectionTasks = connectionTasksResponse.data || [];
 				const installationTasks = installationTasksResponse.data || [];
+
+				// Update endpoint tasks (start and end points)
+				// Handle start point
+				if (currentObj.endpoints?.start) {
+					const startPointTitle = `${cable_name.startLocation}${t(`${currentObj.endpoints.start}`)}`;
+					if (currentObj.endpoints.start_task_id) {
+						const existingTask = connectionTasks.find(task => task.id === currentObj.endpoints.start_task_id);
+						if (existingTask) {
+							updateTask({
+								title: startPointTitle,
+								notes: currentObj.endpoints.start_notes || "",
+								approval_status: "Approved",
+							}, currentObj.endpoints.start_task_id);
+						}
+					} else {
+						createNewTasks({
+							approval_status: "Planned",
+							created_at: new Date().toISOString(),
+							from_page: "projects",
+							notes: currentObj.endpoints.start_notes || "",
+							project: id,
+							task_group_id: 3,
+							task_type: null,
+							title: startPointTitle,
+							project_diagram_id: currentNewObj.id
+						}).then(response => {
+							if (response.data && response.data.length > 0) {
+								const updatedEndpoints = {
+									...currentObj.endpoints,
+									start_task_id: response.data[0].id
+								};
+								updateProjectDiagramTable({
+									endpoints: updatedEndpoints,
+									project_diagram: res.data[0].id,
+								}, res.data[0].id, false);
+							}
+						});
+					}
+				}
+
+				// Handle end point
+				if (currentObj.endpoints?.end) {
+					const endPointTitle = `${cable_name.endLocation}${t(`${currentObj.endpoints.end}`)}`;
+					if (currentObj.endpoints.end_task_id) {
+						const existingTask = connectionTasks.find(task => task.id === currentObj.endpoints.end_task_id);
+						if (existingTask) {
+							updateTask({
+								title: endPointTitle,
+								notes: currentObj.endpoints.end_notes || "",
+								approval_status: "Approved",
+							}, currentObj.endpoints.end_task_id);
+						}
+					} else {
+						createNewTasks({
+							approval_status: "Planned",
+							created_at: new Date().toISOString(),
+							from_page: "projects",
+							notes: currentObj.endpoints.end_notes || "",
+							project: id,
+							task_group_id: 3,
+							task_type: null,
+							title: endPointTitle,
+							project_diagram_id: currentNewObj.id
+						}).then(response => {
+							if (response.data && response.data.length > 0) {
+								const updatedEndpoints = {
+									...currentObj.endpoints,
+									end_task_id: response.data[0].id
+								};
+								updateProjectDiagramTable({
+									endpoints: updatedEndpoints,
+									project_diagram: res.data[0].id,
+								}, res.data[0].id, false);
+							}
+						});
+					}
+				}
 				
 				// Update connection tasks
 				currentObj.connections?.forEach((connection, i) => {
@@ -632,7 +709,55 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				// Create all tasks first and store their IDs
 				const updatedMidpoints = [..._obj_new_section.midpoints];
 				const updatedInstallations = [..._obj_new_section.installations];
-				
+				const updatedEndpoints = { ..._obj_new_section.endpoints };
+
+				// Create tasks for endpoints
+				const startPointPromise = _obj_new_section.endpoints?.start ? (async () => {
+					const startDate = new Date(currentDate.getTime());
+					const endDate = new Date(startDate.getTime() + dayInMilliseconds);
+					
+					const response = await createNewTasks({
+						approval_status: "Planned",
+						created_at: new Date().toISOString(),
+						from_page: "projects",
+						notes: _obj_new_section.endpoints.start_notes || "",
+						project: id,
+						task_group_id: 3,
+						start_date: startDate.toISOString(),
+						end_date: endDate.toISOString(),
+						task_type: null,
+						title: `${diagram_data_success.data[0].cable_name.startLocation}${t(`${_obj_new_section.endpoints.start}`)}`,
+						project_diagram_id
+					});
+					
+					if (response.data && response.data.length > 0) {
+						updatedEndpoints.start_task_id = response.data[0].id;
+					}
+				})() : Promise.resolve();
+
+				const endPointPromise = _obj_new_section.endpoints?.end ? (async () => {
+					const startDate = new Date(currentDate.getTime() + ((updatedMidpoints.length + 1) * twoDaysInMilliseconds));
+					const endDate = new Date(startDate.getTime() + dayInMilliseconds);
+					
+					const response = await createNewTasks({
+						approval_status: "Planned",
+						created_at: new Date().toISOString(),
+						from_page: "projects",
+						notes: _obj_new_section.endpoints.end_notes || "",
+						project: id,
+						task_group_id: 3,
+						start_date: startDate.toISOString(),
+						end_date: endDate.toISOString(),
+						task_type: null,
+						title: `${diagram_data_success.data[0].cable_name.endLocation}${t(`${_obj_new_section.endpoints.end}`)}`,
+						project_diagram_id
+					});
+					
+					if (response.data && response.data.length > 0) {
+						updatedEndpoints.end_task_id = response.data[0].id;
+					}
+				})() : Promise.resolve();
+
 				// Create tasks for midpoints (connections)
 				const midpointTaskPromises = updatedMidpoints.map(async (connection, i) => {
 					const startDate = new Date(currentDate.getTime() + (i * twoDaysInMilliseconds));
@@ -693,6 +818,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				});
 		  
 				// Wait for all tasks to be created
+				await Promise.all([startPointPromise, endPointPromise]);
 				const updatedMidpointsWithTasks = await Promise.all(midpointTaskPromises);
 				const updatedInstallationsWithTasks = await Promise.all(installationTaskPromises);
 				
@@ -700,7 +826,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				const updatedCurrentObj = {
 					...currentObj,
 					connections: updatedMidpointsWithTasks,
-					installations: updatedInstallationsWithTasks
+					installations: updatedInstallationsWithTasks,
+					endpoints: updatedEndpoints
 				};
 				
 				// Create the project diagram table with task IDs already included
@@ -708,6 +835,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					..._obj_new_section,
 					midpoints: updatedMidpointsWithTasks,
 					installations: updatedInstallationsWithTasks,
+					endpoints: updatedEndpoints,
 					project_diagram: project_diagram_id,
 				};
 				

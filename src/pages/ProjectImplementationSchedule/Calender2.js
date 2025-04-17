@@ -72,13 +72,13 @@ const Calender2 = () => {
             ...metal_fittings.map((metal_fitting, index) => ({
                 id: metal_fitting.id || `metal_fitting-${index + 1}`,
                 resourceId: 'metal_fittings',
-                startDate: metal_fitting.start_date ? new Date(metal_fitting.start).toISOString() : new Date().toISOString(),
-                endDate: metal_fitting.end_date ? new Date(metal_fitting.end).toISOString() : (() => {
+                startDate: metal_fitting.start_date ? new Date(metal_fitting.start_date).toISOString() : new Date().toISOString(),
+                endDate: metal_fitting.end_date ? new Date(metal_fitting.end_date).toISOString() : (() => {
                     const today = new Date();
                     today.setDate(today.getDate() + 3);
                     return today.toISOString();
                 })(),
-                name: metal_fitting.title || `Metal Fitting + ${index + 1}`,
+                name: metal_fitting.title,
             })),
             ...completion_test.map((completion_test, index) => ({
                 id: completion_test.id || `completion_test-${index + 1}`,
