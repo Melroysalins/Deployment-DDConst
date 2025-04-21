@@ -1,12 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from 'react-query';
-import { Scheduler, SchedulerPro, ResourceStore } from '@bryntum/schedulerpro';
+import { Scheduler, SchedulerPro, ResourceStore, EventStore } from '@bryntum/schedulerpro';
 import './Calender2.css';
 import '@bryntum/schedulerpro/schedulerpro.stockholm.css';
 
 import {
+    createNewTasks,
     listAllTasksByProject2,
+    updateTask
 } from 'supabase'
 
 import { customMonthViewPreset, resources } from './SchedulerConfig';
@@ -16,7 +18,7 @@ const Calender2 = () => {
 
     const { id } = useParams()
     const { data: groupedTasks, isLoading, error } = useQuery(
-        ['tasks', id], () =>  listAllTasksByProject2(id),
+        ['tasks', id], () => listAllTasksByProject2(id),
         {
             select: (data) => {
                 const task_groups = {
@@ -31,7 +33,6 @@ const Calender2 = () => {
                     connections: [],
                     completion_test: [],
                 };
-                console.log(data)
                 data.data?.forEach(task => {
                     const groupId = task.task_group_id;
                     if (groupId !== null && task_groups[groupId]) {
@@ -49,8 +50,8 @@ const Calender2 = () => {
         return [
             ...connections.map((connection, index) => ({
                 id: connection.id || `connection-${index + 1}`,
-                resourceId: 'connection',
-                startDate: connection.start_date? new Date(connection.start_date).toISOString() : new Date().toISOString(),
+                resourceId: 'connections',
+                startDate: connection.start_date ? new Date(connection.start_date).toISOString() : new Date().toISOString(),
                 endDate: connection.end_date ? new Date(connection.end_date).toISOString() : (() => {
                     const today = new Date();
                     today.setDate(today.getDate() + 3);
@@ -60,7 +61,7 @@ const Calender2 = () => {
             })),
             ...installations.map((installation, index) => ({
                 id: installation.id,
-                resourceId: 'installation',
+                resourceId: 'installations',
                 startDate: installation.start_date ? new Date(installation.start_date).toISOString() : new Date().toISOString(),
                 endDate: installation.end_date ? new Date(installation.end_date).toISOString() : (() => {
                     const today = new Date();
@@ -93,7 +94,7 @@ const Calender2 = () => {
             })),
         ];
     }, [groupedTasks]);
-    console.log('events', events);
+
     useEffect(() => {
         if (!schedulerRef.current) return;
         const scheduler = new SchedulerPro({
@@ -108,15 +109,15 @@ const Calender2 = () => {
             ],
             resources,
             events,
-                    // onAfterEventSave: (data) => {
-                    //     console.log('after event saved:', data);
-                    // },
-                    // onEventCreated: (data) => {
-                    //     console.log('Event created:', data);
-                    // },
-                    // onAfterEventEdit: (data) => {
-                    //     console.log('after event edited:', data);
-                    // },
+            // onAfterEventSave: (data) => {
+            //     console.log('after event saved:', data);
+            // },
+            // onEventCreated: (data) => {
+            //     console.log('Event created:', data);
+            // },
+            // onAfterEventEdit: (data) => {
+            //     console.log('after event edited:', data);
+            // },
             eventRenderer({ eventRecord }) {
                 return `<div class="custom-event">${eventRecord.name}</div>`;
             },
@@ -126,8 +127,74 @@ const Calender2 = () => {
                 columnLines: true,
             }
         });
+
+        scheduler.on('afterEventSave', ({ eventRecord }) => {
+            const isNewEvent = !events.some(e => e.id === eventRecord.id);
+            const task_groups = {
+                'metal_fittings': 1,
+                'installations': 2,
+                'connections': 3,
+                'completion_test': 4,
+            };
+            console.log('eventRecord.resourceId', eventRecord.resourceId)
+            const groupName = eventRecord.resourceId;
+            const taskGroupId = task_groups[groupName];
+            const formattedData = {
+                task_group_id: taskGroupId,
+                start_date: eventRecord.startDate,
+                end_date: eventRecord.endDate,
+                title: eventRecord.name,
+            };
+            if (isNewEvent) {
+                formattedData.project = id
+                createNewTasks(formattedData).then((res) => {
+                    console.log('Backend created:', res);
+                    if (res.error === null) {
+                        console.log('Task created successfully ', res);
+                    }
+                    else { 
+                        console.log('Error creating task:', res.error.message);
+                    }
+                });
+            }
+            else {
+                updateTask(formattedData, eventRecord.id).then((res) => {
+                    console.log('Backend updated:', res);
+                    if (res.error === null) {
+                        console.log('Task updated successfully');
+                    }
+                    else { 
+                        console.log('Error updating task:', res.error.message);
+                    }
+                })
+            }
+        });
+        // scheduler.on('afterEventUpdate', ({ eventRecord }) => {
+        //     const formattedData = {
+        //         id: eventRecord.id,
+        //         resourceId: eventRecord.resourceId,
+        //         startDate: eventRecord.startDate,
+        //         endDate: eventRecord.endDate,
+        //         name: eventRecord.name,
+        //     };
+        //     console.log('Event updated:', formattedData);
+        // });
+
+        // scheduler.on('aftferEventEdit', ({ eventRecord }) => {
+        //     const formattedData = {
+        //         id: eventRecord.id,
+        //         resourceId: eventRecord.resourceId,
+        //         startDate: eventRecord.startDate,
+        //         endDate: eventRecord.endDate,
+        //         name: eventRecord.name,
+        //     };
+        //     // Send the formatted data to your backend
+        //     console.log('Event updated:', formattedData);
+        //     // sendDataToBackend('update', formattedData);
+        // });
         return () => scheduler.destroy();
     }, [events]);
+
     // useEffect(() => {
     //     console.log('1')
     //     let scheduler;
@@ -186,7 +253,7 @@ const Calender2 = () => {
     //         // console.log('groupedTasksData', groupedTasksData())
     //         if (!schedulerRef.current || events.length === 0) return;
     //     // Check if objs is defined and has the expected structure
-        
+
     //         // approval_status
     //         // :
     //         // "Planned"
@@ -237,7 +304,7 @@ const Calender2 = () => {
     //         ],
     //         resources,
     //         listeners: {
-                
+
     //         },
     //         onAfterEventSave: (data) => {
     //             console.log('after event saved:', data);
@@ -283,7 +350,7 @@ const Calender2 = () => {
     //         console.log('Event saved  wit h event:', formattedData);
     //         // sendDataToBackend('update', formattedData);
     //     });
-        
+
     //     const { eventStore } = scheduler;
     //     eventStore.on('add', ({ records }) => {
     //         records.forEach((record) => {
@@ -300,7 +367,7 @@ const Calender2 = () => {
     //         // Send the updated data to your backend
     //         // sendDataToBackend('update', updatedData);
     //     });
-        
+
     //     // Listener for event deletions
     //     eventStore.on('remove', ({ records }) => {
     //         records.forEach(event => {
