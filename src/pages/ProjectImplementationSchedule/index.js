@@ -100,11 +100,11 @@ const ProjectImplementationSchedule = () => {
 				</MuiButton>
 			</Box>
 
-			<Page title="PS">
+			{/* <Page title="PS">
 				<Stack px={2} mt={7}>
 					<Calendar />
 				</Stack>
-			</Page>
+			</Page> */}
 			{isDrawerOpen && <BasicTabs open={isDrawerOpen} setopen={setisDrawerOpen} />}
 			{openRequestApproval && <RequestApproval />}
 			<Page title="PS">

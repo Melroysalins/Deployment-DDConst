@@ -16,17 +16,18 @@ header {
     font-size: 12px;
     font-weight: bold;
     /* color: #fff; */
+    background-color: rgb(188, 177, 231) !important; /* Light purple for events */
     padding: 5px;
 }
 
 /* Highlight weekends */
 .b-sch-timerange {
-    background-color: rgba(255, 0, 0, 0.1); /* Light red for weekends */
+    background-color: rgba(212, 11, 11, 0.1); /* Light red for weekends */
 }
 
 /* Style for the timeline header */
 .b-sch-header-timeaxis-cell {
-    /* background-color: #e0e0e0; */
+    /* background-color: #d16262; */
     font-size: 13px;
     font-weight: bold;
     /* color: #333; */

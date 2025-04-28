@@ -27,3 +27,21 @@ export const resources = [
 export const columns = [
     { text: 'Work / Team', field: 'name', width: 200 }
 ]
+
+export const dependencyTypeMap = {
+    0: 'StartToStart',
+    1: 'StartToEnd',
+    2: 'EndToStart',
+    3: 'EndToEnd'
+}
+
+const lagUnitMap = {
+    ms: 'ms', // milliseconds
+    s: 's', // seconds
+    m: 'm', // minutes
+    h: 'h', // hours
+    d: 'd', // days
+    w: 'w', // weeks
+    M: 'M', // months
+    y: 'y' // years
+};
