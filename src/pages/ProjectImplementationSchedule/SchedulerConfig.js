@@ -45,3 +45,12 @@ const lagUnitMap = {
     M: 'M', // months
     y: 'y' // years
 };
+
+
+// Utility functions
+export const getTimelineRange = () => {
+    const today = new Date();
+    const startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1); // 1 month in the past
+    const endDate = new Date(today.getFullYear(), today.getMonth() + 2, 0); // 1 month in the future
+    return { startDate, endDate };
+};

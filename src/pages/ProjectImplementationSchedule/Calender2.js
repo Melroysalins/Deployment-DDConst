@@ -13,7 +13,7 @@ import {
     getAllTaskDependencyByProject,
 } from 'supabase'
 
-import { customMonthViewPreset, resources } from './SchedulerConfig';
+import { customMonthViewPreset, resources, getTimelineRange } from './SchedulerConfig';
 
 
 const Calender2 = () => {
@@ -137,8 +137,8 @@ const Calender2 = () => {
             appendTo: schedulerRef.current,
             autoHeight: true,
             width: '100%',
-            // startDate: new Date(2025, 3, 4),
-            // endDate: new Date(2025, 3, 30),
+            startDate: new Date(2025, 3, 4),
+            endDate: new Date(2025, 5, 30),
             viewPreset: customMonthViewPreset,
             multiEventSelect: true,
             columns: [
@@ -201,7 +201,7 @@ const Calender2 = () => {
             },
 
             features: {
-                // dependencies: true,
+                
                 dependencyEdit: true,
                 eventDrag: {
                     constrainDragToTimeline: true,
@@ -211,7 +211,8 @@ const Calender2 = () => {
                 eventResize: true,
                 // Add event drag selection feature
                 eventDragSelect: {
-                    disabled: false,  
+                    disabled: false, 
+                    allowSelect: true, // Allow selecting events
                     showTooltip: true // Show tooltip with selected events count
                 },
                 eventCopyPaste: {
@@ -230,14 +231,14 @@ const Calender2 = () => {
                 //         }
                 // },
                 // Optionally add tooltip to show scheduling conflicts
-                // eventTooltip: {
-                //     template: data => {
-                //         return `
-                //         <div class="b-sch-event-title">${data.eventRecord.name}</div>
-                //         <div class="b-sch-event-time">${DateHelper.format(data.eventRecord.startDate, 'HH:mm')} - ${DateHelper.format(data.eventRecord.endDate, 'HH:mm')}</div>
-                //     `;
-                //     }
-                // }
+                eventTooltip: {
+                    template: data => {
+                        return `
+                        <div class="b-sch-event-title">${data.eventRecord.name}</div>
+                        <div class="b-sch-event-time">${DateHelper.format(data.eventRecord.startDate, 'HH:mm')} - ${DateHelper.format(data.eventRecord.endDate, 'HH:mm')}</div>
+                    `;
+                    }
+                }
             },
         });
 
