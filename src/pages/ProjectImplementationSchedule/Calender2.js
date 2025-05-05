@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from 'react-query';
-import { Scheduler, SchedulerPro, ResourceStore, DependencyStore, DateHelper, ProjectModel, EventStore, PredecessorsTab, SuccessorsTab } from '@bryntum/schedulerpro';
+import { Scheduler, SchedulerPro, ResourceStore, DependencyStore, DateHelper, ProjectModel, EventStore, PredecessorsTab, SuccessorsTab, Dependencies, DependencyEdit, DependencyMenu } from '@bryntum/schedulerpro';
+
 import './Calender2.css';
 import '@bryntum/schedulerpro/schedulerpro.stockholm.css';
 
@@ -9,14 +10,18 @@ import {
     createNewTasks,
     listAllTasksByProject2,
     updateTask,
+    deleteTasks,
     createTaskDependency,
+    deleteTaskDependency,
     getAllTaskDependencyByProject,
 } from 'supabase'
 
-import { customMonthViewPreset, resources, getTimelineRange } from './SchedulerConfig';
+import { customMonthViewPreset, resources, features, getTimelineRange, dependencyTypeMap } from './SchedulerConfig';
+import { forEach } from 'lodash';
 
 
 const Calender2 = () => {
+    const [range, setRange] = React.useState(getTimelineRange());
     const schedulerRef = useRef(null);
     const { id } = useParams()
     const { data, isLoading, error } = useQuery(
@@ -129,7 +134,13 @@ const Calender2 = () => {
     const project = new ProjectModel({
         eventsData: [...events],
         resourcesData: resources,
-        dependenciesData: dependencies,
+        // dependenciesData: dependencies,
+        dependencyStore: new DependencyStore({
+            data: dependencies,
+            autoLoad: true,
+            
+        }),
+        // cascadeChanges: false,
     });
     useEffect(() => {
         if (!schedulerRef.current) return;
@@ -137,8 +148,11 @@ const Calender2 = () => {
             appendTo: schedulerRef.current,
             autoHeight: true,
             width: '100%',
-            startDate: new Date(2025, 3, 4),
-            endDate: new Date(2025, 5, 30),
+            infiniteScroll: true,
+            // scrollable: true,
+            autoAdjustTimeAxis: true,
+            startDate: range.startDate,
+            endDate: range.endDate,
             viewPreset: customMonthViewPreset,
             multiEventSelect: true,
             columns: [
@@ -146,8 +160,16 @@ const Calender2 = () => {
             ],
             // resources,
             // events,
-            // dependencyStore,
             project,
+            // dependencyStore: new DependencyStore({
+            //     data: dependencies,
+            //     autoLoad: true,
+            //     autoScheduleOnDependencyAdd: false,
+            // }),
+            // eventStore: new EventStore({
+            //     data: events,
+            //     autoLoad: true,
+            // }),
             // onAfterEventSave: (data) => {
             //     console.log('after event saved:', data);
             // },
@@ -165,14 +187,27 @@ const Calender2 = () => {
                     console.log('Dependency saved:', data);
                 },
                 beforeDependencyDelete: (data) => {
-                    console.log('Dependency delete:', data);
+                    console.log('Before dependency delete:', data);
                 },
 
                 eventDragStart: (data) => {
                     console.log('Event drag started:', data);
                 },
-                eventDrop: (data) => {
-                    console.log('Event drag ended:', data);
+                eventDrop: ({ eventRecords}) => {
+                    console.log('Event drag ended:', eventRecords);
+                    forEach(eventRecords, (event) => {
+                        const start_date = event.data.startDate
+                        const end_date = event.data.endDate
+                        updateTask( {start_date, end_date}, event.data.id).then((res) => {
+                            if (res.status >= 200 && res.status < 300) {
+                                console.log('Task updated successfully:', res.data);
+                            }
+                            else {
+                                console.error('Error updating: ', res.error.message);
+                            }
+                        }
+                        );
+                    });
                 },
                 // eventDragAbort: (data) => {
                 //     console.log('Event drag aborted:', data);
@@ -192,65 +227,76 @@ const Calender2 = () => {
                 eventDelete: ({ eventRecord }) => {
                     console.log('Event deleted:', eventRecord.name);
                 },
-                eventEdit: ({ eventRecord }) => {
-                    console.log('Event edited:', eventRecord.name);
+                beforeEventDelete: ({eventRecords}) => {
+                    console.log('Before event delete:', data);
+                    const eventIds = eventRecords.map(eventRecord => eventRecord.id);
+
+                    // Check if any event has dependencies
+                    const hasDependencies = eventRecords.some(eventRecord => {
+                        const dependencies = scheduler.dependencyStore.getEventDependencies(eventRecord); // Use scheduler.getDependenciesForEvent
+
+                        if (dependencies.length > 0) {
+                            console.warn(`Cannot delete event "${eventRecord.name}" because it has dependencies.`);
+                            alert(`Cannot delete event "${eventRecord.name}" because it has dependencies. Please remove the dependencies first.`);
+                            return true; // Found an event with dependencies
+                        }
+                        return false; // No dependencies for this event
+                    });
+                    if (hasDependencies) {
+                        return false;
+                    }
+                    // forEach(eventRecords, (eventRecord) => {
+                    //     const dependencies = scheduler.dependencyStore.getEventDependencies(eventRecord);
+                    //     console.log('dependencies', dependencies);
+                    //     console.log(dependencies.length);
+                    //     if (dependencies.length > 0) {
+                    //         console.warn(`Cannot delete event "${eventRecord.name}" because it has dependencies.`);
+                    //         console.warn(`Cannot delete event "${eventRecord.name}" because it has dependencies.`);
+                    //         // Replace this with a custom notification or modal
+                    //         // Example: showNotification({ message: `Cannot delete event "${eventRecord.name}" because it has dependencies. Please remove the dependencies first.`, type: 'warning' });
+                    //         return false; // Prevent deletion for all events
+                    //     }
+                    // });
+                    console.log(`Events to be deleted:`, eventIds);
+                    // return false;
+                    // Call backend to delete multiple tasks
+                    return deleteTasks(eventIds)
+                        .then((res) => {
+                            console.log(`Backend response:`, res);
+                            if (res.error === null) {
+                                console.log(`Events deleted successfully from backend:`, eventIds);
+                                return true; // Allow deletion
+                            }
+                            // } else {
+                                console.error(`Error deleting events:`, res.error.message);
+                                alert(`Error deleting events: ${res.error.message}`);
+                                return false; // Prevent deletion
+                            // }
+                        })
+                        .catch((err) => {
+                            console.error(`Error deleting events:`, err);
+                            alert(`Error deleting events: ${err.message}`);
+                            return false; // Prevent deletion
+                        });
+                    // Perform any necessary checks and like do not remove if there is any dependecny connection ask user to remove dependecy first
+                    // return false; // Prevent deletion
+                    // return true; // Allow deletion
+                    // call backend and db sends success we remove it from frontedn as well
+                },
+                afterEventEdit: ({source, action}) => {
+                    console.log('After event edit listener:', action);
                 },
             },
             eventRenderer({ eventRecord }) {
                 return `<div class="custom-event">${eventRecord.name}</div>`;
             },
-
-            features: {
-                
-                dependencyEdit: true,
-                eventDrag: {
-                    constrainDragToTimeline: true,
-                    showExactDropPosition: true,
-                    constrainDragToResource: true // <-- Only allow dragging within the same row/resource
-                },
-                eventResize: true,
-                // Add event drag selection feature
-                eventDragSelect: {
-                    disabled: false, 
-                    allowSelect: true, // Allow selecting events
-                    showTooltip: true // Show tooltip with selected events count
-                },
-                eventCopyPaste: {
-                    disabled: false
-                },
-                dependencies: {
-                    allowDependencyCreation: true
-                },
-                // taskEdit: {
-                //     items: {
-                //             // SuccessorsTab: true,
-                //         // PredecessorsTab: true,
-                //         predecessorsTab: true,
-                //         successorsTab: true,
-                //             notesTab: true,
-                //         }
-                // },
-                // Optionally add tooltip to show scheduling conflicts
-                eventTooltip: {
-                    template: data => {
-                        return `
-                        <div class="b-sch-event-title">${data.eventRecord.name}</div>
-                        <div class="b-sch-event-time">${DateHelper.format(data.eventRecord.startDate, 'HH:mm')} - ${DateHelper.format(data.eventRecord.endDate, 'HH:mm')}</div>
-                    `;
-                    }
-                }
-            },
+            features,
         });
 
-        scheduler.on('afterDragCreate', ({ source, target, dependencyRecord }) => {
-            console.log('Dependency created via drag:', dependencyRecord);
-        });
-        const dependencyTypeMap = {
-            0: 'StartToStart',
-            1: 'StartToEnd',
-            2: 'EndToStart',
-            3: 'EndToEnd'
-        }
+        // scheduler.on('afterDragCreate', ({ source, target, dependencyRecord }) => {
+        //     console.log('Dependency created via drag:', dependencyRecord);
+        // });
+    
         scheduler.dependencyStore.on('add', ({ records }) => {
             records.forEach(dep => {
                 console.log('New dependency created: from', dep.fromEvent, ' to  → ', dep.toEvent);
@@ -278,9 +324,26 @@ const Calender2 = () => {
             console.log('Changes:', changes);
         });
         scheduler.dependencyStore.on('remove', ({ records }) => {
+            console.log('Dependency removed:', records);
             records.forEach(dep => {
                 console.log('Dependency removed:', dep);
                 // sendDependencyToBackend('delete', dep.id);
+                deleteTaskDependency(dep.data.id).then((res) => {
+                    console.log('Backend dependency deleted:', res);
+                    if (res.error === null) {
+                        console.log('Dependency deleted successfully:', res);
+                        // return true;
+                    }
+                    else {
+                    console.error('Error deleting dependency:', res.error);
+                    alert('Error deleting dependency:', res.error);
+                    // return false; // Prevent deletion if there's an error
+                    }
+                }).catch((err) => {
+                    console.error('Error deleting dependency:', err);
+                    alert('Error deleting dependency:', err.message);
+                    // return false; // Prevent deletion if there's an error
+                });
             });
         }
         );
@@ -307,9 +370,14 @@ const Calender2 = () => {
                     console.log('Backend created:', res);
                     if (res.error === null) {
                         console.log('Task created successfully ', res);
+                        // eventRecord.setId(res.data[0].id)
+                        eventRecord.id = res.data[0].id
+                        eventRecord.commit();
+                        console.log('Event created:', eventRecord);
                     }
                     else { 
                         console.log('Error creating task:', res.error.message);
+                        eventRecord.remove();
                     }
                 });
             }
@@ -346,6 +414,7 @@ const Calender2 = () => {
             console.log('Event cancelled:', formattedData);
             // sendDataToBackend('cancel', formattedData);
         });
+        
         // scheduler.on('afterEventEdit', (data) => {
         //     console.log('after event edited: ', data);
         //     // const formattedData = {
@@ -360,7 +429,7 @@ const Calender2 = () => {
         //     // sendDataToBackend('update', formattedData);
         // });
         scheduler.on('afterEventEdit', ({ source, action, eventEdit, eventRecord, resourceRecord, eventElement, editor }) => {
-            console.log('Event edited:', eventRecord.name);
+            // console.log('Event edited:', eventRecord.name);
             console.log('Event edit action:', action); // 'edit' or 'resize'
         });
         return () => scheduler.destroy();
