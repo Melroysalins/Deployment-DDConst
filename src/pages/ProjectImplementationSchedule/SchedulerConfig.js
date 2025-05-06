@@ -58,7 +58,6 @@ export const features = {
             generalTab: true,
             predecessorsTab: true,
             successorsTab: true,
-            // ... other tabs
         }
     },
     // eventEdit: {
