@@ -460,415 +460,401 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		}
 	}
 
-	const handleSaveButtonClick = async (currentNewObj) => {
-		setloading(true);
-		const { nodes, edges, currentObj, project, isDemolition, cable_name, cable_type, demolition_type, nodes_demolition, edges_demolition } = currentNewObj;
-		const isEdit = project;
-		const diagram_data = { project: id, isDemolition, cable_name, cable_type, demolition_type };
-		const _obj_new_section = {
-			nodes,
-			edges,
-			endpoints: currentObj?.endpoints || [],
-			midpoints: currentObj?.connections || [],
-			installations: currentObj?.installations || [],
-			length: currentObj?.length || [],
-			isDemolition: false,
-		};
-		const _obj_old_section = {
-			nodes: nodes_demolition,
-			edges: edges_demolition,
-			endpoints: currentObj?.endpointsDemolition || [],
-			midpoints: currentObj?.demolitions || [],
-			installations: currentObj?.demolitionInstallations || [],
-			length: currentObj?.length_demolition || [],
-			isDemolition: true,
-		};
+	const createTasksForEndpoints = async (endpoints, cable_name, project_diagram_id, isEdit = false, connectionTasks = [], isDemolition) => {
+		if (!endpoints?.start && !endpoints?.end) return endpoints;
 		
-		if (isEdit) {
-			const res = await updateProjectDiagram(diagram_data, currentNewObj.id);
-			if (res.data) {
-				const updated_obj_new_section = {
-					..._obj_new_section,
-					project_diagram: res.data[0].id,
-				};
-				const save1 = await updateProjectDiagramTable(updated_obj_new_section, res.data[0].id, false)
-				const updated_obj_old_section = {
-					..._obj_old_section,
-					project_diagram: res.data[0].id,
-				};
-				const save2 = await updateProjectDiagramTable(updated_obj_old_section, res.data[0].id, true)
-				
-				// Update tasks for connections and installations
-				// First, get existing tasks
-				const connectionTasksResponse = await listFilteredTasks(3, id);
-				const installationTasksResponse = await listFilteredTasks(2, id);
-				
-				const connectionTasks = connectionTasksResponse.data || [];
-				const installationTasks = installationTasksResponse.data || [];
+		const updatedEndpoints = { ...endpoints };
+		
+		// Initialize task ID arrays
+		updatedEndpoints.start_task_id = [];
+		updatedEndpoints.end_task_id = [];
 
-				// Update endpoint tasks (start and end points)
-				// Handle start point
-				if (currentObj.endpoints?.start) {
-					const startPointTitle = `${cable_name.startLocation}${t(`${currentObj.endpoints.start}`)}`;
-					if (currentObj.endpoints.start_task_id) {
-						const existingTask = connectionTasks.find(task => task.id === currentObj.endpoints.start_task_id);
-						if (existingTask) {
-							updateTask({
-								title: startPointTitle,
-								notes: currentObj.endpoints.start_notes || "",
-								approval_status: "Approved",
-							}, currentObj.endpoints.start_task_id);
-						}
-					} else {
-						createNewTasks({
+		// Handle start point
+		if (endpoints.start) {
+			const startTasksPromises = endpoints.startStatuses.map(async (status, i) => {
+				const taskTitle = `${cable_name.startLocation}${t(`${endpoints.start}`)}, ${i + 1}T/L`;
+
+				if (isEdit && endpoints.start_task_id) {
+					const existingTask = connectionTasks.find(task => task.id === endpoints.start_task_id[i]);
+					if (existingTask) {
+						await updateTask({
+							title: taskTitle,
+							notes: "",
+							approval_status: "Approved",
+						}, endpoints.start_task_id[i]);
+					}
+				} else {
+					try {
+						const response = await createNewTasks({
 							approval_status: "Planned",
 							created_at: new Date().toISOString(),
 							from_page: "projects",
-							notes: currentObj.endpoints.start_notes || "",
-							project: id,
-							task_group_id: 3,
-							task_type: null,
-							title: startPointTitle,
-							project_diagram_id: currentNewObj.id
-						}).then(response => {
-							if (response.data && response.data.length > 0) {
-								const updatedEndpoints = {
-									...currentObj.endpoints,
-									start_task_id: response.data[0].id
-								};
-								updateProjectDiagramTable({
-									endpoints: updatedEndpoints,
-									project_diagram: res.data[0].id,
-								}, res.data[0].id, false);
-							}
-						});
-					}
-				}
-
-				// Handle end point
-				if (currentObj.endpoints?.end) {
-					const endPointTitle = `${cable_name.endLocation}${t(`${currentObj.endpoints.end}`)}`;
-					if (currentObj.endpoints.end_task_id) {
-						const existingTask = connectionTasks.find(task => task.id === currentObj.endpoints.end_task_id);
-						if (existingTask) {
-							updateTask({
-								title: endPointTitle,
-								notes: currentObj.endpoints.end_notes || "",
-								approval_status: "Approved",
-							}, currentObj.endpoints.end_task_id);
-						}
-					} else {
-						createNewTasks({
-							approval_status: "Planned",
-							created_at: new Date().toISOString(),
-							from_page: "projects",
-							notes: currentObj.endpoints.end_notes || "",
-							project: id,
-							task_group_id: 3,
-							task_type: null,
-							title: endPointTitle,
-							project_diagram_id: currentNewObj.id
-						}).then(response => {
-							if (response.data && response.data.length > 0) {
-								const updatedEndpoints = {
-									...currentObj.endpoints,
-									end_task_id: response.data[0].id
-								};
-								updateProjectDiagramTable({
-									endpoints: updatedEndpoints,
-									project_diagram: res.data[0].id,
-								}, res.data[0].id, false);
-							}
-						});
-					}
-				}
-				
-				// Update connection tasks
-				currentObj.connections?.forEach((connection, i) => {
-					const taskTitle = `#${connection.joinType}${i + 1}`;
-					
-					// If connection already has a task_id, use it to find the task
-					if (connection.task_id) {
-						const existingTask = connectionTasks.find(task => task.id === connection.task_id);
-						
-						if (existingTask) {
-							// Update existing task using the stored ID
-							updateTask({
-								title: taskTitle,
-								notes: connection.notes || "",
-								approval_status: "Approved",
-							}, connection.task_id);
-						}
-					}  else {
-						// Task ID exists but task not found - create new task
-						const startDate = new Date();
-						startDate.setDate(startDate.getDate() + (i * 2));
-						const endDate = new Date(startDate);
-						endDate.setDate(endDate.getDate() + 1);
-						
-						createNewTasks({
-							approval_status: "Planned",
-							created_at: connection.created_at || new Date().toISOString(),
-							from_page: "projects",
-							notes: connection.notes || "",
+							notes: "",
 							project: id,
 							task_group_id: 3,
 							task_type: null,
 							title: taskTitle,
-							project_diagram_id: currentNewObj.id
-						}).then(response => {
-							// Store the new task ID in the connection object
-							if (response.data && response.data.length > 0) {
-								connection.task_id = response.data[0].id;
-								
-								// Update the connection in the database with the task_id
-								const updatedConnections = [...currentObj.connections];
-								updatedConnections[i] = connection;
-								
-								// Update the project diagram table with the new connections
-								updateProjectDiagramTable({
-									midpoints: updatedConnections,
-									project_diagram: res.data[0].id,
-								}, res.data[0].id, false);
-							}
+							project_diagram_id,
+							tl: i + 1,
+							isDemolition,
 						});
+
+						if (response?.data?.[0]) {
+							// Append the new task ID to the start_task_id array
+							updatedEndpoints.start_task_id.push(response.data[0].id);
+						} else {
+							console.error(`Failed to create task for start point: ${taskTitle}`, response);
+						}
+					} catch (error) {
+						console.error(`Error creating task for start point: ${taskTitle}`, error);
 					}
-				});
-				
-				// Update installation tasks
-				currentObj.installations?.forEach((installation, i) => {
-					let title = '';
-					if (i === 0) {
-						title = `${cable_name.startLocation}${t(`${currentObj.endpoints.start}`)}#${i + 1}~${t(`${currentObj.connections[i]?.joinType}`)}#${i + 1}`;
-					} else if (i === currentObj.installations.length - 1) {
-						title = `${t(`${currentObj.connections[i - 1]?.joinType}`)}#${i}~${cable_name.endLocation}${t(`${currentObj.endpoints.end}`)}`;
-					} else {
-						title = `${t(`${currentObj.connections[i - 1]?.joinType}`)}#${i}~${t(`${currentObj.connections[i]?.joinType}`)}#${i + 1}`;
+				}
+			});
+
+			await Promise.all(startTasksPromises);
+		}
+
+		// Handle end point
+		if (endpoints.end) {
+			const endStatuses = endpoints.endStatuses || [];
+			const endPointTitle = `${cable_name.endLocation}${t(`${endpoints.end}`)}`;
+
+			const endTasksPromises = endStatuses.map(async (status, i) => {
+				const taskTitle = `${endPointTitle}, ${i + 1}T/L`;
+
+				if (isEdit && endpoints.end_task_id) {
+					const existingTask = connectionTasks.find(task => task.id === endpoints.end_task_id[i]);
+					if (existingTask) {
+						await updateTask({
+							title: taskTitle,
+							notes: "",
+							approval_status: "Approved",
+						}, endpoints.end_task_id[i]);
 					}
-					
-					// If installation already has a task_id, use it to find the task
-					if (installation.task_id) {
-						const existingTask = installationTasks.find(task => task.id === installation.task_id);
-						
-						if (existingTask) {
-							// Update existing task using the stored ID
-							updateTask({
-								title,
-								notes: installation.notes || "",
-								approval_status: "Approved"
-							}, installation.task_id);
-						} 
-					} else {
-						// Task ID exists but task not found - create new task
-						const startDate = new Date();
-						startDate.setDate(startDate.getDate() + (i * 2));
-						const endDate = new Date(startDate);
-						endDate.setDate(endDate.getDate() + 1);
-						
-						createNewTasks({
+				} else {
+					try {
+						const response = await createNewTasks({
 							approval_status: "Planned",
-							created_at: installation.created_at || new Date().toISOString(),
+							created_at: new Date().toISOString(),
 							from_page: "projects",
-							notes: installation.notes || "",
+							notes: "",
 							project: id,
-							task_group_id: 2,
+							task_group_id: 3,
 							task_type: null,
-							title,
-							project_diagram_id: currentNewObj.id
-						}).then(response => {
-							// Store the new task ID in the installation object
-							if (response.data && response.data.length > 0) {
-								installation.task_id = response.data[0].id;
-								
-								// Update the installations in the database with the task_id
-								const updatedInstallations = [...currentObj.installations];
-								updatedInstallations[i] = installation;
-								
-								// Update the project diagram table with the new installations
-								updateProjectDiagramTable({
-									installations: updatedInstallations,
-									project_diagram: res.data[0].id,
-								}, res.data[0].id, false);
-							}
+							title: taskTitle,
+							project_diagram_id,
+							tl: i + 1,
+							isDemolition,
 						});
-					}
-				});
-				
 
+						if (response?.data?.[0]) {
+							// Append the new task ID to the end_task_id array
+							updatedEndpoints.end_task_id.push(response.data[0].id);
+						} else {
+							console.error(`Failed to create task for end point: ${taskTitle}`, response);
+						}
+					} catch (error) {
+						console.error(`Error creating task for end point: ${taskTitle}`, error);
+					}
+				}
+			});
+
+			await Promise.all(endTasksPromises);
+		}
+
+		// Update the project diagram table with the new endpoints
+		updateProjectDiagramTable({
+			endpoints: updatedEndpoints,
+			project_diagram: project_diagram_id,
+		}, project_diagram_id, isDemolition); // Pass the isDemolition flag
+
+		return updatedEndpoints;
+	};
+
+	const createOrUpdateConnectionTasks = async (connections, project_diagram_id, isEdit = false, connectionTasks = [], isDemolition) => {
+		const updatedConnections = await Promise.all(connections.map(async (connection, i) => {
+			const connectionStatuses = connection.statuses || []; // Assuming this is an array of statuses
+			const taskPromises = connectionStatuses.map(async (status, j) => {
+				const taskTitle = `#${connection.joinType}${i + 1}, ${j + 1}T/L`; // Create a unique title for each status
+
+				if (isEdit && connection.task_id) {
+					const existingTask = connectionTasks.find(task => task.id === connection.task_id[j]);
+					if (existingTask) {
+						await updateTask({
+							title: taskTitle,
+							notes: connection.notes || "",
+							approval_status: "Approved",
+						}, connection.task_id[j]);
+						return connection;
+					}
+				}
+
+				const response = await createNewTasks({
+					approval_status: "Planned",
+					created_at: connection.created_at || new Date().toISOString(),
+					from_page: "projects",
+					notes: "",
+					project: id,
+					task_group_id: 3,
+					task_type: null,
+					title: taskTitle,
+					project_diagram_id,
+					isDemolition,
+					tl: j + 1
+				});
+
+				if (response.data?.[0]) {
+					// Push the new task ID to the connection's task_id array
+					if (!connection.task_id) {
+						connection.task_id = []; // Initialize if it doesn't exist
+					}
+					connection.task_id.push(response.data[0].id); // Store the task_id
+					return { ...connection, task_id: connection.task_id };
+				}
+				return connection;
+			});
+
+			// Wait for all task promises to resolve
+			await Promise.all(taskPromises);
+			return connection; // Return the connection object
+		}));
+
+		// Update the project diagram table with the new connections
+		await updateProjectDiagramTable({
+			midpoints: updatedConnections,
+			project_diagram: project_diagram_id,
+		}, project_diagram_id, isDemolition); // Pass the isDemolition flag
+
+		return updatedConnections; // Return the updated connections
+	};
+
+	const createOrUpdateInstallationTasks = async (installations, connections, endpoints, cable_name, project_diagram_id, isEdit = false, installationTasks = [], isDemolition) => {
+		const updatedInstallations = await Promise.all(installations.map(async (installation, i) => {
+			const installationStatuses = installation.statuses || []; // Assuming this is an array of statuses
+			const taskPromises = installationStatuses.map(async (status, j) => {
+				let title = '';
+				if (i === 0) {
+					title = `${cable_name.startLocation}${t(`${endpoints.start}`)}#${i + 1}~${t(`${connections[i]?.joinType}`)}#${i + 1}, ${j + 1}T/L`;
+				} else if (i === installations.length - 1) {
+					title = `${t(`${connections[i - 1]?.joinType}`)}#${i}~${cable_name.endLocation}${t(`${endpoints.end}`)}, ${j + 1}T/L`;
+				} else {
+					title = `${t(`${connections[i - 1]?.joinType}`)}#${i}~${t(`${connections[i]?.joinType}`)}#${i + 1}, ${j + 1}T/L`;
+				}
+
+				if (isEdit && installation.task_id) {
+					const existingTask = installationTasks.find(task => task.id === installation.task_id[j]);
+					if (existingTask) {
+						await updateTask({
+							title,
+							notes: "",
+							approval_status: "Approved"
+						}, installation.task_id[j]);
+						return installation;
+					}
+				}
+
+				const response = await createNewTasks({
+					approval_status: "Planned",
+					created_at: installation.created_at || new Date().toISOString(),
+					from_page: "projects",
+					notes: "",
+					project: id,
+					task_group_id: 2,
+					task_type: null,
+					title,
+					project_diagram_id,
+					isDemolition,
+					tl: j + 1
+				});
+
+				if (response.data?.[0]) {
+					if (!installation.task_id) {
+						installation.task_id = []; // Initialize if it doesn't exist
+					}
+					installation.task_id.push(response.data[0].id); // Store the task_id
+					return { ...installation, task_id: installation.task_id };
+				}
+				return installation;
+			});
+
+			// Wait for all task promises to resolve
+			await Promise.all(taskPromises);
+			return installation; // Return the installation object
+		}));
+
+		// Update the project diagram table with the new installations
+		await updateProjectDiagramTable({
+			installations: updatedInstallations,
+			project_diagram: project_diagram_id,
+		}, project_diagram_id, isDemolition); // Pass the isDemolition flag
+
+		return updatedInstallations; // Return the updated installations
+	};
+
+	const handleSaveButtonClick = async (currentNewObj) => {
+		try {
+			setloading(true);
+			const { nodes, edges, currentObj, project, isDemolition, cable_name, cable_type, demolition_type, nodes_demolition, edges_demolition } = currentNewObj;
+			const isEdit = project;
+	
+			// Prepare diagram data
+			const diagram_data = { project: id, isDemolition, cable_name, cable_type, demolition_type };
+			const _obj_new_section = {
+				nodes,
+				edges,
+				endpoints: currentObj?.endpoints || [],
+				midpoints: currentObj?.connections || [],
+				installations: currentObj?.installations || [],
+				length: currentObj?.length || [],
+				isDemolition: false,
+			};
+	
+			const _obj_old_section = {
+				nodes: nodes_demolition,
+				edges: edges_demolition,
+				endpoints: currentObj?.endpointsDemolition || [],
+				midpoints: currentObj?.demolitions || [],
+				installations: currentObj?.demolitionInstallations || [],
+				length: currentObj?.length_demolition || [],
+				isDemolition: true,
+			};
+	
+			// Handle diagram update or creation
+			const res = isEdit
+				? await updateProjectDiagram(diagram_data, currentNewObj.id)
+				: await createNewProjectDiagram(diagram_data);
+	
+			if (!res.data?.[0]) return;
+	
+			const project_diagram_id = res.data[0].id;
+	
+			// Get existing tasks if editing
+			let connectionTasks = [];
+			let installationTasks = [];
+			let demolitionConnectionTasks = [];
+			let demolitionInstallationTasks = [];
+	
+			if (isEdit) {
+				const [connectionTasksResponse, installationTasksResponse, demolitionConnectionTasksResponse, demolitionInstallationTasksResponse] = await Promise.all([
+					listFilteredTasks(3, id),
+					listFilteredTasks(2, id),
+					listFilteredTasks(3, id, true), // Assuming these calls account for demolition-specific tasks
+					listFilteredTasks(2, id, true),
+				]);
+				connectionTasks = connectionTasksResponse.data || [];
+				installationTasks = installationTasksResponse.data || [];
+				demolitionConnectionTasks = demolitionConnectionTasksResponse.data || [];
+				demolitionInstallationTasks = demolitionInstallationTasksResponse.data || [];
 			}
-		} else {
-			const diagram_data_success = await createNewProjectDiagram(diagram_data);
-			if (diagram_data_success.data) {
-				const project_diagram_id = diagram_data_success.data[0].id;
-				
-				// Set initial start time as current time
-				const currentDate = new Date();
-				const dayInMilliseconds = 24 * 60 * 60 * 1000; // One day in milliseconds
-				const twoDaysInMilliseconds = 2 * dayInMilliseconds; // Two days in milliseconds
-				
-				// Create all tasks first and store their IDs
-				const updatedMidpoints = [..._obj_new_section.midpoints];
-				const updatedInstallations = [..._obj_new_section.installations];
-				const updatedEndpoints = { ..._obj_new_section.endpoints };
-
-				// Create tasks for endpoints
-				const startPointPromise = _obj_new_section.endpoints?.start ? (async () => {
-					const startDate = new Date(currentDate.getTime());
-					const endDate = new Date(startDate.getTime() + dayInMilliseconds);
-					
-					const response = await createNewTasks({
-						approval_status: "Planned",
-						created_at: new Date().toISOString(),
-						from_page: "projects",
-						notes: _obj_new_section.endpoints.start_notes || "",
-						project: id,
-						task_group_id: 3,
-						start_date: startDate.toISOString(),
-						end_date: endDate.toISOString(),
-						task_type: null,
-						title: `${diagram_data_success.data[0].cable_name.startLocation}${t(`${_obj_new_section.endpoints.start}`)}`,
-						project_diagram_id
-					});
-					
-					if (response.data && response.data.length > 0) {
-						updatedEndpoints.start_task_id = response.data[0].id;
-					}
-				})() : Promise.resolve();
-
-				const endPointPromise = _obj_new_section.endpoints?.end ? (async () => {
-					const startDate = new Date(currentDate.getTime() + ((updatedMidpoints.length + 1) * twoDaysInMilliseconds));
-					const endDate = new Date(startDate.getTime() + dayInMilliseconds);
-					
-					const response = await createNewTasks({
-						approval_status: "Planned",
-						created_at: new Date().toISOString(),
-						from_page: "projects",
-						notes: _obj_new_section.endpoints.end_notes || "",
-						project: id,
-						task_group_id: 3,
-						start_date: startDate.toISOString(),
-						end_date: endDate.toISOString(),
-						task_type: null,
-						title: `${diagram_data_success.data[0].cable_name.endLocation}${t(`${_obj_new_section.endpoints.end}`)}`,
-						project_diagram_id
-					});
-					
-					if (response.data && response.data.length > 0) {
-						updatedEndpoints.end_task_id = response.data[0].id;
-					}
-				})() : Promise.resolve();
-
-				// Create tasks for midpoints (connections)
-				const midpointTaskPromises = updatedMidpoints.map(async (connection, i) => {
-					const startDate = new Date(currentDate.getTime() + (i * twoDaysInMilliseconds));
-					const endDate = new Date(startDate.getTime() + dayInMilliseconds);
-					
-					const response = await createNewTasks({
-						approval_status: "Planned",
-						created_at: connection.created_at || new Date().toISOString(),
-						from_page: "projects",
-						notes: connection.notes || "",
-						project: id,
-						task_group_id: 3,
-						start_date: startDate.toISOString(),
-						end_date: endDate.toISOString(),
-						task_type: null,
-						title: `#${connection.joinType + (i + 1)}` || "",
-						project_diagram_id
-					});
-					
-					if (response.data && response.data.length > 0) {
-						connection.task_id = response.data[0].id;
-					}
-					return connection;
-				});
-				
-				// Create tasks for installations
-				const installationTaskPromises = updatedInstallations.map(async (installation, i) => {
-					const startDate = new Date(currentDate.getTime() + (i * twoDaysInMilliseconds));
-					const endDate = new Date(startDate.getTime() + dayInMilliseconds);
-					
-					let title = '';
-					if (i === 0) {
-						title = `${diagram_data_success.data[0].cable_name.startLocation}${t(`${_obj_new_section.endpoints.start}`)}#${i + 1}~${t(`${updatedMidpoints[i]?.joinType}`)}#${i + 1}`;
-					} else if (i === updatedInstallations.length - 1) {
-						title = `${t(`${updatedMidpoints[i - 1]?.joinType}`)}#${i}~${diagram_data_success.data[0].cable_name.endLocation}${t(`${_obj_new_section.endpoints.end}`)}`;
-					} else {
-						title = `${t(`${updatedMidpoints[i - 1]?.joinType}`)}#${i}~${t(`${updatedMidpoints[i]?.joinType}`)}#${i + 1}`;
-					}
-					
-					const response = await createNewTasks({
-						approval_status: "Planned",
-						created_at: installation.created_at || new Date().toISOString(),
-						from_page: "projects",
-						notes: installation.notes || "",
-						project: id,
-						task_group_id: 2,
-						start_date: startDate.toISOString(),
-						end_date: endDate.toISOString(),
-						task_type: null,
-						title,
-						project_diagram_id
-					});
-					
-					if (response.data && response.data.length > 0) {
-						installation.task_id = response.data[0].id;
-					}
-					return installation;
-				});
-		  
-				// Wait for all tasks to be created
-				await Promise.all([startPointPromise, endPointPromise]);
-				const updatedMidpointsWithTasks = await Promise.all(midpointTaskPromises);
-				const updatedInstallationsWithTasks = await Promise.all(installationTaskPromises);
-				
-				// Update currentObj with task IDs
-				const updatedCurrentObj = {
-					...currentObj,
-					connections: updatedMidpointsWithTasks,
-					installations: updatedInstallationsWithTasks,
-					endpoints: updatedEndpoints
-				};
-				
-				// Create the project diagram table with task IDs already included
-				const updated_obj_new_section = {
-					..._obj_new_section,
-					midpoints: updatedMidpointsWithTasks,
-					installations: updatedInstallationsWithTasks,
-					endpoints: updatedEndpoints,
-					project_diagram: project_diagram_id,
-				};
-				
-				const newSectionSuccess = await createNewProjectDiagramTable(updated_obj_new_section);
-				
-				// Handle demolition section if needed
-				const updated_obj_old_section = {
-					..._obj_old_section,
-					project_diagram: project_diagram_id,
-				};
-				
-				const oldSectionSuccess = await createNewProjectDiagramTable(updated_obj_old_section);
-				
-				if (newSectionSuccess.data && oldSectionSuccess.data) {
-					setCurrentObj({
-						objId: currentNewObj.id,
-						currentObj: updatedCurrentObj,
-						nodes,
-						edges,
-						project: id,
-						isEditing: false,
+	
+			// Create or update tasks for new section
+			const [
+				updatedEndpoints,
+				updatedConnections,
+				updatedInstallations
+			] = await Promise.all([
+				createTasksForEndpoints(currentObj.endpoints, cable_name, project_diagram_id, isEdit, connectionTasks, isDemolition),
+				createOrUpdateConnectionTasks(currentObj.connections, project_diagram_id, isEdit, connectionTasks, isDemolition),
+				createOrUpdateInstallationTasks(
+					currentObj.installations,
+					currentObj.connections,
+					currentObj.endpoints,
+					cable_name,
+					project_diagram_id,
+					isEdit,
+					installationTasks,
+					isDemolition
+				)
+			]);
+	
+			// Create or update tasks for old section (if demolition is toggled on)
+			let updatedDemolitionEndpoints = [];
+			let updatedDemolitionConnections = [];
+			let updatedDemolitionInstallations = [];
+	
+			if (isDemolition) {
+				[updatedDemolitionEndpoints, updatedDemolitionConnections, updatedDemolitionInstallations] = await Promise.all([
+					createTasksForEndpoints(currentObj.endpointsDemolition, cable_name, project_diagram_id, isEdit, demolitionConnectionTasks, isDemolition),
+					createOrUpdateConnectionTasks(currentObj.demolitions, project_diagram_id, isEdit, demolitionConnectionTasks, isDemolition),
+					createOrUpdateInstallationTasks(
+						currentObj.demolitionInstallations,
+						currentObj.demolitions,
+						currentObj.endpointsDemolition,
 						cable_name,
-						cable_type,
-						demolition_type,
-						nodes_demolition,
-						edges_demolition,
-						id: project_diagram_id,
-					});
+						project_diagram_id,
+						isEdit,
+						demolitionInstallationTasks,
+						isDemolition
+					)
+				]);
+			}
+	
+			// Update diagram tables
+			const updated_obj_new_section = {
+				..._obj_new_section,
+				endpoints: updatedEndpoints,
+				midpoints: updatedConnections,
+				installations: updatedInstallations,
+				project_diagram: project_diagram_id,
+			};
+	
+			let updated_obj_old_section = {}
+			if (isDemolition) {
+				updated_obj_old_section = {
+					..._obj_old_section,
+					endpoints: updatedDemolitionEndpoints,
+					midpoints: updatedDemolitionConnections,
+					installations: updatedDemolitionInstallations,
+					project_diagram: project_diagram_id,
+				};
+			} else {
+				updated_obj_old_section = { 
+					..._obj_old_section, 
+					project_diagram: project_diagram_id
 				}
 			}
+	
+			if (isEdit) {
+				await Promise.all([
+					updateProjectDiagramTable(updated_obj_new_section, project_diagram_id, false),
+					updateProjectDiagramTable(updated_obj_old_section, project_diagram_id, true)
+				]);
+			} else {
+				await Promise.all([
+					createNewProjectDiagramTable(updated_obj_new_section),
+					createNewProjectDiagramTable(updated_obj_old_section)
+				]);
+	
+				setCurrentObj({
+					objId: currentNewObj.id,
+					currentObj: {
+						...currentObj,
+						connections: updatedConnections,
+						installations: updatedInstallations,
+						endpoints: updatedEndpoints,
+						demolitions: updatedDemolitionConnections,
+						demolitionInstallations: updatedDemolitionInstallations,
+						endpointsDemolition: updatedDemolitionEndpoints,
+					},
+					nodes,
+					edges,
+					project: id,
+					isEditing: false,
+					cable_name,
+					cable_type,
+					demolition_type,
+					nodes_demolition,
+					edges_demolition,
+					id: project_diagram_id,
+				});
+			}
+		} catch (error) {
+			console.error('Error saving diagram:', error);
+		} finally {
+			setloading(false);
 		}
-		setloading(false);
 	};
+	
 
 	const handleNewObjChange = (value, field, objId, connIndex, statusIndex) => {
 		const updatedObjs = objs.map((obj) => {
@@ -1258,62 +1244,70 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const handleAdd = () => {
 		const updatedObjs = objs.map((obj) => {
-			console.log('obj', obj)
-			const yPos = 150
-			const objNodes = [
-				...generateNodesFromConnections({
-					id: obj.id,
-					connections: obj.currentObj.connections,
-					yPos,
-					cableType: obj.cable_type.bigInput,
-					t
-				}),
-				...generateStartEndNode({
-					seqNumber: obj.id,
-					yPos: 30,
-					startName: obj.currentObj.endpoints.start,
-					endName: obj.currentObj.endpoints.end,
-					connectionLength: obj.currentObj.connections.length,
-					startType: obj.currentObj.endpoints.startConnector,
-					endType: obj.currentObj.endpoints.endConnector,
-					startStatuses: obj.currentObj.endpoints.startStatuses,
-					endStatuses: obj.currentObj.endpoints.endStatuses,
-					startEndLength: obj.currentObj.connections[0]?.statuses.length,
-					t
-				}),
-			]
-			const objEdges = generateEdges(obj.id, obj)
+			console.log('obj', obj);
+			const yPos = 150;
+
+			// Generate nodes for connections
+			const connectionNodes = generateNodesFromConnections({
+				id: obj.id,
+				connections: obj.currentObj.connections,
+				yPos,
+				cableType: obj.cable_type.bigInput,
+				t
+			});
+
+			// Generate nodes for start and end for regular connections
+			const startEndNodes = generateStartEndNode({
+				seqNumber: obj.id,
+				yPos: 30,
+				startName: obj.currentObj.endpoints.start,
+				endName: obj.currentObj.endpoints.end,
+				connectionLength: obj.currentObj.connections.length,
+				startType: obj.currentObj.endpoints.startConnector,
+				endType: obj.currentObj.endpoints.endConnector,
+				startStatuses: obj.currentObj.endpoints.startStatuses,
+				endStatuses: obj.currentObj.endpoints.endStatuses,
+				startEndLength: obj.currentObj.connections[0]?.statuses.length,
+				t
+			});
+
+			// Combine connection nodes and start/end nodes
+			const objNodes = [...connectionNodes, ...startEndNodes];
+			const objEdges = generateEdges(obj.id, obj);
 
 			// Demolition
-			const { isDemolition } = obj
-			let objNodesDemolition = []
-			let objEdgesDemolition = []
+			const { isDemolition } = obj;
+			let objNodesDemolition = [];
+			let objEdgesDemolition = [];
 			if (isDemolition) {
-				objNodesDemolition = [
-					...generateNodesFromConnections({
-						id: obj.id,
-						connections: obj.currentObj.demolitions,
-						yPos,
-						cableType: obj.demolition_type.bigInput,
-						t,
-						isDemolition: true,
-					}),
-					...generateStartEndNode({
-						seqNumber: obj.id,
-						yPos: 30,
-						startName: obj.currentObj.endpointsDemolition.start,
-						endName: obj.currentObj.endpointsDemolition.end,
-						connectionLength: obj.currentObj.demolitions.length,
-						startType: obj.currentObj.endpointsDemolition.startConnector,
-						endType: obj.currentObj.endpointsDemolition.endConnector,
-						startStatuses: obj.currentObj.endpointsDemolition.startStatuses,
-						endStatuses: obj.currentObj.endpointsDemolition.endStatuses,
-						startEndLength: obj.currentObj.demolitions[0]?.statuses.length,
-						t
-					}),
-				]
+				// Generate nodes for demolitions
+				objNodesDemolition = generateNodesFromConnections({
+					id: obj.id,
+					connections: obj.currentObj.demolitions,
+					yPos,
+					cableType: obj.demolition_type.bigInput,
+					t,
+					isDemolition: true,
+				});
 
-				objEdgesDemolition = generateEdges(obj.id, obj, true)
+				// Generate start and end nodes for demolitions
+				const demolitionStartEndNodes = generateStartEndNode({
+					seqNumber: obj.id,
+					yPos: 30,
+					startName: obj.currentObj.endpointsDemolition.start,
+					endName: obj.currentObj.endpointsDemolition.end,
+					connectionLength: obj.currentObj.demolitions.length,
+					startType: obj.currentObj.endpointsDemolition.startConnector,
+					endType: obj.currentObj.endpointsDemolition.endConnector,
+					startStatuses: obj.currentObj.endpointsDemolition.startStatuses,
+					endStatuses: obj.currentObj.endpointsDemolition.endStatuses,
+					startEndLength: obj.currentObj.demolitions[0]?.statuses.length,
+					t
+				});
+
+				// Combine demolition nodes
+				objNodesDemolition = [...objNodesDemolition, ...demolitionStartEndNodes];
+				objEdgesDemolition = generateEdges(obj.id, obj, true);
 			}
 
 			return {
@@ -1325,10 +1319,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				currentObj: {
 					...obj.currentObj,
 				},
-			}
-		})
-		setObjs(updatedObjs)
-	}
+			};
+		});
+		setObjs(updatedObjs);
+	};
 
 	const handleAddNewObj = () => {
 		const newObj = { ...JSON.parse(JSON.stringify({ ...defaultWholeObj, id: seqNumber })) }

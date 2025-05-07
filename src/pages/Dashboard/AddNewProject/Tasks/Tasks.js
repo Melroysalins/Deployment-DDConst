@@ -36,6 +36,7 @@ import {
 	updateNestedTasks,
 	listAllTaskGroups,
 } from 'supabase'
+import { getProjectDiagram } from 'supabase/project_diagram'
 import TimeRangeEditor from './TimeRangeEditor'
 
 setOptions({
@@ -85,6 +86,8 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 }))
 
 const Tasks = () => {
+
+
 	const { data: taskGroups, isLoading } = useQuery(['taskGroups'], () => listAllTaskGroups(),
 		{
 			select: (data) => {
@@ -99,6 +102,8 @@ const Tasks = () => {
 			}
 		}
 	)
+
+	console.log(taskGroups)
 
 	if (isLoading) return <div>Loading ...</div>;
 	return (
@@ -150,7 +155,7 @@ const Tasks = () => {
 
 const Task = ({ task_group, task_group_id }) => {
 	const { id } = useParams()
-
+	const [diagrams, setDiagrams] = useState({}); // State to hold diagram data
 	const [toast, setToast] = useState(false)
 
 	const handleClose = () => {
@@ -166,10 +171,39 @@ const Task = ({ task_group, task_group_id }) => {
 	const { refetch, data: list } = useQuery([`task ${task_group}`], () => listFilteredTasks(task_group_id , id), {
 		select: (r) => r?.data.map((itm) => ({ ...itm, task_period: [itm.start_date, itm.end_date] })),
 	})
-	// const data = await listFilteredTasks(task_group, id)
-	console.log('list', list)
-	// console.log('data', data)
-	// DELETE CELL BUTTON
+
+	// Fetch all diagram data based on unique diagram IDs from tasks
+	useEffect(() => {
+		if (list) {
+			const uniqueDiagramIds = [...new Set(list.map(task => task.project_diagram_id).filter(id => id))]; // Collect unique IDs
+			if (uniqueDiagramIds.length > 0) {
+				const diagramMap = {};
+				const fetchDiagrams = async () => {
+					const diagramPromises = uniqueDiagramIds.map(diagramId => 
+						getProjectDiagram(diagramId).then(res => {
+							if (res.data && res.data.id) {
+								diagramMap[res.data.id] = `${res.data.cable_name.bigInput}KV ${res.data.cable_name.startLocation}-${res.data.cable_name.endLocation}`; // Assuming it has id and name
+							} else {
+								console.error('Unexpected response format for diagram ID:', diagramId, res.data);
+							}
+						}).catch(error => {
+							console.error('Error fetching diagram for ID:', diagramId, error);
+						})
+					);
+
+					// Wait for all promises to resolve
+					await Promise.all(diagramPromises);
+					setDiagrams(diagramMap); // Set the state after all diagrams are fetched
+				};
+				fetchDiagrams();
+			}
+		}
+	}, [list]);
+
+	const DiagramRenderer = ({ value }) => {
+		if (!value || !diagrams[value]) return '-';
+		return diagrams[value]; // Return the diagram name
+	};
 
 	const DeleteCellRenderer = useCallback(({ value }) => {
 		const handleDelete = () => {
@@ -324,6 +358,7 @@ const Task = ({ task_group, task_group_id }) => {
 				headerCheckboxSelection: true,
 				checkboxSelection: (params) => !!params.data,
 				showDisabledCheckboxes: true,
+				sortable: true
 			},
 			{
 				headerName: 'Team',
@@ -343,23 +378,22 @@ const Task = ({ task_group, task_group_id }) => {
 				field: 'notes',
 			},
 			{
-				headerName: '',
-				field: 'id',
-				cellRenderer: (params) => {
-					// Only render delete button if task_group_id is not 2 and not 3
-					if (params.data.task_group_id !== 2 && params.data.task_group_id !== 3) {
-						return DeleteCellRenderer(params);
-					}
-					return null;
-				},
-				headerComponent: task_group_id !== 2 && task_group_id !== 3 ? AddButton : null,
-				cellStyle: { display: 'flex', justifyContent: 'flex-end' },
-				headerClass: 'header',
-				editable: false,
-				maxWidth: 100,
+				headerName: 'Is Demolition',
+				field: 'isDemolition',
+				cellRenderer: (params) => (params.value ? 'Yes' : 'No'),
+				sortable: true,
+				sort: 'asc'
 			},
+			{
+				headerName: 'Diagram Name',
+				field: 'project_diagram_id', // Assuming this is the field for diagram ID
+				cellRenderer: DiagramRenderer, // Use the new renderer
+				sortable: true,
+				sort: 'asc'
+			},
+			
 		],
-		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer]
+		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer, DiagramRenderer]
 	)
 	const defaultColDef = useMemo(
 		() => ({

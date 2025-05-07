@@ -129,7 +129,7 @@ export const generateEdges = (startId, newObj, isDemolition) => {
 					target: `${startId}.${i + 1}.${j + 1}`,
 					style: { stroke: STROKE_COLOR[status] },
 					startNodeHeading: `${newObj.currentObj.endpoints.start}`,
-					endNodeHeading: `${connections[j].joinType}`,
+					endNodeHeading: `${connections[i].joinType}`,
 					type,
 				});
 			} 
@@ -139,7 +139,7 @@ export const generateEdges = (startId, newObj, isDemolition) => {
 					source: `${startId}.${items.length-1}.${j + 1}`,
 					target: `${startId}.end.${j + 1}`,
 					style: { stroke: STROKE_COLOR[status] },
-					startNodeHeading: `${connections[j].joinType}`,
+					startNodeHeading: `${connections[i-1].joinType}`,
 					endNodeHeading: `${newObj.currentObj.endpoints.end}`,
 					type,
 				});
@@ -150,8 +150,8 @@ export const generateEdges = (startId, newObj, isDemolition) => {
 					source: `${startId}.${i}.${j + 1}`,
 					target: `${startId}.${i + 1}.${j + 1}`,
 					style: { stroke: STROKE_COLOR[status] },
-					startNodeHeading: `${connections[j].joinType}`,
-					endNodeHeading: `${connections[j].joinType}`,
+					startNodeHeading: `${connections[i-1].joinType}`,
+					endNodeHeading: `${connections[i].joinType}`,
 					type,
 				});
 			}
