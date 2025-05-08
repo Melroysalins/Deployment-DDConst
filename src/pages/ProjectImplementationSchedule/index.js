@@ -36,10 +36,11 @@ const ProjectImplementationSchedule = () => {
 		openRequestApproval,
 		setisDrawerOpen,
 		setapprovalIdDrawerRight,
-		setFromPage
+		setFromPage,
 	} = useMain()
-	
+
 	const { t } = useTranslation(['weekly_plan', 'common'])
+
 	const fetchData = async (id) => {
 		setLoading(true)
 		const res = await getProjectDetails(id)
@@ -77,7 +78,7 @@ const ProjectImplementationSchedule = () => {
 					sx={{ border: '1px solid #596570' }}
 					onClick={() => {
 						setopenRequestApproval(!openRequestApproval)
-						setFromPage("project_schedule")
+						setFromPage('project_schedule')
 					}}
 				>
 					{t('request_approval')}
@@ -89,7 +90,7 @@ const ProjectImplementationSchedule = () => {
 					onClick={() => {
 						setapprovalIdDrawerRight(null)
 						setisDrawerOpen(true)
-						setFromPage("project_schedule")
+						setFromPage('project_schedule')
 					}}
 					variant="contained"
 					size="medium"

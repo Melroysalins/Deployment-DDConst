@@ -2,13 +2,17 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
-import '../../../../ag-theme-ddconst.scss' 
+import '../../../../ag-theme-ddconst.scss'
 
 import { momentTimezone, setOptions } from '@mobiscroll/react'
 import {
 	Alert,
 	Box,
 	Button,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
 	MenuItem,
 	Accordion as MuiAccordion,
 	AccordionDetails as MuiAccordionDetails,
@@ -38,6 +42,8 @@ import {
 } from 'supabase'
 import { getProjectDiagram } from 'supabase/project_diagram'
 import TimeRangeEditor from './TimeRangeEditor'
+import WorkType from './WorkType'
+import WarningDialog from 'pages/WeeklyPlan/FlowDiagram/WarningDialog'
 
 setOptions({
 	theme: 'ios',
@@ -86,76 +92,47 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 }))
 
 const Tasks = () => {
+	const [selectedWorkTypes, setSelectedWorkTypes] = useState([])
+	const { data: taskGroups, isLoading } = useQuery(['taskGroups'], () => listAllTaskGroups(), {
+		select: (data) => {
+			const workToIdMap = {}
+			console.log('taskGroups', data.data)
+			if (!data) return workToIdMap
+			data.data.forEach((taskGroup) => {
+				const key = taskGroup.work
+				workToIdMap[key] = taskGroup.id
+			})
+			return workToIdMap
+		},
+	})
 
-
-	const { data: taskGroups, isLoading } = useQuery(['taskGroups'], () => listAllTaskGroups(),
-		{
-			select: (data) => {
-				const workToIdMap = {};
-				console.log('taskGroups', data.data)
-				if (!data) return workToIdMap;
-				data.data.forEach((taskGroup) => {
-					const key = taskGroup.work;
-					workToIdMap[key] = taskGroup.id;
-				});
-				return workToIdMap;
-			}
-		}
-	)
-
-	console.log(taskGroups)
-
-	if (isLoading) return <div>Loading ...</div>;
+	if (isLoading) return <div>Loading ...</div>
 	return (
 		<>
-			<Stack gap={2}>
-				<Accordion>
-					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-							Metal Fittings Installation
-						</Typography>
-					</AccordionSummary>
-					<AccordionDetails>
-						<Task task_group="Metal Fittings Installation" task_group_id={taskGroups["Metal Fittings Installation"]} />
-					</AccordionDetails>
-				</Accordion>
-				<Accordion>
-					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-							Installation
-						</Typography>
-					</AccordionSummary>
-					<AccordionDetails>
-					<Task task_group="Installation" task_group_id={taskGroups.Installation} />
-					</AccordionDetails>
-				</Accordion>
-				<Accordion>
-					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-							Connection
-						</Typography>
-					</AccordionSummary>
-					<AccordionDetails>
-					<Task task_group="Connection" task_group_id={taskGroups.Connection} />
-					</AccordionDetails>
-				</Accordion>
-				<Accordion>
-					<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-						<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-							Completion Test (AC)
-						</Typography>
-					</AccordionSummary>
-					<AccordionDetails>
-					<Task task_group="Completion Test (AC)" task_group_id={taskGroups["Connection Test (AC)"]} />
-					</AccordionDetails>
-				</Accordion>
+			<Stack gap={2} mb={1}>
+				<WorkType checkedItems={selectedWorkTypes} setCheckedItems={setSelectedWorkTypes} />
 			</Stack>
-		</>)
+			<Stack gap={2}>
+				{selectedWorkTypes?.map((worktype, index) => (
+					<Accordion key={index}>
+						<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+							<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+								{worktype}
+							</Typography>
+						</AccordionSummary>
+						<AccordionDetails>
+							<Task task_group={worktype} task_group_id={taskGroups[worktype]} />
+						</AccordionDetails>
+					</Accordion>
+				))}
+			</Stack>
+		</>
+	)
 }
 
 const Task = ({ task_group, task_group_id }) => {
 	const { id } = useParams()
-	const [diagrams, setDiagrams] = useState({}); // State to hold diagram data
+	const [diagrams, setDiagrams] = useState({}) // State to hold diagram data
 	const [toast, setToast] = useState(false)
 
 	const handleClose = () => {
@@ -168,49 +145,80 @@ const Task = ({ task_group, task_group_id }) => {
 
 	const { data: teams } = useQuery(['Teams teams'], () => listAllTeams())
 	// first we need to find the task_group_id
-	const { refetch, data: list } = useQuery([`task ${task_group}`], () => listFilteredTasks(task_group_id , id), {
+	const { refetch, data: list } = useQuery([`task ${task_group}`], () => listFilteredTasks(task_group_id, id), {
 		select: (r) => r?.data.map((itm) => ({ ...itm, task_period: [itm.start_date, itm.end_date] })),
 	})
 
 	// Fetch all diagram data based on unique diagram IDs from tasks
 	useEffect(() => {
 		if (list) {
-			const uniqueDiagramIds = [...new Set(list.map(task => task.project_diagram_id).filter(id => id))]; // Collect unique IDs
+			const uniqueDiagramIds = [...new Set(list.map((task) => task.project_diagram_id).filter((id) => id))] // Collect unique IDs
 			if (uniqueDiagramIds.length > 0) {
-				const diagramMap = {};
+				const diagramMap = {}
 				const fetchDiagrams = async () => {
-					const diagramPromises = uniqueDiagramIds.map(diagramId => 
-						getProjectDiagram(diagramId).then(res => {
-							if (res.data && res.data.id) {
-								diagramMap[res.data.id] = `${res.data.cable_name.bigInput}KV ${res.data.cable_name.startLocation}-${res.data.cable_name.endLocation}`; // Assuming it has id and name
-							} else {
-								console.error('Unexpected response format for diagram ID:', diagramId, res.data);
-							}
-						}).catch(error => {
-							console.error('Error fetching diagram for ID:', diagramId, error);
-						})
-					);
+					const diagramPromises = uniqueDiagramIds.map((diagramId) =>
+						getProjectDiagram(diagramId)
+							.then((res) => {
+								if (res.data && res.data.id) {
+									diagramMap[
+										res.data.id
+									] = `${res.data.cable_name.bigInput}KV ${res.data.cable_name.startLocation}-${res.data.cable_name.endLocation}` // Assuming it has id and name
+								} else {
+									console.error('Unexpected response format for diagram ID:', diagramId, res.data)
+								}
+							})
+							.catch((error) => {
+								console.error('Error fetching diagram for ID:', diagramId, error)
+							})
+					)
 
 					// Wait for all promises to resolve
-					await Promise.all(diagramPromises);
-					setDiagrams(diagramMap); // Set the state after all diagrams are fetched
-				};
-				fetchDiagrams();
+					await Promise.all(diagramPromises)
+					setDiagrams(diagramMap) // Set the state after all diagrams are fetched
+				}
+				fetchDiagrams()
 			}
 		}
-	}, [list]);
+	}, [list])
 
 	const DiagramRenderer = ({ value }) => {
-		if (!value || !diagrams[value]) return '-';
-		return diagrams[value]; // Return the diagram name
-	};
+		if (!value || !diagrams[value]) return '-'
+		return diagrams[value] // Return the diagram name
+	}
 
-	const DeleteCellRenderer = useCallback(({ value }) => {
-		const handleDelete = () => {
+	const DeleteCellRenderer = ({ value, task_group_id, gridRef }) => {
+		const [openPopup, setOpenPopup] = useState(false)
+
+		console.log('TheValue', gridRef)
+
+		const isRestricted = task_group_id === 2 || task_group_id === 3
+
+		const handleDelete = (event) => {
+			if (isRestricted) {
+				setOpenPopup(true) // Open the popup if the task group is restricted
+				return // Exit early
+			}
+
+			// Now handle the case when the task is not restricted
 			if (Array.isArray(value)) {
 				deleteTasks(value).then(() => refetch())
 			} else {
 				deleteTask(value).then(() => refetch())
+			}
+		}
+
+		// Close the popup
+		const handleClosePopup = () => {
+			setOpenPopup(false)
+
+			// Deselect restricted rows
+			if (gridRef?.current?.api) {
+				const selectedNodes = gridRef.current.api.getSelectedNodes()
+				selectedNodes.forEach((node) => {
+					if (node.data.task_group_id === 2 || node.data.task_group_id === 3) {
+						node.setSelected(false)
+					}
+				})
 			}
 		}
 
@@ -219,10 +227,27 @@ const Task = ({ task_group, task_group_id }) => {
 				<Button onClick={handleDelete}>
 					<Iconify icon="material-symbols:delete-outline-rounded" width={20} height={20} />
 				</Button>
+				<WarningDialog
+					isOpen={openPopup}
+					onClose={handleClosePopup}
+					title="Action Not Allowed"
+					dialogHeading="Restricted Task Deletion"
+					description="You can only delete Installation and Connection tasks from the Diagram Builder page."
+					actionType="info"
+					buttons={[
+						{
+							label: 'Cancel',
+							onClick: handleClosePopup,
+						},
+						{
+							label: 'Got It',
+							onClick: handleClosePopup,
+						},
+					]}
+				/>
 			</>
 		)
-	})
-
+	}
 	const TimeRangeRenderer = ({ value }) =>
 		value && value[0] && value[1]
 			? `${moment(value[0]).format('DD/MM/YYYY')} - ${moment(value[1]).format('DD/MM/YYYY')}`
@@ -358,7 +383,7 @@ const Task = ({ task_group, task_group_id }) => {
 				headerCheckboxSelection: true,
 				checkboxSelection: (params) => !!params.data,
 				showDisabledCheckboxes: true,
-				sortable: true
+				sortable: true,
 			},
 			{
 				headerName: 'Team',
@@ -382,16 +407,22 @@ const Task = ({ task_group, task_group_id }) => {
 				field: 'isDemolition',
 				cellRenderer: (params) => (params.value ? 'Yes' : 'No'),
 				sortable: true,
-				sort: 'asc'
+				sort: 'asc',
 			},
 			{
 				headerName: 'Diagram Name',
 				field: 'project_diagram_id', // Assuming this is the field for diagram ID
 				cellRenderer: DiagramRenderer, // Use the new renderer
 				sortable: true,
-				sort: 'asc'
+				sort: 'asc',
 			},
-			
+			{
+				headerName: 'Diagram Name',
+				field: 'project_diagram_id', // Assuming this is the field for diagram ID
+				cellRenderer: DiagramRenderer, // Use the new renderer
+				sortable: true,
+				sort: 'asc',
+			},
 		],
 		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer, DiagramRenderer]
 	)
@@ -431,14 +462,14 @@ const Task = ({ task_group, task_group_id }) => {
 				},
 				newItem.id
 			)
-			.then(() => refetch())
-			.catch(error => {
-				console.error('Error updating task:', error);
-				setToast({
-					severity: 'error',
-					message: 'Failed to update task. Please try again.'
-				});
-			});
+				.then(() => refetch())
+				.catch((error) => {
+					console.error('Error updating task:', error)
+					setToast({
+						severity: 'error',
+						message: 'Failed to update task. Please try again.',
+					})
+				})
 		}
 	}
 
@@ -477,7 +508,7 @@ const Task = ({ task_group, task_group_id }) => {
 							{selectedRows.length > 0 && (
 								<Box>
 									{selectedRows.length} items selected:
-									<DeleteCellRenderer value={selectedRows} />
+									<DeleteCellRenderer value={selectedRows} task_group_id={task_group_id} gridRef={gridRef} />
 								</Box>
 							)}
 						</Box>
