@@ -51,3 +51,12 @@ export const getProjectFileLink = async (filename) => {
 		return null
 	}
 }
+
+export const getSelectedWorkTypes = async (projectId) => {
+    const res = await supabase
+        .from('projects')
+        .select('selectedWorkTypes')
+        .eq('id', projectId)
+        .single();
+    return res;
+}

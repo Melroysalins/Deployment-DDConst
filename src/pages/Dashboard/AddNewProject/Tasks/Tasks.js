@@ -39,7 +39,9 @@ import {
 	updateTask,
 	updateNestedTasks,
 	listAllTaskGroups,
+	updateProject,
 } from 'supabase'
+import { getSelectedWorkTypes } from 'supabase/projects'
 import { getProjectDiagram } from 'supabase/project_diagram'
 import TimeRangeEditor from './TimeRangeEditor'
 import WorkType from './WorkType'
@@ -91,43 +93,75 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 	padding: theme.spacing(2),
 }))
 
-const Tasks = () => {
-	const [selectedWorkTypes, setSelectedWorkTypes] = useState([])
-	const { data: taskGroups, isLoading } = useQuery(['taskGroups'], () => listAllTaskGroups(), {
-		select: (data) => {
-			const workToIdMap = {}
-			console.log('taskGroups', data.data)
-			if (!data) return workToIdMap
-			data.data.forEach((taskGroup) => {
-				const key = taskGroup.work
-				workToIdMap[key] = taskGroup.id
-			})
-			return workToIdMap
-		},
-	})
+const workTypeMap = {
+	'Office Work': 5,
+	'Metal Fittings Installation': 1,
+	'Installation': 2,
+	'Connection': 3,
+	'Completion Testing': 4,
+	'Auxiliary Construction': 6,
+};
 
-	if (isLoading) return <div>Loading ...</div>
+const Tasks = () => {
+	const { id: projectId } = useParams();
+	const [selectedWorkTypes, setSelectedWorkTypes] = useState([]);
+	const [showSelectedWorkTypes, setShowSelectedWorkTypes] = useState(false); // State to control display
+	const { data: selectedWorkTypesData, isLoading: isLoadingWorkTypes } = useQuery(
+		['selectedWorkTypes', projectId],
+		() => getSelectedWorkTypes(projectId),
+		{
+			select: (data) => {
+				return data?.selectedWorkTypes || []; // Return the selectedWorkTypes array or an empty array
+			},
+		}
+	);
+
+	// Update the state with existing and new work type IDs
+	const handleWorkTypeChange = (newWorkTypeId) => {
+		setSelectedWorkTypes(newWorkTypeId);
+	};
+
+	// Function to save selected work types to the database
+	const handleApply = async () => {
+		const updatedData = { selectedWorkTypes }; // Prepare the data to be updated
+		await updateProject(updatedData, projectId); // Call the update function
+		console.log('Work types updated:', selectedWorkTypes);
+		setShowSelectedWorkTypes(true); // Show selected work types after saving
+	};
+
+
+	if (isLoadingWorkTypes) return <div>Loading ...</div>;
 	return (
 		<>
 			<Stack gap={2} mb={1}>
-				<WorkType checkedItems={selectedWorkTypes} setCheckedItems={setSelectedWorkTypes} />
+				<WorkType checkedItems={selectedWorkTypes} setCheckedItems={handleWorkTypeChange} />
+				<Button 
+					onClick={handleApply} 
+					variant="contained" 
+					color="primary" 
+					sx={{ width: '40px', ml: 2 }}
+				>
+					Apply
+				</Button>
 			</Stack>
-			<Stack gap={2}>
-				{selectedWorkTypes?.map((worktype, index) => (
-					<Accordion key={index}>
-						<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-							<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-								{worktype}
-							</Typography>
-						</AccordionSummary>
-						<AccordionDetails>
-							<Task task_group={worktype} task_group_id={taskGroups[worktype]} />
-						</AccordionDetails>
-					</Accordion>
-				))}
-			</Stack>
+			{showSelectedWorkTypes && (
+				<Stack gap={2}>
+					{selectedWorkTypes?.map((workType, index) => (
+						<Accordion key={index}>
+							<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+								<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+									{workType} {/* Display the work type name */}
+								</Typography>
+							</AccordionSummary>
+							<AccordionDetails>
+								<Task task_group={workType} task_group_id={workTypeMap[workType]} />
+							</AccordionDetails>
+						</Accordion>
+					))}
+				</Stack>
+			)}
 		</>
-	)
+	);
 }
 
 const Task = ({ task_group, task_group_id }) => {
