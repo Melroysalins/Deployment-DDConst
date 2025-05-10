@@ -503,13 +503,6 @@ const Task = ({ task_group, task_group_id }) => {
 				sortable: true,
 				sort: 'asc',
 			},
-			{
-				headerName: 'Diagram Name',
-				field: 'project_diagram_id', // Assuming this is the field for diagram ID
-				cellRenderer: DiagramRenderer, // Use the new renderer
-				sortable: true,
-				sort: 'asc',
-			},
 		],
 		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer, DiagramRenderer]
 	)
