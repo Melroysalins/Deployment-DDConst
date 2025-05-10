@@ -10,7 +10,7 @@ const workTypesOptions = [
 	'Auxiliary Construction',
 ]
 
-const WorkType = ({ checkedItems, setCheckedItems }) => {
+const WorkType = ({ checkedItems, setCheckedItems, selectedWorkTypesData }) => {
 	const handleChange = (event) => {
 		const { value, checked } = event.target
 		if (checked) {

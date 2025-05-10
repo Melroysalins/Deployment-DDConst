@@ -29,7 +29,7 @@ import Iconify from 'components/Iconify'
 import moment from 'moment-timezone'
 import PropTypes from 'prop-types'
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery, useQueryClient } from 'react-query'
 import { useParams } from 'react-router'
 import {
 	createNewTasks,
@@ -97,56 +97,79 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 const workTypeMap = {
 	'Office Work': 5,
 	'Metal Fittings Installation': 1,
-	'Installation': 2,
-	'Connection': 3,
+	Installation: 2,
+	Connection: 3,
 	'Completion Testing': 4,
 	'Auxiliary Construction': 6,
-};
+}
 
 const Tasks = () => {
-	const { id: projectId } = useParams();
-	const [selectedWorkTypes, setSelectedWorkTypes] = useState([]);
-	const [showSelectedWorkTypes, setShowSelectedWorkTypes] = useState(false); // State to control display
+	const { id: projectId } = useParams()
+	const [selectedWorkTypes, setSelectedWorkTypes] = useState([])
+	const [tempSelectedWorkTypes, setTempSelectedWorkTypes] = useState([])
+	const [showSelectedWorkTypes, setShowSelectedWorkTypes] = useState(false) // State to control display
+	const queryClient = useQueryClient()
 	const { data: selectedWorkTypesData, isLoading: isLoadingWorkTypes } = useQuery(
 		['selectedWorkTypes', projectId],
 		() => getSelectedWorkTypes(projectId),
 		{
 			select: (data) => {
-				return data?.selectedWorkTypes || []; // Return the selectedWorkTypes array or an empty array
+				console.log('mydata', projectId)
+				return data?.selectedWorkTypes || [] // Return the selectedWorkTypes array or an empty array
 			},
 		}
-	);
+	)
+
+	console.log('selectedWorkTypes', selectedWorkTypesData)
 
 	// Update the state with existing and new work type IDs
 	const handleWorkTypeChange = (newWorkTypeId) => {
-		setSelectedWorkTypes(newWorkTypeId);
-	};
+		setTempSelectedWorkTypes(newWorkTypeId)
+	}
 
 	// Function to save selected work types to the database
 	const handleApply = async () => {
-		const updatedData = { selectedWorkTypes }; // Prepare the data to be updated
-		await updateProject(updatedData, projectId); // Call the update function
-		console.log('Work types updated:', selectedWorkTypes);
-		setShowSelectedWorkTypes(true); // Show selected work types after saving
-	};
+		// const updatedData = { selectedWorkTypes } // Prepare the data to be updated
+		// await updateProject(updatedData, projectId) // Call the update function
+		// setShowSelectedWorkTypes(true)
+		// console.log('Work types updated:', selectedWorkTypes)
+		// // Show selected work types after saving
+		// setSelectedWorkTypes(tempSelectedWorkTypes)
 
+		const updatedData = { selectedWorkTypes: tempSelectedWorkTypes } // Use temp state for update
+		await updateProject(updatedData, projectId) // Save to DB
 
-	if (isLoadingWorkTypes) return <div>Loading ...</div>;
+		setSelectedWorkTypes(tempSelectedWorkTypes) // Update local state
+		setShowSelectedWorkTypes(true)
+
+		await queryClient.invalidateQueries(['selectedWorkTypes', projectId]) // ✅ Refetch fresh data from DB
+
+		console.log('Work types updated:', tempSelectedWorkTypes)
+	}
+
+	useEffect(() => {
+		if (selectedWorkTypesData?.length > 0) {
+			setTempSelectedWorkTypes(selectedWorkTypesData)
+			setSelectedWorkTypes(selectedWorkTypesData)
+			setShowSelectedWorkTypes(true) // Automatically show Accordion if data is present
+		}
+	}, [selectedWorkTypesData])
+
+	if (isLoadingWorkTypes) return <div>Loading ...</div>
 	return (
 		<>
 			<Stack gap={2} mb={1}>
-				<WorkType checkedItems={selectedWorkTypes} setCheckedItems={handleWorkTypeChange} />
-				<Button 
-					onClick={handleApply} 
-					variant="contained" 
-					color="primary" 
-					sx={{ width: '40px', ml: 2 }}
-				>
+				<WorkType
+					checkedItems={tempSelectedWorkTypes}
+					setCheckedItems={handleWorkTypeChange}
+					selectedWorkTypesData={selectedWorkTypesData}
+				/>
+				<Button onClick={handleApply} variant="contained" color="primary" sx={{ width: '40px', ml: 2 }}>
 					Apply
 				</Button>
 			</Stack>
 			{showSelectedWorkTypes && (
-				<Stack gap={2}>
+				<Stack gap={2} mt={2}>
 					{selectedWorkTypes?.map((workType, index) => (
 						<Accordion key={index}>
 							<AccordionSummary aria-controls="metalFitting" id="metalFitting">
@@ -162,7 +185,7 @@ const Tasks = () => {
 				</Stack>
 			)}
 		</>
-	);
+	)
 }
 
 const Task = ({ task_group, task_group_id }) => {
@@ -187,12 +210,30 @@ const Task = ({ task_group, task_group_id }) => {
 				task_period: [itm.start_date, itm.end_date],
 			}))
 
-			return transformed.sort((a, b) => {
-				if (a.tl == null && b.tl == null) return 0
-				if (a.tl == null) return 1
-				if (b.tl == null) return -1
-				return a.tl - b.tl
-			})
+			// Split groups
+			const installationTasks = transformed
+				.filter((t) => t.task_group_id === 2)
+				.sort((a, b) => {
+					const getSource = (title) => title.split('~')[0].trim()
+					const getTLCount = (title) => {
+						const match = title.match(/(\d+)T\/L/)
+						return match ? parseInt(match[1], 10) : 0
+					}
+
+					const aSource = getSource(a.title)
+					const bSource = getSource(b.title)
+
+					if (aSource < bSource) return -1
+					if (aSource > bSource) return 1
+
+					// Same source → sort by T/L descending
+					return getTLCount(b.title) - getTLCount(a.title)
+				})
+
+			const connectionTasks = transformed.filter((t) => t.task_group_id === 3)
+			const otherTasks = transformed.filter((t) => t.task_group_id !== 2 && t.task_group_id !== 3)
+
+			return [...installationTasks, ...connectionTasks, ...otherTasks]
 		},
 	})
 
