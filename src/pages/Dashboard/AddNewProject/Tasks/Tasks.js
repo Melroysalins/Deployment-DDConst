@@ -9,6 +9,7 @@ import {
 	Alert,
 	Box,
 	Button,
+	ButtonBase,
 	Dialog,
 	DialogActions,
 	DialogContent,
@@ -180,9 +181,22 @@ const Task = ({ task_group, task_group_id }) => {
 	const { data: teams } = useQuery(['Teams teams'], () => listAllTeams())
 	// first we need to find the task_group_id
 	const { refetch, data: list } = useQuery([`task ${task_group}`], () => listFilteredTasks(task_group_id, id), {
-		select: (r) => r?.data.map((itm) => ({ ...itm, task_period: [itm.start_date, itm.end_date] })),
+		select: (r) => {
+			const transformed = r?.data.map((itm) => ({
+				...itm,
+				task_period: [itm.start_date, itm.end_date],
+			}))
+
+			return transformed.sort((a, b) => {
+				if (a.tl == null && b.tl == null) return 0
+				if (a.tl == null) return 1
+				if (b.tl == null) return -1
+				return a.tl - b.tl
+			})
+		},
 	})
 
+	console.log('list1', list)
 	// Fetch all diagram data based on unique diagram IDs from tasks
 	useEffect(() => {
 		if (list) {
@@ -222,8 +236,6 @@ const Task = ({ task_group, task_group_id }) => {
 
 	const DeleteCellRenderer = ({ value, task_group_id, gridRef }) => {
 		const [openPopup, setOpenPopup] = useState(false)
-
-		console.log('TheValue', gridRef)
 
 		const isRestricted = task_group_id === 2 || task_group_id === 3
 
@@ -417,7 +429,7 @@ const Task = ({ task_group, task_group_id }) => {
 				headerCheckboxSelection: true,
 				checkboxSelection: (params) => !!params.data,
 				showDisabledCheckboxes: true,
-				sortable: true,
+				sortable: false,
 			},
 			{
 				headerName: 'Team',
@@ -531,12 +543,14 @@ const Task = ({ task_group, task_group_id }) => {
 							suppressRowClickSelection={true}
 							domLayout="autoHeight"
 							onCellEditRequest={onCellEditRequest}
+							getRowId={(params) => params.data.id}
 							readOnlyEdit
 							onRowSelected={() => {
 								setSelectedRows(gridRef.current.api.getSelectedRows().map(({ id }) => id))
 							}}
 							//   onFirstDataRendered={onFirstDataRendered}
 						/>
+						{/* {console.log('list', list)} */}
 						<Box display="flex" justifyContent="space-between">
 							<Button onClick={handleAdd}>Add Task</Button>
 							{selectedRows.length > 0 && (

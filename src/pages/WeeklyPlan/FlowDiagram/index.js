@@ -359,6 +359,17 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const { t } = useTranslation(['diagram'])
 
+	const formatDate = (date) => {
+		const yyyy = date.getFullYear()
+		const mm = String(date.getMonth() + 1).padStart(2, '0')
+		const dd = String(date.getDate()).padStart(2, '0')
+		return `${yyyy}-${mm}-${dd}`
+	}
+
+	const start = new Date()
+	const end = new Date()
+	end.setDate(start.getDate() + 5)
+
 	useEffect(() => {
 		console.log(hasChanges)
 		if (objs !== null && hasChanges) {
@@ -496,6 +507,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					}
 				} else {
 					try {
+						console.log('Creating New Task', formatDate(start), formatDate(end))
 						const response = await createNewTasks({
 							approval_status: 'Planned',
 							created_at: new Date().toISOString(),
@@ -508,6 +520,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							project_diagram_id,
 							tl: i + 1,
 							isDemolition,
+							start_date: formatDate(start),
+							end_date: formatDate(end),
 						})
 
 						if (response?.data?.[0]) {
@@ -559,6 +573,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							project_diagram_id,
 							tl: i + 1,
 							isDemolition,
+							start_date: formatDate(start),
+							end_date: formatDate(end),
 						})
 
 						if (response?.data?.[0]) {
@@ -629,6 +645,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 						project_diagram_id,
 						isDemolition,
 						tl: j + 1,
+						start_date: formatDate(start),
+						end_date: formatDate(end),
 					})
 
 					if (response.data?.[0]) {
@@ -717,6 +735,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 						project_diagram_id,
 						isDemolition,
 						tl: j + 1,
+						start_date: formatDate(start),
+						end_date: formatDate(end),
 					})
 
 					if (response.data?.[0]) {
