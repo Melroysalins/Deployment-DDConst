@@ -203,37 +203,12 @@ const Task = ({ task_group, task_group_id }) => {
 
 	const { data: teams } = useQuery(['Teams teams'], () => listAllTeams())
 	// first we need to find the task_group_id
-	const { refetch, data: list } = useQuery([`task ${task_group}`], () => listFilteredTasks(task_group_id, id), {
+	const { refetch, data: list } = useQuery([`task-${task_group}`], () => listFilteredTasks(task_group_id, id), {
 		select: (r) => {
-			const transformed = r?.data.map((itm) => ({
+			return r?.data.map((itm) => ({
 				...itm,
 				task_period: [itm.start_date, itm.end_date],
 			}))
-
-			// Split groups
-			const installationTasks = transformed
-				.filter((t) => t.task_group_id === 2)
-				.sort((a, b) => {
-					const getSource = (title) => title.split('~')[0].trim()
-					const getTLCount = (title) => {
-						const match = title.match(/(\d+)T\/L/)
-						return match ? parseInt(match[1], 10) : 0
-					}
-
-					const aSource = getSource(a.title)
-					const bSource = getSource(b.title)
-
-					if (aSource < bSource) return -1
-					if (aSource > bSource) return 1
-
-					// Same source → sort by T/L descending
-					return getTLCount(b.title) - getTLCount(a.title)
-				})
-
-			const connectionTasks = transformed.filter((t) => t.task_group_id === 3)
-			const otherTasks = transformed.filter((t) => t.task_group_id !== 2 && t.task_group_id !== 3)
-
-			return [...installationTasks, ...connectionTasks, ...otherTasks]
 		},
 	})
 
