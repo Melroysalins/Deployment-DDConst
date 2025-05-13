@@ -848,14 +848,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					project_diagram_id,
 					isEdit,
 					connectionTasks,
-					isDemolition
+					false
 				),
 				createOrUpdateConnectionTasks(
 					currentObj.connections,
 					project_diagram_id,
 					isEdit,
 					connectionTasks,
-					isDemolition
+					false
 				),
 				createOrUpdateInstallationTasks(
 					currentObj.installations,
@@ -865,7 +865,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					project_diagram_id,
 					isEdit,
 					installationTasks,
-					isDemolition
+					false
 				),
 			])
 
@@ -874,6 +874,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			let updatedDemolitionConnections = []
 			let updatedDemolitionInstallations = []
 
+			
 			if (isDemolition) {
 				;[updatedDemolitionEndpoints, updatedDemolitionConnections, updatedDemolitionInstallations] = await Promise.all(
 					[
@@ -883,14 +884,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							project_diagram_id,
 							isEdit,
 							demolitionConnectionTasks,
-							isDemolition
+							true
 						),
 						createOrUpdateConnectionTasks(
 							currentObj.demolitions,
 							project_diagram_id,
 							isEdit,
 							demolitionConnectionTasks,
-							isDemolition
+							true
 						),
 						createOrUpdateInstallationTasks(
 							currentObj.demolitionInstallations,
@@ -900,7 +901,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							project_diagram_id,
 							isEdit,
 							demolitionInstallationTasks,
-							isDemolition
+							true
 						),
 					]
 				)
