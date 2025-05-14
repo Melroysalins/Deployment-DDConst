@@ -164,7 +164,45 @@ const Calender2 = () => {
             viewPreset: customMonthViewPreset,
             multiEventSelect: true,
             columns: [
-                { text: 'Work / Team', field: 'name', width: 200 },
+                {
+                    text: 'WORK',
+                    field: 'work',
+                    width: 160,
+                    mergeCells: true,
+                    renderer: ({ record }) => record.name || ''
+                },
+                {
+                    text: 'WORK TEAM',
+                    field: 'workTeam',
+                    width: 100,
+                    mergeCells: true,
+                    renderer: ({ record }) => record.workTeam || ''
+                },
+                {
+                    text: 'Y/M',
+                    children: [
+                        {
+                            text: 'D',
+                            width: 100,
+                            renderer: ({ record }) => {
+                                return {
+                                    children: [
+                                        {
+                                            tag: 'div',
+                                            text: record.date || '',
+                                            style: 'margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #e0e0e0;'
+                                        },
+                                        {
+                                            tag: 'div',
+                                            text: record.section || '',
+                                            style: 'color: #666;'
+                                        }
+                                    ]
+                                };
+                            }
+                        }
+                    ]
+                }
             ],
             project,
             listeners: {
