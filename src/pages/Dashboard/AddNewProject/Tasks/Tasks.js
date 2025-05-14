@@ -303,6 +303,7 @@ const Task = ({
 
 			// If no filtering is applied, return the unfiltered list
 			if (!isFilteredApplied) {
+				console.log('list', unfilteredList)
 				return unfilteredList
 			}
 
@@ -570,6 +571,48 @@ const Task = ({
 		)
 	})
 
+	const customSortComparator = (a, b) => {
+		const getOrderValue = (title) => {
+			const isNamyang = title.includes('Namyang')
+			const isYeonsu = title.includes('Yeonsu')
+
+			const matchTL = title.match(/(\d+)T\/L/)
+			const tlValue = matchTL ? parseInt(matchTL[1], 10) : 0
+
+			return { isNamyang, isYeonsu, tlValue, title }
+		}
+
+		const sortedData = (data) => {
+			const namyangItems = data
+				.filter((item) => item.includes('Namyang'))
+				.sort((a, b) => getOrderValue(a).tlValue - getOrderValue(b).tlValue)
+
+			const midpoints = data.filter((item) => !item.includes('Namyang'))
+
+			const sortedMidpoints = midpoints.sort((a, b) => {
+				const aOrder = getOrderValue(a)
+				const bOrder = getOrderValue(b)
+
+				if (aOrder.tlValue !== bOrder.tlValue) {
+					return aOrder.tlValue - bOrder.tlValue
+				}
+
+				if (aOrder.isYeonsu && !bOrder.isYeonsu) return 1
+				if (!aOrder.isYeonsu && bOrder.isYeonsu) return -1
+
+				return aOrder.title.localeCompare(bOrder.title)
+			})
+
+			const topNamyang = namyangItems.slice(0, 3)
+			const bottomNamyang = namyangItems.slice(-3)
+
+			return [...topNamyang, ...sortedMidpoints, ...bottomNamyang]
+		}
+
+		const sortedArray = sortedData([a, b])
+		return sortedArray.indexOf(a) - sortedArray.indexOf(b)
+	}
+
 	useEffect(() => {
 		setSelectedRows(gridRef?.current?.api?.getSelectedRows().map(({ id }) => id) ?? [])
 	}, [list])
@@ -587,7 +630,8 @@ const Task = ({
 				headerCheckboxSelection: true,
 				checkboxSelection: (params) => !!params.data,
 				showDisabledCheckboxes: true,
-				sortable: false,
+				sortable: true,
+				comparator: customSortComparator,
 			},
 			{
 				headerName: 'Team',
