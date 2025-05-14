@@ -22,6 +22,7 @@ import {
 	Snackbar,
 	Stack,
 	Typography,
+	Button as MuiButton,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { AgGridReact } from 'ag-grid-react'
@@ -47,6 +48,7 @@ import { getProjectDiagram } from 'supabase/project_diagram'
 import TimeRangeEditor from './TimeRangeEditor'
 import WorkType from './WorkType'
 import WarningDialog from 'pages/WeeklyPlan/FlowDiagram/WarningDialog'
+import FilterPopUp from 'components/FilterPopUp'
 
 setOptions({
 	theme: 'ios',
@@ -87,6 +89,10 @@ const AccordionSummary = styled((props) => (
 	},
 	'& .MuiAccordionSummary-content': {
 		marginLeft: theme.spacing(1),
+		display: 'flex',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		width: '100%',
 	},
 }))
 
@@ -108,7 +114,17 @@ const Tasks = () => {
 	const [selectedWorkTypes, setSelectedWorkTypes] = useState([])
 	const [tempSelectedWorkTypes, setTempSelectedWorkTypes] = useState([])
 	const [showSelectedWorkTypes, setShowSelectedWorkTypes] = useState(false) // State to control display
+	const [isFilterOpen, SetIsFilterOpen] = useState(false)
+	const [cableTypeData, SetCableTypeData] = useState([])
+	const [isFilteredApplied, SetIsFilterApplied] = useState(false)
+	const [activeTaskID, SetActiveTaskID] = useState(null)
 	const queryClient = useQueryClient()
+	const [filters, SetFilters] = useState({
+		diagramName: '',
+		lines: '',
+		demolition: '',
+		diagramId: '',
+	})
 	const { data: selectedWorkTypesData, isLoading: isLoadingWorkTypes } = useQuery(
 		['selectedWorkTypes', projectId],
 		() => getSelectedWorkTypes(projectId),
@@ -147,6 +163,38 @@ const Tasks = () => {
 		console.log('Work types updated:', tempSelectedWorkTypes)
 	}
 
+	const handleopenFilter = (id) => {
+		if (activeTaskID !== id) {
+			SetFilters({
+				diagramName: '',
+				lines: '',
+				demolition: '',
+				diagramId: '',
+			})
+			SetActiveTaskID(id)
+		} else {
+			SetActiveTaskID(id)
+		}
+		console.log('Yes Clicked', id)
+		SetIsFilterOpen(true)
+	}
+
+	const handleApplyFilters = (filters) => {
+		SetIsFilterApplied(true)
+		console.log('AppliedFilters', filters, activeTaskID)
+	}
+
+	const handleChange = (field, value) => {
+		SetIsFilterApplied(false)
+
+		if (field === 'diagramName') {
+			SetFilters((prev) => ({ ...prev, [field]: value }))
+		} else {
+			SetFilters((prev) => ({ ...prev, [field]: value }))
+		}
+		console.log('value', value, filters)
+	}
+
 	useEffect(() => {
 		if (selectedWorkTypesData?.length > 0) {
 			setTempSelectedWorkTypes(selectedWorkTypesData)
@@ -176,9 +224,44 @@ const Tasks = () => {
 								<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
 									{workType} {/* Display the work type name */}
 								</Typography>
+
+								{(workTypeMap[workType] === 2 || workTypeMap[workType] === 3) && (
+									<MuiButton
+										size="small"
+										variant="contained"
+										sx={{ padding: 0.5, minWidth: 0, width: 30 }}
+										onClick={(e) => {
+											e.stopPropagation() // Stop Accordion behv(open or close) on click on button
+											handleopenFilter(workTypeMap[workType])
+											// SetActiveTaskID(workTypeMap[workType])
+										}}
+									>
+										<Iconify icon="heroicons-funnel" width={20} height={20} />
+									</MuiButton>
+								)}
+								{isFilterOpen && (
+									<FilterPopUp
+										open={isFilterOpen}
+										onClose={() => SetIsFilterOpen(false)}
+										onApplyFilters={handleApplyFilters}
+										cableTypeData={cableTypeData}
+										handleChange={handleChange}
+										filters={filters}
+										SetFilters={SetFilters}
+									/>
+								)}
 							</AccordionSummary>
 							<AccordionDetails>
-								<Task task_group={workType} task_group_id={workTypeMap[workType]} />
+								<Task
+									task_group={workType}
+									task_group_id={workTypeMap[workType]}
+									SetCableTypeData={SetCableTypeData}
+									cableTypeData={cableTypeData}
+									activeTaskID={activeTaskID}
+									filters={filters}
+									isFilteredApplied={isFilteredApplied}
+								/>
+								{console.log('my', workTypeMap[workType])}
 							</AccordionDetails>
 						</Accordion>
 					))}
@@ -188,7 +271,15 @@ const Tasks = () => {
 	)
 }
 
-const Task = ({ task_group, task_group_id }) => {
+const Task = ({
+	task_group,
+	task_group_id,
+	cableTypeData,
+	SetCableTypeData,
+	activeTaskID,
+	filters,
+	isFilteredApplied,
+}) => {
 	const { id } = useParams()
 	const [diagrams, setDiagrams] = useState({}) // State to hold diagram data
 	const [toast, setToast] = useState(false)
@@ -205,14 +296,44 @@ const Task = ({ task_group, task_group_id }) => {
 	// first we need to find the task_group_id
 	const { refetch, data: list } = useQuery([`task-${task_group}`], () => listFilteredTasks(task_group_id, id), {
 		select: (r) => {
-			return r?.data.map((itm) => ({
+			const unfilteredList = r?.data.map((itm) => ({
 				...itm,
 				task_period: [itm.start_date, itm.end_date],
 			}))
+
+			// If no filtering is applied, return the unfiltered list
+			if (!isFilteredApplied) {
+				return unfilteredList
+			}
+
+			// TL values to check against
+			const tlValues = ['1T/L', '2T/L', '3T/L', '4T/L']
+
+			return unfilteredList
+				.map((item) => {
+					// Check if the current task group is the one being filtered
+					const isTargetTaskGroup = item.task_group_id === activeTaskID
+
+					// If the current item belongs to the filtered task group, apply the filter logic
+					if (isTargetTaskGroup) {
+						const matchesLines = filters.lines.trim() === '' || item?.title?.includes(filters?.lines)
+
+						const matchesDiagram = !filters.diagramName?.id || item.project_diagram_id === filters.diagramName.id
+
+						const matchesDemolition =
+							filters.demolition.trim() === '' || String(item.isDemolition) === filters.demolition
+
+						// Apply filter logic and return the item if it matches
+						return matchesLines && matchesDiagram && matchesDemolition ? item : null
+					}
+
+					// If the current item does not belong to the filtered task group, return it as-is
+					return item
+				})
+				.filter(Boolean) // Remove any null values
 		},
 	})
 
-	console.log('list1', list)
 	// Fetch all diagram data based on unique diagram IDs from tasks
 	useEffect(() => {
 		if (list) {
@@ -223,6 +344,27 @@ const Task = ({ task_group, task_group_id }) => {
 					const diagramPromises = uniqueDiagramIds.map((diagramId) =>
 						getProjectDiagram(diagramId)
 							.then((res) => {
+								console.log('cable', res)
+
+								const cableTypeString = `${res.data.cable_name.bigInput}KV ${res.data.cable_name.startLocation}-${res.data.cable_name.endLocation}`
+								const cableId = res.data.id
+
+								SetCableTypeData((prev) => {
+									const existingTypes = prev ? [...prev] : []
+
+									// Check if the cableId already exists to avoid duplicates
+									const isExisting = existingTypes.some((item) => item.id === cableId)
+
+									if (!isExisting) {
+										existingTypes.push({
+											id: cableId,
+											cableName: cableTypeString,
+										})
+									}
+
+									return existingTypes
+								})
+
 								if (res.data && res.data.id) {
 									diagramMap[
 										res.data.id
