@@ -522,6 +522,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							isDemolition,
 							start_date: formatDate(start),
 							end_date: formatDate(end),
+							priority: -1,
 						})
 
 						if (response?.data?.[0]) {
@@ -575,6 +576,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							isDemolition,
 							start_date: formatDate(start),
 							end_date: formatDate(end),
+							priority: 99,
 						})
 
 						if (response?.data?.[0]) {
@@ -647,6 +649,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 						tl: j + 1,
 						start_date: formatDate(start),
 						end_date: formatDate(end),
+						priority: i,
 					})
 
 					if (response.data?.[0]) {
@@ -737,6 +740,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 						tl: j + 1,
 						start_date: formatDate(start),
 						end_date: formatDate(end),
+						priority: i,
 					})
 
 					if (response.data?.[0]) {
@@ -842,21 +846,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 			// Create or update tasks for new section
 			const [updatedEndpoints, updatedConnections, updatedInstallations] = await Promise.all([
-				createTasksForEndpoints(
-					currentObj.endpoints,
-					cable_name,
-					project_diagram_id,
-					isEdit,
-					connectionTasks,
-					false
-				),
-				createOrUpdateConnectionTasks(
-					currentObj.connections,
-					project_diagram_id,
-					isEdit,
-					connectionTasks,
-					false
-				),
+				createTasksForEndpoints(currentObj.endpoints, cable_name, project_diagram_id, isEdit, connectionTasks, false),
+				createOrUpdateConnectionTasks(currentObj.connections, project_diagram_id, isEdit, connectionTasks, false),
 				createOrUpdateInstallationTasks(
 					currentObj.installations,
 					currentObj.connections,
@@ -874,7 +865,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			let updatedDemolitionConnections = []
 			let updatedDemolitionInstallations = []
 
-			
 			if (isDemolition) {
 				;[updatedDemolitionEndpoints, updatedDemolitionConnections, updatedDemolitionInstallations] = await Promise.all(
 					[

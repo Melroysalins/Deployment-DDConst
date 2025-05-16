@@ -16,7 +16,7 @@ import {
 	Stack,
 } from '@mui/material'
 
-const FilterPopup = ({ open, onClose, onApplyFilters, cableTypeData, filters, handleChange }) => {
+const FilterPopup = ({ open, onClose, onApplyFilters, cableTypeData, filters, handleChange, onClearFilter }) => {
 	const handleApply = () => {
 		onApplyFilters(filters)
 		onClose()
@@ -124,6 +124,16 @@ const FilterPopup = ({ open, onClose, onApplyFilters, cableTypeData, filters, ha
 					}}
 				>
 					Cancel
+				</Button>
+				<Button
+					onClick={onClearFilter}
+					variant="text"
+					sx={{
+						color: '#777',
+						'&:hover': { color: '#333', backgroundColor: 'transparent' },
+					}}
+				>
+					Clear Filter
 				</Button>
 				<Button
 					onClick={handleApply}

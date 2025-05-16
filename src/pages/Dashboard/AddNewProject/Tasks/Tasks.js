@@ -130,7 +130,7 @@ const Tasks = () => {
 		() => getSelectedWorkTypes(projectId),
 		{
 			select: (data) => {
-				console.log('mydata', projectId)
+				console.log('mydata', projectId, data)
 				return data?.selectedWorkTypes || [] // Return the selectedWorkTypes array or an empty array
 			},
 		}
@@ -195,6 +195,15 @@ const Tasks = () => {
 		console.log('value', value, filters)
 	}
 
+	const handleonClearFilter = () => {
+		SetFilters({
+			diagramName: '',
+			lines: '',
+			demolition: '',
+			diagramId: '',
+		})
+	}
+
 	useEffect(() => {
 		if (selectedWorkTypesData?.length > 0) {
 			setTempSelectedWorkTypes(selectedWorkTypesData)
@@ -242,7 +251,10 @@ const Tasks = () => {
 								{isFilterOpen && (
 									<FilterPopUp
 										open={isFilterOpen}
-										onClose={() => SetIsFilterOpen(false)}
+										onClose={() => {
+											SetIsFilterOpen(false)
+										}}
+										onClearFilter={handleonClearFilter}
 										onApplyFilters={handleApplyFilters}
 										cableTypeData={cableTypeData}
 										handleChange={handleChange}
@@ -296,7 +308,7 @@ const Task = ({
 	// first we need to find the task_group_id
 	const { refetch, data: list } = useQuery([`task-${task_group}`], () => listFilteredTasks(task_group_id, id), {
 		select: (r) => {
-			const unfilteredList = r?.data.map((itm) => ({
+			const unfilteredList = r?.data?.map((itm) => ({
 				...itm,
 				task_period: [itm.start_date, itm.end_date],
 			}))
@@ -587,6 +599,9 @@ const Task = ({
 				.filter((item) => item.includes('Namyang'))
 				.sort((a, b) => getOrderValue(a).tlValue - getOrderValue(b).tlValue)
 
+			const namyang1TL = namyangItems.filter((item) => getOrderValue(item).tlValue === 1)
+			const remainingNamyang = namyangItems.filter((item) => getOrderValue(item).tlValue !== 1)
+
 			const midpoints = data.filter((item) => !item.includes('Namyang'))
 
 			const sortedMidpoints = midpoints.sort((a, b) => {
@@ -603,10 +618,7 @@ const Task = ({
 				return aOrder.title.localeCompare(bOrder.title)
 			})
 
-			const topNamyang = namyangItems.slice(0, 3)
-			const bottomNamyang = namyangItems.slice(-3)
-
-			return [...topNamyang, ...sortedMidpoints, ...bottomNamyang]
+			return [...namyang1TL, ...sortedMidpoints, ...remainingNamyang]
 		}
 
 		const sortedArray = sortedData([a, b])
@@ -630,8 +642,13 @@ const Task = ({
 				headerCheckboxSelection: true,
 				checkboxSelection: (params) => !!params.data,
 				showDisabledCheckboxes: true,
-				sortable: true,
-				comparator: customSortComparator,
+				// sortable: true,
+				// comparator: customSortComparator,
+				comparator: (valueA, valueB, nodeA, nodeB) => {
+					const tlA = valueA?.data?.tl ?? 0
+					const tlB = valueB?.data?.tl ?? 0
+					return tlA - tlB
+				},
 			},
 			{
 				headerName: 'Team',
