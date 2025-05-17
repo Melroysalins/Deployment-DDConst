@@ -493,7 +493,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			const startTasksPromises = endpoints.startStatuses.map(async (status, i) => {
 				const taskTitle = `${cable_name.startLocation}${t(`${endpoints.start}`)}, ${i + 1}T/L`
 
-				if (isEdit && endpoints.start_task_id) {
+				if (isEdit && endpoints.start_task_id && endpoints.start_task_id[i]) {
 					const existingTask = connectionTasks.find((task) => task.id === endpoints.start_task_id[i])
 					if (existingTask) {
 						console.log('existingTask', existingTask)
@@ -579,7 +579,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			const endTasksPromises = endStatuses.map(async (status, i) => {
 				const taskTitle = `${endPointTitle}, ${i + 1}T/L`
 
-				if (isEdit && endpoints.end_task_id) {
+				if (isEdit && endpoints.end_task_id && endpoints.start_task_id[i]) {
 					const existingTask = connectionTasks.find((task) => task.id === endpoints.end_task_id[i])
 					if (existingTask) {
 						await updateTask(
