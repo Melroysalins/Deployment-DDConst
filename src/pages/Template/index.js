@@ -16,7 +16,7 @@ const data = [
 	['Honda CRV', 2010, 6000],
 ]
 const columns = [
-	{ title: 'Model', width: '300px' },
+	{ title: 'Model', width: '1000px' },
 	{ title: 'Year', width: '80px' },
 	{ title: 'Price', width: '100px' },
 ]

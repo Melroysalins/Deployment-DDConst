@@ -295,6 +295,7 @@ const Task = ({
 	const { id } = useParams()
 	const [diagrams, setDiagrams] = useState({}) // State to hold diagram data
 	const [toast, setToast] = useState(false)
+	const [List, SetList] = useState([])
 
 	const handleClose = () => {
 		setToast(null)
@@ -316,6 +317,7 @@ const Task = ({
 			// If no filtering is applied, return the unfiltered list
 			if (!isFilteredApplied) {
 				console.log('list', unfilteredList)
+
 				return unfilteredList
 			}
 
@@ -583,48 +585,6 @@ const Task = ({
 		)
 	})
 
-	const customSortComparator = (a, b) => {
-		const getOrderValue = (title) => {
-			const isNamyang = title.includes('Namyang')
-			const isYeonsu = title.includes('Yeonsu')
-
-			const matchTL = title.match(/(\d+)T\/L/)
-			const tlValue = matchTL ? parseInt(matchTL[1], 10) : 0
-
-			return { isNamyang, isYeonsu, tlValue, title }
-		}
-
-		const sortedData = (data) => {
-			const namyangItems = data
-				.filter((item) => item.includes('Namyang'))
-				.sort((a, b) => getOrderValue(a).tlValue - getOrderValue(b).tlValue)
-
-			const namyang1TL = namyangItems.filter((item) => getOrderValue(item).tlValue === 1)
-			const remainingNamyang = namyangItems.filter((item) => getOrderValue(item).tlValue !== 1)
-
-			const midpoints = data.filter((item) => !item.includes('Namyang'))
-
-			const sortedMidpoints = midpoints.sort((a, b) => {
-				const aOrder = getOrderValue(a)
-				const bOrder = getOrderValue(b)
-
-				if (aOrder.tlValue !== bOrder.tlValue) {
-					return aOrder.tlValue - bOrder.tlValue
-				}
-
-				if (aOrder.isYeonsu && !bOrder.isYeonsu) return 1
-				if (!aOrder.isYeonsu && bOrder.isYeonsu) return -1
-
-				return aOrder.title.localeCompare(bOrder.title)
-			})
-
-			return [...namyang1TL, ...sortedMidpoints, ...remainingNamyang]
-		}
-
-		const sortedArray = sortedData([a, b])
-		return sortedArray.indexOf(a) - sortedArray.indexOf(b)
-	}
-
 	useEffect(() => {
 		setSelectedRows(gridRef?.current?.api?.getSelectedRows().map(({ id }) => id) ?? [])
 	}, [list])
@@ -642,13 +602,6 @@ const Task = ({
 				headerCheckboxSelection: true,
 				checkboxSelection: (params) => !!params.data,
 				showDisabledCheckboxes: true,
-				// sortable: true,
-				// comparator: customSortComparator,
-				comparator: (valueA, valueB, nodeA, nodeB) => {
-					const tlA = valueA?.data?.tl ?? 0
-					const tlB = valueB?.data?.tl ?? 0
-					return tlA - tlB
-				},
 			},
 			{
 				headerName: 'Team',
@@ -680,6 +633,13 @@ const Task = ({
 				cellRenderer: DiagramRenderer, // Use the new renderer
 				sortable: true,
 				sort: 'asc',
+			},
+			{
+				headerName: 'TL',
+				field: 'tl',
+				sortable: true,
+				// sort: 'asc',
+				// sortIndex: 2,
 			},
 		],
 		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer, DiagramRenderer]
@@ -745,6 +705,7 @@ const Task = ({
 			</Snackbar>
 			<div style={containerStyle}>
 				<div style={gridStyle} className="ag-theme-ddconst">
+					{console.log('aggrid', list)}
 					<Stack gap={2}>
 						<AgGridReact
 							ref={gridRef}

@@ -496,14 +496,45 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				if (isEdit && endpoints.start_task_id) {
 					const existingTask = connectionTasks.find((task) => task.id === endpoints.start_task_id[i])
 					if (existingTask) {
+						console.log('existingTask', existingTask)
 						await updateTask(
 							{
 								title: taskTitle,
 								notes: '',
 								approval_status: 'Approved',
+								t1: i + 1,
 							},
 							endpoints.start_task_id[i]
 						)
+					} else {
+						try {
+							console.log('Creating New Task', formatDate(start), formatDate(end))
+							const response = await createNewTasks({
+								approval_status: 'Planned',
+								created_at: new Date().toISOString(),
+								from_page: 'projects',
+								notes: '',
+								project: id,
+								task_group_id: 3,
+								task_type: null,
+								title: taskTitle,
+								project_diagram_id,
+								tl: i + 1,
+								isDemolition,
+								start_date: formatDate(start),
+								end_date: formatDate(end),
+								priority: -1,
+							})
+
+							if (response?.data?.[0]) {
+								// Append the new task ID to the start_task_id array
+								updatedEndpoints.start_task_id.push(response.data[0].id)
+							} else {
+								console.error(`Failed to create task for start point: ${taskTitle}`, response)
+							}
+						} catch (error) {
+							console.error(`Error creating task for start point: ${taskTitle}`, error)
+						}
 					}
 				} else {
 					try {
@@ -556,9 +587,38 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 								title: taskTitle,
 								notes: '',
 								approval_status: 'Approved',
+								t1: i + 1,
 							},
 							endpoints.end_task_id[i]
 						)
+					} else {
+						try {
+							const response = await createNewTasks({
+								approval_status: 'Planned',
+								created_at: new Date().toISOString(),
+								from_page: 'projects',
+								notes: '',
+								project: id,
+								task_group_id: 3,
+								task_type: null,
+								title: taskTitle,
+								project_diagram_id,
+								tl: i + 1,
+								isDemolition,
+								start_date: formatDate(start),
+								end_date: formatDate(end),
+								priority: 99,
+							})
+
+							if (response?.data?.[0]) {
+								// Append the new task ID to the end_task_id array
+								updatedEndpoints.end_task_id.push(response.data[0].id)
+							} else {
+								console.error(`Failed to create task for end point: ${taskTitle}`, response)
+							}
+						} catch (error) {
+							console.error(`Error creating task for end point: ${taskTitle}`, error)
+						}
 					}
 				} else {
 					try {
@@ -628,6 +688,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 									title: taskTitle,
 									notes: connection.notes || '',
 									approval_status: 'Approved',
+									t1: i + 1,
 								},
 								connection.task_id[j]
 							)
@@ -719,6 +780,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 									title,
 									notes: '',
 									approval_status: 'Approved',
+									t1: i + 1,
 								},
 								installation.task_id[j]
 							)
