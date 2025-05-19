@@ -626,6 +626,7 @@ const Task = ({
 				cellRenderer: (params) => (params.value ? 'Yes' : 'No'),
 				sortable: true,
 				sort: 'asc',
+				sortInex: 2
 			},
 			{
 				headerName: 'Diagram Name',
@@ -633,13 +634,7 @@ const Task = ({
 				cellRenderer: DiagramRenderer, // Use the new renderer
 				sortable: true,
 				sort: 'asc',
-			},
-			{
-				headerName: 'TL',
-				field: 'tl',
-				sortable: true,
-				// sort: 'asc',
-				// sortIndex: 2,
+				sortIndex: 1
 			},
 		],
 		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer, DiagramRenderer]
