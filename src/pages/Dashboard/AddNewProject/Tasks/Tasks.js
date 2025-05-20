@@ -624,22 +624,16 @@ const Task = ({
 				headerName: 'Is Demolition',
 				field: 'isDemolition',
 				cellRenderer: (params) => (params.value ? 'Yes' : 'No'),
-				sortable: true,
-				sort: 'asc',
 			},
 			{
 				headerName: 'Diagram Name',
 				field: 'project_diagram_id', // Assuming this is the field for diagram ID
 				cellRenderer: DiagramRenderer, // Use the new renderer
-				sortable: true,
-				sort: 'asc',
 			},
 			{
 				headerName: 'TL',
 				field: 'tl',
 				sortable: true,
-				// sort: 'asc',
-				// sortIndex: 2,
 			},
 		],
 		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer, DiagramRenderer]
