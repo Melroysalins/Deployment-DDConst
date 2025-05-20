@@ -35,10 +35,11 @@ export const columns = [
 ]
 
 export const features = {
+	nestedEvents: true,
     // autoAdjustTimeAxis: true,
     dependencyEdit: true,
-
-    eventDrag: {
+	eventEdit: true,
+	eventDrag: {
         constrainDragToTimeline: false,
         showExactDropPosition: true,
         constrainDragToResource: true // <-- Only allow dragging within the same row/resource
