@@ -37,14 +37,15 @@ const viewSettings = {
 		weekNumbers: false,
 	},
 }
-// const responsivePopup = {
-// 	medium: {
-// 		display: 'anchored',
-// 		width: 520,
-// 		fullScreen: false,
-// 		touchUi: false,
-// 	},
-// }
+
+const responsivePopup = {
+	medium: {
+		display: 'anchored',
+		width: 520,
+		fullScreen: false,
+		touchUi: false,
+	},
+}
 
 const defaultHolidays = [
 	{ background: 'rgba(100, 100, 100, 0.1)', recurring: { repeat: 'weekly', weekDays: 'SU' } },
@@ -57,9 +58,9 @@ function App() {
 	const [tempEvent, setTempEvent] = React.useState(null)
 	const [isOpen, setOpen] = React.useState(false)
 	const [isEdit, setEdit] = React.useState(false)
-	// const [anchor, setAnchor] = React.useState(null)
-	// const [start, startRef] = React.useState(null)
-	// const [end, endRef] = React.useState(null)
+	const [anchor, setAnchor] = React.useState(null)
+	const [start, startRef] = React.useState(null)
+	const [end, endRef] = React.useState(null)
 	const [popupEventTitle, setTitle] = React.useState('')
 	const [popupEventSite, setSite] = React.useState('')
 	const [popupEventColor, setColor] = React.useState('')
@@ -67,23 +68,40 @@ function App() {
 	const [mySelectedDate, setSelectedDate] = React.useState(new Date())
 	const [checkedResources, setCheckedResources] = React.useState([])
 	const [myResources, setMyResources] = React.useState([])
-	const { allowTaskCursor, handleCommentTask } = useMain()
+	const { allowTaskCursor, handleCommentTask, objs } = useMain()
 	const [loader, setLoader] = React.useState(false)
 	const [projectError, setProjectError] = React.useState(false)
 	const [holidays, setHolidays] = React.useState(defaultHolidays)
+
+	// Move loadPopupForm to be defined before the functions that use it
+	const loadPopupForm = React.useCallback((event) => {
+		try {
+			let startDate = new Date(event.start)
+			let endDate = new Date(event.end)
+			startDate = moment(startDate).format('YYYY-MM-DD')
+			endDate = moment(endDate).format('YYYY-MM-DD')
+			setTitle(event.title)
+			setSite(event.location)
+			setColor(event.color)
+			setDate([startDate, endDate])
+			setCheckedResources(event.resource)
+		} catch (error) {
+			console.log(error)
+		}
+	}, [])
 
 	const handleSetEvent = (data) => {
 		const newData = data.flatMap((event) => {
 			event.start = new Date(event.start)
 			event.end = new Date(event.end)
 			const mainEvent = { ...event, resource: event.task_group }
-			const nestedEvents = event.nested_tasks.map((nestedTask) => ({
-				...nestedTask,
-				start: new Date(nestedTask.start),
-				end: new Date(nestedTask.end),
-				resource: event.task_group,
-			}))
-			return [mainEvent, ...nestedEvents]
+			// const nestedEvents = event.nested_tasks.map((nestedTask) => ({
+			// 	...nestedTask,
+			// 	start: new Date(nestedTask.start),
+			// 	end: new Date(nestedTask.end),
+			// 	resource: event.task_group,
+			// }))
+			return [mainEvent]
 		})
 		// setMyEvents(data.map((e) => ({ ...e, resource: e.task_group })))
 		setMyEvents(newData)
@@ -95,10 +113,23 @@ function App() {
 	}
 
 	const createEventsByProject = () => {
-		listAllTasksByProject(id).then((data) => {
-			handleSetEvent(data?.data)
-			handlesetMyResources(data?.data)
-		})
+		if (!objs || !objs[0]?.currentObj) return []
+		
+		// Combine connections and installations into one array
+		const combinedTasks = [
+			...(objs[0]?.currentObj?.connections || []),
+			...(objs[0]?.currentObj?.installations || [])
+		].map(task => ({
+			...task,
+			// Add any additional formatting needed for calendar events
+			start: new Date(task.start),
+			end: new Date(task.end),
+			// You can add a type field to distinguish between connections and installations
+			type: task.task_group || 'unknown'
+		}));
+
+		handleSetEvent(combinedTasks)
+		handlesetMyResources(combinedTasks)
 	}
 
 	React.useEffect(() => {
@@ -189,103 +220,42 @@ function App() {
 		)
 	}
 
-	// const loadPopupForm = React.useCallback((event) => {
-	// 	try {
-	// 		let startDate = new Date(event.start)
-	// 		let endDate = new Date(event.end)
-	// 		startDate = moment(startDate).format('YYYY-MM-DD')
-	// 		endDate = moment(endDate).format('YYYY-MM-DD')
-	// 		setTitle('')
-	// 		setSite(event.location)
-	// 		setColor(event.color)
-	// 		setDate([startDate, endDate])
-	// 		setCheckedResources(event.resource)
-	// 	} catch (error) {
-	// 		console.log(error)
-	// 	}
-	// }, [])
+	const dateChange = React.useCallback((args) => {
+		setDate(args.value)
+	}, [])
 
-	// handle popup form changes
-
-	// const dateChange = React.useCallback((args) => {
-	// 	setDate(args.value)
-	// }, [])
-
-	// const onDeleteClick = React.useCallback(() => {
-	// 	setLoader(true)
-
-	// 	setOpen(false)
-	// }, [tempEvent])
-
-	// // scheduler options
-
-	// const onSelectedDateChange = React.useCallback((event) => {
-	// 	setSelectedDate(event.date)
-	// }, [])
-
-	// const onEventClick = React.useCallback(
-	// 	(args) => {
-	// 		setEdit(true)
-
-	// 		setTempEvent({ ...args.event })
-	// 		// fill popup form with event data
-	// 		loadPopupForm(args.event)
-	// 		setAnchor(args.domEvent.target)
-	// 		setOpen(true)
-	// 	},
-	// 	[loadPopupForm]
-	// )
-
-	// const onEventCreated = React.useCallback(
-	// 	(args) => {
-	// 		setEdit(false)
-	// 		setTempEvent(args.event)
-	// 		// fill popup form with event data
-	// 		loadPopupForm(args.event)
-	// 		setAnchor(args.target)
-	// 		// open the popup
-	// 		setOpen(true)
-	// 	},
-	// 	[loadPopupForm]
-	// )
-
-	// const onEventDeleted = React.useCallback((args) => {}, [])
+	const onDeleteClick = React.useCallback(() => {
+		setLoader(true)
+		setOpen(false)
+	}, [tempEvent])
 
 	// popup options
-	// const headerText = React.useMemo(() => (isEdit ? 'View work order' : 'New work order'), [isEdit])
-	// const popupButtons = React.useMemo(() => {
-	// 	if (isEdit) {
-	// 		return ['cancel']
-	// 	}
+	const headerText = React.useMemo(() => (isEdit ? 'View work order' : 'New work order'), [isEdit])
+	
+	const popupButtons = React.useMemo(() => {
+		if (isEdit) {
+			return ['cancel']
+		}
+		return [
+			'cancel',
+			{
+				handler: () => {
+					saveEvent()
+				},
+				keyCode: 'enter',
+				text: 'Add',
+				cssClass: 'mbsc-popup-button-primary',
+			},
+		]
+	}, [isEdit, saveEvent])
 
-	// 	return [
-	// 		'cancel',
-	// 		{
-	// 			handler: () => {
-	// 				saveEvent()
-	// 			},
-	// 			keyCode: 'enter',
-	// 			text: 'Add',
-	// 			cssClass: 'mbsc-popup-button-primary',
-	// 		},
-	// 	]
-	// }, [isEdit, saveEvent])
-
-	// const onClose = React.useCallback(() => {
-	// 	if (!isEdit) {
-	// 		// refresh the list, if add popup was canceled, to remove the temporary event
-	// 		setMyEvents([...myEvents])
-	// 	}
-	// 	setOpen(false)
-	// }, [isEdit, myEvents])
-
-	// const extendDefaultEvent = React.useCallback(
-	// 	(args) => ({
-	// 		title: 'Work order',
-	// 		location: '',
-	// 	}),
-	// 	[]
-	// )
+	const onClose = React.useCallback(() => {
+		if (!isEdit) {
+			// refresh the list, if add popup was canceled, to remove the temporary event
+			setMyEvents([...myEvents])
+		}
+		setOpen(false)
+	}, [isEdit, myEvents])
 
 	async function onPageLoading(event, inst) {
 		const start = new Date(event.firstDay)
@@ -296,6 +266,7 @@ function App() {
 
 	const handleDrag = async (event) => {
 		const { nested_tasks, id } = event
+		console.log(event)
 		if (nested_tasks) {
 			await updateNestedTasks([event.start, event.end], id)
 			await updateTask(event, id)
@@ -339,6 +310,44 @@ function App() {
 		)
 	}
 
+	const onSelectedDateChange = React.useCallback((event) => {
+		setSelectedDate(event.date)
+	}, [])
+
+	const onEventClick = React.useCallback(
+		(args) => {
+			setEdit(true)
+			setTempEvent({ ...args.event })
+			loadPopupForm(args.event)
+			setAnchor(args.domEvent.target)
+			setOpen(true)
+		},
+		[loadPopupForm]
+	)
+
+	const onEventCreated = React.useCallback(
+		(args) => {
+			setEdit(false)
+			setTempEvent(args.event)
+			loadPopupForm(args.event)
+			setAnchor(args.target)
+			setOpen(true)
+		},
+		[loadPopupForm]
+	)
+
+	const onEventDeleted = React.useCallback((args) => {
+		console.log('Event deleted:', args.event)
+	}, [])
+
+	const extendDefaultEvent = React.useCallback(
+		() => ({
+			title: 'Work order',
+			location: '',
+		}),
+		[]
+	)
+
 	return (
 		<>
 			<Legends />
@@ -354,22 +363,22 @@ function App() {
 				renderResource={renderMyResource}
 				renderScheduleEvent={renderScheduleEvent}
 				resources={myResources}
-				dragToCreate={false}
+				dragToCreate={true}
 				dragTimeStep={30}
 				onEventDragEnd={({ event }) => handleDrag(event)}
 				dragToResize={true}
 				renderHeader={renderHeader}
 				colors={holidays}
 				renderDay={renderCustomDay}
-				// selectedDate={mySelectedDate}
-				// onSelectedDateChange={onSelectedDateChange}
-				// onEventClick={onEventClick}
-				// onEventCreated={onEventCreated}
-				// onEventDeleted={onEventDeleted}
-				// extendDefaultEvent={extendDefaultEvent}
-				// clickToCreate="double"
+				selectedDate={mySelectedDate}
+				onSelectedDateChange={onSelectedDateChange}
+				onEventClick={onEventClick}
+				onEventCreated={onEventCreated}
+				onEventDeleted={onEventDeleted}
+				extendDefaultEvent={extendDefaultEvent}
+				clickToCreate="double"
 			/>
-			{/* <Popup
+			<Popup
 				display="bottom"
 				fullScreen={true}
 				contentPadding={false}
@@ -431,7 +440,7 @@ function App() {
 						</div>
 					)}
 				</div>
-			</Popup> */}
+			</Popup>
 		</>
 	)
 }

@@ -1,0 +1,34 @@
+/* Style for the scheduler container */
+.b-grid-header {
+    /* background-color: #f5f5f5; */
+    font-weight: bold;
+    font-size: 14px;
+    /* color: #333; */
+}
+
+header {
+    padding: 0px;
+}
+
+.b-sch-event {
+    border-radius: 4px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    /* color: #fff; */
+    background-color: rgb(188, 177, 231) !important; /* Light purple for events */
+    padding: 5px;
+}
+
+/* Highlight weekends */
+.b-sch-timerange {
+    background-color: rgba(212, 11, 11, 0.1); /* Light red for weekends */
+}
+
+/* Style for the timeline header */
+.b-sch-header-timeaxis-cell {
+    /* background-color: #d16262; */
+    font-size: 13px;
+    font-weight: bold;
+    /* color: #333; */
+}

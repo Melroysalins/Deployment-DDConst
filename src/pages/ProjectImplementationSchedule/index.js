@@ -12,6 +12,7 @@ import useMain from 'pages/context/context'
 import BasicTabs from 'components/Drawer/BasicTabs'
 import { useTranslation } from 'react-i18next'
 import RequestApproval from 'layouts/RequestApproval'
+import Calendar2 from './Calender2'
 
 const ProjectIntro = styled(Box)(({ theme }) => ({
 	backgroundColor: theme.palette.background.paper,
@@ -35,10 +36,11 @@ const ProjectImplementationSchedule = () => {
 		openRequestApproval,
 		setisDrawerOpen,
 		setapprovalIdDrawerRight,
-		setFromPage
+		setFromPage,
 	} = useMain()
-	
+
 	const { t } = useTranslation(['weekly_plan', 'common'])
+
 	const fetchData = async (id) => {
 		setLoading(true)
 		const res = await getProjectDetails(id)
@@ -76,7 +78,7 @@ const ProjectImplementationSchedule = () => {
 					sx={{ border: '1px solid #596570' }}
 					onClick={() => {
 						setopenRequestApproval(!openRequestApproval)
-						setFromPage("project_schedule")
+						setFromPage('project_schedule')
 					}}
 				>
 					{t('request_approval')}
@@ -88,7 +90,7 @@ const ProjectImplementationSchedule = () => {
 					onClick={() => {
 						setapprovalIdDrawerRight(null)
 						setisDrawerOpen(true)
-						setFromPage("project_schedule")
+						setFromPage('project_schedule')
 					}}
 					variant="contained"
 					size="medium"
@@ -99,13 +101,18 @@ const ProjectImplementationSchedule = () => {
 				</MuiButton>
 			</Box>
 
-			<Page title="PS">
+			{/* <Page title="PS">
 				<Stack px={2} mt={7}>
 					<Calendar />
 				</Stack>
-			</Page>
+			</Page> */}
 			{isDrawerOpen && <BasicTabs open={isDrawerOpen} setopen={setisDrawerOpen} />}
 			{openRequestApproval && <RequestApproval />}
+			<Page title="PS">
+				<Stack px={2} mt={7}>
+					<Calendar2 />
+				</Stack>
+			</Page>
 		</div>
 	)
 }

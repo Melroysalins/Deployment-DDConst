@@ -15,7 +15,6 @@ jspreadsheet.setLicense(
 
 const worksheets = [
 	{
-		
 		minDimensions: [13, 20],
 		allowInsertColumn: false,
 		allowManualInsertColumn: false,
@@ -30,6 +29,7 @@ export default function SpreadSheet() {
 	const [gridInstance, setGridInstance] = useState(null)
 	const [styleSheetId, setstyleSheetId] = useState(null)
 
+	console.log('gridInstance', id)
 	// Initialize the spreadsheet
 	useEffect(() => {
 		const grid = window.jspreadsheet(spreadsheet.current, {
@@ -80,8 +80,16 @@ export default function SpreadSheet() {
 
 	const handleSave = async () => {
 		// All Sheet Data
-		const object = { data: gridInstance[0].parent.getConfig(), project: id, consumablesData: gridInstance[0].data(), isFromSpreadsheetTwo: true }
+		const object = {
+			data: gridInstance[0].parent.getConfig(),
+			project: id,
+			consumablesData: gridInstance[0].data(),
+			isFromSpreadsheetTwo: true,
+		}
 		let result = null
+
+		console.log('result', object)
+
 		if (styleSheetId) {
 			result = await updateSpreadsheet(object, styleSheetId)
 		} else {

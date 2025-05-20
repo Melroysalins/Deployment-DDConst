@@ -120,6 +120,12 @@ export default function Projects() {
 			description: 'Pellentesque in ipsum id orci porta dapibus',
 			redirect: '#',
 		},
+		{
+			icon: <Iconify width={40} height={40} color="#708090" icon="tabler:template" />,
+			title: 'Template',
+			description: '',
+			redirect: `/dashboard/projects/${id}/template`,
+		},
 	]
 
 	const projectInfo = [
@@ -308,6 +314,7 @@ EventCard.propTypes = {
 }
 
 function EventCard({ event, t, key }) {
+	console.log('Event', event)
 	const navigate = useNavigate()
 	const redirectCard = () => {
 		navigate(event.redirect)

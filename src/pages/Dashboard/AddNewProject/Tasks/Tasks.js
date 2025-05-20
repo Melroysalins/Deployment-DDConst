@@ -2,13 +2,18 @@
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
-import '../../../../ag-theme-ddconst.scss' 
+import '../../../../ag-theme-ddconst.scss'
 
 import { momentTimezone, setOptions } from '@mobiscroll/react'
 import {
 	Alert,
 	Box,
 	Button,
+	ButtonBase,
+	Dialog,
+	DialogActions,
+	DialogContent,
+	DialogTitle,
 	MenuItem,
 	Accordion as MuiAccordion,
 	AccordionDetails as MuiAccordionDetails,
@@ -17,6 +22,7 @@ import {
 	Snackbar,
 	Stack,
 	Typography,
+	Button as MuiButton,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { AgGridReact } from 'ag-grid-react'
@@ -24,7 +30,7 @@ import Iconify from 'components/Iconify'
 import moment from 'moment-timezone'
 import PropTypes from 'prop-types'
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery, useQueryClient } from 'react-query'
 import { useParams } from 'react-router'
 import {
 	createNewTasks,
@@ -34,8 +40,15 @@ import {
 	listFilteredTasks,
 	updateTask,
 	updateNestedTasks,
+	listAllTaskGroups,
+	updateProject,
 } from 'supabase'
+import { getSelectedWorkTypes } from 'supabase/projects'
+import { getProjectDiagram } from 'supabase/project_diagram'
 import TimeRangeEditor from './TimeRangeEditor'
+import WorkType from './WorkType'
+import WarningDialog from 'pages/WeeklyPlan/FlowDiagram/WarningDialog'
+import FilterPopUp from 'components/FilterPopUp'
 
 setOptions({
 	theme: 'ios',
@@ -76,6 +89,10 @@ const AccordionSummary = styled((props) => (
 	},
 	'& .MuiAccordionSummary-content': {
 		marginLeft: theme.spacing(1),
+		display: 'flex',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		width: '100%',
 	},
 }))
 
@@ -83,57 +100,202 @@ const AccordionDetails = styled(MuiAccordionDetails)(({ theme }) => ({
 	padding: theme.spacing(2),
 }))
 
-const Tasks = () => (
-	<>
-		<Stack gap={2}>
-			<Accordion>
-				<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-					<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-						Metal Fittings Installation
-					</Typography>
-				</AccordionSummary>
-				<AccordionDetails>
-					<Task task_group="Metal Fittings Installation" />
-				</AccordionDetails>
-			</Accordion>
-			<Accordion>
-				<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-					<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-						Installation
-					</Typography>
-				</AccordionSummary>
-				<AccordionDetails>
-					<Task task_group="Installation" />
-				</AccordionDetails>
-			</Accordion>
-			<Accordion>
-				<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-					<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-						Connection
-					</Typography>
-				</AccordionSummary>
-				<AccordionDetails>
-					<Task task_group="Connection" />
-				</AccordionDetails>
-			</Accordion>
-			<Accordion>
-				<AccordionSummary aria-controls="metalFitting" id="metalFitting">
-					<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
-						Completion Test (AC)
-					</Typography>
-				</AccordionSummary>
-				<AccordionDetails>
-					<Task task_group="Completion Test (AC)" />
-				</AccordionDetails>
-			</Accordion>
-		</Stack>
-	</>
-)
+const workTypeMap = {
+	'Office Work': 5,
+	'Metal Fittings Installation': 1,
+	Installation: 2,
+	Connection: 3,
+	'Completion Testing': 4,
+	'Auxiliary Construction': 6,
+}
 
-const Task = ({ task_group }) => {
+const Tasks = () => {
+	const { id: projectId } = useParams()
+	const [selectedWorkTypes, setSelectedWorkTypes] = useState([])
+	const [tempSelectedWorkTypes, setTempSelectedWorkTypes] = useState([])
+	const [showSelectedWorkTypes, setShowSelectedWorkTypes] = useState(false) // State to control display
+	const [isFilterOpen, SetIsFilterOpen] = useState(false)
+	const [cableTypeData, SetCableTypeData] = useState([])
+	const [isFilteredApplied, SetIsFilterApplied] = useState(false)
+	const [activeTaskID, SetActiveTaskID] = useState(null)
+	const queryClient = useQueryClient()
+	const [filters, SetFilters] = useState({
+		diagramName: '',
+		lines: '',
+		demolition: '',
+		diagramId: '',
+	})
+	const { data: selectedWorkTypesData, isLoading: isLoadingWorkTypes } = useQuery(
+		['selectedWorkTypes', projectId],
+		() => getSelectedWorkTypes(projectId),
+		{
+			select: (data) => {
+				console.log('mydata', projectId, data)
+				return data?.selectedWorkTypes || [] // Return the selectedWorkTypes array or an empty array
+			},
+		}
+	)
+
+	console.log('selectedWorkTypes', selectedWorkTypesData)
+
+	// Update the state with existing and new work type IDs
+	const handleWorkTypeChange = (newWorkTypeId) => {
+		setTempSelectedWorkTypes(newWorkTypeId)
+	}
+
+	// Function to save selected work types to the database
+	const handleApply = async () => {
+		// const updatedData = { selectedWorkTypes } // Prepare the data to be updated
+		// await updateProject(updatedData, projectId) // Call the update function
+		// setShowSelectedWorkTypes(true)
+		// console.log('Work types updated:', selectedWorkTypes)
+		// // Show selected work types after saving
+		// setSelectedWorkTypes(tempSelectedWorkTypes)
+
+		const updatedData = { selectedWorkTypes: tempSelectedWorkTypes } // Use temp state for update
+		await updateProject(updatedData, projectId) // Save to DB
+
+		setSelectedWorkTypes(tempSelectedWorkTypes) // Update local state
+		setShowSelectedWorkTypes(true)
+
+		await queryClient.invalidateQueries(['selectedWorkTypes', projectId]) // ✅ Refetch fresh data from DB
+
+		console.log('Work types updated:', tempSelectedWorkTypes)
+	}
+
+	const handleopenFilter = (id) => {
+		if (activeTaskID !== id) {
+			SetFilters({
+				diagramName: '',
+				lines: '',
+				demolition: '',
+				diagramId: '',
+			})
+			SetActiveTaskID(id)
+		} else {
+			SetActiveTaskID(id)
+		}
+		console.log('Yes Clicked', id)
+		SetIsFilterOpen(true)
+	}
+
+	const handleApplyFilters = (filters) => {
+		SetIsFilterApplied(true)
+		console.log('AppliedFilters', filters, activeTaskID)
+	}
+
+	const handleChange = (field, value) => {
+		SetIsFilterApplied(false)
+
+		if (field === 'diagramName') {
+			SetFilters((prev) => ({ ...prev, [field]: value }))
+		} else {
+			SetFilters((prev) => ({ ...prev, [field]: value }))
+		}
+		console.log('value', value, filters)
+	}
+
+	const handleonClearFilter = () => {
+		SetFilters({
+			diagramName: '',
+			lines: '',
+			demolition: '',
+			diagramId: '',
+		})
+	}
+
+	useEffect(() => {
+		if (selectedWorkTypesData?.length > 0) {
+			setTempSelectedWorkTypes(selectedWorkTypesData)
+			setSelectedWorkTypes(selectedWorkTypesData)
+			setShowSelectedWorkTypes(true) // Automatically show Accordion if data is present
+		}
+	}, [selectedWorkTypesData])
+
+	if (isLoadingWorkTypes) return <div>Loading ...</div>
+	return (
+		<>
+			<Stack gap={2} mb={1}>
+				<WorkType
+					checkedItems={tempSelectedWorkTypes}
+					setCheckedItems={handleWorkTypeChange}
+					selectedWorkTypesData={selectedWorkTypesData}
+				/>
+				<Button onClick={handleApply} variant="contained" color="primary" sx={{ width: '40px', ml: 2 }}>
+					Apply
+				</Button>
+			</Stack>
+			{showSelectedWorkTypes && (
+				<Stack gap={2} mt={2}>
+					{selectedWorkTypes?.map((workType, index) => (
+						<Accordion key={index}>
+							<AccordionSummary aria-controls="metalFitting" id="metalFitting">
+								<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
+									{workType} {/* Display the work type name */}
+								</Typography>
+
+								{(workTypeMap[workType] === 2 || workTypeMap[workType] === 3) && (
+									<MuiButton
+										size="small"
+										variant="contained"
+										sx={{ padding: 0.5, minWidth: 0, width: 30 }}
+										onClick={(e) => {
+											e.stopPropagation() // Stop Accordion behv(open or close) on click on button
+											handleopenFilter(workTypeMap[workType])
+											// SetActiveTaskID(workTypeMap[workType])
+										}}
+									>
+										<Iconify icon="heroicons-funnel" width={20} height={20} />
+									</MuiButton>
+								)}
+								{isFilterOpen && (
+									<FilterPopUp
+										open={isFilterOpen}
+										onClose={() => {
+											SetIsFilterOpen(false)
+										}}
+										onClearFilter={handleonClearFilter}
+										onApplyFilters={handleApplyFilters}
+										cableTypeData={cableTypeData}
+										handleChange={handleChange}
+										filters={filters}
+										SetFilters={SetFilters}
+									/>
+								)}
+							</AccordionSummary>
+							<AccordionDetails>
+								<Task
+									task_group={workType}
+									task_group_id={workTypeMap[workType]}
+									SetCableTypeData={SetCableTypeData}
+									cableTypeData={cableTypeData}
+									activeTaskID={activeTaskID}
+									filters={filters}
+									isFilteredApplied={isFilteredApplied}
+								/>
+								{console.log('my', workTypeMap[workType])}
+							</AccordionDetails>
+						</Accordion>
+					))}
+				</Stack>
+			)}
+		</>
+	)
+}
+
+const Task = ({
+	task_group,
+	task_group_id,
+	cableTypeData,
+	SetCableTypeData,
+	activeTaskID,
+	filters,
+	isFilteredApplied,
+}) => {
 	const { id } = useParams()
-
+	const [diagrams, setDiagrams] = useState({}) // State to hold diagram data
 	const [toast, setToast] = useState(false)
+	const [List, SetList] = useState([])
 
 	const handleClose = () => {
 		setToast(null)
@@ -144,19 +306,138 @@ const Task = ({ task_group }) => {
 	const [selectedRows, setSelectedRows] = useState([])
 
 	const { data: teams } = useQuery(['Teams teams'], () => listAllTeams())
+	// first we need to find the task_group_id
+	const { refetch, data: list } = useQuery([`task-${task_group}`], () => listFilteredTasks(task_group_id, id), {
+		select: (r) => {
+			const unfilteredList = r?.data?.map((itm) => ({
+				...itm,
+				task_period: [itm.start_date, itm.end_date],
+			}))
 
-	const { refetch, data: list } = useQuery([`task ${task_group}`], () => listFilteredTasks(task_group, id), {
-		select: (r) => r?.data.map((itm) => ({ ...itm, task_period: [itm.start, itm.end] })),
+			// If no filtering is applied, return the unfiltered list
+			if (!isFilteredApplied) {
+				console.log('list', unfilteredList)
+
+				return unfilteredList
+			}
+
+			// TL values to check against
+			const tlValues = ['1T/L', '2T/L', '3T/L', '4T/L']
+
+			return unfilteredList
+				.map((item) => {
+					// Check if the current task group is the one being filtered
+					const isTargetTaskGroup = item.task_group_id === activeTaskID
+
+					// If the current item belongs to the filtered task group, apply the filter logic
+					if (isTargetTaskGroup) {
+						const matchesLines = filters.lines.trim() === '' || item?.title?.includes(filters?.lines)
+
+						const matchesDiagram = !filters.diagramName?.id || item.project_diagram_id === filters.diagramName.id
+
+						const matchesDemolition =
+							filters.demolition.trim() === '' || String(item.isDemolition) === filters.demolition
+
+						// Apply filter logic and return the item if it matches
+						return matchesLines && matchesDiagram && matchesDemolition ? item : null
+					}
+
+					// If the current item does not belong to the filtered task group, return it as-is
+					return item
+				})
+				.filter(Boolean) // Remove any null values
+		},
 	})
 
-	// DELETE CELL BUTTON
+	// Fetch all diagram data based on unique diagram IDs from tasks
+	useEffect(() => {
+		if (list) {
+			const uniqueDiagramIds = [...new Set(list.map((task) => task.project_diagram_id).filter((id) => id))] // Collect unique IDs
+			if (uniqueDiagramIds.length > 0) {
+				const diagramMap = {}
+				const fetchDiagrams = async () => {
+					const diagramPromises = uniqueDiagramIds.map((diagramId) =>
+						getProjectDiagram(diagramId)
+							.then((res) => {
+								console.log('cable', res)
 
-	const DeleteCellRenderer = useCallback(({ value }) => {
-		const handleDelete = () => {
+								const cableTypeString = `${res.data.cable_name.bigInput}KV ${res.data.cable_name.startLocation}-${res.data.cable_name.endLocation}`
+								const cableId = res.data.id
+
+								SetCableTypeData((prev) => {
+									const existingTypes = prev ? [...prev] : []
+
+									// Check if the cableId already exists to avoid duplicates
+									const isExisting = existingTypes.some((item) => item.id === cableId)
+
+									if (!isExisting) {
+										existingTypes.push({
+											id: cableId,
+											cableName: cableTypeString,
+										})
+									}
+
+									return existingTypes
+								})
+
+								if (res.data && res.data.id) {
+									diagramMap[
+										res.data.id
+									] = `${res.data.cable_name.bigInput}KV ${res.data.cable_name.startLocation}-${res.data.cable_name.endLocation}` // Assuming it has id and name
+								} else {
+									console.error('Unexpected response format for diagram ID:', diagramId, res.data)
+								}
+							})
+							.catch((error) => {
+								console.error('Error fetching diagram for ID:', diagramId, error)
+							})
+					)
+
+					// Wait for all promises to resolve
+					await Promise.all(diagramPromises)
+					setDiagrams(diagramMap) // Set the state after all diagrams are fetched
+				}
+				fetchDiagrams()
+			}
+		}
+	}, [list])
+
+	const DiagramRenderer = ({ value }) => {
+		if (!value || !diagrams[value]) return '-'
+		return diagrams[value] // Return the diagram name
+	}
+
+	const DeleteCellRenderer = ({ value, task_group_id, gridRef }) => {
+		const [openPopup, setOpenPopup] = useState(false)
+
+		const isRestricted = task_group_id === 2 || task_group_id === 3
+
+		const handleDelete = (event) => {
+			if (isRestricted) {
+				setOpenPopup(true) // Open the popup if the task group is restricted
+				return // Exit early
+			}
+
+			// Now handle the case when the task is not restricted
 			if (Array.isArray(value)) {
 				deleteTasks(value).then(() => refetch())
 			} else {
 				deleteTask(value).then(() => refetch())
+			}
+		}
+
+		// Close the popup
+		const handleClosePopup = () => {
+			setOpenPopup(false)
+
+			// Deselect restricted rows
+			if (gridRef?.current?.api) {
+				const selectedNodes = gridRef.current.api.getSelectedNodes()
+				selectedNodes.forEach((node) => {
+					if (node.data.task_group_id === 2 || node.data.task_group_id === 3) {
+						node.setSelected(false)
+					}
+				})
 			}
 		}
 
@@ -165,10 +446,27 @@ const Task = ({ task_group }) => {
 				<Button onClick={handleDelete}>
 					<Iconify icon="material-symbols:delete-outline-rounded" width={20} height={20} />
 				</Button>
+				<WarningDialog
+					isOpen={openPopup}
+					onClose={handleClosePopup}
+					title="Action Not Allowed"
+					dialogHeading="Restricted Task Deletion"
+					description="You can only delete Installation and Connection tasks from the Diagram Builder page."
+					actionType="info"
+					buttons={[
+						{
+							label: 'Cancel',
+							onClick: handleClosePopup,
+						},
+						{
+							label: 'Got It',
+							onClick: handleClosePopup,
+						},
+					]}
+				/>
 			</>
 		)
-	})
-
+	}
 	const TimeRangeRenderer = ({ value }) =>
 		value && value[0] && value[1]
 			? `${moment(value[0]).format('DD/MM/YYYY')} - ${moment(value[1]).format('DD/MM/YYYY')}`
@@ -323,17 +621,28 @@ const Task = ({ task_group }) => {
 				field: 'notes',
 			},
 			{
-				headerName: '',
-				field: 'id',
-				cellRenderer: DeleteCellRenderer,
-				headerComponent: AddButton,
-				cellStyle: { display: 'flex', justifyContent: 'flex-end' },
-				headerClass: 'header',
-				editable: false,
-				maxWidth: 100,
+				headerName: 'Is Demolition',
+				field: 'isDemolition',
+				cellRenderer: (params) => (params.value ? 'Yes' : 'No'),
+				sortable: true,
+				sort: 'asc',
+			},
+			{
+				headerName: 'Diagram Name',
+				field: 'project_diagram_id', // Assuming this is the field for diagram ID
+				cellRenderer: DiagramRenderer, // Use the new renderer
+				sortable: true,
+				sort: 'asc',
+			},
+			{
+				headerName: 'TL',
+				field: 'tl',
+				sortable: true,
+				// sort: 'asc',
+				// sortIndex: 2,
 			},
 		],
-		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer]
+		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer, DiagramRenderer]
 	)
 	const defaultColDef = useMemo(
 		() => ({
@@ -344,7 +653,7 @@ const Task = ({ task_group }) => {
 	)
 
 	const handleAdd = () => {
-		createNewTasks({ title: '', notes: '', task_group, project: id }).then(() => refetch())
+		createNewTasks({ title: '', notes: '', task_group_id, project: id }).then(() => refetch())
 	}
 
 	const onCellEditRequest = (event) => {
@@ -357,19 +666,28 @@ const Task = ({ task_group }) => {
 		newItem[field] = newValue
 		const { id } = newItem
 		if (typeof id !== 'string') {
-			if (newItem.task_period[0] && newItem.task_period[1]) {
-				updateNestedTasks(newItem.task_period, newItem.id)
-			}
+			// if (newItem.task_period[0] && newItem.task_period[1]) {
+			// 	updateNestedTasks(newItem.task_period, newItem.id)
+			// }
+			console.log('newItem', newItem)
 			updateTask(
 				{
 					title: newItem.title,
 					team: newItem.team,
 					notes: newItem.notes,
-					start: newItem.task_period ? newItem.task_period[0] : null,
-					end: newItem.task_period ? newItem.task_period[1] : null,
+					start_date: newItem.task_period ? newItem.task_period[0] : null,
+					end_date: newItem.task_period ? newItem.task_period[1] : null,
 				},
 				newItem.id
-			).then(() => refetch())
+			)
+				.then(() => refetch())
+				.catch((error) => {
+					console.error('Error updating task:', error)
+					setToast({
+						severity: 'error',
+						message: 'Failed to update task. Please try again.',
+					})
+				})
 		}
 	}
 
@@ -387,6 +705,7 @@ const Task = ({ task_group }) => {
 			</Snackbar>
 			<div style={containerStyle}>
 				<div style={gridStyle} className="ag-theme-ddconst">
+					{console.log('aggrid', list)}
 					<Stack gap={2}>
 						<AgGridReact
 							ref={gridRef}
@@ -397,18 +716,20 @@ const Task = ({ task_group }) => {
 							suppressRowClickSelection={true}
 							domLayout="autoHeight"
 							onCellEditRequest={onCellEditRequest}
+							getRowId={(params) => params.data.id}
 							readOnlyEdit
 							onRowSelected={() => {
 								setSelectedRows(gridRef.current.api.getSelectedRows().map(({ id }) => id))
 							}}
 							//   onFirstDataRendered={onFirstDataRendered}
 						/>
+						{/* {console.log('list', list)} */}
 						<Box display="flex" justifyContent="space-between">
 							<Button onClick={handleAdd}>Add Task</Button>
 							{selectedRows.length > 0 && (
 								<Box>
 									{selectedRows.length} items selected:
-									<DeleteCellRenderer value={selectedRows} />
+									<DeleteCellRenderer value={selectedRows} task_group_id={task_group_id} gridRef={gridRef} />
 								</Box>
 							)}
 						</Box>
@@ -421,6 +742,7 @@ const Task = ({ task_group }) => {
 
 Task.propTypes = {
 	task_group: PropTypes.string.isRequired,
+	task_group_id: PropTypes.string.isRequired,
 }
 
 export default Tasks

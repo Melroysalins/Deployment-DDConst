@@ -34,6 +34,7 @@ export const MainProvider = ({ children }) => {
 	const [isDrawerOpen, setisDrawerOpen] = useState(false)
 	const [approvalIdDrawerRight, setapprovalIdDrawerRight] = useState(null)
 	const [mainFilters, setmainFilters] = useState(null)
+	const [objs, setObjs] = useState(null)
 
 	console.log(commentTasks)
 
@@ -94,7 +95,9 @@ export const MainProvider = ({ children }) => {
 				mainFilters,
 				setmainFilters,
 				fromPage,
-				setFromPage
+				setFromPage,
+				objs,
+				setObjs,
 			}}
 		>
 			{userLoading ? <></> : children}

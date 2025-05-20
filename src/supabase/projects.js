@@ -22,9 +22,9 @@ export const addFile = async (name, file) => {
 		cacheControl: '3600',
 		upsert: false,
 	})
-	if(res?.error && res?.error?.statusCode === "409"){
-		const res = await replaceFile(name, file);
-		return res;
+	if (res?.error && res?.error?.statusCode === '409') {
+		const res = await replaceFile(name, file)
+		return res
 	}
 	return res
 }
@@ -50,4 +50,11 @@ export const getProjectFileLink = async (filename) => {
 	} catch (err) {
 		return null
 	}
+}
+
+export const getSelectedWorkTypes = async (projectId) => {
+	const { data, error } = await supabase.from('projects').select('selectedWorkTypes').eq('id', projectId).single()
+
+	if (error) throw error // Handle Supabase errors
+	return data // ✅ Return only the data, not the whole response
 }

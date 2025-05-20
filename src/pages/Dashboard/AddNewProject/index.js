@@ -33,12 +33,12 @@ const AddNewProject = ({ edit = false }) => {
 	}
 
 	return (
-		<Box 
-			border={1} 
-			borderColor={'lightgrey'} 
-			borderRadius={1} 
-			sx={{ 
-				overflow: 'hidden', 
+		<Box
+			border={1}
+			borderColor={'lightgrey'}
+			borderRadius={1}
+			sx={{
+				overflow: 'hidden',
 				'@media (min-width: 1680px)': {
 					marginLeft: '16px',
 				},
@@ -46,7 +46,7 @@ const AddNewProject = ({ edit = false }) => {
 					marginLeft: '32px',
 				},
 			}}
-			>
+		>
 			<Tabs
 				value={selectedTab}
 				onChange={handleChange}
@@ -84,7 +84,7 @@ const AddNewProject = ({ edit = false }) => {
 								width={20}
 								height={20}
 							/>{' '}
-							{t('tasks')}
+							{t('diagram_builder')}
 						</Stack>
 					}
 					disabled={!edit}
@@ -100,7 +100,7 @@ const AddNewProject = ({ edit = false }) => {
 								width={20}
 								height={20}
 							/>{' '}
-							{t('execution_budget')}
+							{t('tasks')}
 						</Stack>
 					}
 					disabled={!edit}
@@ -116,7 +116,7 @@ const AddNewProject = ({ edit = false }) => {
 								width={20}
 								height={20}
 							/>{' '}
-							{t('diagram_builder')}
+							{t('execution_budget')}
 						</Stack>
 					}
 					disabled={!edit}
@@ -139,7 +139,9 @@ const AddNewProject = ({ edit = false }) => {
 					sx={{ borderRight: 1, borderColor: 'divider' }}
 				/>
 			</Tabs>
-			<Box  sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%',marginTop:'24px' }}>
+			<Box
+				sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%', marginTop: '24px' }}
+			>
 				{selectedTab === '1' && (
 					<StyledBox>
 						<Contract edit={edit} />
@@ -147,17 +149,17 @@ const AddNewProject = ({ edit = false }) => {
 				)}
 				{selectedTab === '2' && edit && (
 					<StyledBox>
-						<Tasks isEditable={true} />
+						<FlowDiagram isEditable={true} />
 					</StyledBox>
 				)}
 				{selectedTab === '3' && edit && (
 					<StyledBox>
-						<ExecutionBudget />
+						<Tasks isEditable={true} />
 					</StyledBox>
 				)}
 				{selectedTab === '4' && edit && (
 					<StyledBox>
-						<FlowDiagram isEditable={true} />
+						<ExecutionBudget />
 					</StyledBox>
 				)}
 				{selectedTab === '5' && edit && (
