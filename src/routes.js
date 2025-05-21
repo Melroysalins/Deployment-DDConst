@@ -25,7 +25,6 @@ import Register from './pages/Register'
 import User from './pages/User'
 import WeeklyPlan from './pages/WeeklyPlan/WeeklyPlan'
 import WorkforcePlanning from './pages/WorkforcePlanning/WorkforcePlanning'
-import Template from 'pages/Template'
 // ----------------------------------------------------------------------
 
 export default function Router() {
