@@ -137,14 +137,33 @@ const Calender2 = () => {
 			connections: [],
 			completion_test: [],
 		}
+
+		// Group nested tasks on the basis of parentId
+		const nestedTasks = data.tasks.data.filter((task) => task.parent_id !== null);
+		const nestedTaskGroupedOnParentId = {}
+
+		nestedTasks.forEach((task) => {
+			const parentId = task.parent_task;
+			if (parentId) {
+				if (!nestedTaskGroupedOnParentId[parentId]) {
+					nestedTaskGroupedOnParentId[parentId] = [];
+				}
+				nestedTaskGroupedOnParentId[parentId].push(task);
+			}
+		});
+
 		data.tasks.data?.forEach((task) => {
 			const groupId = task.task_group_id
-			if (groupId !== null && task_groups[groupId]) {
-				grouped[task_groups[groupId]].push(task)
+			if (!task.parent_task && groupId !== null && task_groups[groupId]) {
+				grouped[task_groups[groupId]].push({
+					...task,
+					children: nestedTaskGroupedOnParentId[task.id] || [],
+				})
 			}
 		})
 		return grouped
 	}, [data?.tasks])
+	
 
 	// Use dependencies from the query result
 	const dependencyTypeMap = {
@@ -171,7 +190,8 @@ const Calender2 = () => {
 		const { connections, installations, metal_fittings, completion_test } = groupedTasks
 
 		return [
-			...connections.map((connection, index) => ({
+			...connections.map((connection, index) => {
+				const event = {
 				id: connection.id || `connection-${index + 1}`,
 				resourceId: 'connections',
 				startDate: connection.start_date ? new Date(connection.start_date).toISOString() : new Date().toISOString(),
@@ -184,8 +204,22 @@ const Calender2 = () => {
 					  })(),
 				name: connection.title,
 				manuallyScheduled: true,
-			})),
-			...installations.map((installation, index) => ({
+				}
+				if (connection.children && connection.children.length > 0) {
+                    event.children = connection.children.map((child) => ({
+                        id: child.id || `child-${child.id}`,
+                        resourceId: 'connections',
+                        startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
+                        endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+                        name: child.title,
+                        leaf: true,
+                        eventColor: 'red',
+                    }))
+                }
+                return event;
+			}),
+			...installations.map((installation, index) => {
+				const event = {
 				id: installation.id,
 				resourceId: 'installations',
 				startDate: installation.start_date ? new Date(installation.start_date).toISOString() : new Date().toISOString(),
@@ -198,8 +232,22 @@ const Calender2 = () => {
 					  })(),
 				name: installation.title,
 				manuallyScheduled: true,
-			})),
-			...metal_fittings.map((metal_fitting, index) => ({
+				}
+				if (installation.children && installation.children.length > 0) {
+                    event.children = installation.children.map((child) => ({
+                        id: child.id || `child-${child.id}`,
+                        resourceId: 'installations',
+                        startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
+                        endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+                        name: child.title,
+                        leaf: true,
+                        eventColor: 'blue',
+                    }))
+                }
+                return event;
+			}),
+			...metal_fittings.map((metal_fitting, index) => {
+				const event = {
 				id: metal_fitting.id || `metal_fitting-${index + 1}`,
 				resourceId: 'metal_fittings',
 				startDate: metal_fitting.start_date
@@ -214,8 +262,22 @@ const Calender2 = () => {
 					  })(),
 				name: metal_fitting.title,
 				manuallyScheduled: true,
-			})),
-			...completion_test.map((completion_test, index) => ({
+				}
+				if (metal_fitting.children && metal_fitting.children.length > 0) {
+                    event.children = metal_fitting.children.map((child) => ({
+                        id: child.id || `child-${child.id}`,
+                        resourceId: 'metal_fittings',
+                        startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
+                        endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+                        name: child.title,
+                        leaf: true,
+                        eventColor: 'green',
+                    }))
+                }
+                return event;
+			}),
+			...completion_test.map((completion_test, index) => {
+				const event = {
 				id: completion_test.id || `completion_test-${index + 1}`,
 				resourceId: 'completion_test',
 				startDate: completion_test.start_date
@@ -230,7 +292,20 @@ const Calender2 = () => {
 					  })(),
 				name: completion_test.title || `Completion Test + ${index + 1}`,
 				manuallyScheduled: true,
-			})),
+				}
+				if (completion_test.children && completion_test.children.length > 0) {
+                    event.children = completion_test.children.map((child) => ({
+                        id: child.id || `child-${child.id}`,
+                        resourceId: 'completion_test',
+                        startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
+                        endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+                        name: child.title,
+                        leaf: true,
+                        eventColor: 'green',
+                    }))
+                }
+				return event;
+			}),
 		]
 	}, [groupedTasks])
 

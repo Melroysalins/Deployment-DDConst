@@ -5,6 +5,7 @@ import {
 	DependencyStore,
 	PredecessorsTab,
 	SuccessorsTab,
+	NestedEvents,
 } from '@bryntum/schedulerpro'
 import React from 'react'
 
@@ -39,6 +40,7 @@ export const columns = [{ text: 'Work / Team', field: 'name', width: 200 }]
 export const features = {
 	// autoAdjustTimeAxis: true,
 	dependencyEdit: true,
+	nestedEvents: true,
 
 	eventDrag: {
 		constrainDragToTimeline: false,

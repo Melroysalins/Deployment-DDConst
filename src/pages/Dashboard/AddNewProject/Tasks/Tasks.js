@@ -651,6 +651,61 @@ const Task = ({
 		createNewTasks({ title: '', notes: '', task_group_id, project: id }).then(() => refetch())
 	}
 
+	const handleAddSubtask = () => {
+		const selectedTaskId = selectedRows[0];
+		const selectedTaskObj = list.find(task => task.id === selectedTaskId);
+		console.log('selectedTaskObj', selectedTaskObj)
+		if (!selectedRows || selectedRows.length === 0) {
+			setToast({
+				severity: 'warning',
+				message: 'Please select a task to add a subtask.',
+			});
+			return;
+		}
+		if (selectedRows.length > 1) {
+			setToast({
+				severity: 'warning',
+				message: 'Please select only one task to add a subtask.',
+			});
+			return;
+		}
+		// Check if the selected task is from same task group
+		if (selectedTaskObj.task_group_id !== task_group_id) {
+			setToast({
+				severity: 'warning',
+				message: 'Please select a task from the same task group to add a subtask.',
+			});
+			return;
+		}
+
+		// Check if the selected task is not a subtask
+		if (selectedTaskObj.parent_task) {
+			setToast({
+				severity: 'warning',
+				message: 'Please select a parent task to add a subtask not sub task.',
+			});
+			return;
+		}
+		console.log('selectedRows', selectedRows)
+		// return;
+		//
+		const parentId = selectedRows[0];
+		console.log('new task created ')
+		// return
+		createNewTasks({
+			title: `Subtask of ${selectedTaskObj.title}`,
+			team: selectedTaskObj.team,
+			start_date: selectedTaskObj.start_date,
+			end_date: selectedTaskObj.end_date,
+			notes: '',
+			task_group_id,
+			project: id,
+			parent_task: parentId,
+		}).then(() => {
+			console.log('Subtask created successfully')
+		});
+	};
+
 	const onCellEditRequest = (event) => {
 		const {
 			data,
@@ -721,6 +776,9 @@ const Task = ({
 						{/* {console.log('list', list)} */}
 						<Box display="flex" justifyContent="space-between">
 							<Button onClick={handleAdd}>Add Task</Button>
+							<Button color="secondary" onClick={handleAddSubtask} sx={{ ml: 1 }}>
+								Add Subtask
+							</Button>
 							{selectedRows.length > 0 && (
 								<Box>
 									{selectedRows.length} items selected:
