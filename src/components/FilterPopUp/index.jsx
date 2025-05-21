@@ -16,7 +16,17 @@ import {
 	Stack,
 } from '@mui/material'
 
-const FilterPopup = ({ open, onClose, onApplyFilters, cableTypeData, filters, handleChange, onClearFilter }) => {
+const FilterPopup = ({
+	open,
+	onClose,
+	onApplyFilters,
+	cableTypeData,
+	filters,
+	handleChange,
+	onClearFilter,
+	isTaskType,
+	taskType,
+}) => {
 	const handleApply = () => {
 		onApplyFilters(filters)
 		onClose()
@@ -54,31 +64,62 @@ const FilterPopup = ({ open, onClose, onApplyFilters, cableTypeData, filters, ha
 
 			<DialogContent>
 				<Stack spacing={3}>
-					<FormControl fullWidth>
-						<InputLabel
-							sx={{
-								color: filters.diagramName ? '#4f46e5' : '#666',
-								fontWeight: 700,
-								fontSize: '0.85rem',
-								transition: 'color 0.3s ease',
-								mt: 0.7,
-							}}
-						>
-							Diagram Name
-						</InputLabel>
-						<Select
-							value={filters?.diagramName}
-							label="Diagram Name"
-							onChange={(e) => handleChange('diagramName', e.target.value)}
-							sx={{ color: '#333', fontWeight: 500 }}
-						>
-							{cableTypeData?.map((item, index) => (
-								<MenuItem value={item} key={index}>
-									{item?.cableName}
-								</MenuItem>
-							))}
-						</Select>
-					</FormControl>
+					{cableTypeData?.length && (
+						<FormControl fullWidth>
+							<InputLabel
+								sx={{
+									color: filters.diagramName ? '#4f46e5' : '#666',
+									fontWeight: 700,
+									fontSize: '0.85rem',
+									transition: 'color 0.3s ease',
+									mt: 0.7,
+								}}
+							>
+								Diagram Name
+							</InputLabel>
+
+							<Select
+								value={filters?.diagramName}
+								label="Diagram Name"
+								onChange={(e) => handleChange('diagramName', e.target.value)}
+								sx={{ color: '#333', fontWeight: 500 }}
+							>
+								{cableTypeData?.map((item, index) => (
+									<MenuItem value={item} key={index}>
+										{item?.cableName}
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+					)}
+					{isTaskType && (
+						<FormControl fullWidth>
+							<InputLabel
+								sx={{
+									color: filters.diagramName ? '#4f46e5' : '#666',
+									fontWeight: 700,
+									fontSize: '0.85rem',
+									transition: 'color 0.3s ease',
+									mt: 0.7,
+								}}
+							>
+								Task Type
+							</InputLabel>
+
+							<Select
+								value={filters?.tasktype}
+								label="Task Type"
+								onChange={(e) => handleChange('tasktype', e.target.value)}
+								sx={{ color: '#333', fontWeight: 500 }}
+							>
+								{taskType?.map((item, index) => (
+									<MenuItem value={item?.id} key={index}>
+										{item?.name}
+									</MenuItem>
+								))}
+							</Select>
+						</FormControl>
+					)}
 
 					<FormControl fullWidth>
 						<InputLabel

@@ -14,6 +14,8 @@ import {
 	DependencyEdit,
 	DependencyMenu,
 } from '@bryntum/schedulerpro'
+import { Button as MuiButton, Stack } from '@mui/material'
+import Iconify from 'components/Iconify'
 
 import './Calender2.css'
 import '@bryntum/schedulerpro/schedulerpro.stockholm.css'
@@ -31,18 +33,30 @@ import {
 
 import { customMonthViewPreset, features, getTimelineRange, dependencyTypeMap } from './SchedulerConfig'
 import { forEach } from 'lodash'
+import FilterPopup from 'components/FilterPopUp'
+import { getProjectDiagram } from 'supabase/project_diagram'
 
 const Calender2 = () => {
 	const [range, setRange] = React.useState(getTimelineRange())
 	const [resources, SetResources] = useState([])
+	const [isFilterOpen, SetIsFilterOpen] = useState(false)
+	const [isFilteredApplied, SetIsFilterApplied] = useState(false)
+	const [taskType, SetTaskType] = useState([])
+	const [filters, SetFilters] = useState({
+		tasktype: '',
+		lines: '',
+		demolition: '',
+	})
 	const schedulerRef = useRef(null)
 	const { id } = useParams()
 	console.log('myID', id)
-	
+
 	const { data, isLoading, error } = useQuery(['projectData', id], async () => {
 		const [tasks, dependencies] = await Promise.all([listAllTasksByProject2(id), getAllTaskDependencyByProject(id)])
+
 		return { tasks, dependencies }
 	})
+	console.log('tasks', data)
 	// code to fetch selected worktype
 	const { data: selectedWorkTypesData, isLoading: isLoadingWorkTypes } = useQuery(
 		['selectedWorkTypes', id],
@@ -55,6 +69,30 @@ const Calender2 = () => {
 	)
 
 	const uniqueWorkTypes = [...new Set(selectedWorkTypesData)]
+
+	// Filters Code
+
+	const handleChange = (field, value) => {
+		if (field === 'tasktype') {
+			SetFilters((prev) => ({ ...prev, [field]: value }))
+		} else {
+			SetFilters((prev) => ({ ...prev, [field]: value }))
+		}
+	}
+
+	const handleonClearFilter = () => {
+		SetFilters({
+			diagramName: '',
+			lines: '',
+			demolition: '',
+			diagramId: '',
+		})
+	}
+
+	const handleApplyFilters = (filters) => {
+		SetIsFilterApplied(true)
+		console.log('value', filters)
+	}
 
 	useEffect(() => {
 		const formattedResources = uniqueWorkTypes.map((workType) => {
@@ -81,6 +119,7 @@ const Calender2 = () => {
 		})
 
 		SetResources(formattedResources)
+		SetTaskType(formattedResources)
 	}, [selectedWorkTypesData])
 
 	// Group tasks as before
@@ -126,11 +165,11 @@ const Calender2 = () => {
 			lagUnit: dep.lag_unit || 'd',
 		}))
 	}, [data?.dependencies])
-	console.log('dependencies', dependencies)
 
 	const events = React.useMemo(() => {
 		if (!groupedTasks) return []
 		const { connections, installations, metal_fittings, completion_test } = groupedTasks
+
 		return [
 			...connections.map((connection, index) => ({
 				id: connection.id || `connection-${index + 1}`,
@@ -195,10 +234,8 @@ const Calender2 = () => {
 		]
 	}, [groupedTasks])
 
-	// console.log('melroy', events)
-
 	const project = React.useMemo(() => {
-		if (!events.length || !resources.length)
+		if (!events?.length || !resources?.length)
 			return new ProjectModel({
 				eventsData: [],
 				resourcesData: [],
@@ -214,6 +251,8 @@ const Calender2 = () => {
 			}),
 		})
 	}, [events, resources, dependencies])
+
+	console.log('groupedTasks', groupedTasks)
 
 	useEffect(() => {
 		if (!schedulerRef.current) return
@@ -497,9 +536,43 @@ const Calender2 = () => {
 		return () => scheduler.destroy()
 	}, [events, resources])
 
+	console.log('taskType', taskType)
 	if (isLoading) return <div>Loading...</div>
 	if (error) return <div>Error loading tasks</div>
-	return <div ref={schedulerRef} style={{ height: '500px', width: '100%' }} />
+	return (
+		<>
+			<Stack mb={2} direction={'row'} justifyContent={'flex-end'}>
+				<MuiButton
+					size="small"
+					variant="contained"
+					sx={{ padding: 0.5, minWidth: 0, width: 30 }}
+					onClick={(e) => {
+						e.stopPropagation() // Stop Accordion behv(open or close) on click on button
+						SetIsFilterOpen(true)
+					}}
+				>
+					<Iconify icon="heroicons-funnel" width={20} height={20} />
+				</MuiButton>
+				{isFilterOpen && (
+					<FilterPopup
+						open={isFilterOpen}
+						onClose={() => {
+							SetIsFilterOpen(false)
+						}}
+						onClearFilter={handleonClearFilter}
+						onApplyFilters={handleApplyFilters}
+						handleChange={handleChange}
+						filters={filters}
+						SetFilters={SetFilters}
+						isTaskType={true}
+						taskType={taskType}
+					/>
+				)}
+			</Stack>
+
+			<div ref={schedulerRef} style={{ height: '500px', width: '100%', marginTop: '15px' }} />
+		</>
+	)
 }
 
 export default Calender2
