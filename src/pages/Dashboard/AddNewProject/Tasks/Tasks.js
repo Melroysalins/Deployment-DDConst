@@ -130,7 +130,7 @@ const Tasks = () => {
 		() => getSelectedWorkTypes(projectId),
 		{
 			select: (data) => {
-				console.log('mydata', projectId)
+				console.log('mydata', projectId, data)
 				return data?.selectedWorkTypes || [] // Return the selectedWorkTypes array or an empty array
 			},
 		}
@@ -195,6 +195,15 @@ const Tasks = () => {
 		console.log('value', value, filters)
 	}
 
+	const handleonClearFilter = () => {
+		SetFilters({
+			diagramName: '',
+			lines: '',
+			demolition: '',
+			diagramId: '',
+		})
+	}
+
 	useEffect(() => {
 		if (selectedWorkTypesData?.length > 0) {
 			setTempSelectedWorkTypes(selectedWorkTypesData)
@@ -242,7 +251,10 @@ const Tasks = () => {
 								{isFilterOpen && (
 									<FilterPopUp
 										open={isFilterOpen}
-										onClose={() => SetIsFilterOpen(false)}
+										onClose={() => {
+											SetIsFilterOpen(false)
+										}}
+										onClearFilter={handleonClearFilter}
 										onApplyFilters={handleApplyFilters}
 										cableTypeData={cableTypeData}
 										handleChange={handleChange}
@@ -283,9 +295,8 @@ const Task = ({
 	const { id } = useParams()
 	const [diagrams, setDiagrams] = useState({}) // State to hold diagram data
 	const [toast, setToast] = useState(false)
-	console.log('task_group', task_group)
-	console.log('task_group_id', task_group_id)
-	console.log('activeTaskID', activeTaskID)
+	const [List, SetList] = useState([])
+
 	const handleClose = () => {
 		setToast(null)
 	}
@@ -298,7 +309,7 @@ const Task = ({
 	// first we need to find the task_group_id
 	const { refetch, data: list } = useQuery([`task-${task_group}`], () => listFilteredTasks(task_group_id, id), {
 		select: (r) => {
-			const unfilteredList = r?.data.map((itm) => ({
+			const unfilteredList = r?.data?.map((itm) => ({
 				...itm,
 				task_period: [itm.start_date, itm.end_date],
 			}))
@@ -307,7 +318,9 @@ const Task = ({
 			// remove task which have parent_task
 			const unfilteredListWithoutParent = unfilteredList.filter((item) => !item.parent_task)
 			if (!isFilteredApplied) {
-				return unfilteredListWithoutParent
+				console.log('list', unfilteredList)
+
+				return unfilteredList
 			}
 
 			// TL values to check against
@@ -591,7 +604,6 @@ const Task = ({
 				headerCheckboxSelection: true,
 				checkboxSelection: (params) => !!params.data,
 				showDisabledCheckboxes: true,
-				sortable: false,
 			},
 			{
 				headerName: 'Team',
@@ -616,6 +628,7 @@ const Task = ({
 				cellRenderer: (params) => (params.value ? 'Yes' : 'No'),
 				sortable: true,
 				sort: 'asc',
+				sortInex: 2
 			},
 			{
 				headerName: 'Diagram Name',
@@ -623,6 +636,7 @@ const Task = ({
 				cellRenderer: DiagramRenderer, // Use the new renderer
 				sortable: true,
 				sort: 'asc',
+				sortIndex: 1
 			},
 		],
 		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer, DiagramRenderer]
@@ -743,6 +757,7 @@ const Task = ({
 			</Snackbar>
 			<div style={containerStyle}>
 				<div style={gridStyle} className="ag-theme-ddconst">
+					{console.log('aggrid', list)}
 					<Stack gap={2}>
 						<AgGridReact
 							ref={gridRef}

@@ -26,24 +26,26 @@ export const listAllTasksByProject = async (project) => {
 }
 
 export const listAllTasksByProject2 = async (project) => {
-	const res = await supabase
-		.from('project_tasks')
-		.select(
-			'*'
-		)
-		.eq('project', project)
+	const res = await supabase.from('project_tasks').select('*').eq('project', project)
 	console.log('res', res)
 	return res
 }
 
 export const listFilteredTasks = async (task_group_id, project) => {
-	const res = await supabase.from('project_tasks').select('*').match({ task_group_id, project })
+	const res = await supabase
+		.from('project_tasks')
+		.select('*')
+		.match({ task_group_id, project })
+		.order('tl', { ascending: true })
+		.order('priority', { ascending: true })
+
 	return res
 }
 
 export const updateTask = async (data, id) => {
 	const { nested_tasks, allDay, comments, overlap, resource, ...rest } = data
 	const res = await supabase.from('project_tasks').update(rest).eq('id', id).select()
+	console.log('update', res)
 	return res
 }
 export const deleteTask = async (id) => {
