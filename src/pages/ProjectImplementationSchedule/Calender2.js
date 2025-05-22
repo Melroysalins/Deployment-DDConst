@@ -383,7 +383,13 @@ const Calender2 = () => {
 				},
 			],
 			project,
-			listeners: {
+            listeners: {
+                beforeDependencyEditShow: ({ source, dependencyEdit, dependencyRecord, editor }) => {
+                    console.log('Before dependency edit show:', dependencyRecord)
+                },
+                beforeDependencyEdit: ({ source, dependencyEdit, dependencyRecord }) => {
+                    console.log('Before dependency edit:', dependencyRecord)
+                },
 				beforeDependencySave: (data) => {
 					console.log('before Dependency save:', data)
 				},
@@ -488,23 +494,25 @@ const Calender2 = () => {
 				return `<div class="custom-event">${eventRecord.name}</div>`
 			},
 			features,
-		})
+        })
 
 		scheduler.dependencyStore.on('add', ({ records }) => {
 			console.log('Dependency added:', records)
 			records.forEach((dep) => {
-				console.log('New dependency created: from', dep.fromEvent, ' to  → ', dep.toEvent)
+                console.log('New dependency created: from', dep.fromEvent, ' to  → ', dep.toEvent)
+                const totalLag = DateHelper.diff(
+                    new Date(dep.fromEvent.originalData.endDate),
+                    new Date(dep.toEvent.originalData.startDate),
+                    dep.lagUnit
+                )
+                console.log('lag is ', dep.lag)
 				createTaskDependency({
 					from_task_id: dep.fromEvent.data.id,
 					to_task_id: dep.toEvent.data.id,
 					project_id: id,
-					type: dependencyTypeMap[dep.type] || 2,
-					lag: DateHelper.diff(
-						new Date(dep.fromEvent.originalData.endDate),
-						new Date(dep.toEvent.originalData.startDate),
-						'd'
-					),
-					lag_unit: dep.lagUnit,
+					type: dependencyTypeMap[dep.type] || dependencyTypeMap[2],
+					lag: totalLag,
+					lag_unit: dep.lagUnit[0],
 					active: dep.active || true,
 				}).then((res) => {
 					console.log('Backend dependency created:', res)
@@ -543,7 +551,13 @@ const Calender2 = () => {
 						// return false; // Prevent deletion if there's an error
 					})
 			})
-		})
+        })
+        scheduler.on('beforeDependencyEditShow', ({ source, dependencyEdit, dependencyRecord, editor }) => {
+            console.log('Before dependency edit show:', dependencyRecord)
+        });
+        scheduler.on('beforeDependencyEdit', ({ source, dependencyEdit, dependencyRecord }) => {
+            console.log('Before dependency edit:', dependencyRecord)
+        });
 		scheduler.on('afterEventSave', ({ eventRecord }) => {
 			const isNewEvent = !events.some((e) => e.id === eventRecord.id)
 			const task_groups = {
