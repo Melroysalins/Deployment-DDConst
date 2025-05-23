@@ -1650,7 +1650,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 										</StyledButton>
 									)}
 									<img
-										sx={{
+										style={{
 											width: '40px',
 											borderRadius: '8px',
 											height: '96px',
