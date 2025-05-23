@@ -32,7 +32,7 @@ import {
 } from 'supabase'
 
 import { customMonthViewPreset, features, getTimelineRange, dependencyTypeMap } from './SchedulerConfig'
-import { forEach } from 'lodash'
+import { filter, forEach } from 'lodash'
 import FilterPopup from 'components/FilterPopUp'
 import { getProjectDiagram } from 'supabase/project_diagram'
 
@@ -41,6 +41,9 @@ const Calender2 = () => {
 	const [resources, SetResources] = useState([])
 	const [isFilterOpen, SetIsFilterOpen] = useState(false)
 	const [isFilteredApplied, SetIsFilterApplied] = useState(false)
+	const [taskGroup, SetTaskGroup] = useState([])
+	const [allTaskGroup, SetAllTaskGroup] = useState([])
+	const [allResources, SetAllRescources] = useState([])
 	const [taskType, SetTaskType] = useState([])
 	const [filters, SetFilters] = useState({
 		tasktype: '',
@@ -73,6 +76,7 @@ const Calender2 = () => {
 	// Filters Code
 
 	const handleChange = (field, value) => {
+		SetTaskGroup(allTaskGroup)
 		if (field === 'tasktype') {
 			SetFilters((prev) => ({ ...prev, [field]: value }))
 		} else {
@@ -87,11 +91,12 @@ const Calender2 = () => {
 			demolition: '',
 			diagramId: '',
 		})
-	}
 
-	const handleApplyFilters = (filters) => {
-		SetIsFilterApplied(true)
-		console.log('value', filters)
+		SetResources(allResources)
+		SetTaskGroup(allTaskGroup)
+		SetIsFilterOpen(false)
+
+		console.log('myresoucers', resources, allResources)
 	}
 
 	useEffect(() => {
@@ -110,6 +115,7 @@ const Calender2 = () => {
 			else if (normalized === 'metal_fitting') resourceId = 'metal_fittings'
 			else if (normalized === 'completion_test') resourceId = 'completion_test'
 			else if (normalized === 'auxiliary_construction') resourceId = 'auxiliary_construction' // already fine
+			else if (normalized === 'office_work') resourceId = 'office_work'
 
 			return {
 				id: resourceId,
@@ -119,8 +125,61 @@ const Calender2 = () => {
 		})
 
 		SetResources(formattedResources)
+		SetAllRescources(formattedResources)
 		SetTaskType(formattedResources)
 	}, [selectedWorkTypesData])
+
+	const handleApplyFilters = (filters) => {
+		SetIsFilterApplied(true)
+		console.log('value', filters)
+
+		const { tasktype, lines, demolition } = filters
+
+		if (tasktype) {
+			const filteredResources = allResources?.filter((resource) => resource?.id === tasktype)
+
+			SetResources(filteredResources)
+		} else {
+			SetResources(allResources)
+		}
+
+		if (lines?.length || demolition?.length) {
+			console.log('mecalled')
+			const filterTasks = (tasks) =>
+				tasks?.filter((item) => {
+					const matchLines = item?.title?.toLowerCase()?.includes(lines.toLowerCase())
+					const matchDemolition = demolition !== ' ' && String(item?.isDemolition) === demolition
+
+					if (lines?.length && demolition?.length) {
+						return matchLines && matchDemolition
+					}
+
+					if (lines) {
+						return matchLines
+					}
+
+					if (demolition !== undefined) {
+						return matchDemolition
+					}
+					return true
+				})
+
+			const modifiedData = {
+				metal_fittings: filterTasks(allTaskGroup?.metal_fittings),
+				connections: filterTasks(allTaskGroup?.connections),
+				installations: filterTasks(allTaskGroup?.installations),
+				completion_test: filterTasks(allTaskGroup?.completion_test),
+				office_work: filterTasks(allTaskGroup?.office_work),
+				auxiliary_construction: filterTasks(allTaskGroup?.auxiliary_construction),
+			}
+
+			SetTaskGroup(modifiedData)
+
+			console.log('Melroy', modifiedData)
+		}
+	}
+
+	console.log('resources100', allTaskGroup)
 
 	// Group tasks as before
 	const groupedTasks = React.useMemo(() => {
@@ -130,40 +189,45 @@ const Calender2 = () => {
 			2: 'installations',
 			3: 'connections',
 			4: 'completion_test',
+			5: 'office_work',
+			6: 'auxiliary_construction',
 		}
 		const grouped = {
 			metal_fittings: [],
 			installations: [],
 			connections: [],
 			completion_test: [],
+			office_work: [],
+			auxiliary_construction: [],
 		}
 
 		// Group nested tasks on the basis of parentId
-		const nestedTasks = data.tasks.data.filter((task) => task.parent_id !== null);
+		const nestedTasks = data.tasks.data.filter((task) => task.parent_id !== null)
 		const nestedTaskGroupedOnParentId = {}
 
 		nestedTasks.forEach((task) => {
-			const parentId = task.parent_task;
+			const parentId = task.parent_task
 			if (parentId) {
 				if (!nestedTaskGroupedOnParentId[parentId]) {
-					nestedTaskGroupedOnParentId[parentId] = [];
+					nestedTaskGroupedOnParentId[parentId] = []
 				}
-				nestedTaskGroupedOnParentId[parentId].push(task);
+				nestedTaskGroupedOnParentId[parentId].push(task)
 			}
-		});
+		})
 
 		data.tasks.data?.forEach((task) => {
 			const groupId = task.task_group_id
 			if (!task.parent_task && groupId !== null && task_groups[groupId]) {
-				grouped[task_groups[groupId]].push({
+				grouped[task_groups[groupId]]?.push({
 					...task,
 					children: nestedTaskGroupedOnParentId[task.id] || [],
 				})
 			}
 		})
+		SetTaskGroup(grouped)
+		SetAllTaskGroup(grouped)
 		return grouped
 	}, [data?.tasks])
-	
 
 	// Use dependencies from the query result
 	const dependencyTypeMap = {
@@ -186,128 +250,200 @@ const Calender2 = () => {
 	}, [data?.dependencies])
 
 	const events = React.useMemo(() => {
-		if (!groupedTasks) return []
-		const { connections, installations, metal_fittings, completion_test } = groupedTasks
+		if (!taskGroup) return []
+
+		// const { connections, installations, metal_fittings, completion_test } = taskGroup
+
+		const {
+			connections = [],
+			installations = [],
+			metal_fittings = [],
+			completion_test = [],
+			office_work = [],
+			auxiliary_construction = [],
+		} = taskGroup
 
 		return [
-			...connections.map((connection, index) => {
+			...connections?.map((connection, index) => {
 				const event = {
-				id: connection.id || `connection-${index + 1}`,
-				resourceId: 'connections',
-				startDate: connection.start_date ? new Date(connection.start_date).toISOString() : new Date().toISOString(),
-				endDate: connection.end_date
-					? new Date(connection.end_date).toISOString()
-					: (() => {
-							const today = new Date()
-							today.setDate(today.getDate() + 3)
-							return today.toISOString()
-					  })(),
-				name: connection.title,
-				manuallyScheduled: true,
+					id: connection.id || `connection-${index + 1}`,
+					resourceId: 'connections',
+					startDate: connection.start_date ? new Date(connection.start_date).toISOString() : new Date().toISOString(),
+					endDate: connection.end_date
+						? new Date(connection.end_date).toISOString()
+						: (() => {
+								const today = new Date()
+								today.setDate(today.getDate() + 3)
+								return today.toISOString()
+						  })(),
+					name: connection.title,
+					manuallyScheduled: true,
 				}
 				if (connection.children && connection.children.length > 0) {
-                    event.children = connection.children.map((child) => ({
-                        id: child.id || `child-${child.id}`,
-                        resourceId: 'connections',
-                        startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
-                        endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
-                        name: child.title,
-                        leaf: true,
-                        eventColor: 'red',
-                    }))
-                }
-                return event;
+					event.children = connection.children.map((child) => ({
+						id: child.id || `child-${child.id}`,
+						resourceId: 'connections',
+						startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
+						endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+						name: child.title,
+						leaf: true,
+						eventColor: 'red',
+					}))
+				}
+				return event
 			}),
-			...installations.map((installation, index) => {
+			...installations?.map((installation, index) => {
 				const event = {
-				id: installation.id,
-				resourceId: 'installations',
-				startDate: installation.start_date ? new Date(installation.start_date).toISOString() : new Date().toISOString(),
-				endDate: installation.end_date
-					? new Date(installation.end_date).toISOString()
-					: (() => {
-							const today = new Date()
-							today.setDate(today.getDate() + 3)
-							return today.toISOString()
-					  })(),
-				name: installation.title,
-				manuallyScheduled: true,
+					id: installation.id,
+					resourceId: 'installations',
+					startDate: installation.start_date
+						? new Date(installation.start_date).toISOString()
+						: new Date().toISOString(),
+					endDate: installation.end_date
+						? new Date(installation.end_date).toISOString()
+						: (() => {
+								const today = new Date()
+								today.setDate(today.getDate() + 3)
+								return today.toISOString()
+						  })(),
+					name: installation.title,
+					manuallyScheduled: true,
 				}
 				if (installation.children && installation.children.length > 0) {
-                    event.children = installation.children.map((child) => ({
-                        id: child.id || `child-${child.id}`,
-                        resourceId: 'installations',
-                        startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
-                        endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
-                        name: child.title,
-                        leaf: true,
-                        eventColor: 'blue',
-                    }))
-                }
-                return event;
+					event.children = installation.children.map((child) => ({
+						id: child.id || `child-${child.id}`,
+						resourceId: 'installations',
+						startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
+						endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+						name: child.title,
+						leaf: true,
+						eventColor: 'blue',
+					}))
+				}
+				return event
 			}),
-			...metal_fittings.map((metal_fitting, index) => {
+			...metal_fittings?.map((metal_fitting, index) => {
 				const event = {
-				id: metal_fitting.id || `metal_fitting-${index + 1}`,
-				resourceId: 'metal_fittings',
-				startDate: metal_fitting.start_date
-					? new Date(metal_fitting.start_date).toISOString()
-					: new Date().toISOString(),
-				endDate: metal_fitting.end_date
-					? new Date(metal_fitting.end_date).toISOString()
-					: (() => {
-							const today = new Date()
-							today.setDate(today.getDate() + 3)
-							return today.toISOString()
-					  })(),
-				name: metal_fitting.title,
-				manuallyScheduled: true,
+					id: metal_fitting.id || `metal_fitting-${index + 1}`,
+					resourceId: 'metal_fittings',
+					startDate: metal_fitting.start_date
+						? new Date(metal_fitting.start_date).toISOString()
+						: new Date().toISOString(),
+					endDate: metal_fitting.end_date
+						? new Date(metal_fitting.end_date).toISOString()
+						: (() => {
+								const today = new Date()
+								today.setDate(today.getDate() + 3)
+								return today.toISOString()
+						  })(),
+					name: metal_fitting.title,
+					manuallyScheduled: true,
 				}
 				if (metal_fitting.children && metal_fitting.children.length > 0) {
-                    event.children = metal_fitting.children.map((child) => ({
-                        id: child.id || `child-${child.id}`,
-                        resourceId: 'metal_fittings',
-                        startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
-                        endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
-                        name: child.title,
-                        leaf: true,
-                        eventColor: 'green',
-                    }))
-                }
-                return event;
+					event.children = metal_fitting.children.map((child) => ({
+						id: child.id || `child-${child.id}`,
+						resourceId: 'metal_fittings',
+						startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
+						endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+						name: child.title,
+						leaf: true,
+						eventColor: 'green',
+					}))
+				}
+				return event
 			}),
-			...completion_test.map((completion_test, index) => {
+			...completion_test?.map((completion_test, index) => {
 				const event = {
-				id: completion_test.id || `completion_test-${index + 1}`,
-				resourceId: 'completion_test',
-				startDate: completion_test.start_date
-					? new Date(completion_test.start_date).toISOString()
-					: new Date().toISOString(),
-				endDate: completion_test.end
-					? new Date(completion_test.end).toISOString()
-					: (() => {
-							const today = new Date()
-							today.setDate(today.getDate() + 3)
-							return today.toISOString()
-					  })(),
-				name: completion_test.title || `Completion Test + ${index + 1}`,
-				manuallyScheduled: true,
+					id: completion_test.id || `completion_test-${index + 1}`,
+					resourceId: 'completion_test',
+					startDate: completion_test.start_date
+						? new Date(completion_test.start_date).toISOString()
+						: new Date().toISOString(),
+					endDate: completion_test.end
+						? new Date(completion_test.end).toISOString()
+						: (() => {
+								const today = new Date()
+								today.setDate(today.getDate() + 3)
+								return today.toISOString()
+						  })(),
+					name: completion_test.title || `Completion Test + ${index + 1}`,
+					manuallyScheduled: true,
 				}
 				if (completion_test.children && completion_test.children.length > 0) {
-                    event.children = completion_test.children.map((child) => ({
-                        id: child.id || `child-${child.id}`,
-                        resourceId: 'completion_test',
-                        startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
-                        endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
-                        name: child.title,
-                        leaf: true,
-                        eventColor: 'green',
-                    }))
-                }
-				return event;
+					event.children = completion_test.children.map((child) => ({
+						id: child.id || `child-${child.id}`,
+						resourceId: 'completion_test',
+						startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
+						endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+						name: child.title,
+						leaf: true,
+						eventColor: 'green',
+					}))
+				}
+				return event
+			}),
+			...office_work?.map((completion_test, index) => {
+				const event = {
+					id: completion_test.id || `office_work-${index + 1}`,
+					resourceId: 'office_work',
+					startDate: completion_test.start_date
+						? new Date(completion_test.start_date).toISOString()
+						: new Date().toISOString(),
+					endDate: completion_test.end
+						? new Date(completion_test.end).toISOString()
+						: (() => {
+								const today = new Date()
+								today.setDate(today.getDate() + 3)
+								return today.toISOString()
+						  })(),
+					name: completion_test.title || `Office Work + ${index + 1}`,
+					manuallyScheduled: true,
+				}
+				if (completion_test.children && completion_test.children.length > 0) {
+					event.children = completion_test.children.map((child) => ({
+						id: child.id || `child-${child.id}`,
+						resourceId: 'office_work',
+						startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
+						endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+						name: child.title,
+						leaf: true,
+						eventColor: 'green',
+					}))
+				}
+				return event
+			}),
+			...auxiliary_construction?.map((completion_test, index) => {
+				const event = {
+					id: completion_test.id || `auxiliary_construction-${index + 1}`,
+					resourceId: 'auxiliary_construction',
+					startDate: completion_test.start_date
+						? new Date(completion_test.start_date).toISOString()
+						: new Date().toISOString(),
+					endDate: completion_test.end
+						? new Date(completion_test.end).toISOString()
+						: (() => {
+								const today = new Date()
+								today.setDate(today.getDate() + 3)
+								return today.toISOString()
+						  })(),
+					name: completion_test.title || `Auxiliary Construction + ${index + 1}`,
+					manuallyScheduled: true,
+				}
+				if (completion_test.children && completion_test.children.length > 0) {
+					event.children = completion_test.children.map((child) => ({
+						id: child.id || `child-${child.id}`,
+						resourceId: 'auxiliary_construction',
+						startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
+						endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+						name: child.title,
+						leaf: true,
+						eventColor: 'green',
+					}))
+				}
+				return event
 			}),
 		]
-	}, [groupedTasks])
+	}, [taskGroup])
 
 	const project = React.useMemo(() => {
 		if (!events?.length || !resources?.length)
@@ -327,7 +463,7 @@ const Calender2 = () => {
 		})
 	}, [events, resources, dependencies])
 
-	console.log('groupedTasks', groupedTasks)
+	console.log('groupedTasks2', groupedTasks)
 
 	useEffect(() => {
 		if (!schedulerRef.current) return
@@ -383,13 +519,7 @@ const Calender2 = () => {
 				},
 			],
 			project,
-            listeners: {
-                beforeDependencyEditShow: ({ source, dependencyEdit, dependencyRecord, editor }) => {
-                    console.log('Before dependency edit show:', dependencyRecord)
-                },
-                beforeDependencyEdit: ({ source, dependencyEdit, dependencyRecord }) => {
-                    console.log('Before dependency edit:', dependencyRecord)
-                },
+			listeners: {
 				beforeDependencySave: (data) => {
 					console.log('before Dependency save:', data)
 				},
@@ -494,25 +624,23 @@ const Calender2 = () => {
 				return `<div class="custom-event">${eventRecord.name}</div>`
 			},
 			features,
-        })
+		})
 
 		scheduler.dependencyStore.on('add', ({ records }) => {
 			console.log('Dependency added:', records)
 			records.forEach((dep) => {
-                console.log('New dependency created: from', dep.fromEvent, ' to  → ', dep.toEvent)
-                const totalLag = DateHelper.diff(
-                    new Date(dep.fromEvent.originalData.endDate),
-                    new Date(dep.toEvent.originalData.startDate),
-                    dep.lagUnit
-                )
-                console.log('lag is ', dep.lag)
+				console.log('New dependency created: from', dep.fromEvent, ' to  → ', dep.toEvent)
 				createTaskDependency({
 					from_task_id: dep.fromEvent.data.id,
 					to_task_id: dep.toEvent.data.id,
 					project_id: id,
-					type: dependencyTypeMap[dep.type] || dependencyTypeMap[2],
-					lag: totalLag,
-					lag_unit: dep.lagUnit[0],
+					type: dependencyTypeMap[dep.type] || 2,
+					lag: DateHelper.diff(
+						new Date(dep.fromEvent.originalData.endDate),
+						new Date(dep.toEvent.originalData.startDate),
+						'd'
+					),
+					lag_unit: dep.lagUnit,
 					active: dep.active || true,
 				}).then((res) => {
 					console.log('Backend dependency created:', res)
@@ -551,13 +679,7 @@ const Calender2 = () => {
 						// return false; // Prevent deletion if there's an error
 					})
 			})
-        })
-        scheduler.on('beforeDependencyEditShow', ({ source, dependencyEdit, dependencyRecord, editor }) => {
-            console.log('Before dependency edit show:', dependencyRecord)
-        });
-        scheduler.on('beforeDependencyEdit', ({ source, dependencyEdit, dependencyRecord }) => {
-            console.log('Before dependency edit:', dependencyRecord)
-        });
+		})
 		scheduler.on('afterEventSave', ({ eventRecord }) => {
 			const isNewEvent = !events.some((e) => e.id === eventRecord.id)
 			const task_groups = {
@@ -626,6 +748,8 @@ const Calender2 = () => {
 	}, [events, resources])
 
 	console.log('taskType', taskType)
+	console.log('isFilteredApplied', isFilteredApplied)
+
 	if (isLoading) return <div>Loading...</div>
 	if (error) return <div>Error loading tasks</div>
 	return (

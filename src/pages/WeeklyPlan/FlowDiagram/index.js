@@ -46,7 +46,6 @@ import {
 } from 'supabase/project_diagrams_table'
 import { useTranslation } from 'react-i18next'
 import { createNewTasks, deleteTask, listFilteredTasks, updateTask } from 'supabase/tasks'
-import { TryOutlined } from '@mui/icons-material'
 
 const StyledButtonContainer = styled(Box)({
 	alignSelf: 'stretch',
@@ -612,33 +611,38 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		connectionTasks = [],
 		isDemolition
 	) => {
+		const taskMapById = new Map(connectionTasks.map((task) => [task.id, task]))
+
 		const updatedConnections = await Promise.all(
 			connections.map(async (connection, i) => {
 				const connectionStatuses = connection.statuses || []
-				connection.task_id = connection.task_id || []
+
+				// Ensure task_id is an array and aligned in length
+				if (!Array.isArray(connection.task_id)) {
+					connection.task_id = []
+				}
+
+				// Extend task_id to match statuses length with nulls
+				while (connection.task_id.length < connectionStatuses.length) {
+					connection.task_id.push(null)
+				}
+				console.log('connection', connection?.task_id)
 
 				const taskPromises = connectionStatuses.map(async (status, j) => {
 					const taskTitle = `#${connection.joinType}${i + 1}, ${j + 1}T/L`
 
 					let existingTask = null
+					const taskIdAtIndex = connection.task_id[j]
 
-					// First check by stored task_id
-					if (connection.task_id[j]) {
-						existingTask = connectionTasks.find((task) => task.id === connection.task_id[j])
-					}
-
-					// If not found by task_id, fallback to title (must be unique)
-					if (!existingTask) {
-						existingTask = connectionTasks.find((task) => task.title === taskTitle)
-
-						if (existingTask) {
-							// Update the reference if found by title
-							connection.task_id[j] = existingTask.id
+					if (taskIdAtIndex) {
+						existingTask = taskMapById.get(taskIdAtIndex)
+						if (!existingTask) {
+							console.warn(`Warning: Invalid task_id "${taskIdAtIndex}" at connection[${i}], TL[${j}]`)
 						}
 					}
 
+					//  Update task if it exists
 					if (isEdit && existingTask) {
-						// Update the existing task
 						await updateTask(
 							{
 								title: taskTitle,
@@ -648,8 +652,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							},
 							existingTask.id
 						)
-					} else if (!existingTask) {
-						// Create a new task
+					}
+					//  Create task if no existing one
+					else if (!existingTask) {
 						const response = await createNewTasks({
 							approval_status: 'Planned',
 							created_at: connection.created_at || new Date().toISOString(),
@@ -675,7 +680,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 				await Promise.all(taskPromises)
 
-				// Trim extra task_ids if statuses were removed
+				// 🧹 Trim extra task IDs (from deleted TLs)
 				if (connection.task_id.length > connectionStatuses.length) {
 					connection.task_id = connection.task_id.slice(0, connectionStatuses.length)
 				}
@@ -684,7 +689,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			})
 		)
 
-		// Save all updated connections
+		// Save updated midpoints
 		await updateProjectDiagramTable(
 			{
 				midpoints: updatedConnections,
@@ -693,6 +698,17 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			project_diagram_id,
 			isDemolition
 		)
+
+		const mydata = await updateProjectDiagramTable(
+			{
+				midpoints: updatedConnections,
+				project_diagram: project_diagram_id,
+			},
+			project_diagram_id,
+			isDemolition
+		)
+
+		console.log('hero', mydata)
 
 		return updatedConnections
 	}
@@ -787,7 +803,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 		return updatedInstallations // Return the updated installations
 	}
-
 	const handleSaveButtonClick = async (currentNewObj) => {
 		try {
 			setloading(true)

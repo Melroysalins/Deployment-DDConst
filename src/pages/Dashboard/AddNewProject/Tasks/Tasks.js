@@ -27,7 +27,7 @@ import {
 import { styled } from '@mui/material/styles'
 import { AgGridReact } from 'ag-grid-react'
 import Iconify from 'components/Iconify'
-import moment from 'moment-timezone'
+import moment, { duration } from 'moment-timezone'
 import PropTypes from 'prop-types'
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
@@ -315,8 +315,6 @@ const Task = ({
 			}))
 
 			// If no filtering is applied, return the unfiltered list
-			// remove task which have parent_task
-			const unfilteredListWithoutParent = unfilteredList.filter((item) => !item.parent_task)
 			if (!isFilteredApplied) {
 				console.log('list', unfilteredList)
 
@@ -326,7 +324,7 @@ const Task = ({
 			// TL values to check against
 			const tlValues = ['1T/L', '2T/L', '3T/L', '4T/L']
 
-			return unfilteredListWithoutParent
+			return unfilteredList
 				.map((item) => {
 					// Check if the current task group is the one being filtered
 					const isTargetTaskGroup = item.task_group_id === activeTaskID
@@ -604,12 +602,12 @@ const Task = ({
 				headerCheckboxSelection: true,
 				checkboxSelection: (params) => !!params.data,
 				showDisabledCheckboxes: true,
+				flex: 2,
 			},
 			{
-				headerName: 'Team',
-				field: 'team',
-				cellEditor: SelectCellEditor,
-				cellRenderer: TeamRenderer,
+				headerName: 'Duration',
+				field: 'duration',
+				flex: 2,
 			},
 			{
 				headerName: 'Task Period',
@@ -617,26 +615,26 @@ const Task = ({
 				cellEditor: TimeRangeEditor,
 				cellRenderer: TimeRangeRenderer,
 				cellClass: 'ag-grid-datepicker',
+				flex: 2,
 			},
 			{
-				headerName: 'Notes',
-				field: 'notes',
+				headerName: 'Team',
+				field: 'team',
+				cellEditor: SelectCellEditor,
+				cellRenderer: TeamRenderer,
+				flex: 2,
 			},
 			{
 				headerName: 'Is Demolition',
 				field: 'isDemolition',
 				cellRenderer: (params) => (params.value ? 'Yes' : 'No'),
-				sortable: true,
-				sort: 'asc',
-				sortInex: 2
+				flex: 1,
 			},
 			{
 				headerName: 'Diagram Name',
 				field: 'project_diagram_id', // Assuming this is the field for diagram ID
 				cellRenderer: DiagramRenderer, // Use the new renderer
-				sortable: true,
-				sort: 'asc',
-				sortIndex: 1
+				flex: 2,
 			},
 		],
 		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer, DiagramRenderer]
@@ -654,30 +652,30 @@ const Task = ({
 	}
 
 	const handleAddSubtask = () => {
-		const selectedTaskId = selectedRows[0];
-		const selectedTaskObj = list.find(task => task.id === selectedTaskId);
+		const selectedTaskId = selectedRows[0]
+		const selectedTaskObj = list.find((task) => task.id === selectedTaskId)
 		console.log('selectedTaskObj', selectedTaskObj)
 		if (!selectedRows || selectedRows.length === 0) {
 			setToast({
 				severity: 'warning',
 				message: 'Please select a task to add a subtask.',
-			});
-			return;
+			})
+			return
 		}
 		if (selectedRows.length > 1) {
 			setToast({
 				severity: 'warning',
 				message: 'Please select only one task to add a subtask.',
-			});
-			return;
+			})
+			return
 		}
 		// Check if the selected task is from same task group
 		if (selectedTaskObj.task_group_id !== task_group_id) {
 			setToast({
 				severity: 'warning',
 				message: 'Please select a task from the same task group to add a subtask.',
-			});
-			return;
+			})
+			return
 		}
 
 		// Check if the selected task is not a subtask
@@ -685,13 +683,13 @@ const Task = ({
 			setToast({
 				severity: 'warning',
 				message: 'Please select a parent task to add a subtask not sub task.',
-			});
-			return;
+			})
+			return
 		}
 		console.log('selectedRows', selectedRows)
 		// return;
 		//
-		const parentId = selectedRows[0];
+		const parentId = selectedRows[0]
 		console.log('new task created ')
 		// return
 		createNewTasks({
@@ -705,8 +703,8 @@ const Task = ({
 			parent_task: parentId,
 		}).then(() => {
 			console.log('Subtask created successfully')
-		});
-	};
+		})
+	}
 
 	const onCellEditRequest = (event) => {
 		const {
@@ -727,6 +725,7 @@ const Task = ({
 					title: newItem.title,
 					team: newItem.team,
 					notes: newItem.notes,
+					duration: newItem.duration,
 					start_date: newItem.task_period ? newItem.task_period[0] : null,
 					end_date: newItem.task_period ? newItem.task_period[1] : null,
 				},
