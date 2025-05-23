@@ -692,16 +692,30 @@ const Task = ({
 		const parentId = selectedRows[0]
 		console.log('new task created ')
 		// return
-		createNewTasks({
-			title: `Subtask of ${selectedTaskObj.title}`,
-			team: selectedTaskObj.team,
-			start_date: selectedTaskObj.start_date,
-			end_date: selectedTaskObj.end_date,
-			notes: '',
-			task_group_id,
-			project: id,
-			parent_task: parentId,
-		}).then(() => {
+		// add 5 subtask to the task each start will be end date of previous task
+		// and end date will be 1 day after start date
+		// const startDate = moment(selectedTaskObj.end_date).add(1, 'days').format('YYYY-MM-DD')
+		// const endDate = moment(selectedTaskObj.end_date).add(2, 'days').format('YYYY-MM-DD')
+		// const parentId = selectedTaskObj.id;
+		const subtasks = [];
+		let currentStart = moment(selectedTaskObj.start_date);
+	
+		for (let i = 0; i < 5; i+=1) {
+			const start_date = currentStart.format('YYYY-MM-DD');
+			const end_date = currentStart.clone().add(1, 'days').format('YYYY-MM-DD');
+			subtasks.push({
+				title: `Subtask ${i + 1} of ${selectedTaskObj.title}`,
+				team: selectedTaskObj.team,
+				start_date,
+				end_date,
+				notes: '',
+				task_group_id,
+				project: id,
+				parent_task: parentId,
+			});
+			currentStart = currentStart.clone().add(1, 'days');
+		}
+		createNewTasks(subtasks).then(() => {
 			console.log('Subtask created successfully')
 		})
 	}
