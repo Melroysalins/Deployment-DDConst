@@ -73,7 +73,10 @@ export const features = {
 	//         },
 	//     },
 	// },
-	dependencies: true, // draw dependency lines
+	dependencies: {
+		clickWidth: 6,
+		radius: 30,
+	}, // draw dependency lines
 	// dependencyEdit: true,            // allow editing dependencies
 	dependencyMenu: true, // (optional) context-menu support
 	// eventEdit: {                // configure the task editor

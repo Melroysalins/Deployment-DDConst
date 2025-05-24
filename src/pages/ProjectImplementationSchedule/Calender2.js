@@ -108,11 +108,11 @@ const Calender2 = () => {
 				.replace(/y$/, 'ie') // Optional: "Auxiliary" → "auxiliarie" (if needed)
 
 			let resourceId = normalized
-
+			console.log('normalized', normalized)
 			// Handle custom exceptions
 			if (normalized === 'connection') resourceId = 'connections'
 			else if (normalized === 'installation') resourceId = 'installations'
-			else if (normalized === 'metal_fitting') resourceId = 'metal_fittings'
+			else if (normalized === 'metal_fittings_installation') resourceId = 'metal_fittings'
 			else if (normalized === 'completion_test') resourceId = 'completion_test'
 			else if (normalized === 'auxiliary_construction') resourceId = 'auxiliary_construction' // already fine
 			else if (normalized === 'office_work') resourceId = 'office_work'
@@ -473,8 +473,6 @@ const Calender2 = () => {
 			width: '100%',
 			infiniteScroll: true,
 			autoAdjustTimeAxis: true,
-			startDate: range.startDate,
-			endDate: range.endDate,
 			viewPreset: customMonthViewPreset,
 			multiEventSelect: true,
 			columns: [
