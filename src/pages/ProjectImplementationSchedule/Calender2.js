@@ -108,11 +108,11 @@ const Calender2 = () => {
 				.replace(/y$/, 'ie') // Optional: "Auxiliary" → "auxiliarie" (if needed)
 
 			let resourceId = normalized
-
+			console.log('normalized', normalized)
 			// Handle custom exceptions
 			if (normalized === 'connection') resourceId = 'connections'
 			else if (normalized === 'installation') resourceId = 'installations'
-			else if (normalized === 'metal_fitting') resourceId = 'metal_fittings'
+			else if (normalized === 'metal_fittings_installation') resourceId = 'metal_fittings'
 			else if (normalized === 'completion_test') resourceId = 'completion_test'
 			else if (normalized === 'auxiliary_construction') resourceId = 'auxiliary_construction' // already fine
 			else if (normalized === 'office_work') resourceId = 'office_work'
@@ -473,8 +473,6 @@ const Calender2 = () => {
 			width: '100%',
 			infiniteScroll: true,
 			autoAdjustTimeAxis: true,
-			startDate: range.startDate,
-			endDate: range.endDate,
 			viewPreset: customMonthViewPreset,
 			multiEventSelect: true,
 			columns: [
@@ -559,8 +557,21 @@ const Calender2 = () => {
 					console.log('Event resize started:', eventRecord)
 				},
 				eventResizeEnd: ({ eventRecord }) => {
-					console.log('Event resize ended:', eventRecord)
-				},
+                    // update the start and end date in the backend
+                    const start_date = eventRecord.data.startDate.toISOString();
+                    const end_date = eventRecord.data.endDate.toISOString();
+                    console.log('start date', start_date);
+                    console.log('end date', end_date);
+                    updateTask({ start_date, end_date }, eventRecord.data.id).then((res) => {
+                        if (res.status >= 200 && res.status < 300) {
+                            console.log('Task updated successfully:', res.data);
+                        }
+                        else {
+                            console.error('Error updating: ', res.error.message);
+                        }
+                    });
+                    console.log('Event resize ended:', eventRecord)
+                },
 				eventDragSelect: ({ selectedEvents }) => {
 					console.log(
 						'Selected events:',
@@ -634,13 +645,13 @@ const Calender2 = () => {
 					from_task_id: dep.fromEvent.data.id,
 					to_task_id: dep.toEvent.data.id,
 					project_id: id,
-					type: dependencyTypeMap[dep.type] || 2,
+					type: dependencyTypeMap[dep.type] || dependencyTypeMap[2],
 					lag: DateHelper.diff(
 						new Date(dep.fromEvent.originalData.endDate),
 						new Date(dep.toEvent.originalData.startDate),
-						'd'
+						dep.lagUnit[0]
 					),
-					lag_unit: dep.lagUnit,
+					lag_unit: dep.lagUnit[0],
 					active: dep.active || true,
 				}).then((res) => {
 					console.log('Backend dependency created:', res)
