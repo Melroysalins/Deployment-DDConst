@@ -13,7 +13,6 @@ import BasicTabs from 'components/Drawer/BasicTabs'
 import { useTranslation } from 'react-i18next'
 import RequestApproval from 'layouts/RequestApproval'
 import Calendar2 from './Calender2'
-import NestedTasks from './nested'
 
 const ProjectIntro = styled(Box)(({ theme }) => ({
 	backgroundColor: theme.palette.background.paper,
