@@ -45,7 +45,7 @@ import {
 	updateProjectDiagramTable,
 } from 'supabase/project_diagrams_table'
 import { useTranslation } from 'react-i18next'
-import { createNewTasks, deleteTask, listFilteredTasks, updateTask } from 'supabase/tasks'
+import { createNewTasks, deleteTask, deleteTasks, listFilteredTasks, updateTask } from 'supabase/tasks'
 
 const StyledButtonContainer = styled(Box)({
 	alignSelf: 'stretch',
@@ -371,7 +371,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	end.setDate(start.getDate() + 5)
 
 	useEffect(() => {
-		console.log(hasChanges)
+		// console.log(hasChanges)
 		if (objs !== null && hasChanges) {
 			handleAdd()
 			setHasChanges(false)
@@ -395,7 +395,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				handleEditButtonClick(data.id)
 				break
 			default:
-				console.log('Unknown action type:', actionType)
+			// console.log('Unknown action type:', actionType)
 		}
 		handleClosePopup()
 	}
@@ -423,6 +423,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const getDiagram = async () => {
 		const { data } = await getDiagramsByProject(id)
+
+		console.log('diagram', data)
 		if (data?.length) {
 			const updatedData = await Promise.all(
 				data.map(async (diagram) => {
@@ -431,9 +433,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					return {
 						...diagram,
 						currentObj: {
-							connections: tableData1.data.midpoints || [],
-							installations: tableData1.data?.installations || [],
-							demolitions: tableData2.data?.midpoints || [],
+							connections: tableData1?.data?.midpoints || [],
+							installations: tableData1?.data?.installations || [],
+							demolitions: tableData2?.data?.midpoints || [],
 							demolitionInstallations: tableData2.data?.installations || [],
 							length: tableData1.data?.length || [],
 							length_demolition: tableData2.data?.length || [],
@@ -452,12 +454,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				})
 			)
 			const ids = data.map((diagram) => diagram.id)
-			console.log(updatedData)
+			// console.log(updatedData)
 			setObjs(updatedData)
 			const maxId = Math.max(...ids)
 			setseqNumber(maxId + 1)
 			const minId = Math.min(...ids)
 			setExpanded(`panel${minId}`)
+
+			console.log('updatedData', updatedData)
 		}
 	}
 
@@ -482,6 +486,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	) => {
 		if (!endpoints?.start && !endpoints?.end) return endpoints
 
+		console.log('updatedData', endpoints)
+
 		const updatedEndpoints = { ...endpoints }
 		updatedEndpoints.start_task_id = []
 		updatedEndpoints.end_task_id = []
@@ -491,8 +497,11 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			const startTasksPromises = endpoints.startStatuses.map(async (status, i) => {
 				const taskTitle = `${cable_name.startLocation}${t(endpoints.start)}, ${i + 1}T/L`
 
-				if (isEdit && endpoints.start_task_id?.[i]) {
+				if (isEdit) {
 					const existingTask = connectionTasks.find((task) => task.id === endpoints.start_task_id[i])
+
+					console.log('already', existingTask, endpoints)
+
 					if (existingTask) {
 						await updateTask(
 							{
@@ -503,6 +512,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							},
 							endpoints.start_task_id[i]
 						)
+
+						// console.log('okay updated starting point', existingTask)
 					}
 				} else {
 					try {
@@ -522,7 +533,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							end_date: formatDate(end),
 							priority: -1,
 						})
-
+						console.log('Starting New Start Point')
 						if (response?.data?.[0]) {
 							updatedEndpoints.start_task_id.push(response.data[0].id)
 						} else {
@@ -547,6 +558,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 				if (isEdit && endpoints.end_task_id?.[i]) {
 					const existingTask = connectionTasks.find((task) => task.id === endpoints.end_task_id[i])
+
+					console.log('Starting', existingTask)
 					if (existingTask) {
 						await updateTask(
 							{
@@ -557,6 +570,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							},
 							endpoints.end_task_id[i]
 						)
+
+						// console.log('okay updated End point')
 					}
 				} else {
 					try {
@@ -576,6 +591,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							end_date: formatDate(end),
 							priority: 99,
 						})
+						// console.log('No Created  New End point')
 
 						if (response?.data?.[0]) {
 							updatedEndpoints.end_task_id.push(response.data[0].id)
@@ -626,7 +642,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				while (connection.task_id.length < connectionStatuses.length) {
 					connection.task_id.push(null)
 				}
-				console.log('connection', connection?.task_id)
 
 				const taskPromises = connectionStatuses.map(async (status, j) => {
 					const taskTitle = `#${connection.joinType}${i + 1}, ${j + 1}T/L`
@@ -637,7 +652,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					if (taskIdAtIndex) {
 						existingTask = taskMapById.get(taskIdAtIndex)
 						if (!existingTask) {
-							console.warn(`Warning: Invalid task_id "${taskIdAtIndex}" at connection[${i}], TL[${j}]`)
+							// console.warn(`Warning: Invalid task_id "${taskIdAtIndex}" at connection[${i}], TL[${j}]`)
 						}
 					}
 
@@ -680,8 +695,11 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 				await Promise.all(taskPromises)
 
-				// 🧹 Trim extra task IDs (from deleted TLs)
 				if (connection.task_id.length > connectionStatuses.length) {
+					const extraTaskIds = connection.task_id.slice(connectionStatuses.length)
+
+					await deleteTasks(extraTaskIds)
+
 					connection.task_id = connection.task_id.slice(0, connectionStatuses.length)
 				}
 
@@ -698,17 +716,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			project_diagram_id,
 			isDemolition
 		)
-
-		const mydata = await updateProjectDiagramTable(
-			{
-				midpoints: updatedConnections,
-				project_diagram: project_diagram_id,
-			},
-			project_diagram_id,
-			isDemolition
-		)
-
-		console.log('hero', mydata)
 
 		return updatedConnections
 	}
@@ -787,7 +794,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				})
 
 				await Promise.all(taskPromises)
-				return installation // Return the installation object
+				if (installation.task_id?.length > installationStatuses.length) {
+					const extraTaskIds = installation.task_id.slice(installationStatuses.length)
+
+					await deleteTasks(extraTaskIds)
+
+					installation.task_id = installation.task_id.slice(0, installationStatuses.length)
+				}
+				return installation
 			})
 		)
 
@@ -1384,7 +1398,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const handleAdd = () => {
 		const updatedObjs = objs.map((obj) => {
-			console.log('obj', obj)
+			// console.log('obj', obj)
 			const yPos = 150
 
 			// Generate nodes for connections

@@ -103,7 +103,7 @@ const FilterPopup = ({
 									mt: 0.7,
 								}}
 							>
-								Task Type
+								Diagram Name
 							</InputLabel>
 
 							<Select
@@ -114,7 +114,7 @@ const FilterPopup = ({
 							>
 								{taskType?.map((item, index) => (
 									<MenuItem value={item?.id} key={index}>
-										{item?.name}
+										{`${item?.name} - ${item?.workTeam}`}
 									</MenuItem>
 								))}
 							</Select>
