@@ -1663,16 +1663,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											</Stack>
 										</StyledButton>
 									)}
-									<img
-										style={{
-											width: '40px',
-											borderRadius: '8px',
-											height: '96px',
-											objectFit: 'contain',
-										}}
-										alt=""
-										src="/button@2x.png"
-									/>
 								</RightContent>
 							</Stack>
 						</AccordionSummary>

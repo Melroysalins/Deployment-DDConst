@@ -228,7 +228,7 @@ const Tasks = () => {
 			{showSelectedWorkTypes && (
 				<Stack gap={2} mt={2}>
 					{selectedWorkTypes?.map((workType, index) => (
-						<Accordion key={index}>
+						<Accordion key={index} defaultExpanded>
 							<AccordionSummary aria-controls="metalFitting" id="metalFitting">
 								<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
 									{workType} {/* Display the work type name */}
@@ -304,20 +304,21 @@ const Task = ({
 	const containerStyle = useMemo(() => ({ width: '100%', height: '100%' }), [])
 	const gridStyle = useMemo(() => ({ height: '100%', width: '100%' }), [])
 	const [selectedRows, setSelectedRows] = useState([])
+	const [subTasksData, SetSubTasksData] = useState([])
+	const [taskID, SetTaskID] = useState('')
 
 	const { data: teams } = useQuery(['Teams teams'], () => listAllTeams())
 	// first we need to find the task_group_id
 	const { refetch, data: list } = useQuery([`task-${task_group}`], () => listFilteredTasks(task_group_id, id), {
 		select: (r) => {
-			const unfilteredList = r?.data?.map((itm) => ({
-				...itm,
-				task_period: [itm.start_date, itm.end_date],
-			}))
+			const unfilteredList = r?.data
+				?.filter((item) => item?.parent_task === null)
+				?.map((ele) => ({
+					...ele,
+					task_period: [ele.start_date, ele?.end_date],
+				}))
 
-			// If no filtering is applied, return the unfiltered list
 			if (!isFilteredApplied) {
-				console.log('list', unfilteredList)
-
 				return unfilteredList
 			}
 
@@ -349,10 +350,12 @@ const Task = ({
 		},
 	})
 
+	console.log('Edit', list)
+
 	// Fetch all diagram data based on unique diagram IDs from tasks
 	useEffect(() => {
 		if (list) {
-			const uniqueDiagramIds = [...new Set(list.map((task) => task.project_diagram_id).filter((id) => id))] // Collect unique IDs
+			const uniqueDiagramIds = [...new Set(list?.map((task) => task.project_diagram_id).filter((id) => id))] // Collect unique IDs
 			if (uniqueDiagramIds.length > 0) {
 				const diagramMap = {}
 				const fetchDiagrams = async () => {
@@ -404,7 +407,7 @@ const Task = ({
 
 	const DiagramRenderer = ({ value }) => {
 		if (!value || !diagrams[value]) return '-'
-		return diagrams[value] // Return the diagram name
+		return diagrams[value]
 	}
 
 	const DeleteCellRenderer = ({ value, task_group_id, gridRef }) => {
@@ -594,10 +597,30 @@ const Task = ({
 			<Iconify icon="material-symbols:add" width={20} height={20} />
 		</Button>
 	)
+
+	const SubtaskRenderer = (data) => {
+		return (
+			<button
+				style={{
+					color: '#6C5DD3',
+					cursor: 'pointer',
+					background: 'none',
+					border: 'none',
+					padding: 0,
+					font: 'inherit',
+					textDecoration: 'underline',
+				}}
+				onClick={() => SetTaskID(data?.data?.id)}
+			>
+				View / Edit
+			</button>
+		)
+	}
+
 	const columnDefs = useMemo(
 		() => [
 			{
-				headerName: 'Task Title',
+				headerName: 'Task Name',
 				field: 'title',
 				headerCheckboxSelection: true,
 				checkboxSelection: (params) => !!params.data,
@@ -605,9 +628,11 @@ const Task = ({
 				flex: 2,
 			},
 			{
-				headerName: 'Duration',
+				headerName: 'Duration (days)',
 				field: 'duration',
 				flex: 2,
+				valueFormatter: (params) => params.value ?? 0,
+				cellStyle: { textAlign: 'center' },
 			},
 			{
 				headerName: 'Task Period',
@@ -616,6 +641,13 @@ const Task = ({
 				cellRenderer: TimeRangeRenderer,
 				cellClass: 'ag-grid-datepicker',
 				flex: 2,
+			},
+			{
+				headerName: 'Subtasks',
+				field: 'subtasks',
+				flex: 2,
+				cellRenderer: SubtaskRenderer,
+				editable: false,
 			},
 			{
 				headerName: 'Team',
@@ -632,12 +664,21 @@ const Task = ({
 			},
 			{
 				headerName: 'Diagram Name',
-				field: 'project_diagram_id', // Assuming this is the field for diagram ID
-				cellRenderer: DiagramRenderer, // Use the new renderer
+				field: 'project_diagram_id',
+				cellRenderer: DiagramRenderer,
 				flex: 2,
 			},
 		],
-		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer, DiagramRenderer]
+		[
+			AddButton,
+			DeleteCellRenderer,
+			SelectCellEditor,
+			TeamRenderer,
+			DiagramRenderer,
+			TimeRangeEditor,
+			TimeRangeRenderer,
+			SubtaskRenderer,
+		]
 	)
 	const defaultColDef = useMemo(
 		() => ({
@@ -697,14 +738,16 @@ const Task = ({
 		// const startDate = moment(selectedTaskObj.end_date).add(1, 'days').format('YYYY-MM-DD')
 		// const endDate = moment(selectedTaskObj.end_date).add(2, 'days').format('YYYY-MM-DD')
 		// const parentId = selectedTaskObj.id;
-		const subtasks = [];
-		let currentStart = moment(selectedTaskObj.start_date);
-	
-		for (let i = 0; i < 5; i+=1) {
-			const start_date = currentStart.format('YYYY-MM-DD');
-			const end_date = currentStart.clone().add(1, 'days').format('YYYY-MM-DD');
+		const subtasks = []
+		let currentStart = moment(selectedTaskObj.start_date)
+
+		const defaultSubTaskNames = ['Line', 'Trim', 'Assemble', 'Galvanize', 'Install']
+
+		for (let i = 0; i < 5; i += 1) {
+			const start_date = currentStart.format('YYYY-MM-DD')
+			const end_date = currentStart.clone().add(1, 'days').format('YYYY-MM-DD')
 			subtasks.push({
-				title: `Subtask ${i + 1} of ${selectedTaskObj.title}`,
+				title: defaultSubTaskNames[i],
 				team: selectedTaskObj.team,
 				start_date,
 				end_date,
@@ -712,8 +755,10 @@ const Task = ({
 				task_group_id,
 				project: id,
 				parent_task: parentId,
-			});
-			currentStart = currentStart.clone().add(1, 'days');
+			})
+			currentStart = currentStart.clone().add(1, 'days')
+
+			console.log('subTask', subtasks)
 		}
 		createNewTasks(subtasks).then(() => {
 			console.log('Subtask created successfully')
@@ -779,6 +824,7 @@ const Task = ({
 							defaultColDef={defaultColDef}
 							rowSelection={'multiple'}
 							suppressRowClickSelection={true}
+							suppressColumnVirtualisation={true}
 							domLayout="autoHeight"
 							onCellEditRequest={onCellEditRequest}
 							getRowId={(params) => params.data.id}
@@ -786,8 +832,8 @@ const Task = ({
 							onRowSelected={() => {
 								setSelectedRows(gridRef.current.api.getSelectedRows().map(({ id }) => id))
 							}}
-							//   onFirstDataRendered={onFirstDataRendered}
 						/>
+
 						{/* {console.log('list', list)} */}
 						<Box display="flex" justifyContent="space-between">
 							<Button onClick={handleAdd}>Add Task</Button>

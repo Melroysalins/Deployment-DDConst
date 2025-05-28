@@ -41,6 +41,14 @@ import { da } from 'date-fns/locale'
 const Calender2 = () => {
 	const [range, setRange] = React.useState(getTimelineRange())
 	const [resources, SetResources] = useState([])
+	const [allWorkTypes, SetAllWorkTypes] = useState([
+		'Connection',
+		'Installation',
+		'Office Work',
+		'Completion Testing',
+		'Metal Fittings Installation',
+		'Auxiliary Construction',
+	])
 	const [isFilterOpen, SetIsFilterOpen] = useState(false)
 	const [isFilteredApplied, SetIsFilterApplied] = useState(false)
 	const [taskGroup, SetTaskGroup] = useState([])
@@ -221,7 +229,6 @@ const Calender2 = () => {
 	}, [data?.dependencies])
 
 	useEffect(() => {
-		console.log('Task001', uniqueWorkTypes, taskGroup, dependencies)
 		async function buildExpandedResources() {
 			const expandedResources = []
 
@@ -315,8 +322,6 @@ const Calender2 = () => {
 			SetAllRescources(results)
 
 			SetTaskType(results)
-
-			console.log('roy', results)
 		})()
 	}, [selectedWorkTypesData, dependencies])
 
