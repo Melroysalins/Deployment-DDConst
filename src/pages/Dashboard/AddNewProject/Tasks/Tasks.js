@@ -27,7 +27,7 @@ import {
 import { styled } from '@mui/material/styles'
 import { AgGridReact } from 'ag-grid-react'
 import Iconify from 'components/Iconify'
-import moment from 'moment-timezone'
+import moment, { duration } from 'moment-timezone'
 import PropTypes from 'prop-types'
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
@@ -49,6 +49,7 @@ import TimeRangeEditor from './TimeRangeEditor'
 import WorkType from './WorkType'
 import WarningDialog from 'pages/WeeklyPlan/FlowDiagram/WarningDialog'
 import FilterPopUp from 'components/FilterPopUp'
+import TaskPopUp from './TaskPopUp'
 
 setOptions({
 	theme: 'ios',
@@ -145,13 +146,6 @@ const Tasks = () => {
 
 	// Function to save selected work types to the database
 	const handleApply = async () => {
-		// const updatedData = { selectedWorkTypes } // Prepare the data to be updated
-		// await updateProject(updatedData, projectId) // Call the update function
-		// setShowSelectedWorkTypes(true)
-		// console.log('Work types updated:', selectedWorkTypes)
-		// // Show selected work types after saving
-		// setSelectedWorkTypes(tempSelectedWorkTypes)
-
 		const updatedData = { selectedWorkTypes: tempSelectedWorkTypes } // Use temp state for update
 		await updateProject(updatedData, projectId) // Save to DB
 
@@ -228,7 +222,7 @@ const Tasks = () => {
 			{showSelectedWorkTypes && (
 				<Stack gap={2} mt={2}>
 					{selectedWorkTypes?.map((workType, index) => (
-						<Accordion key={index}>
+						<Accordion key={index} defaultExpanded>
 							<AccordionSummary aria-controls="metalFitting" id="metalFitting">
 								<Typography variant="subtitle1" sx={{ color: 'text.default' }}>
 									{workType} {/* Display the work type name */}
@@ -304,20 +298,23 @@ const Task = ({
 	const containerStyle = useMemo(() => ({ width: '100%', height: '100%' }), [])
 	const gridStyle = useMemo(() => ({ height: '100%', width: '100%' }), [])
 	const [selectedRows, setSelectedRows] = useState([])
+	const [subTasksData, SetSubTasksData] = useState([])
+	const [taskID, SetTaskID] = useState('')
+	const [isSubTaskOpen, SetIsSubTaskOpen] = useState(false)
+	const [openSubTasks, SetOpenSubTaks] = useState(false)
 
 	const { data: teams } = useQuery(['Teams teams'], () => listAllTeams())
 	// first we need to find the task_group_id
 	const { refetch, data: list } = useQuery([`task-${task_group}`], () => listFilteredTasks(task_group_id, id), {
 		select: (r) => {
-			const unfilteredList = r?.data?.map((itm) => ({
-				...itm,
-				task_period: [itm.start_date, itm.end_date],
-			}))
+			const unfilteredList = r?.data
+				?.filter((item) => item?.parent_task === null)
+				?.map((ele) => ({
+					...ele,
+					task_period: [ele.start_date, ele?.end_date],
+				}))
 
-			// If no filtering is applied, return the unfiltered list
 			if (!isFilteredApplied) {
-				console.log('list', unfilteredList)
-
 				return unfilteredList
 			}
 
@@ -349,10 +346,36 @@ const Task = ({
 		},
 	})
 
+	// code to fetch subTask For Selected Task on Click Of  View/Edit
+
+	const { data: fullResponse, refetch: refetchFull } = useQuery(
+		[`raw-task-${task_group}`],
+		() => listFilteredTasks(task_group_id, id),
+		{
+			select: (res) => {
+				const entireTaskData = res?.data?.map((ele) => ({
+					...ele,
+					task_period: [ele.start_date, ele?.end_date],
+				}))
+
+				return entireTaskData
+			},
+		}
+	)
+
+	const fetchSubTasks = useCallback(
+		(id) => {
+			const filteredSubTaskData = fullResponse?.filter((item) => item?.parent_task === id)
+			console.log('Melroy', id, filteredSubTaskData)
+			SetSubTasksData(filteredSubTaskData)
+		},
+		[taskID]
+	)
+
 	// Fetch all diagram data based on unique diagram IDs from tasks
 	useEffect(() => {
 		if (list) {
-			const uniqueDiagramIds = [...new Set(list.map((task) => task.project_diagram_id).filter((id) => id))] // Collect unique IDs
+			const uniqueDiagramIds = [...new Set(list?.map((task) => task.project_diagram_id).filter((id) => id))] // Collect unique IDs
 			if (uniqueDiagramIds.length > 0) {
 				const diagramMap = {}
 				const fetchDiagrams = async () => {
@@ -404,7 +427,7 @@ const Task = ({
 
 	const DiagramRenderer = ({ value }) => {
 		if (!value || !diagrams[value]) return '-'
-		return diagrams[value] // Return the diagram name
+		return diagrams[value]
 	}
 
 	const DeleteCellRenderer = ({ value, task_group_id, gridRef }) => {
@@ -594,20 +617,46 @@ const Task = ({
 			<Iconify icon="material-symbols:add" width={20} height={20} />
 		</Button>
 	)
+
+	const SubtaskRenderer = (data) => {
+		return (
+			<button
+				style={{
+					color: '#6C5DD3',
+					cursor: 'pointer',
+					background: 'none',
+					border: 'none',
+					padding: 0,
+					font: 'inherit',
+					textDecoration: 'underline',
+				}}
+				onClick={() => {
+					SetTaskID(data?.data?.id)
+					fetchSubTasks(data?.data?.id)
+					SetIsSubTaskOpen(true)
+				}}
+			>
+				View / Edit
+			</button>
+		)
+	}
+
 	const columnDefs = useMemo(
 		() => [
 			{
-				headerName: 'Task Title',
+				headerName: 'Task Name',
 				field: 'title',
 				headerCheckboxSelection: true,
 				checkboxSelection: (params) => !!params.data,
 				showDisabledCheckboxes: true,
+				flex: 2,
 			},
 			{
-				headerName: 'Team',
-				field: 'team',
-				cellEditor: SelectCellEditor,
-				cellRenderer: TeamRenderer,
+				headerName: 'Duration (days)',
+				field: 'duration',
+				flex: 2,
+				valueFormatter: (params) => params.value ?? 0,
+				cellStyle: { textAlign: 'center' },
 			},
 			{
 				headerName: 'Task Period',
@@ -615,35 +664,103 @@ const Task = ({
 				cellEditor: TimeRangeEditor,
 				cellRenderer: TimeRangeRenderer,
 				cellClass: 'ag-grid-datepicker',
+				flex: 2,
 			},
 			{
-				headerName: 'Notes',
-				field: 'notes',
+				headerName: 'Subtasks',
+				field: 'subtasks',
+				flex: 2,
+				cellRenderer: SubtaskRenderer,
+				editable: false,
+			},
+			{
+				headerName: 'Team',
+				field: 'team',
+				cellEditor: SelectCellEditor,
+				cellRenderer: TeamRenderer,
+				flex: 2,
 			},
 			{
 				headerName: 'Is Demolition',
 				field: 'isDemolition',
 				cellRenderer: (params) => (params.value ? 'Yes' : 'No'),
-				sortable: true,
-				sort: 'asc',
+				flex: 1,
 			},
 			{
 				headerName: 'Diagram Name',
-				field: 'project_diagram_id', // Assuming this is the field for diagram ID
-				cellRenderer: DiagramRenderer, // Use the new renderer
-				sortable: true,
-				sort: 'asc',
-			},
-			{
-				headerName: 'TL',
-				field: 'tl',
-				sortable: true,
-				// sort: 'asc',
-				// sortIndex: 2,
+				field: 'project_diagram_id',
+				cellRenderer: DiagramRenderer,
+				flex: 2,
 			},
 		],
-		[AddButton, DeleteCellRenderer, SelectCellEditor, TeamRenderer, DiagramRenderer]
+		[
+			AddButton,
+			DeleteCellRenderer,
+			SelectCellEditor,
+			TeamRenderer,
+			DiagramRenderer,
+			TimeRangeEditor,
+			TimeRangeRenderer,
+			SubtaskRenderer,
+		]
 	)
+
+	const subTaskColumnDefs = useMemo(
+		() => [
+			{
+				headerName: 'Task Name',
+				field: 'title',
+				headerCheckboxSelection: true,
+				checkboxSelection: (params) => !!params.data,
+				showDisabledCheckboxes: true,
+				flex: 2,
+			},
+			{
+				headerName: 'Duration (days)',
+				field: 'duration',
+				flex: 2,
+				valueFormatter: (params) => params.value ?? 0,
+			},
+			{
+				headerName: 'Task Period',
+				field: 'task_period',
+				cellEditor: TimeRangeEditor,
+				cellRenderer: TimeRangeRenderer,
+				cellClass: 'ag-grid-datepicker',
+				flex: 2,
+			},
+			{
+				headerName: 'Team',
+				field: 'team',
+				cellEditor: SelectCellEditor,
+				cellRenderer: TeamRenderer,
+				flex: 2,
+			},
+			{
+				headerName: 'Is Demolition',
+				field: 'isDemolition',
+				cellRenderer: (params) => (params.value ? 'Yes' : 'No'),
+				flex: 1,
+			},
+			{
+				headerName: 'Diagram Name',
+				field: 'project_diagram_id',
+				cellRenderer: DiagramRenderer,
+				flex: 1,
+			},
+		],
+		[
+			AddButton,
+			DeleteCellRenderer,
+			SelectCellEditor,
+			TeamRenderer,
+			DiagramRenderer,
+			TimeRangeEditor,
+			TimeRangeRenderer,
+			SubtaskRenderer,
+		]
+	)
+
 	const defaultColDef = useMemo(
 		() => ({
 			flex: 1,
@@ -654,6 +771,79 @@ const Task = ({
 
 	const handleAdd = () => {
 		createNewTasks({ title: '', notes: '', task_group_id, project: id }).then(() => refetch())
+	}
+
+	const handleAddSubtask = () => {
+		const selectedTaskId = selectedRows[0]
+		const selectedTaskObj = list.find((task) => task.id === selectedTaskId)
+		console.log('selectedTaskObj', selectedTaskObj)
+		if (!selectedRows || selectedRows.length === 0) {
+			setToast({
+				severity: 'warning',
+				message: 'Please select a task to add a subtask.',
+			})
+			return
+		}
+		if (selectedRows.length > 1) {
+			setToast({
+				severity: 'warning',
+				message: 'Please select only one task to add a subtask.',
+			})
+			return
+		}
+		// Check if the selected task is from same task group
+		if (selectedTaskObj.task_group_id !== task_group_id) {
+			setToast({
+				severity: 'warning',
+				message: 'Please select a task from the same task group to add a subtask.',
+			})
+			return
+		}
+
+		// Check if the selected task is not a subtask
+		if (selectedTaskObj.parent_task) {
+			setToast({
+				severity: 'warning',
+				message: 'Please select a parent task to add a subtask not sub task.',
+			})
+			return
+		}
+		console.log('selectedRows', selectedRows)
+		// return;
+		//
+		const parentId = selectedRows[0]
+		console.log('new task created ')
+		// return
+		// add 5 subtask to the task each start will be end date of previous task
+		// and end date will be 1 day after start date
+		// const startDate = moment(selectedTaskObj.end_date).add(1, 'days').format('YYYY-MM-DD')
+		// const endDate = moment(selectedTaskObj.end_date).add(2, 'days').format('YYYY-MM-DD')
+		// const parentId = selectedTaskObj.id;
+		const subtasks = []
+		let currentStart = moment(selectedTaskObj.start_date)
+
+		const defaultSubTaskNames = ['Line', 'Trim', 'Assemble', 'Galvanize', 'Install']
+
+		for (let i = 0; i < 5; i += 1) {
+			const start_date = currentStart.format('YYYY-MM-DD')
+			const end_date = currentStart.clone().add(1, 'days').format('YYYY-MM-DD')
+			subtasks.push({
+				title: defaultSubTaskNames[i],
+				team: selectedTaskObj.team,
+				start_date,
+				end_date,
+				notes: '',
+				task_group_id,
+				project: id,
+				parent_task: parentId,
+			})
+			currentStart = currentStart.clone().add(1, 'days')
+
+			console.log('subTask', subtasks)
+		}
+		createNewTasks(subtasks).then(() => {
+			console.log('Subtask created successfully')
+		})
 	}
 
 	const onCellEditRequest = (event) => {
@@ -675,6 +865,7 @@ const Task = ({
 					title: newItem.title,
 					team: newItem.team,
 					notes: newItem.notes,
+					duration: newItem.duration,
 					start_date: newItem.task_period ? newItem.task_period[0] : null,
 					end_date: newItem.task_period ? newItem.task_period[1] : null,
 				},
@@ -714,6 +905,7 @@ const Task = ({
 							defaultColDef={defaultColDef}
 							rowSelection={'multiple'}
 							suppressRowClickSelection={true}
+							suppressColumnVirtualisation={true}
 							domLayout="autoHeight"
 							onCellEditRequest={onCellEditRequest}
 							getRowId={(params) => params.data.id}
@@ -721,11 +913,14 @@ const Task = ({
 							onRowSelected={() => {
 								setSelectedRows(gridRef.current.api.getSelectedRows().map(({ id }) => id))
 							}}
-							//   onFirstDataRendered={onFirstDataRendered}
 						/>
+
 						{/* {console.log('list', list)} */}
 						<Box display="flex" justifyContent="space-between">
 							<Button onClick={handleAdd}>Add Task</Button>
+							<Button color="secondary" onClick={handleAddSubtask} sx={{ ml: 1 }}>
+								Add Subtask
+							</Button>
 							{selectedRows.length > 0 && (
 								<Box>
 									{selectedRows.length} items selected:
@@ -736,6 +931,30 @@ const Task = ({
 					</Stack>
 				</div>
 			</div>
+
+			{isSubTaskOpen && (
+				<TaskPopUp
+					open={isSubTaskOpen}
+					onClose={() => {
+						SetIsSubTaskOpen(false)
+						SetTaskID('')
+					}}
+					ref={gridRef}
+					rowData={subTasksData}
+					columnDefs={subTaskColumnDefs}
+					defaultColDef={defaultColDef}
+					rowSelection={'multiple'}
+					suppressRowClickSelection={true}
+					suppressColumnVirtualisation={true}
+					domLayout="autoHeight"
+					onCellEditRequest={onCellEditRequest}
+					getRowId={(params) => params.data.id}
+					readOnlyEdit
+					onRowSelected={() => {
+						setSelectedRows(gridRef.current.api.getSelectedRows().map(({ id }) => id))
+					}}
+				/>
+			)}
 		</>
 	)
 }

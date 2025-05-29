@@ -45,7 +45,7 @@ import {
 	updateProjectDiagramTable,
 } from 'supabase/project_diagrams_table'
 import { useTranslation } from 'react-i18next'
-import { createNewTasks, deleteTask, listFilteredTasks, updateTask } from 'supabase/tasks'
+import { createNewTasks, deleteTask, deleteTasks, listFilteredTasks, updateTask } from 'supabase/tasks'
 
 const StyledButtonContainer = styled(Box)({
 	alignSelf: 'stretch',
@@ -371,7 +371,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	end.setDate(start.getDate() + 5)
 
 	useEffect(() => {
-		console.log(hasChanges)
+		// console.log(hasChanges)
 		if (objs !== null && hasChanges) {
 			handleAdd()
 			setHasChanges(false)
@@ -395,7 +395,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				handleEditButtonClick(data.id)
 				break
 			default:
-				console.log('Unknown action type:', actionType)
+			// console.log('Unknown action type:', actionType)
 		}
 		handleClosePopup()
 	}
@@ -423,6 +423,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const getDiagram = async () => {
 		const { data } = await getDiagramsByProject(id)
+
+		console.log('diagram', data)
 		if (data?.length) {
 			const updatedData = await Promise.all(
 				data.map(async (diagram) => {
@@ -431,9 +433,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					return {
 						...diagram,
 						currentObj: {
-							connections: tableData1.data.midpoints || [],
-							installations: tableData1.data?.installations || [],
-							demolitions: tableData2.data?.midpoints || [],
+							connections: tableData1?.data?.midpoints || [],
+							installations: tableData1?.data?.installations || [],
+							demolitions: tableData2?.data?.midpoints || [],
 							demolitionInstallations: tableData2.data?.installations || [],
 							length: tableData1.data?.length || [],
 							length_demolition: tableData2.data?.length || [],
@@ -452,12 +454,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				})
 			)
 			const ids = data.map((diagram) => diagram.id)
-			console.log(updatedData)
+			// console.log(updatedData)
 			setObjs(updatedData)
 			const maxId = Math.max(...ids)
 			setseqNumber(maxId + 1)
 			const minId = Math.min(...ids)
 			setExpanded(`panel${minId}`)
+
+			console.log('updatedData', updatedData)
 		}
 	}
 
@@ -482,63 +486,37 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	) => {
 		if (!endpoints?.start && !endpoints?.end) return endpoints
 
-		const updatedEndpoints = { ...endpoints }
+		console.log('updatedData', endpoints)
 
-		// Initialize task ID arrays
+		const updatedEndpoints = { ...endpoints }
 		updatedEndpoints.start_task_id = []
 		updatedEndpoints.end_task_id = []
 
 		// Handle start point
 		if (endpoints.start) {
 			const startTasksPromises = endpoints.startStatuses.map(async (status, i) => {
-				const taskTitle = `${cable_name.startLocation}${t(`${endpoints.start}`)}, ${i + 1}T/L`
+				const taskTitle = `${cable_name.startLocation}${t(endpoints.start)}, ${i + 1}T/L`
 
-				if (isEdit && endpoints.start_task_id && endpoints.start_task_id[i]) {
+				if (isEdit) {
 					const existingTask = connectionTasks.find((task) => task.id === endpoints.start_task_id[i])
+
+					console.log('already', existingTask, endpoints)
+
 					if (existingTask) {
-						console.log('existingTask', existingTask)
 						await updateTask(
 							{
 								title: taskTitle,
 								notes: '',
 								approval_status: 'Approved',
-								t1: i + 1,
+								tl: i + 1,
 							},
 							endpoints.start_task_id[i]
 						)
-					} else {
-						try {
-							console.log('Creating New Task', formatDate(start), formatDate(end))
-							const response = await createNewTasks({
-								approval_status: 'Planned',
-								created_at: new Date().toISOString(),
-								from_page: 'projects',
-								notes: '',
-								project: id,
-								task_group_id: 3,
-								task_type: null,
-								title: taskTitle,
-								project_diagram_id,
-								tl: i + 1,
-								isDemolition,
-								start_date: formatDate(start),
-								end_date: formatDate(end),
-								priority: -1,
-							})
 
-							if (response?.data?.[0]) {
-								// Append the new task ID to the start_task_id array
-								updatedEndpoints.start_task_id.push(response.data[0].id)
-							} else {
-								console.error(`Failed to create task for start point: ${taskTitle}`, response)
-							}
-						} catch (error) {
-							console.error(`Error creating task for start point: ${taskTitle}`, error)
-						}
+						// console.log('okay updated starting point', existingTask)
 					}
 				} else {
 					try {
-						console.log('Creating New Task', formatDate(start), formatDate(end))
 						const response = await createNewTasks({
 							approval_status: 'Planned',
 							created_at: new Date().toISOString(),
@@ -555,9 +533,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							end_date: formatDate(end),
 							priority: -1,
 						})
-
+						console.log('Starting New Start Point')
 						if (response?.data?.[0]) {
-							// Append the new task ID to the start_task_id array
 							updatedEndpoints.start_task_id.push(response.data[0].id)
 						} else {
 							console.error(`Failed to create task for start point: ${taskTitle}`, response)
@@ -574,51 +551,27 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		// Handle end point
 		if (endpoints.end) {
 			const endStatuses = endpoints.endStatuses || []
-			const endPointTitle = `${cable_name.endLocation}${t(`${endpoints.end}`)}`
+			const endPointTitle = `${cable_name.endLocation}${t(endpoints.end)}`
 
 			const endTasksPromises = endStatuses.map(async (status, i) => {
 				const taskTitle = `${endPointTitle}, ${i + 1}T/L`
 
-				if (isEdit && endpoints.end_task_id && endpoints.start_task_id[i]) {
+				if (isEdit && endpoints.end_task_id?.[i]) {
 					const existingTask = connectionTasks.find((task) => task.id === endpoints.end_task_id[i])
+
+					console.log('Starting', existingTask)
 					if (existingTask) {
 						await updateTask(
 							{
 								title: taskTitle,
 								notes: '',
 								approval_status: 'Approved',
-								t1: i + 1,
+								tl: i + 1,
 							},
 							endpoints.end_task_id[i]
 						)
-					} else {
-						try {
-							const response = await createNewTasks({
-								approval_status: 'Planned',
-								created_at: new Date().toISOString(),
-								from_page: 'projects',
-								notes: '',
-								project: id,
-								task_group_id: 3,
-								task_type: null,
-								title: taskTitle,
-								project_diagram_id,
-								tl: i + 1,
-								isDemolition,
-								start_date: formatDate(start),
-								end_date: formatDate(end),
-								priority: 99,
-							})
 
-							if (response?.data?.[0]) {
-								// Append the new task ID to the end_task_id array
-								updatedEndpoints.end_task_id.push(response.data[0].id)
-							} else {
-								console.error(`Failed to create task for end point: ${taskTitle}`, response)
-							}
-						} catch (error) {
-							console.error(`Error creating task for end point: ${taskTitle}`, error)
-						}
+						// console.log('okay updated End point')
 					}
 				} else {
 					try {
@@ -638,9 +591,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							end_date: formatDate(end),
 							priority: 99,
 						})
+						// console.log('No Created  New End point')
 
 						if (response?.data?.[0]) {
-							// Append the new task ID to the end_task_id array
 							updatedEndpoints.end_task_id.push(response.data[0].id)
 						} else {
 							console.error(`Failed to create task for end point: ${taskTitle}`, response)
@@ -654,7 +607,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			await Promise.all(endTasksPromises)
 		}
 
-		// Update the project diagram table with the new endpoints
+		// Final update
 		updateProjectDiagramTable(
 			{
 				endpoints: updatedEndpoints,
@@ -662,7 +615,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			},
 			project_diagram_id,
 			isDemolition
-		) // Pass the isDemolition flag
+		)
 
 		return updatedEndpoints
 	}
@@ -674,63 +627,87 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		connectionTasks = [],
 		isDemolition
 	) => {
+		const taskMapById = new Map(connectionTasks.map((task) => [task.id, task]))
+
 		const updatedConnections = await Promise.all(
 			connections.map(async (connection, i) => {
-				const connectionStatuses = connection.statuses || [] // Assuming this is an array of statuses
+				const connectionStatuses = connection.statuses || []
+
+				// Ensure task_id is an array and aligned in length
+				if (!Array.isArray(connection.task_id)) {
+					connection.task_id = []
+				}
+
+				// Extend task_id to match statuses length with nulls
+				while (connection.task_id.length < connectionStatuses.length) {
+					connection.task_id.push(null)
+				}
+
 				const taskPromises = connectionStatuses.map(async (status, j) => {
-					const taskTitle = `#${connection.joinType}${i + 1}, ${j + 1}T/L` // Create a unique title for each status
+					const taskTitle = `#${connection.joinType}${i + 1}, ${j + 1}T/L`
 
-					if (isEdit && connection.task_id) {
-						const existingTask = connectionTasks.find((task) => task.id === connection.task_id[j])
-						if (existingTask) {
-							await updateTask(
-								{
-									title: taskTitle,
-									notes: connection.notes || '',
-									approval_status: 'Approved',
-									t1: i + 1,
-								},
-								connection.task_id[j]
-							)
-							return connection
+					let existingTask = null
+					const taskIdAtIndex = connection.task_id[j]
+
+					if (taskIdAtIndex) {
+						existingTask = taskMapById.get(taskIdAtIndex)
+						if (!existingTask) {
+							// console.warn(`Warning: Invalid task_id "${taskIdAtIndex}" at connection[${i}], TL[${j}]`)
 						}
 					}
 
-					const response = await createNewTasks({
-						approval_status: 'Planned',
-						created_at: connection.created_at || new Date().toISOString(),
-						from_page: 'projects',
-						notes: '',
-						project: id,
-						task_group_id: 3,
-						task_type: null,
-						title: taskTitle,
-						project_diagram_id,
-						isDemolition,
-						tl: j + 1,
-						start_date: formatDate(start),
-						end_date: formatDate(end),
-						priority: i,
-					})
-
-					if (response.data?.[0]) {
-						// Push the new task ID to the connection's task_id array
-						if (!connection.task_id) {
-							connection.task_id = [] // Initialize if it doesn't exist
-						}
-						connection.task_id.push(response.data[0].id) // Store the task_id
-						return { ...connection, task_id: connection.task_id }
+					//  Update task if it exists
+					if (isEdit && existingTask) {
+						await updateTask(
+							{
+								title: taskTitle,
+								notes: connection.notes || '',
+								approval_status: 'Approved',
+								tl: j + 1,
+							},
+							existingTask.id
+						)
 					}
-					return connection
+					//  Create task if no existing one
+					else if (!existingTask) {
+						const response = await createNewTasks({
+							approval_status: 'Planned',
+							created_at: connection.created_at || new Date().toISOString(),
+							from_page: 'projects',
+							notes: '',
+							project: id,
+							task_group_id: 3,
+							task_type: null,
+							title: taskTitle,
+							project_diagram_id,
+							isDemolition,
+							tl: j + 1,
+							start_date: formatDate(start),
+							end_date: formatDate(end),
+							priority: i,
+						})
+
+						if (response.data?.[0]) {
+							connection.task_id[j] = response.data[0].id
+						}
+					}
 				})
 
-				// Wait for all task promises to resolve
 				await Promise.all(taskPromises)
-				return connection // Return the connection object
+
+				if (connection.task_id.length > connectionStatuses.length) {
+					const extraTaskIds = connection.task_id.slice(connectionStatuses.length)
+
+					await deleteTasks(extraTaskIds)
+
+					connection.task_id = connection.task_id.slice(0, connectionStatuses.length)
+				}
+
+				return connection
 			})
 		)
 
-		// Update the project diagram table with the new connections
+		// Save updated midpoints
 		await updateProjectDiagramTable(
 			{
 				midpoints: updatedConnections,
@@ -738,9 +715,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			},
 			project_diagram_id,
 			isDemolition
-		) // Pass the isDemolition flag
+		)
 
-		return updatedConnections // Return the updated connections
+		return updatedConnections
 	}
 
 	const createOrUpdateInstallationTasks = async (
@@ -756,6 +733,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		const updatedInstallations = await Promise.all(
 			installations.map(async (installation, i) => {
 				const installationStatuses = installation.statuses || [] // Assuming this is an array of statuses
+
 				const taskPromises = installationStatuses.map(async (status, j) => {
 					let title = ''
 					if (i === 0) {
@@ -780,7 +758,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 									title,
 									notes: '',
 									approval_status: 'Approved',
-									t1: i + 1,
+									tl: j + 1,
 								},
 								installation.task_id[j]
 							)
@@ -802,7 +780,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 						tl: j + 1,
 						start_date: formatDate(start),
 						end_date: formatDate(end),
-						priority: i,
+						priority: i, // priority can stay as i
 					})
 
 					if (response.data?.[0]) {
@@ -815,9 +793,15 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					return installation
 				})
 
-				// Wait for all task promises to resolve
 				await Promise.all(taskPromises)
-				return installation // Return the installation object
+				if (installation.task_id?.length > installationStatuses.length) {
+					const extraTaskIds = installation.task_id.slice(installationStatuses.length)
+
+					await deleteTasks(extraTaskIds)
+
+					installation.task_id = installation.task_id.slice(0, installationStatuses.length)
+				}
+				return installation
 			})
 		)
 
@@ -829,11 +813,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			},
 			project_diagram_id,
 			isDemolition
-		) // Pass the isDemolition flag
+		)
 
 		return updatedInstallations // Return the updated installations
 	}
-
 	const handleSaveButtonClick = async (currentNewObj) => {
 		try {
 			setloading(true)
@@ -1415,7 +1398,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const handleAdd = () => {
 		const updatedObjs = objs.map((obj) => {
-			console.log('obj', obj)
+			// console.log('obj', obj)
 			const yPos = 150
 
 			// Generate nodes for connections
@@ -1680,16 +1663,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 											</Stack>
 										</StyledButton>
 									)}
-									<img
-										sx={{
-											width: '40px',
-											borderRadius: '8px',
-											height: '96px',
-											objectFit: 'contain',
-										}}
-										alt=""
-										src="/button@2x.png"
-									/>
 								</RightContent>
 							</Stack>
 						</AccordionSummary>

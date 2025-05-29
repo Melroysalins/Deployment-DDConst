@@ -11,8 +11,15 @@ import { supabase } from 'lib/api'
  * @returns {Promise<Object>} A promise that resolves to the newly created task dependency.
  */
 
-export const createTaskDependency = async ({from_task_id, to_task_id, project_id}) => {
-    const res = await supabase.from('tasks_dependency').insert({from_task_id, to_task_id, project_id}).select()
+export const createTaskDependency = async({
+    from_task_id,
+    to_task_id,
+    project_id,
+    type,
+    lag,
+    lag_unit,
+    active=true}) => {
+    const res = await supabase.from('tasks_dependency').insert({from_task_id, to_task_id, project_id, type, lag, lagUnit:lag_unit, active}).select()
     return res
 }
 

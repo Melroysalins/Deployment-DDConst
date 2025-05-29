@@ -6,7 +6,7 @@ export const createNewTeam = async (data) => {
 	return res
 }
 export const getTeamDetails = async (id) => {
-	const res = await supabase.from('teams').select('*').eq('id', id).single()
+	const res = await supabase.from('teams').select('*').eq('id', id)
 	return res
 }
 export const listAllTeams = async () => {
