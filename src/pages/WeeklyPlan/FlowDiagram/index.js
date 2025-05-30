@@ -430,6 +430,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				data.map(async (diagram) => {
 					const tableData1 = await getTableByProjectDiagram(diagram.id, false)
 					const tableData2 = await getTableByProjectDiagram(diagram.id, true)
+					console.log('tableData1', tableData1, tableData2)
 					return {
 						...diagram,
 						currentObj: {

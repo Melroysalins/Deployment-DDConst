@@ -357,6 +357,8 @@ const Calender2 = () => {
 						  })(),
 					name: connection.title,
 					manuallyScheduled: true,
+					expanded: true,
+					leaf: false,
 				}
 				if (connection.children && connection.children.length > 0) {
 					event.children = connection.children.map((child) => ({
@@ -559,6 +561,9 @@ const Calender2 = () => {
 			autoAdjustTimeAxis: true,
 			viewPreset: customMonthViewPreset,
 			multiEventSelect: true,
+			tickSize: 100,
+			rowHeight: 100,
+			eventLayout: 'stack',
 			columns: [
 				{
 					text: 'WORK',

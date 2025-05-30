@@ -41,7 +41,6 @@ export const features = {
 	// autoAdjustTimeAxis: true,
 	dependencyEdit: true,
 	nestedEvents: true,
-
 	eventDrag: {
 		constrainDragToTimeline: false,
 		showExactDropPosition: true,
