@@ -44,40 +44,67 @@ export const features = {
 	eventDrag: {
 		constrainDragToTimeline: false,
 		showExactDropPosition: true,
-		constrainDragToResource: true, // <-- Only allow dragging within the same row/resource
+		constrainDragToResource: true,
 	},
 	eventResize: true,
-	// Add event drag selection feature
+
 	eventDragSelect: {
 		disabled: false,
-		allowSelect: true, // Allow selecting events
-		showTooltip: true, // Show tooltip with selected events count
+		allowSelect: true,
+		showTooltip: true,
 	},
 	eventCopyPaste: {
 		disabled: false,
 	},
 	taskEdit: {
 		items: {
-			generalTab: true,
-			predecessorsTab: true,
-			successorsTab: true,
+			general: true,
+			predecessors: true,
+			successors: true,
+			newTab: {
+				title: 'SubTasks',
+				weight: 90,
+				items: {
+					subtasksContainer: {
+						type: 'container',
+						ref: 'subtasksContainer',
+						layout: 'vbox',
+						flex: 1,
+						style: 'padding: 10px;',
+					},
+				},
+			},
 		},
+		// fields: {
+		// 	newGeneralField: {
+		// 		type: 'textfield',
+		// 		weight: 610,
+		// 		label: 'New field in General Tab',
+		// 		name: 'custom',
+		// 	},
+		// },
+		// items: {
+		// 	newTab: {
+		// 		title: 'SubTask',
+		// 		weight: 90,
+		// 		items: {
+		// 			subtasksContainer: {
+		// 				type: 'container',
+		// 				ref: 'subtasksContainer',
+		// 				layout: 'vbox',
+		// 				flex: 1,
+		// 				style: 'padding: 10px;',
+		// 			},
+		// 		},
+		// 	},
+		// },
 	},
-	// eventEdit: {
-	//     // Custom event editor to handle task creation and editing
-	//     editorConfig: {
-	//         items: {
-	//             // Add custom fields for task creation
-	//             dependency: true,
-	//         },
-	//     },
-	// },
+	eventEdit: true,
 	dependencies: {
 		clickWidth: 6,
 		radius: 30,
-	}, // draw dependency lines
-	// dependencyEdit: true,            // allow editing dependencies
-	dependencyMenu: true, // (optional) context-menu support
+	},
+	dependencyMenu: true,
 	// eventEdit: {                // configure the task editor
 	//     // show Predecessors/Successors tabs
 	//     items: {
@@ -144,4 +171,14 @@ export const getTimelineRange = () => {
 	const startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1) // 1 month in the past
 	const endDate = new Date(today.getFullYear(), today.getMonth() + 2, 0) // 1 month in the future
 	return { startDate, endDate }
+}
+
+export const getISODateString = (date) => {
+	// Ensure it's a Date object
+	const d = new Date(date)
+	// Get year, month (0-indexed), and day
+	const year = d.getFullYear()
+	const month = String(d.getMonth() + 1).padStart(2, '0') // Add 1 because months are 0-indexed
+	const day = String(d.getDate()).padStart(2, '0')
+	return `${year}-${month}-${day}`
 }

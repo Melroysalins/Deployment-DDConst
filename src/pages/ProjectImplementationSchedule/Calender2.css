@@ -1,3 +1,8 @@
+*{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
 /* Style for the scheduler container */
 .b-grid-header {
     /* background-color: #f5f5f5; */
@@ -25,10 +30,34 @@ header {
     background-color: rgba(212, 11, 11, 0.1); /* Light red for weekends */
 }
 
+
+
 /* Style for the timeline header */
 .b-sch-header-timeaxis-cell {
     /* background-color: #d16262; */
     font-size: 13px;
     font-weight: bold;
     /* color: #333; */
+}
+
+.b-sch-event-wrap {
+    background-color: #dddddd90;
+    padding: 0px;
+    margin: 0;
+    box-sizing: border-box;
+    display: flex;
+  align-items: flex-start;
+}
+.b-nested-events-container {
+    position: relative;
+    align-self: flex-start;
+    flex: 1 1;
+    width: 100%;
+    overflow: visible;
+    background-color: transparent;
+}
+.b-sch-event-wrap.b-nested-events-parent.b-sch-style-plain .b-nested-events-container, .b-sch-event-wrap.b-nested-events-parent.b-sch-style-colored .b-nested-events-container, .b-sch-event-wrap.b-nested-events-parent.b-sch-style-rounded .b-nested-events-container {
+
+    background-color: transparent !important;
+
 }
