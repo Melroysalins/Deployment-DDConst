@@ -38,16 +38,15 @@ export const resources = [
 export const columns = [{ text: 'Work / Team', field: 'name', width: 200 }]
 
 export const features = {
-	// autoAdjustTimeAxis: true,
 	dependencyEdit: true,
 	nestedEvents: true,
+	dependencies: true,
 	eventDrag: {
 		constrainDragToTimeline: false,
 		showExactDropPosition: true,
 		constrainDragToResource: true,
 	},
 	eventResize: true,
-
 	eventDragSelect: {
 		disabled: false,
 		allowSelect: true,
@@ -57,12 +56,16 @@ export const features = {
 		disabled: false,
 	},
 	taskEdit: {
+		editorConfig: {
+			title: 'Example ',
+		},
 		items: {
-			general: true,
-			predecessors: true,
-			successors: true,
+			generalTab: true,
+			notesTab: true,
+			predecessorsTab: true,
+			successorsTab: true,
 			newTab: {
-				title: 'SubTasks',
+				title: 'SubTask',
 				weight: 90,
 				items: {
 					subtasksContainer: {
@@ -75,74 +78,27 @@ export const features = {
 				},
 			},
 		},
-		// fields: {
-		// 	newGeneralField: {
-		// 		type: 'textfield',
-		// 		weight: 610,
-		// 		label: 'New field in General Tab',
-		// 		name: 'custom',
-		// 	},
-		// },
-		// items: {
-		// 	newTab: {
-		// 		title: 'SubTask',
-		// 		weight: 90,
-		// 		items: {
-		// 			subtasksContainer: {
-		// 				type: 'container',
-		// 				ref: 'subtasksContainer',
-		// 				layout: 'vbox',
-		// 				flex: 1,
-		// 				style: 'padding: 10px;',
-		// 			},
-		// 		},
-		// 	},
-		// },
 	},
-	eventEdit: true,
-	dependencies: {
-		clickWidth: 6,
-		radius: 30,
-	},
+	// eventMenu: {
+	// 	items: {
+	// 		addTask: {
+	// 			text: 'Add SubTask',
+	// 			icon: 'b-fa b-fa-plus',
+	// 			ref: 'addSubtaskItem',
+	// 		},
+	// 	},
+	// },
+
 	dependencyMenu: true,
-	// eventEdit: {                // configure the task editor
-	//     // show Predecessors/Successors tabs
-	//     items: {
-	//         general: true,          // default fields
-	//         predecessors: true,          // Predecessors dropdown
-	//         successors: true           // Successors dropdown
-	//     }
-	// },
-	// taskEdit: {
-	//     items: {
-	//         successorsTab: {
-	//             items: {
-	//                 grid: {
-	//                     columns: {
-	//                         // Columns are held in a store, thus it uses `data`
-	//                         // instead of `items`
-	//                         data: {
-	//                             name: {
-	//                                 // Change header text for the name column
-	//                                 text: 'Linked to'
-	//                             }
-	//                         }
-	//                     }
-	//                 }
-	//             }
-	//         }
-	//     }
-	// },
-	// Optionally add tooltip to show scheduling conflicts
 	eventTooltip: {
 		template: (data) => {
 			return `
-                        <div class="b-sch-event-title">${data.eventRecord.name}</div>
-                        <div class="b-sch-event-time">${DateHelper.format(
-													data.eventRecord.startDate,
-													'HH:mm'
-												)} - ${DateHelper.format(data.eventRecord.endDate, 'HH:mm')}</div>
-                    `
+                <div class="b-sch-event-title">${data.eventRecord.name}</div>
+                <div class="b-sch-event-time">${DateHelper.format(
+									data.eventRecord.startDate,
+									'HH:mm'
+								)} - ${DateHelper.format(data.eventRecord.endDate, 'HH:mm')}</div>
+            `
 		},
 	},
 }

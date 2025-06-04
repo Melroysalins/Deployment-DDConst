@@ -16,6 +16,7 @@ import {
 } from '@bryntum/schedulerpro'
 import { Button as MuiButton, Stack } from '@mui/material'
 import Iconify from 'components/Iconify'
+import moment, { duration } from 'moment-timezone'
 
 import './Calender2.css'
 import '@bryntum/schedulerpro/schedulerpro.stockholm.css'
@@ -43,7 +44,6 @@ import { filter, forEach } from 'lodash'
 import FilterPopup from 'components/FilterPopUp'
 import { getProjectDiagram } from 'supabase/project_diagram'
 import { da } from 'date-fns/locale'
-import { duration } from 'moment'
 
 const Calender2 = () => {
 	const [range, setRange] = React.useState(getTimelineRange())
@@ -371,6 +371,9 @@ const Calender2 = () => {
 					manuallyScheduled: true,
 					expanded: true,
 					leaf: false,
+					isTask: true,
+					team: connection?.team,
+					task_group_id: connection?.task_group_id,
 				}
 
 				if (connection.children && connection.children.length > 0) {
@@ -414,6 +417,8 @@ const Calender2 = () => {
 					leaf: false,
 					duration: 5,
 					durationunit: 'day',
+					team: installation?.team,
+					task_group_id: installation?.task_group_id,
 				}
 				if (installation.children && installation.children.length > 0) {
 					event.children = installation.children.map((child) => ({
@@ -458,6 +463,8 @@ const Calender2 = () => {
 					leaf: false,
 					duration: 5,
 					durationunit: 'day',
+					team: metal_fitting?.team,
+					task_group_id: metal_fitting?.task_group_id,
 				}
 				if (metal_fitting.children && metal_fitting.children.length > 0) {
 					event.children = metal_fitting.children.map((child) => ({
@@ -501,6 +508,8 @@ const Calender2 = () => {
 					leaf: false,
 					duration: 5,
 					durationunit: 'day',
+					team: completion_test?.team,
+					task_group_id: completion_test?.task_group_id,
 				}
 				if (completion_test.children && completion_test.children.length > 0) {
 					event.children = completion_test.children.map((child) => ({
@@ -542,6 +551,8 @@ const Calender2 = () => {
 					leaf: false,
 					duration: 5,
 					durationunit: 'day',
+					team: office_work?.team,
+					task_group_id: office_work?.task_group_id,
 				}
 				if (office_work.children && office_work.children.length > 0) {
 					event.children = office_work.children.map((child) => ({
@@ -585,6 +596,8 @@ const Calender2 = () => {
 					leaf: false,
 					duration: 5,
 					durationunit: 'day',
+					team: auxiliary_construction?.team,
+					task_group_id: auxiliary_construction?.task_group_id,
 				}
 				if (auxiliary_construction.children && auxiliary_construction.children.length > 0) {
 					event.children = auxiliary_construction.children.map((child) => ({
@@ -629,10 +642,17 @@ const Calender2 = () => {
 		})
 	}, [events, resources, dependencies])
 
-	console.log('groupedTasks2', taskType)
+	console.log('project', project)
 
 	useEffect(() => {
 		if (!schedulerRef.current) return
+
+		const ganttProps = {
+			// other config
+			stripeFeature: true,
+			dependenciesFeature: true,
+		}
+
 		const scheduler = new SchedulerPro({
 			appendTo: schedulerRef.current,
 			autoHeight: true,
@@ -645,6 +665,10 @@ const Calender2 = () => {
 			rowHeight: 100,
 			endDateIsInclusive: true,
 			eventLayout: 'stack',
+			dependenciesFeature: true,
+			dependencyEditFeature: true,
+			ganttProps,
+			features,
 
 			columns: [
 				{
@@ -822,13 +846,24 @@ const Calender2 = () => {
 					console.log('After event edit listener:', action)
 				},
 				beforeEventEditShow({ editor, eventRecord }) {
+					console.log('beforeEventEditShow', eventRecord)
+					console.log('--- Editor Debug Info ---')
+					console.log('Editor object:', editor) // The main editor instance
+					console.log('Editor initialConfig:', editor.initialConfig) // What config it received
+					console.log('Editor widgetMap:', editor.widgetMap) // Important: check if tabs are registered here
+					console.log('Editor tabPanel component:', editor.tabPanel) // THIS IS CRITICAL: check if this is null or a TabPanel instance
+					console.log('--- End Editor Debug Info ---')
 					const subtasksContainer = editor.widgetMap.subtasksContainer
+
 					subtasksContainer?.removeAll()
+
+					console.log(
+						'TabPanel items:',
+						editor.tabPanel?.items.map((tab) => tab.title || tab.type)
+					)
 
 					if (eventRecord.children?.length) {
 						const subtaskData = eventRecord.children.map((child) => child.data)
-
-						console.log('beforeEventEditShow', subtasksContainer, subtaskData)
 
 						subtasksContainer?.add({
 							type: 'grid',
@@ -852,37 +887,10 @@ const Calender2 = () => {
 						})
 					}
 				},
-				// beforeTaskEditShow({ editor, eventRecord }) {
-				// 	const subtasksContainer = editor.widgetMap.subtasksContainer
-				// 	subtasksContainer?.removeAll()
-
-				// 	console.log('beforeTaskEditShow', eventRecord)
-
-				// 	// if (eventRecord.children?.length) {
-				// 	// 	subtasksContainer.add({
-				// 	// 		type: 'grid',
-				// 	// 		store: {
-				// 	// 			data: eventRecord.children,
-				// 	// 		},
-				// 	// 		columns: [
-				// 	// 			{ text: 'Name', field: 'name', flex: 1 },
-				// 	// 			{ text: 'Start Date', field: 'startDate', type: 'date', format: 'YYYY-MM-DD HH:mm' },
-				// 	// 			{ text: 'End Date', field: 'endDate', type: 'date', format: 'YYYY-MM-DD HH:mm' },
-				// 	// 			{ text: 'Duration', field: 'duration', type: 'number' },
-				// 	// 		],
-				// 	// 	})
-				// 	// } else {
-				// 	// 	subtasksContainer.add({
-				// 	// 		type: 'label',
-				// 	// 		html: 'No subtasks',
-				// 	// 	})
-				// 	// }
-				// },
 			},
-			// This is where 'features' are applied to the scheduler instance.
-			// Make sure this is within your scheduler instantiation.
-			features,
 		})
+
+		console.log('myscheduler', features)
 
 		scheduler.dependencyStore.on('add', ({ records }) => {
 			console.log('Dependency added:', records)

@@ -822,7 +822,7 @@ const Task = ({
 		const subtasks = []
 		let currentStart = moment(selectedTaskObj.start_date)
 
-		const defaultSubTaskNames = ['Line', 'Trim', 'Assemble', 'Galvanize', 'Install']
+		const defaultSubTaskNames = ['Line', 'Assemble', 'Trim', 'Galvanize', 'Install']
 
 		for (let i = 0; i < 5; i += 1) {
 			const start_date = currentStart.format('YYYY-MM-DD')
@@ -840,6 +840,8 @@ const Task = ({
 			currentStart = currentStart.clone().add(1, 'days')
 
 			console.log('subTask', subtasks)
+
+			console.log('currentStart', subtasks)
 		}
 		createNewTasks(subtasks).then(() => {
 			console.log('Subtask created successfully')
