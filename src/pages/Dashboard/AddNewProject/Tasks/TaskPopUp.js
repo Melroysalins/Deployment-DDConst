@@ -39,6 +39,7 @@ const TaskPopUp = ({
 					borderRadius: '20px',
 					color: '#4f46e5',
 					p: 4,
+					overflowY: 'auto',
 				},
 				onClick: (e) => e.stopPropagation(),
 			}}
@@ -75,7 +76,7 @@ const TaskPopUp = ({
 						rowSelection={rowSelection}
 						suppressRowClickSelection={suppressRowClickSelection}
 						suppressColumnVirtualisation={suppressColumnVirtualisation}
-						domLayout={domLayout}
+						// domLayout={domLayout}
 						onCellEditRequest={onCellEditRequest}
 						getRowId={getRowId}
 						onRowSelected={onRowSelected}

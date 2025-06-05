@@ -303,6 +303,8 @@ const Task = ({
 	const [isSubTaskOpen, SetIsSubTaskOpen] = useState(false)
 	const [openSubTasks, SetOpenSubTaks] = useState(false)
 
+	const myQueryClient = useQueryClient()
+
 	const { data: teams } = useQuery(['Teams teams'], () => listAllTeams())
 	// first we need to find the task_group_id
 	const { refetch, data: list } = useQuery([`task-${task_group}`], () => listFilteredTasks(task_group_id, id), {
@@ -364,10 +366,12 @@ const Task = ({
 	)
 
 	const fetchSubTasks = useCallback(
-		(id) => {
-			const filteredSubTaskData = fullResponse?.filter((item) => item?.parent_task === id)
+		(id, data) => {
+			const filteredSubTaskData = data?.filter((item) => item?.parent_task === id)
 			console.log('Melroy', id, filteredSubTaskData)
 			SetSubTasksData(filteredSubTaskData)
+			SetIsSubTaskOpen(true)
+			console.log('fulldata', data)
 		},
 		[taskID]
 	)
@@ -632,8 +636,7 @@ const Task = ({
 				}}
 				onClick={() => {
 					SetTaskID(data?.data?.id)
-					fetchSubTasks(data?.data?.id)
-					SetIsSubTaskOpen(true)
+					fetchSubTasks(data?.data?.id, fullResponse)
 				}}
 			>
 				View / Edit
@@ -845,6 +848,11 @@ const Task = ({
 		}
 		createNewTasks(subtasks).then(() => {
 			console.log('Subtask created successfully')
+			setToast({
+				severity: 'success',
+				message: 'Subtask has been created successfully',
+			})
+			myQueryClient.invalidateQueries({ queryKey: [`raw-task-${task_group}`] })
 		})
 	}
 
@@ -941,7 +949,7 @@ const Task = ({
 						SetIsSubTaskOpen(false)
 						SetTaskID('')
 					}}
-					ref={gridRef}
+					// ref={gridRef}
 					rowData={subTasksData}
 					columnDefs={subTaskColumnDefs}
 					defaultColDef={defaultColDef}

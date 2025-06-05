@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { useQuery } from 'react-query'
+import { useQuery, useQueryClient } from 'react-query'
 import {
 	Scheduler,
 	SchedulerPro,
@@ -13,9 +13,10 @@ import {
 	SuccessorsTab,
 	DependencyEdit,
 	DependencyMenu,
-} from '@bryntum/schedulerpro/schedulerpro.module'
+} from '@bryntum/schedulerpro'
 import { Button as MuiButton, Stack } from '@mui/material'
 import Iconify from 'components/Iconify'
+import moment, { duration } from 'moment-timezone'
 
 import './Calender2.css'
 import '@bryntum/schedulerpro/schedulerpro.stockholm.css'
@@ -32,15 +33,30 @@ import {
 	getTeamDetails,
 } from 'supabase'
 
-import { customMonthViewPreset, features, getTimelineRange, dependencyTypeMap } from './SchedulerConfig'
+import {
+	customMonthViewPreset,
+	features,
+	getTimelineRange,
+	dependencyTypeMap,
+	getISODateString,
+} from './SchedulerConfig'
 import { filter, forEach } from 'lodash'
 import FilterPopup from 'components/FilterPopUp'
 import { getProjectDiagram } from 'supabase/project_diagram'
 import { da } from 'date-fns/locale'
 
-const Calender2 = () => {
+const Calender2 = ({
+	isFilteredApplied,
+	taskGroup,
+	SetTaskGroup,
+	SetAllTaskGroup,
+	SetAllRescources,
+	resources,
+	SetResources,
+	taskType,
+	SetTaskType,
+}) => {
 	const [range, setRange] = React.useState(getTimelineRange())
-	const [resources, SetResources] = useState([])
 	const [allWorkTypes, SetAllWorkTypes] = useState([
 		'Connection',
 		'Installation',
@@ -49,24 +65,20 @@ const Calender2 = () => {
 		'Metal Fittings Installation',
 		'Auxiliary Construction',
 	])
-	const [isFilterOpen, SetIsFilterOpen] = useState(false)
-	const [isFilteredApplied, SetIsFilterApplied] = useState(false)
-	const [taskGroup, SetTaskGroup] = useState([])
-	const [allTaskGroup, SetAllTaskGroup] = useState([])
-	const [allResources, SetAllRescources] = useState([])
+	const [istTaskUpdated, SetIsTaskUpdated] = useState(false)
+	const [isResourceBuildingLoading, setIsResourceBuildingLoading] = useState(true)
 	const [teamsDetails, SetTeamDetails] = useState(new Set())
-	const [taskType, SetTaskType] = useState([])
-	const [filters, SetFilters] = useState({
-		tasktype: '',
-		lines: '',
-		demolition: '',
-	})
+
 	const schedulerRef = useRef(null)
 	const { id } = useParams()
 	console.log('myID', id)
 
+	const myQueryClient = useQueryClient()
+
 	const { data, isLoading, error } = useQuery(['projectData', id], async () => {
 		const [tasks, dependencies] = await Promise.all([listAllTasksByProject2(id), getAllTaskDependencyByProject(id)])
+
+		console.log('data.tasks reference:', tasks)
 
 		return { tasks, dependencies }
 	})
@@ -84,85 +96,68 @@ const Calender2 = () => {
 
 	const uniqueWorkTypes = [...new Set(selectedWorkTypesData)]
 
-	// Filters Code
-
-	const handleChange = (field, value) => {
-		SetTaskGroup(allTaskGroup)
-		if (field === 'tasktype') {
-			SetFilters((prev) => ({ ...prev, [field]: value }))
-		} else {
-			SetFilters((prev) => ({ ...prev, [field]: value }))
-		}
-	}
-
-	const handleonClearFilter = () => {
-		SetFilters({
-			diagramName: '',
-			lines: '',
-			demolition: '',
-			diagramId: '',
-		})
-
-		SetResources(allResources)
-		SetTaskGroup(allTaskGroup)
-		SetIsFilterOpen(false)
-
-		console.log('myresoucers', resources, allResources)
-	}
-
-	const handleApplyFilters = (filters) => {
-		SetIsFilterApplied(true)
-		console.log('value', filters)
-
-		const { tasktype, lines, demolition } = filters
-
-		if (tasktype) {
-			const filteredResources = allResources?.filter((resource) => resource?.id === tasktype)
-
-			SetResources(filteredResources)
-		} else {
-			SetResources(allResources)
-		}
-
-		if (lines?.length || demolition?.length) {
-			console.log('mecalled')
-			const filterTasks = (tasks) =>
-				tasks?.filter((item) => {
-					const matchLines = item?.title?.toLowerCase()?.includes(lines.toLowerCase())
-					const matchDemolition = demolition !== ' ' && String(item?.isDemolition) === demolition
-
-					if (lines?.length && demolition?.length) {
-						return matchLines && matchDemolition
-					}
-
-					if (lines) {
-						return matchLines
-					}
-
-					if (demolition !== undefined) {
-						return matchDemolition
-					}
-					return true
-				})
-
-			const modifiedData = {
-				metal_fittings: filterTasks(allTaskGroup?.metal_fittings),
-				connections: filterTasks(allTaskGroup?.connections),
-				installations: filterTasks(allTaskGroup?.installations),
-				completion_test: filterTasks(allTaskGroup?.completion_test),
-				office_work: filterTasks(allTaskGroup?.office_work),
-				auxiliary_construction: filterTasks(allTaskGroup?.auxiliary_construction),
-			}
-
-			SetTaskGroup(modifiedData)
-
-			console.log('Melroy', modifiedData)
-		}
-	}
-
 	// Group tasks as before
-	const groupedTasks = React.useMemo(() => {
-		if (!data?.tasks) return null
+	// const groupedTasks = React.useMemo(() => {
+	// 	if (!data?.tasks) return null
+
+	// 	const task_groups = {
+	// 		1: 'metal_fittings',
+	// 		2: 'installations',
+	// 		3: 'connections',
+	// 		4: 'completion_test',
+	// 		5: 'office_work',
+	// 		6: 'auxiliary_construction',
+	// 	}
+	// 	const grouped = {
+	// 		metal_fittings: [],
+	// 		installations: [],
+	// 		connections: [],
+	// 		completion_test: [],
+	// 		office_work: [],
+	// 		auxiliary_construction: [],
+	// 	}
+
+	// 	// Group nested tasks on the basis of parentId
+	// 	const nestedTasks = data.tasks.data.filter((task) => task.parent_id !== null)
+	// 	const nestedTaskGroupedOnParentId = {}
+
+	// 	nestedTasks.forEach((task) => {
+	// 		const parentId = task.parent_task
+	// 		if (parentId) {
+	// 			if (!nestedTaskGroupedOnParentId[parentId]) {
+	// 				nestedTaskGroupedOnParentId[parentId] = []
+	// 			}
+	// 			nestedTaskGroupedOnParentId[parentId].push(task)
+	// 		}
+	// 	})
+
+	// 	data.tasks.data?.forEach((task) => {
+	// 		const groupId = task.task_group_id
+	// 		if (!task.parent_task && groupId !== null && task_groups[groupId]) {
+	// 			grouped[task_groups[groupId]]?.push({
+	// 				...task,
+	// 				children: nestedTaskGroupedOnParentId[task.id] || [],
+	// 			})
+	// 		}
+	// 	})
+	// 	console.log('yyy', data)
+	// 	SetTaskGroup(grouped)
+	// 	SetAllTaskGroup(grouped)
+	// 	return grouped
+	// }, [data?.tasks])
+
+	const memoizedGroupedTasks = React.useMemo(() => {
+		if (!data?.tasks) {
+			return {
+				metal_fittings: [],
+				installations: [],
+				connections: [],
+				completion_test: [],
+				office_work: [],
+				auxiliary_construction: [],
+			}
+		}
+
 		const task_groups = {
 			1: 'metal_fittings',
 			2: 'installations',
@@ -203,10 +198,16 @@ const Calender2 = () => {
 				})
 			}
 		})
-		SetTaskGroup(grouped)
-		SetAllTaskGroup(grouped)
+		console.log('yyy', data)
 		return grouped
 	}, [data?.tasks])
+
+	useEffect(() => {
+		if (memoizedGroupedTasks) {
+			SetTaskGroup(memoizedGroupedTasks)
+			SetAllTaskGroup(memoizedGroupedTasks)
+		}
+	}, [memoizedGroupedTasks, SetTaskGroup, SetAllTaskGroup])
 
 	// Use dependencies from the query result
 	const dependencyTypeMap = {
@@ -228,10 +229,12 @@ const Calender2 = () => {
 		}))
 	}, [data?.dependencies])
 
+	console.log('mytask', taskGroup)
+
 	useEffect(() => {
 		async function buildExpandedResources() {
 			const expandedResources = []
-
+			setIsResourceBuildingLoading(true)
 			const promises = uniqueWorkTypes.map(async (workType) => {
 				const normalized = workType
 					.toLowerCase()
@@ -250,7 +253,7 @@ const Calender2 = () => {
 
 				const relatedTasks = taskGroup[resourceId]
 
-				console.log('unique', normalized, taskGroup[resourceId])
+				console.log('unique', relatedTasks, taskGroup[resourceId])
 
 				if (Array.isArray(relatedTasks) && relatedTasks.length > 0) {
 					const uniqueTeams = new Set()
@@ -287,9 +290,10 @@ const Calender2 = () => {
 						id: resourceId,
 						name: workType,
 						width: 100,
-						workTeam: null,
+						workTeam: 'No Team',
 					})
 				}
+				console.log('gg', expandedResources)
 			})
 
 			await Promise.all(promises)
@@ -323,13 +327,11 @@ const Calender2 = () => {
 
 			SetTaskType(results)
 		})()
-	}, [selectedWorkTypesData, dependencies])
+		SetIsTaskUpdated(true)
+	}, [selectedWorkTypesData, taskGroup])
 
 	const events = React.useMemo(() => {
 		if (!taskGroup) return []
-
-		// const { connections, installations, metal_fittings, completion_test } = taskGroup
-
 		const {
 			connections = [],
 			installations = [],
@@ -339,69 +341,97 @@ const Calender2 = () => {
 			auxiliary_construction = [],
 		} = taskGroup
 
-		console.log('mytask', taskGroup)
+		// console.log('mytask', taskGroup)
 
 		return [
 			...connections?.map((connection, index) => {
 				const teamNumber = connection.team
 				const event = {
 					id: connection.id || `connection-${index + 1}`,
-					resourceId: teamNumber ? `connections-${teamNumber}` : `connections`,
-					startDate: connection.start_date ? new Date(connection.start_date).toISOString() : new Date().toISOString(),
+					resourceId: teamNumber ? `connections-${teamNumber}` : ``,
+					startDate: connection.start_date ? getISODateString(connection.start_date) : getISODateString(new Date()), // Use current date if no start_date
 					endDate: connection.end_date
-						? new Date(connection.end_date).toISOString()
+						? getISODateString(connection.end_date)
 						: (() => {
 								const today = new Date()
 								today.setDate(today.getDate() + 3)
-								return today.toISOString()
+								return getISODateString(today) // Use calculated end date
 						  })(),
+					allDay: true,
+					duration: 5,
+					durationunit: 'day',
 					name: connection.title,
 					manuallyScheduled: true,
 					expanded: true,
 					leaf: false,
+					isTask: true,
+					team: connection?.team,
+					task_group_id: connection?.task_group_id,
 				}
+
 				if (connection.children && connection.children.length > 0) {
 					event.children = connection.children.map((child) => ({
 						id: child.id || `child-${child.id}`,
 						resourceId: teamNumber ? `connections-${teamNumber}` : 'connections',
-						startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
-						endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
+						endDate: child.end_date
+							? getISODateString(child.end_date)
+							: (() => {
+									const today = new Date()
+
+									return getISODateString(today) // Default end date is today's date
+							  })(),
+						allDay: true,
 						name: child.title,
 						leaf: true,
 						eventColor: 'red',
 					}))
 				}
+				console.log('connectionEvent', event)
 				return event
 			}),
 			...installations?.map((installation, index) => {
 				const teamNumber = installation.team
 				const event = {
 					id: installation.id,
-					resourceId: teamNumber ? `installations-${teamNumber}` : 'installations',
-					startDate: installation.start_date
-						? new Date(installation.start_date).toISOString()
-						: new Date().toISOString(),
+					resourceId: teamNumber ? `installations-${teamNumber}` : '',
+					startDate: installation.start_date ? getISODateString(installation.start_date) : getISODateString(new Date()),
 					endDate: installation.end_date
-						? new Date(installation.end_date).toISOString()
+						? getISODateString(installation.end_date)
 						: (() => {
 								const today = new Date()
 								today.setDate(today.getDate() + 3)
-								return today.toISOString()
+								return getISODateString(today) // Use calculated end date
 						  })(),
+					allDay: true,
 					name: installation.title,
 					manuallyScheduled: true,
+					expanded: true,
+					leaf: false,
+					duration: 5,
+					durationunit: 'day',
+					team: installation?.team,
+					task_group_id: installation?.task_group_id,
 				}
 				if (installation.children && installation.children.length > 0) {
 					event.children = installation.children.map((child) => ({
 						id: child.id || `child-${child.id}`,
 						resourceId: teamNumber ? `installations-${teamNumber}` : 'installations',
-						startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
-						endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
+						endDate: child.end_date
+							? getISODateString(child.end_date)
+							: (() => {
+									const today = new Date()
+
+									return getISODateString(today) // Default end date is today's date
+							  })(),
+						allDay: true,
 						name: child.title,
 						leaf: true,
 						eventColor: 'blue',
 					}))
 				}
+				console.log('installationEvent', event)
 				return event
 			}),
 			...metal_fittings?.map((metal_fitting, index) => {
@@ -410,24 +440,38 @@ const Calender2 = () => {
 					id: metal_fitting.id || `metal_fitting-${index + 1}`,
 					resourceId: teamNumber ? `metal_fittings-${teamNumber}` : 'metal_fittings',
 					startDate: metal_fitting.start_date
-						? new Date(metal_fitting.start_date).toISOString()
-						: new Date().toISOString(),
+						? getISODateString(metal_fitting.start_date)
+						: getISODateString(new Date()),
 					endDate: metal_fitting.end_date
-						? new Date(metal_fitting.end_date).toISOString()
+						? getISODateString(metal_fitting.end_date)
 						: (() => {
 								const today = new Date()
 								today.setDate(today.getDate() + 3)
-								return today.toISOString()
+								return getISODateString(today) // Use calculated end date
 						  })(),
+					allDay: true,
 					name: metal_fitting.title,
 					manuallyScheduled: true,
+					expanded: true,
+					leaf: false,
+					duration: 5,
+					durationunit: 'day',
+					team: metal_fitting?.team,
+					task_group_id: metal_fitting?.task_group_id,
 				}
 				if (metal_fitting.children && metal_fitting.children.length > 0) {
 					event.children = metal_fitting.children.map((child) => ({
 						id: child.id || `child-${child.id}`,
 						resourceId: teamNumber ? `metal_fittings-${teamNumber}` : 'metal_fittings',
-						startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
-						endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
+						endDate: child.end_date
+							? getISODateString(child.end_date)
+							: (() => {
+									const today = new Date()
+
+									return getISODateString(today) // Default end date is today's date
+							  })(),
+						allDay: true,
 						name: child.title,
 						leaf: true,
 						eventColor: 'green',
@@ -441,24 +485,38 @@ const Calender2 = () => {
 					id: completion_test.id || `completion_test-${index + 1}`,
 					resourceId: teamNumber ? `completion_test-${teamNumber}` : 'completion_test',
 					startDate: completion_test.start_date
-						? new Date(completion_test.start_date).toISOString()
-						: new Date().toISOString(),
+						? getISODateString(completion_test.start_date)
+						: getISODateString(new Date()),
 					endDate: completion_test.end_date
-						? new Date(completion_test.end_date).toISOString()
+						? getISODateString(completion_test.end_date)
 						: (() => {
 								const today = new Date()
 								today.setDate(today.getDate() + 3)
-								return today.toISOString()
+								return getISODateString(today) // Use calculated end date
 						  })(),
+					allDay: true,
 					name: completion_test.title || `Completion Test + ${index + 1}`,
 					manuallyScheduled: true,
+					expanded: true,
+					leaf: false,
+					duration: 5,
+					durationunit: 'day',
+					team: completion_test?.team,
+					task_group_id: completion_test?.task_group_id,
 				}
 				if (completion_test.children && completion_test.children.length > 0) {
 					event.children = completion_test.children.map((child) => ({
 						id: child.id || `child-${child.id}`,
 						resourceId: teamNumber ? `completion_test-${teamNumber}` : 'completion_test',
-						startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
-						endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
+						endDate: child.end_date
+							? getISODateString(child.end_date)
+							: (() => {
+									const today = new Date()
+
+									return getISODateString(today) // Default end date is today's date
+							  })(),
+						allDay: true,
 						name: child.title,
 						leaf: true,
 						eventColor: 'green',
@@ -471,23 +529,37 @@ const Calender2 = () => {
 				const event = {
 					id: office_work.id || `office_work-${index + 1}`,
 					resourceId: teamNumber ? `office_work-${teamNumber}` : 'office_work',
-					startDate: office_work.start_date ? new Date(office_work.start_date).toISOString() : new Date().toISOString(),
+					startDate: office_work.start_date ? getISODateString(office_work.start_date) : getISODateString(new Date()),
 					endDate: office_work.end_date
-						? new Date(office_work.end_date).toISOString()
+						? getISODateString(office_work.end_date)
 						: (() => {
 								const today = new Date()
 								today.setDate(today.getDate() + 3)
-								return today.toISOString()
+								return getISODateString(today) // Use calculated end date
 						  })(),
+					allDay: true,
 					name: office_work.title || `Office Work + ${index + 1}`,
 					manuallyScheduled: true,
+					expanded: true,
+					leaf: false,
+					duration: 5,
+					durationunit: 'day',
+					team: office_work?.team,
+					task_group_id: office_work?.task_group_id,
 				}
 				if (office_work.children && office_work.children.length > 0) {
 					event.children = office_work.children.map((child) => ({
 						id: child.id || `child-${child.id}`,
 						resourceId: teamNumber ? `office_work-${teamNumber}` : 'office_work',
-						startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
-						endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
+						endDate: child.end_date
+							? getISODateString(child.end_date)
+							: (() => {
+									const today = new Date()
+
+									return getISODateString(today) // Default end date is today's date
+							  })(),
+						allDay: true,
 						name: child.title,
 						leaf: true,
 						eventColor: 'green',
@@ -501,24 +573,38 @@ const Calender2 = () => {
 					id: auxiliary_construction.id || `auxiliary_construction-${index + 1}`,
 					resourceId: teamNumber ? `auxiliary_construction-${teamNumber}` : 'auxiliary_construction',
 					startDate: auxiliary_construction.start_date
-						? new Date(auxiliary_construction.start_date).toISOString()
-						: new Date().toISOString(),
+						? getISODateString(auxiliary_construction.start_date)
+						: getISODateString(new Date()),
 					endDate: auxiliary_construction.end_date
-						? new Date(auxiliary_construction.end_date).toISOString()
+						? getISODateString(auxiliary_construction.end_date)
 						: (() => {
 								const today = new Date()
 								today.setDate(today.getDate() + 3)
-								return today.toISOString()
+								return getISODateString(today) // Use calculated end date
 						  })(),
+					allDay: true,
 					name: auxiliary_construction.title || `Auxiliary Construction + ${index + 1}`,
 					manuallyScheduled: true,
+					expanded: true,
+					leaf: false,
+					duration: 5,
+					durationunit: 'day',
+					team: auxiliary_construction?.team,
+					task_group_id: auxiliary_construction?.task_group_id,
 				}
 				if (auxiliary_construction.children && auxiliary_construction.children.length > 0) {
 					event.children = auxiliary_construction.children.map((child) => ({
 						id: child.id || `child-${child.id}`,
 						resourceId: teamNumber ? `auxiliary_construction-${teamNumber}` : 'auxiliary_construction',
-						startDate: child.start_date ? new Date(`${child.start_date}T00:00:00`) : new Date(),
-						endDate: child.end_date ? new Date(`${child.end_date}T00:00:00`) : new Date(),
+						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
+						endDate: child.end_date
+							? getISODateString(child.end_date)
+							: (() => {
+									const today = new Date()
+
+									return getISODateString(today) // Default end date is today's date
+							  })(),
+						allDay: true,
 						name: child.title,
 						leaf: true,
 						eventColor: 'green',
@@ -529,7 +615,7 @@ const Calender2 = () => {
 		]
 	}, [taskGroup])
 
-	console.log('events', events)
+	console.log('events', taskGroup)
 
 	const project = React.useMemo(() => {
 		if (!events?.length || !resources?.length)
@@ -549,236 +635,400 @@ const Calender2 = () => {
 		})
 	}, [events, resources, dependencies])
 
-	console.log('groupedTasks2', taskType)
+	console.log('project', project)
 
 	useEffect(() => {
 		if (!schedulerRef.current) return
+
+		const ganttProps = {
+			// other config
+			stripeFeature: true,
+			dependenciesFeature: true,
+		}
+
 		const scheduler = new SchedulerPro({
 			appendTo: schedulerRef.current,
 			autoHeight: true,
-	
-			// Basic configuration
-			startDate: new Date(2022, 2, 20),
-			endDate: new Date(2022, 2, 27),
-			viewPreset: 'dayAndWeek',
-			rowHeight: 90,
-			barMargin: 5,
-	
+			width: '100%',
+			infiniteScroll: true,
+			autoAdjustTimeAxis: true,
+			viewPreset: customMonthViewPreset,
+			multiEventSelect: true,
+			tickSize: 100,
+			rowHeight: 100,
+			endDateIsInclusive: true,
+			eventLayout: 'stack',
+			dependenciesFeature: true,
+			dependencyEditFeature: true,
+			ganttProps,
 			features: {
-				nestedEvents: true,
-				eventDrag: true,
-				eventResize: true,
-				taskEdit : {
-					items : {
-						generalTab : {
-							items : {
-								customDivider : {
-									html   : '',
-									weight : 610,
-									flex   : '1 0 100%'
-								},
-							}
-						},
-						predecessorsTab : true,
-						successorsTab   : true,
-						advancedTab     : true,
-					}
+				...features,
+				eventMenu: {
+					processItems({ items, eventRecord }) {
+						items.addCustomSubtask = {
+							text: 'Add SubTask',
+							icon: 'b-fa b-fa-plus',
+
+							async onItem({ eventRecord }) {
+								// 1. Find top-level parent
+								let topParent = eventRecord
+								while (topParent.parent) {
+									topParent = topParent.parent
+								}
+
+								const subtasks = []
+								const defaultSubTaskNames = ['Line', 'Assemble', 'Trim', 'Galvanize', 'Install']
+								const parentId = eventRecord?.data?.id
+
+								const existingSubtaskNames = eventRecord?.data?.children?.map((item) => item?.name) || []
+
+								// Find the *first* missing subtask in the default order
+								const missingSubTask = defaultSubTaskNames.find((taskName) => !existingSubtaskNames.includes(taskName))
+
+								if (missingSubTask !== undefined) {
+									let newSubtaskStartDate
+									let newSubtaskEndDate = null
+
+									// Determine the ideal index of the missing subtask in the default order
+									const missingTaskIndex = defaultSubTaskNames.indexOf(missingSubTask)
+
+									// Case 1: The missing task is the very first one ('Line'), or no children exist yet
+									if (missingTaskIndex === 0 || !eventRecord?.data?.children?.length) {
+										newSubtaskStartDate = moment(eventRecord.data.startDate)
+									} else {
+										// Case 2: The missing task is in the middle or at the end
+										// Find the immediately preceding task in the default list
+										const previousDefaultTaskName = defaultSubTaskNames[missingTaskIndex - 1]
+
+										// Try to find this preceding task among the *currently existing* children
+										const precedingExistingChild = eventRecord?.data?.children?.find(
+											(child) => child?.name === previousDefaultTaskName
+										)
+
+										if (precedingExistingChild) {
+											// If the preceding task exists, start the new subtask from its end date
+											newSubtaskStartDate = moment(precedingExistingChild.endDate)
+										} else {
+											// Fallback: If the ideal preceding task is also missing,
+											// we'll start from the parent's start date, or the latest existing child's end date
+											// This is a simpler fallback. For precise placement, you might need to
+											// recursively find the closest *existing* predecessor.
+											// For now, let's keep it simple as per your request:
+											// if the direct predecessor is missing, we use the parent's start date
+											// or if there are other children, the latest existing child's end date.
+											// However, to ensure correct sequential placement, we should try to find the last *known* preceding task.
+
+											// Let's refine this fallback to find the closest *existing* predecessor
+											let closestExistingPredecessor = null
+											for (let i = missingTaskIndex - 1; i >= 0; i -= 1) {
+												const currentDefaultTaskName = defaultSubTaskNames[i]
+												closestExistingPredecessor = eventRecord?.data?.children?.find(
+													(child) => child?.name === currentDefaultTaskName
+												)
+												if (closestExistingPredecessor) {
+													break // Found the closest existing predecessor
+												}
+											}
+
+											if (closestExistingPredecessor) {
+												newSubtaskStartDate = moment(closestExistingPredecessor.endDate)
+											} else {
+												// If no preceding task exists at all, use the parent's start date
+												newSubtaskStartDate = moment(eventRecord.data.startDate)
+											}
+										}
+									}
+
+									// New subtask will always be 1 day duration
+									newSubtaskEndDate = newSubtaskStartDate.clone().add(1, 'days')
+
+									subtasks.push({
+										title: missingSubTask,
+										team: eventRecord?.data?.team,
+										start_date: newSubtaskStartDate.format('YYYY-MM-DD'),
+										end_date: newSubtaskEndDate.format('YYYY-MM-DD'),
+										notes: '',
+										task_group_id: eventRecord?.data?.task_group_id,
+										project: id,
+										parent_task: parentId,
+									})
+
+									try {
+										const res = await createNewTasks(subtasks) // Create the single new subtask
+										const backendNewSubtask = res?.data?.[0]
+
+										const bryntumReadySubtask = {
+											id: backendNewSubtask.id,
+											name: backendNewSubtask.title,
+											startDate: backendNewSubtask?.start_date,
+											endDate: backendNewSubtask?.end_date,
+											team: backendNewSubtask.team,
+											notes: backendNewSubtask.notes,
+											task_group_id: backendNewSubtask.task_group_id,
+											project: backendNewSubtask.project,
+											parentId: backendNewSubtask.parent_task,
+											resourceId: eventRecord?.data?.resourceId,
+										}
+
+										// Append to parent. Bryntum will handle placement based on dates.
+										topParent.appendChild(bryntumReadySubtask)
+										await scheduler.project.commitAsync()
+										myQueryClient.invalidateQueries(['projectData', id])
+									} catch (error) {
+										console.log('Error !! Failed to add a subtask', error)
+										// You might want to show a more user-friendly error here
+									}
+								}
+							},
+						}
+					},
 				},
-				eventDragSelect: {
-					disabled: false,
-					showTooltip: true
-				},
-				eventCopyPaste: {
-					disabled: false
-				},
-				dependencies: {
-					allowDependencyCreation: true
-				},
-				mergeCells: true
 			},
-	
+
 			columns: [
-				{ field: 'name', text: 'Name', width: 150 }
-			],
-	
-			project: {
-				eventStore: {
-					// Add sorters configuration
-					sorters: [
-						{ field: 'duration', ascending: true }
+				{
+					text: 'WORK',
+					field: 'work',
+					width: 160,
+					mergeCells: true,
+					renderer: ({ record }) => record.name || '',
+				},
+				{
+					text: 'WORK TEAM',
+					field: 'workTeam',
+					width: 100,
+					mergeCells: true,
+					renderer: ({ record }) => record.workTeam || '',
+				},
+				{
+					text: 'Y/M',
+					children: [
+						{
+							text: 'D',
+							width: 100,
+							renderer: ({ record }) => {
+								return {
+									children: [
+										{
+											tag: 'div',
+											text: record.date || '',
+											style: 'margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #e0e0e0;',
+										},
+										{
+											tag: 'div',
+											text: record.section || '',
+											style: 'color: #666;',
+										},
+									],
+								}
+							},
+						},
 					],
 				},
-				resourcesData: [
-					{ id: 1, name: 'Project A' },
-					{ id: 2, name: 'Project B' }
-				],
-	
-				eventsData: [
-					{
-						id: 1,
-						name: 'Parent Task 1',
-						startDate: '2022-03-21',
-						duration: 2,
-						resourceId: 1,
-						eventColor: 'blue',
-						children: [
-							{ 
-								id: 11, 
-								name: 'Subtask 1.1', 
-								startDate: '2022-03-21', 
-								duration: 2,
-								resourceId: 1,
-								eventColor: 'indigo' 
-							},
-							{ 
-								id: 12, 
-								name: 'Subtask 1.2', 
-								startDate: '2022-03-22', 
-								duration: 1,
-								resourceId: 1,
-								eventColor: 'purple' 
-							}
-						]
-					},
-					{
-						id: 2,
-						name: 'Parent Task 2',
-						startDate: '2022-03-22',
-						duration: 2,
-						resourceId: 2,
-						eventColor: 'orange',
-						children: [
-							{ 
-								id: 21, 
-								name: 'Subtask 2.1', 
-								startDate: '2022-03-22', 
-								duration: 2,
-								resourceId: 2,
-								eventColor: 'yellow' 
-							},
-							{ 
-								id: 22, 
-								name: 'Subtask 2.2', 
-								startDate: '2022-03-23', 
-								duration: 1,
-								resourceId: 2,
-								eventColor: 'red' 
-							}
-						]
-					}
-				]
-			},
-	
-			// onEventCreated(eventRecord) {
-			//     eventRecord.convertToParent();
-			// },
-	
-			// Add event listeners for copy-paste operations
+			],
+			project,
+
 			listeners: {
-				beforeCopy({eventRecords}) {
-					console.log(eventRecords)
+				beforeDependencySave: (data) => {
+					console.log('before Dependency save:', data)
 				},
-	
-				// beforePaste({ eventRecords, source }) {
-				//     eventRecords.forEach(event => {
-				//         if (event.children?.length) {
-				//             const timeDiff = event.startDate.getTime() - event.copyOf.startDate.getTime();
-							
-				//             // Create proper event records for children using the store's model
-				//             const newChildren = event.copyOf.children.map(child => {
-				//                 const newStartDate = new Date(child.startDate.getTime() + timeDiff);
-				//                 return source.eventStore.createRecord({
-				//                     name: child.name,
-				//                     startDate: newStartDate,
-				//                     duration: child.duration,
-				//                     durationUnit: child.durationUnit,
-				//                     resourceId: event.resourceId,
-				//                     eventColor: child.eventColor,
-				//                     parentId: event.id
-				//                 });
-				//             });
-	
-				//             event.children = newChildren;
-				//         }
-				//     });
-				//     return true;
-				// },
-	
-				paste({ eventRecords, source }) {
-					// Sort events by start date to ensure correct dependency sequence
-					const sortedEvents = [...eventRecords].sort((a, b) => a.startDate - b.startDate);
-					
-					// Create dependencies between consecutive events
-					sortedEvents.forEach((event, index) => {
-						if (index < sortedEvents.length - 1) {
-							const nextEvent = sortedEvents[index + 1];
-							source.dependencyStore.add({
-								fromEvent: event.id,
-								toEvent: nextEvent.id,
-								type: 2  // EndToStart
-							});
+				beforeDependencyCreateFinalize: ({ source, target }) => {
+					console.log('before Dependency create finalize:')
+					console.log('source', source)
+					console.log('target', target)
+				},
+				afterDependencySave: (data) => {
+					console.log('Dependency saved:', data)
+				},
+				beforeDependencyDelete: (data) => {
+					console.log('Before dependency delete:', data)
+				},
+
+				eventDragStart: (data) => {
+					console.log('Event drag started:', data)
+				},
+				eventDrop: ({ eventRecords }) => {
+					console.log('eventDrop', eventRecords)
+
+					console.log('Event drag ended:', eventRecords)
+					// Corrected from forEach to standard array forEach
+					eventRecords.forEach((event) => {
+						// Get Bryntum's Date objects
+						const bryntumStartDate = event.data.startDate
+						const bryntumEndDate = event.data.endDate // This is the start of the day AFTER the event ends
+
+						// Format start_date to YYYY-MM-DD
+						const start_date_for_backend = DateHelper.format(bryntumStartDate, 'YYYY-MM-DD')
+
+						// Adjust endDate to be inclusive and format to YYYY-MM-DD
+						const inclusiveEndDate = DateHelper.add(bryntumEndDate, -1, 'day')
+						const end_date_for_backend = DateHelper.format(inclusiveEndDate, 'YYYY-MM-DD')
+
+						console.log('eventDrop - Sending to backend:', {
+							id: event.data.id,
+							start_date: start_date_for_backend,
+							end_date: end_date_for_backend,
+						})
+
+						updateTask({ start_date: start_date_for_backend, end_date: end_date_for_backend }, event.data.id).then(
+							(res) => {
+								if (res.status >= 200 && res.status < 300) {
+									console.log('Task updated successfully:', res.data)
+								} else {
+									console.error('Error updating: ', res.error.message)
+								}
+							}
+						)
+					})
+				},
+				eventResizeStart: ({ eventRecord }) => {
+					console.log('Event resize started:', eventRecord)
+				},
+				eventResizeEnd: ({ eventRecord }) => {
+					// Get Bryntum's Date objects
+					const bryntumStartDate = eventRecord.data.startDate
+					const bryntumEndDate = eventRecord.data.endDate // This is the start of the day AFTER the event ends
+
+					// Format start_date to YYYY-MM-DD
+					const start_date_for_backend = DateHelper.format(bryntumStartDate, 'YYYY-MM-DD')
+
+					// Adjust endDate to be inclusive and format to YYYY-MM-DD
+					const inclusiveEndDate = DateHelper.add(bryntumEndDate, -1, 'day')
+					const end_date_for_backend = DateHelper.format(inclusiveEndDate, 'YYYY-MM-DD')
+
+					console.log('eventResizeEnd - Sending to backend:', {
+						id: eventRecord.data.id,
+						start_date: start_date_for_backend,
+						end_date: end_date_for_backend,
+					})
+
+					updateTask({ start_date: start_date_for_backend, end_date: end_date_for_backend }, eventRecord.data.id).then(
+						(res) => {
+							if (res.status >= 200 && res.status < 300) {
+								console.log('Task updated successfully:', res.data)
+							} else {
+								console.error('Error updating: ', res.error.message)
+							}
 						}
-					});
-	
-					eventRecords.forEach(event => {
-						if (event.copyOf.copyOf.children?.length) {
-							const timeDiff = event.startDate.getTime() - event.copyOf.copyOf.startDate.getTime();
-							
-							// Create proper event records for children using the store's model
-							const newChildren = event.copyOf.copyOf.children.map(child => {
-								const newStartDate = event.startDate.getTime();
-								return source.eventStore.createRecord({
-									name: child.name,
-									startDate: newStartDate,
-									duration: child.duration,
-									durationUnit: child.durationUnit,
-									resourceId: event.id,
-									eventColor: child.eventColor,
-									parentId: event.id
-								});
-							});
-	
-							event.children = newChildren;
+					)
+					console.log('Event resize ended:', eventRecord)
+				},
+				eventDragSelect: ({ selectedEvents }) => {
+					console.log(
+						'Selected events:',
+						selectedEvents.map((event) => event.name)
+					)
+				},
+				beforeEventDelete: ({ eventRecords }) => {
+					console.log('Before event delete:', eventRecords) // Changed `data` to `eventRecords` for consistency
+
+					const eventIds = eventRecords.map((eventRecord) => eventRecord.id)
+
+					// Check if any event has dependencies
+					const hasDependencies = eventRecords.some((eventRecord) => {
+						const dependencies = scheduler.dependencyStore.getEventDependencies(eventRecord)
+
+						if (dependencies.length > 0) {
+							console.warn(`Cannot delete event "${eventRecord.name}" because it has dependencies.`)
+							alert(
+								`Cannot delete event "${eventRecord.name}" because it has dependencies. Please remove the dependencies first.`
+							)
+							return true // Found an event with dependencies
 						}
-					});
-	
-					console.log('Pasted events with dependencies:', eventRecords);
-				}
-			},
-	
-			tbar: [
-				{
-					type: 'buttongroup',
-					toggleGroup: true,
-					items: {
-						none: { text: 'Overlap', pressed: true },
-						stack: { text: 'Stack' },
-						pack: { text: 'Pack' }
-					},
-					onChange: ({ value }) => {
-						if (scheduler.features.nestedEvents) {
-							scheduler.features.nestedEvents.eventLayout = value;
-						}
+						return false // No dependencies for this event
+					})
+					if (hasDependencies) {
+						return false
 					}
-				}
-			]
-		});
+					console.log(`Events to be deleted:`, eventIds)
+					return deleteTasks(eventIds)
+						.then((res) => {
+							console.log(`Backend response:`, res)
+							if (res.error === null) {
+								console.log(`Events deleted successfully from backend:`, eventIds)
+								myQueryClient.invalidateQueries(['projectData', id])
+								return true
+							}
+							console.error(`Error deleting events:`, res.error.message)
+							alert(`Error deleting events: ${res.error.message}`)
+							return false
+						})
+						.catch((err) => {
+							console.error(`Error deleting events:`, err)
+							alert(`Error deleting events: ${err.message}`)
+							return false // Prevent deletion
+						})
+				},
+				afterEventEdit: ({ source, action }) => {
+					console.log('After event edit listener:', action)
+				},
+				beforeEventEditShow({ editor, eventRecord }) {
+					console.log('beforeEventEditShow', eventRecord)
+					console.log('--- Editor Debug Info ---')
+					console.log('Editor object:', editor) // The main editor instance
+					console.log('Editor initialConfig:', editor.initialConfig) // What config it received
+					console.log('Editor widgetMap:', editor.widgetMap) // Important: check if tabs are registered here
+					console.log('Editor tabPanel component:', editor.tabPanel) // THIS IS CRITICAL: check if this is null or a TabPanel instance
+					console.log('--- End Editor Debug Info ---')
+					const subtasksContainer = editor.widgetMap.subtasksContainer
+
+					subtasksContainer?.removeAll()
+
+					console.log(
+						'TabPanel items:',
+						editor.tabPanel?.items.map((tab) => tab.title || tab.type)
+					)
+
+					if (eventRecord.children?.length) {
+						const subtaskData = eventRecord.children.map((child) => child.data)
+
+						subtasksContainer?.add({
+							type: 'grid',
+							height: '400px',
+							scrollable: true,
+							store: {
+								data: subtaskData,
+							},
+							columns: [
+								{ text: 'ID', field: 'id' },
+								{ text: 'Name', field: 'name' },
+								{ text: 'Start Date', field: 'startDate' },
+								{ text: 'End Date', field: 'endDate' },
+								{ text: 'Duration', field: 'duration' },
+							],
+						})
+					} else {
+						subtasksContainer?.add({
+							type: 'label',
+							html: 'No subtasks',
+						})
+					}
+				},
+			},
+		})
 
 		scheduler.dependencyStore.on('add', ({ records }) => {
 			console.log('Dependency added:', records)
 			records.forEach((dep) => {
 				console.log('New dependency created: from', dep.fromEvent, ' to  → ', dep.toEvent)
+				// Here, originalData is often already in string format, but it's safer
+				// to use DateHelper to ensure consistent formatting to YYYY-MM-DD
+				const from_date_for_backend = DateHelper.format(dep.fromEvent.startDate, 'YYYY-MM-DD')
+				const to_date_for_backend = DateHelper.format(dep.toEvent.startDate, 'YYYY-MM-DD') // Assuming toEvent start date is used for lag calculation reference
+
 				createTaskDependency({
 					from_task_id: dep.fromEvent.data.id,
 					to_task_id: dep.toEvent.data.id,
 					project_id: id,
 					type: dependencyTypeMap[dep.type] || dependencyTypeMap[2],
+					// Ensure lag calculation uses the correctly formatted dates if needed by your backend
+					// Or use Bryntum's internal Date objects for the diff, then format the result
 					lag: DateHelper.diff(
-						new Date(dep.fromEvent.originalData.endDate),
-						new Date(dep.toEvent.originalData.startDate),
-						dep.lagUnit[0]
+						dep.fromEvent.endDate, // Bryntum's endDate (start of day after)
+						dep.toEvent.startDate, // Bryntum's startDate (start of day)
+						dep.lagUnit
 					),
-					lag_unit: dep.lagUnit[0],
+					lag_unit: dep.lagUnit, // Ensure lagUnit is a string like 'day', 'hour', etc.
 					active: dep.active || true,
 				}).then((res) => {
 					console.log('Backend dependency created:', res)
@@ -798,28 +1048,24 @@ const Calender2 = () => {
 			console.log('Dependency removed:', records)
 			records.forEach((dep) => {
 				console.log('Dependency removed:', dep)
-				// sendDependencyToBackend('delete', dep.id);
 				deleteTaskDependency(dep.data.id)
 					.then((res) => {
 						console.log('Backend dependency deleted:', res)
 						if (res.error === null) {
 							console.log('Dependency deleted successfully:', res)
-							// return true;
 						} else {
 							console.error('Error deleting dependency:', res.error)
 							alert('Error deleting dependency:', res.error)
-							// return false; // Prevent deletion if there's an error
 						}
 					})
 					.catch((err) => {
 						console.error('Error deleting dependency:', err)
 						alert('Error deleting dependency:', err.message)
-						// return false; // Prevent deletion if there's an error
 					})
 			})
 		})
 		scheduler.on('afterEventSave', ({ eventRecord }) => {
-			const isNewEvent = !events.some((e) => e.id === eventRecord.id)
+			const isNewEvent = !events.some((e) => e.id === eventRecord.id) // Assuming 'events' is your original events data array
 			const task_groups = {
 				metal_fittings: 1,
 				installations: 2,
@@ -829,24 +1075,42 @@ const Calender2 = () => {
 			console.log('eventRecord.resourceId', eventRecord.resourceId)
 			const groupName = eventRecord.resourceId
 			const taskGroupId = task_groups[groupName]
+
+			// Get Bryntum's Date objects
+			const bryntumStartDate = eventRecord.startDate
+			const bryntumEndDate = eventRecord.endDate // This is the start of the day AFTER the event ends
+
+			// Format start_date to YYYY-MM-DD
+			const start_date_for_backend = DateHelper.format(bryntumStartDate, 'YYYY-MM-DD')
+
+			// Adjust endDate to be inclusive and format to YYYY-MM-DD
+			const inclusiveEndDate = DateHelper.add(bryntumEndDate, -1, 'day')
+			const end_date_for_backend = DateHelper.format(inclusiveEndDate, 'YYYY-MM-DD')
+
 			const formattedData = {
 				task_group_id: taskGroupId,
-				start_date: eventRecord.startDate,
-				end_date: eventRecord.endDate,
+				start_date: start_date_for_backend, // Use formatted date
+				end_date: end_date_for_backend, // Use formatted date
 				title: eventRecord.name,
 			}
+
+			console.log('afterEventSave - Sending to backend:', {
+				id: eventRecord.id, // For existing events
+				...formattedData,
+			})
+
 			if (isNewEvent) {
-				formattedData.project = id
+				formattedData.project = id // Assuming 'id' is defined in your scope
 				createNewTasks(formattedData).then((res) => {
 					console.log('Backend created:', res)
 					if (res.error === null) {
 						console.log('Task created successfully ', res)
-						eventRecord.id = res.data[0].id
-						eventRecord.commit()
+						eventRecord.id = res.data[0].id // Update Bryntum record with backend ID
+						eventRecord.commit() // Commit changes to the record
 						console.log('Event created:', eventRecord)
 					} else {
 						console.log('Error creating task:', res.error.message)
-						eventRecord.remove()
+						eventRecord.remove() // Remove event if backend creation failed
 					}
 				})
 			} else {
@@ -862,14 +1126,17 @@ const Calender2 = () => {
 		})
 
 		scheduler.on('afterEventUpdate', ({ eventRecord }) => {
+			// This listener fires after the Bryntum record has been updated internally.
+			// The dates here (eventRecord.startDate, eventRecord.endDate) will still be Date objects.
+			// If you need to send them to the backend from *this* listener, apply the same formatting.
 			const formattedData = {
 				id: eventRecord.id,
 				resourceId: eventRecord.resourceId,
-				startDate: eventRecord.startDate,
-				endDate: eventRecord.endDate,
+				startDate: DateHelper.format(eventRecord.startDate, 'YYYY-MM-DD'),
+				endDate: DateHelper.format(DateHelper.add(eventRecord.endDate, -1, 'day'), 'YYYY-MM-DD'),
 				name: eventRecord.name,
 			}
-			console.log('Event updated:', formattedData)
+			console.log('Event updated (afterEventUpdate listener):', formattedData)
 		})
 
 		scheduler.on('afterEventCancel', ({ eventRecord }) => {
@@ -885,42 +1152,11 @@ const Calender2 = () => {
 		return () => scheduler.destroy()
 	}, [events, resources])
 
-	console.log('taskType', taskType)
-	console.log('isFilteredApplied', isFilteredApplied)
-
 	if (isLoading) return <div>Loading...</div>
 	if (error) return <div>Error loading tasks</div>
+
 	return (
 		<>
-			<Stack mb={2} direction={'row'} justifyContent={'flex-end'}>
-				<MuiButton
-					size="small"
-					variant="contained"
-					sx={{ padding: 0.5, minWidth: 0, width: 30 }}
-					onClick={(e) => {
-						e.stopPropagation() // Stop Accordion behv(open or close) on click on button
-						SetIsFilterOpen(true)
-					}}
-				>
-					<Iconify icon="heroicons-funnel" width={20} height={20} />
-				</MuiButton>
-				{isFilterOpen && (
-					<FilterPopup
-						open={isFilterOpen}
-						onClose={() => {
-							SetIsFilterOpen(false)
-						}}
-						onClearFilter={handleonClearFilter}
-						onApplyFilters={handleApplyFilters}
-						handleChange={handleChange}
-						filters={filters}
-						SetFilters={SetFilters}
-						isTaskType={true}
-						taskType={taskType}
-					/>
-				)}
-			</Stack>
-
 			<div ref={schedulerRef} style={{ height: '500px', width: '100%', marginTop: '15px' }} />
 		</>
 	)
