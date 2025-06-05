@@ -368,7 +368,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const start = new Date()
 	const end = new Date()
-	end.setDate(start.getDate() + 5)
+	end.setDate(start.getDate() + 4)
 
 	useEffect(() => {
 		// console.log(hasChanges)
