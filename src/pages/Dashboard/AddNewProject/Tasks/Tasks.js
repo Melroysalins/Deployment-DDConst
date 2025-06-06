@@ -302,6 +302,7 @@ const Task = ({
 	const [taskID, SetTaskID] = useState('')
 	const [isSubTaskOpen, SetIsSubTaskOpen] = useState(false)
 	const [openSubTasks, SetOpenSubTaks] = useState(false)
+	const [isSubTask, SetIsSubTask] = useState(false)
 
 	const myQueryClient = useQueryClient()
 
@@ -776,84 +777,140 @@ const Task = ({
 		createNewTasks({ title: '', notes: '', task_group_id, project: id }).then(() => refetch())
 	}
 
-	const handleAddSubtask = () => {
-		const selectedTaskId = selectedRows[0]
-		const selectedTaskObj = list.find((task) => task.id === selectedTaskId)
-		console.log('selectedTaskObj', selectedTaskObj)
-		if (!selectedRows || selectedRows.length === 0) {
-			setToast({
-				severity: 'warning',
-				message: 'Please select a task to add a subtask.',
-			})
-			return
-		}
-		if (selectedRows.length > 1) {
-			setToast({
-				severity: 'warning',
-				message: 'Please select only one task to add a subtask.',
-			})
-			return
-		}
-		// Check if the selected task is from same task group
-		if (selectedTaskObj.task_group_id !== task_group_id) {
-			setToast({
-				severity: 'warning',
-				message: 'Please select a task from the same task group to add a subtask.',
-			})
-			return
-		}
+	const handleAddSubtask = (value) => {
+		if (!value) {
+			const selectedTaskId = selectedRows[0]
+			const selectedTaskObj = list.find((task) => task.id === selectedTaskId)
+			if (!selectedRows || selectedRows.length === 0) {
+				setToast({
+					severity: 'warning',
+					message: 'Please select a task to add a subtask.',
+				})
+				return
+			}
+			if (selectedRows.length > 1) {
+				setToast({
+					severity: 'warning',
+					message: 'Please select only one task to add a subtask.',
+				})
+				return
+			}
 
-		// Check if the selected task is not a subtask
-		if (selectedTaskObj.parent_task) {
-			setToast({
-				severity: 'warning',
-				message: 'Please select a parent task to add a subtask not sub task.',
+			// Check if the selected task is from same task group
+			if (selectedTaskObj.task_group_id !== task_group_id) {
+				setToast({
+					severity: 'warning',
+					message: 'Please select a task from the same task group to add a subtask.',
+				})
+				return
+			}
+
+			// Check if the selected task is not a subtask
+			if (selectedTaskObj.parent_task) {
+				setToast({
+					severity: 'warning',
+					message: 'Please select a parent task to add a subtask not sub task.',
+				})
+				return
+			}
+
+			console.log('selectedRows', selectedRows)
+			// return;
+			//
+			const parentId = selectedRows[0]
+			console.log('new task created ')
+			// return
+			// add 5 subtask to the task each start will be end date of previous task
+			// and end date will be 1 day after start date
+			// const startDate = moment(selectedTaskObj.end_date).add(1, 'days').format('YYYY-MM-DD')
+			// const endDate = moment(selectedTaskObj.end_date).add(2, 'days').format('YYYY-MM-DD')
+			// const parentId = selectedTaskObj.id;
+			const subtasks = []
+			let currentStart = moment(selectedTaskObj.start_date)
+
+			const defaultSubTaskNames = ['Line', 'Assemble', 'Trim', 'Galvanize', 'Install']
+
+			for (let i = 0; i < 5; i += 1) {
+				const start_date = currentStart.format('YYYY-MM-DD')
+				const end_date = currentStart.clone().add(1, 'days').format('YYYY-MM-DD')
+				subtasks.push({
+					title: defaultSubTaskNames[i],
+					team: selectedTaskObj.team,
+					start_date,
+					end_date,
+					notes: '',
+					task_group_id,
+					project: id,
+					parent_task: parentId,
+				})
+				currentStart = currentStart.clone().add(1, 'days')
+
+				console.log('subTask', subtasks)
+
+				console.log('currentStart', subtasks)
+			}
+			createNewTasks(subtasks).then(() => {
+				console.log('Subtask created successfully')
+				setToast({
+					severity: 'success',
+					message: 'Subtask has been created successfully',
+				})
+				myQueryClient.invalidateQueries({ queryKey: [`raw-task-${task_group}`] })
 			})
-			return
+			console.log('HRT', fullResponse)
+		} else {
+			const defaultSubTaskNames = ['Line', 'Assemble', 'Trim', 'Galvanize', 'Install']
+			const selectedTaskObj = fullResponse?.find((task) => task.id === taskID)
+			const existingSubTasks = fullResponse?.filter((task) => task?.parent_task === taskID)
+			const parentId = selectedTaskObj?.id
+
+			const parentStart = moment(selectedTaskObj?.start_date)
+			const parentEnd = moment(selectedTaskObj?.end_date)
+
+			const totalAllowed = parentEnd.diff(parentStart, 'days') + 1
+
+			const currentCount = existingSubTasks.length
+
+			const nextIndex = currentCount % totalAllowed
+
+			const nextStartDate = parentStart.clone().add(nextIndex, 'days')
+			const nextEndDate = nextStartDate.clone().add(1, 'days')
+
+			const nextTitle = defaultSubTaskNames[currentCount % defaultSubTaskNames.length]
+
+			if (selectedRows.length) {
+				setToast({
+					severity: 'warning',
+					message: 'Please deselect the current subtask before adding a new one.',
+				})
+				return
+			}
+
+			const subtasks = [
+				{
+					title: nextTitle,
+					team: selectedTaskObj.team,
+					start_date: nextStartDate.format('YYYY-MM-DD'),
+					end_date: nextEndDate.format('YYYY-MM-DD'),
+					notes: '',
+					task_group_id,
+					project: id,
+					parent_task: parentId,
+				},
+			]
+
+			createNewTasks(subtasks).then(async (res) => {
+				setToast({
+					severity: 'success',
+					message: `Subtask has been created successfully.`,
+				})
+
+				const { data: latestTasks } = await refetchFull()
+
+				const filteredSubTasks = latestTasks?.filter((item) => item?.parent_task === taskID)
+				SetSubTasksData(filteredSubTasks)
+			})
 		}
-		console.log('selectedRows', selectedRows)
-		// return;
-		//
-		const parentId = selectedRows[0]
-		console.log('new task created ')
-		// return
-		// add 5 subtask to the task each start will be end date of previous task
-		// and end date will be 1 day after start date
-		// const startDate = moment(selectedTaskObj.end_date).add(1, 'days').format('YYYY-MM-DD')
-		// const endDate = moment(selectedTaskObj.end_date).add(2, 'days').format('YYYY-MM-DD')
-		// const parentId = selectedTaskObj.id;
-		const subtasks = []
-		let currentStart = moment(selectedTaskObj.start_date)
-
-		const defaultSubTaskNames = ['Line', 'Assemble', 'Trim', 'Galvanize', 'Install']
-
-		for (let i = 0; i < 5; i += 1) {
-			const start_date = currentStart.format('YYYY-MM-DD')
-			const end_date = currentStart.clone().add(1, 'days').format('YYYY-MM-DD')
-			subtasks.push({
-				title: defaultSubTaskNames[i],
-				team: selectedTaskObj.team,
-				start_date,
-				end_date,
-				notes: '',
-				task_group_id,
-				project: id,
-				parent_task: parentId,
-			})
-			currentStart = currentStart.clone().add(1, 'days')
-
-			console.log('subTask', subtasks)
-
-			console.log('currentStart', subtasks)
-		}
-		createNewTasks(subtasks).then(() => {
-			console.log('Subtask created successfully')
-			setToast({
-				severity: 'success',
-				message: 'Subtask has been created successfully',
-			})
-			myQueryClient.invalidateQueries({ queryKey: [`raw-task-${task_group}`] })
-		})
 	}
 
 	const onCellEditRequest = (event) => {
@@ -921,19 +978,19 @@ const Task = ({
 							getRowId={(params) => params.data.id}
 							readOnlyEdit
 							onRowSelected={() => {
-								setSelectedRows(gridRef.current.api.getSelectedRows().map(({ id }) => id))
+								setSelectedRows(gridRef?.current?.api?.getSelectedRows().map(({ id }) => id))
 							}}
 						/>
 
 						{/* {console.log('list', list)} */}
 						<Box display="flex" justifyContent="space-between">
 							<Button onClick={handleAdd}>Add Task</Button>
-							<Button color="secondary" onClick={handleAddSubtask} sx={{ ml: 1 }}>
+							<Button color="secondary" onClick={() => handleAddSubtask(false)} sx={{ ml: 1 }}>
 								Add Subtask
 							</Button>
-							{selectedRows.length > 0 && (
+							{selectedRows?.length > 0 && (
 								<Box>
-									{selectedRows.length} items selected:
+									{selectedRows?.length} items selected:
 									<DeleteCellRenderer value={selectedRows} task_group_id={task_group_id} gridRef={gridRef} />
 								</Box>
 							)}
@@ -941,6 +998,7 @@ const Task = ({
 					</Stack>
 				</div>
 			</div>
+			{console.log('onRowSelected', gridRef.current?.api?.getSelectedRows())}
 
 			{isSubTaskOpen && (
 				<TaskPopUp
@@ -949,7 +1007,7 @@ const Task = ({
 						SetIsSubTaskOpen(false)
 						SetTaskID('')
 					}}
-					// ref={gridRef}
+					ref={gridRef}
 					rowData={subTasksData}
 					columnDefs={subTaskColumnDefs}
 					defaultColDef={defaultColDef}
@@ -960,8 +1018,14 @@ const Task = ({
 					onCellEditRequest={onCellEditRequest}
 					getRowId={(params) => params.data.id}
 					readOnlyEdit
+					onclick={handleAddSubtask}
+					SetIsSubTask={SetIsSubTask}
+					isSubTask={isSubTask}
 					onRowSelected={() => {
-						setSelectedRows(gridRef.current.api.getSelectedRows().map(({ id }) => id))
+						if (gridRef.current?.api) {
+							const selected = gridRef.current?.api?.getSelectedRows()
+							setSelectedRows(selected.map(({ id }) => id))
+						}
 					}}
 				/>
 			)}

@@ -253,7 +253,7 @@ const Calender2 = ({
 
 				const relatedTasks = taskGroup[resourceId]
 
-				console.log('unique', relatedTasks, taskGroup[resourceId])
+				console.log('unique', resourceId, relatedTasks, taskGroup[resourceId])
 
 				if (Array.isArray(relatedTasks) && relatedTasks.length > 0) {
 					const uniqueTeams = new Set()
@@ -284,13 +284,25 @@ const Calender2 = ({
 						}
 					})
 
+					const taskWithNoTeamID = relatedTasks?.filter((item) => item?.team === null)
+
+					for (let i = 0; i < taskWithNoTeamID?.length; i += 1) {
+						const uniqueId = `${resourceId} -  ${i + 1}`
+						expandedResources.push({
+							id: uniqueId,
+							name: workType,
+							width: 100,
+							workTeam: ``,
+						})
+					}
+
 					await Promise.all(teamPromises)
 				} else {
 					expandedResources.push({
 						id: resourceId,
 						name: workType,
 						width: 100,
-						workTeam: 'No Team',
+						workTeam: null,
 					})
 				}
 				console.log('gg', expandedResources)
@@ -326,6 +338,7 @@ const Calender2 = ({
 			SetAllRescources(results)
 
 			SetTaskType(results)
+			console.log('mGGGGG', results)
 		})()
 		SetIsTaskUpdated(true)
 	}, [selectedWorkTypesData, taskGroup])
@@ -341,21 +354,30 @@ const Calender2 = ({
 			auxiliary_construction = [],
 		} = taskGroup
 
-		// console.log('mytask', taskGroup)
+		console.log('mytask', taskGroup)
 
 		return [
 			...connections?.map((connection, index) => {
-				const teamNumber = connection.team
+				const noTeamTasks = connections.filter((c) => !c.team)
+				const hasTeam = connection?.team !== null && connection?.team !== undefined
+				let resourceId
+
+				if (hasTeam) {
+					resourceId = `connections-${connection.team}`
+				} else {
+					const noTeamIndex = noTeamTasks.indexOf(connection)
+					resourceId = `connections -  ${noTeamIndex + 1}`
+				}
 				const event = {
 					id: connection.id || `connection-${index + 1}`,
-					resourceId: teamNumber ? `connections-${teamNumber}` : ``,
-					startDate: connection.start_date ? getISODateString(connection.start_date) : getISODateString(new Date()), // Use current date if no start_date
+					resourceId,
+					startDate: connection.start_date ? getISODateString(connection.start_date) : getISODateString(new Date()),
 					endDate: connection.end_date
 						? getISODateString(connection.end_date)
 						: (() => {
 								const today = new Date()
 								today.setDate(today.getDate() + 3)
-								return getISODateString(today) // Use calculated end date
+								return getISODateString(today)
 						  })(),
 					allDay: true,
 					duration: 5,
@@ -372,14 +394,13 @@ const Calender2 = ({
 				if (connection.children && connection.children.length > 0) {
 					event.children = connection.children.map((child) => ({
 						id: child.id || `child-${child.id}`,
-						resourceId: teamNumber ? `connections-${teamNumber}` : 'connections',
+						resourceId,
 						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
 						endDate: child.end_date
 							? getISODateString(child.end_date)
 							: (() => {
 									const today = new Date()
-
-									return getISODateString(today) // Default end date is today's date
+									return getISODateString(today)
 							  })(),
 						allDay: true,
 						name: child.title,
@@ -387,14 +408,23 @@ const Calender2 = ({
 						eventColor: 'red',
 					}))
 				}
-				console.log('connectionEvent', event)
+
 				return event
 			}),
 			...installations?.map((installation, index) => {
-				const teamNumber = installation.team
+				const noTeamTasks = installations?.filter((c) => !c.team)
+				const hasTeam = installation?.team !== null && installation?.team !== undefined
+				let resourceId
+
+				if (hasTeam) {
+					resourceId = `installations-${installation.team}`
+				} else {
+					const noTeamIndex = noTeamTasks.indexOf(installation)
+					resourceId = `installations -  ${noTeamIndex + 1}`
+				}
 				const event = {
 					id: installation.id,
-					resourceId: teamNumber ? `installations-${teamNumber}` : '',
+					resourceId,
 					startDate: installation.start_date ? getISODateString(installation.start_date) : getISODateString(new Date()),
 					endDate: installation.end_date
 						? getISODateString(installation.end_date)
@@ -416,7 +446,7 @@ const Calender2 = ({
 				if (installation.children && installation.children.length > 0) {
 					event.children = installation.children.map((child) => ({
 						id: child.id || `child-${child.id}`,
-						resourceId: teamNumber ? `installations-${teamNumber}` : 'installations',
+						resourceId,
 						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
 						endDate: child.end_date
 							? getISODateString(child.end_date)
@@ -435,10 +465,19 @@ const Calender2 = ({
 				return event
 			}),
 			...metal_fittings?.map((metal_fitting, index) => {
-				const teamNumber = metal_fitting?.team
+				const noTeamTasks = metal_fittings.filter((c) => !c.team)
+				const hasTeam = metal_fitting?.team !== null && metal_fitting?.team !== undefined
+				let resourceId
+
+				if (hasTeam) {
+					resourceId = `metal_fittings-${metal_fitting.team}`
+				} else {
+					const noTeamIndex = noTeamTasks.indexOf(metal_fitting)
+					resourceId = `metal_fittings -  ${noTeamIndex + 1}`
+				}
 				const event = {
 					id: metal_fitting.id || `metal_fitting-${index + 1}`,
-					resourceId: teamNumber ? `metal_fittings-${teamNumber}` : 'metal_fittings',
+					resourceId,
 					startDate: metal_fitting.start_date
 						? getISODateString(metal_fitting.start_date)
 						: getISODateString(new Date()),
@@ -462,7 +501,7 @@ const Calender2 = ({
 				if (metal_fitting.children && metal_fitting.children.length > 0) {
 					event.children = metal_fitting.children.map((child) => ({
 						id: child.id || `child-${child.id}`,
-						resourceId: teamNumber ? `metal_fittings-${teamNumber}` : 'metal_fittings',
+						resourceId,
 						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
 						endDate: child.end_date
 							? getISODateString(child.end_date)
@@ -479,35 +518,44 @@ const Calender2 = ({
 				}
 				return event
 			}),
-			...completion_test?.map((completion_test, index) => {
-				const teamNumber = completion_test?.team
+			...completion_test?.map((completion_tests, index) => {
+				const noTeamTasks = completion_test?.filter((c) => !c.team)
+				const hasTeam = completion_tests?.team !== null && completion_tests?.team !== undefined
+				let resourceId
+
+				if (hasTeam) {
+					resourceId = `completion_test-${completion_tests.team}`
+				} else {
+					const noTeamIndex = noTeamTasks.indexOf(completion_tests)
+					resourceId = `completion_test -  ${noTeamIndex + 1}`
+				}
 				const event = {
-					id: completion_test.id || `completion_test-${index + 1}`,
-					resourceId: teamNumber ? `completion_test-${teamNumber}` : 'completion_test',
-					startDate: completion_test.start_date
-						? getISODateString(completion_test.start_date)
+					id: completion_tests.id || `completion_test-${index + 1}`,
+					resourceId,
+					startDate: completion_tests.start_date
+						? getISODateString(completion_tests.start_date)
 						: getISODateString(new Date()),
-					endDate: completion_test.end_date
-						? getISODateString(completion_test.end_date)
+					endDate: completion_tests.end_date
+						? getISODateString(completion_tests.end_date)
 						: (() => {
 								const today = new Date()
 								today.setDate(today.getDate() + 3)
 								return getISODateString(today) // Use calculated end date
 						  })(),
 					allDay: true,
-					name: completion_test.title || `Completion Test + ${index + 1}`,
+					name: completion_tests.title || `Completion Test + ${index + 1}`,
 					manuallyScheduled: true,
 					expanded: true,
 					leaf: false,
 					duration: 5,
 					durationunit: 'day',
-					team: completion_test?.team,
-					task_group_id: completion_test?.task_group_id,
+					team: completion_tests?.team,
+					task_group_id: completion_tests?.task_group_id,
 				}
-				if (completion_test.children && completion_test.children.length > 0) {
-					event.children = completion_test.children.map((child) => ({
+				if (completion_tests.children && completion_tests.children.length > 0) {
+					event.children = completion_tests.children.map((child) => ({
 						id: child.id || `child-${child.id}`,
-						resourceId: teamNumber ? `completion_test-${teamNumber}` : 'completion_test',
+						resourceId,
 						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
 						endDate: child.end_date
 							? getISODateString(child.end_date)
@@ -524,33 +572,42 @@ const Calender2 = ({
 				}
 				return event
 			}),
-			...office_work?.map((office_work, index) => {
-				const teamNumber = office_work?.team
+			...office_work?.map((office_works, index) => {
+				const noTeamTasks = office_work?.filter((c) => !c.team)
+				const hasTeam = office_works?.team !== null && office_works?.team !== undefined
+				let resourceId
+
+				if (hasTeam) {
+					resourceId = `office_work-${office_works.team}`
+				} else {
+					const noTeamIndex = noTeamTasks.indexOf(office_works)
+					resourceId = `office_work -  ${noTeamIndex + 1}`
+				}
 				const event = {
-					id: office_work.id || `office_work-${index + 1}`,
-					resourceId: teamNumber ? `office_work-${teamNumber}` : 'office_work',
-					startDate: office_work.start_date ? getISODateString(office_work.start_date) : getISODateString(new Date()),
-					endDate: office_work.end_date
-						? getISODateString(office_work.end_date)
+					id: office_works.id || `office_work-${index + 1}`,
+					resourceId,
+					startDate: office_works.start_date ? getISODateString(office_works.start_date) : getISODateString(new Date()),
+					endDate: office_works.end_date
+						? getISODateString(office_works.end_date)
 						: (() => {
 								const today = new Date()
 								today.setDate(today.getDate() + 3)
 								return getISODateString(today) // Use calculated end date
 						  })(),
 					allDay: true,
-					name: office_work.title || `Office Work + ${index + 1}`,
+					name: office_works.title || `Office Work + ${index + 1}`,
 					manuallyScheduled: true,
 					expanded: true,
 					leaf: false,
 					duration: 5,
 					durationunit: 'day',
-					team: office_work?.team,
-					task_group_id: office_work?.task_group_id,
+					team: office_works?.team,
+					task_group_id: office_works?.task_group_id,
 				}
-				if (office_work.children && office_work.children.length > 0) {
-					event.children = office_work.children.map((child) => ({
+				if (office_works.children && office_works.children.length > 0) {
+					event.children = office_works.children.map((child) => ({
 						id: child.id || `child-${child.id}`,
-						resourceId: teamNumber ? `office_work-${teamNumber}` : 'office_work',
+						resourceId,
 						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
 						endDate: child.end_date
 							? getISODateString(child.end_date)
@@ -567,35 +624,44 @@ const Calender2 = ({
 				}
 				return event
 			}),
-			...auxiliary_construction?.map((auxiliary_construction, index) => {
-				const teamNumber = auxiliary_construction?.team
+			...auxiliary_construction?.map((auxiliary_constructions, index) => {
+				const noTeamTasks = auxiliary_construction?.filter((c) => !c.team)
+				const hasTeam = auxiliary_constructions?.team !== null && auxiliary_constructions?.team !== undefined
+				let resourceId
+
+				if (hasTeam) {
+					resourceId = `auxiliary_construction-${auxiliary_constructions.team}`
+				} else {
+					const noTeamIndex = noTeamTasks.indexOf(auxiliary_constructions)
+					resourceId = `auxiliary_construction -  ${noTeamIndex + 1}`
+				}
 				const event = {
-					id: auxiliary_construction.id || `auxiliary_construction-${index + 1}`,
-					resourceId: teamNumber ? `auxiliary_construction-${teamNumber}` : 'auxiliary_construction',
-					startDate: auxiliary_construction.start_date
-						? getISODateString(auxiliary_construction.start_date)
+					id: auxiliary_constructions.id || `auxiliary_construction-${index + 1}`,
+					resourceId,
+					startDate: auxiliary_constructions.start_date
+						? getISODateString(auxiliary_constructions.start_date)
 						: getISODateString(new Date()),
-					endDate: auxiliary_construction.end_date
-						? getISODateString(auxiliary_construction.end_date)
+					endDate: auxiliary_constructions.end_date
+						? getISODateString(auxiliary_constructions.end_date)
 						: (() => {
 								const today = new Date()
 								today.setDate(today.getDate() + 3)
 								return getISODateString(today) // Use calculated end date
 						  })(),
 					allDay: true,
-					name: auxiliary_construction.title || `Auxiliary Construction + ${index + 1}`,
+					name: auxiliary_constructions.title || `Auxiliary Construction + ${index + 1}`,
 					manuallyScheduled: true,
 					expanded: true,
 					leaf: false,
 					duration: 5,
 					durationunit: 'day',
-					team: auxiliary_construction?.team,
-					task_group_id: auxiliary_construction?.task_group_id,
+					team: auxiliary_constructions?.team,
+					task_group_id: auxiliary_constructions?.task_group_id,
 				}
-				if (auxiliary_construction.children && auxiliary_construction.children.length > 0) {
-					event.children = auxiliary_construction.children.map((child) => ({
+				if (auxiliary_constructions.children && auxiliary_constructions.children.length > 0) {
+					event.children = auxiliary_constructions.children.map((child) => ({
 						id: child.id || `child-${child.id}`,
-						resourceId: teamNumber ? `auxiliary_construction-${teamNumber}` : 'auxiliary_construction',
+						resourceId,
 						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
 						endDate: child.end_date
 							? getISODateString(child.end_date)
