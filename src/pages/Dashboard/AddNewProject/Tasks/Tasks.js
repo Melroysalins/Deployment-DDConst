@@ -828,7 +828,7 @@ const Task = ({
 			const subtasks = []
 			let currentStart = moment(selectedTaskObj.start_date)
 
-			const defaultSubTaskNames = ['Line', 'Assemble', 'Trim', 'Galvanize', 'Install']
+			const defaultSubTaskNames = ['Line', 'Trim', 'Assemble', 'Galvanize', 'Install']
 
 			for (let i = 0; i < 5; i += 1) {
 				const start_date = currentStart.format('YYYY-MM-DD')
@@ -859,7 +859,8 @@ const Task = ({
 			})
 			console.log('HRT', fullResponse)
 		} else {
-			const defaultSubTaskNames = ['Line', 'Assemble', 'Trim', 'Galvanize', 'Install']
+			const defaultSubTaskNames = ['Line', 'Trim', 'Assemble', 'Galvanize', 'Install']
+
 			const selectedTaskObj = fullResponse?.find((task) => task.id === taskID)
 			const existingSubTasks = fullResponse?.filter((task) => task?.parent_task === taskID)
 			const parentId = selectedTaskObj?.id
@@ -878,7 +879,7 @@ const Task = ({
 
 			const nextTitle = defaultSubTaskNames[currentCount % defaultSubTaskNames.length]
 
-			if (selectedRows.length) {
+			if (selectedRows?.length) {
 				setToast({
 					severity: 'warning',
 					message: 'Please deselect the current subtask before adding a new one.',

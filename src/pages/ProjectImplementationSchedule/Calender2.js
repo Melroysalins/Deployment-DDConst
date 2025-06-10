@@ -257,8 +257,13 @@ const Calender2 = ({
 
 				if (Array.isArray(relatedTasks) && relatedTasks.length > 0) {
 					const uniqueTeams = new Set()
+					const taskWithNoTeam = []
 					relatedTasks.forEach((task) => {
-						if (task.team) uniqueTeams.add(task.team)
+						if (task.team) {
+							uniqueTeams.add(task.team)
+						} else {
+							taskWithNoTeam.push(task)
+						}
 					})
 
 					const teamPromises = Array.from(uniqueTeams).map(async (teamNumber) => {
@@ -284,15 +289,14 @@ const Calender2 = ({
 						}
 					})
 
-					const taskWithNoTeamID = relatedTasks?.filter((item) => item?.team === null)
-
-					for (let i = 0; i < taskWithNoTeamID?.length; i += 1) {
-						const uniqueId = `${resourceId} -  ${i + 1}`
+					if (taskWithNoTeam.length > 0) {
+						const uniqueId = `${resourceId}-no-team`
 						expandedResources.push({
 							id: uniqueId,
 							name: workType,
 							width: 100,
-							workTeam: ``,
+							workTeam: '',
+							tasksWithoutTeam: taskWithNoTeam,
 						})
 					}
 
@@ -305,10 +309,10 @@ const Calender2 = ({
 						workTeam: null,
 					})
 				}
-				console.log('gg', expandedResources)
 			})
 
 			await Promise.all(promises)
+			console.log('gg', expandedResources)
 			return expandedResources
 		}
 
@@ -343,8 +347,347 @@ const Calender2 = ({
 		SetIsTaskUpdated(true)
 	}, [selectedWorkTypesData, taskGroup])
 
+	// const events = React.useMemo(() => {
+	// 	if (!taskGroup) return []
+	// 	const {
+	// 		connections = [],
+	// 		installations = [],
+	// 		metal_fittings = [],
+	// 		completion_test = [],
+	// 		office_work = [],
+	// 		auxiliary_construction = [],
+	// 	} = taskGroup
+
+	// 	console.log('mytask', taskGroup)
+
+	// 	return [
+	// 		...connections?.map((connection, index) => {
+	// 			const noTeamTasks = connections.filter((c) => !c.team)
+	// 			const hasTeam = connection?.team !== null && connection?.team !== undefined
+	// 			let resourceId
+
+	// 			if (hasTeam) {
+	// 				resourceId = `connections-${connection.team}`
+	// 			} else {
+	// 				const noTeamIndex = noTeamTasks.indexOf(connection)
+	// 				resourceId = `connections -  ${noTeamIndex + 1}`
+	// 			}
+	// 			const event = {
+	// 				id: connection.id || `connection-${index + 1}`,
+	// 				resourceId,
+	// 				startDate: connection.start_date ? getISODateString(connection.start_date) : getISODateString(new Date()),
+	// 				endDate: connection.end_date
+	// 					? getISODateString(connection.end_date)
+	// 					: (() => {
+	// 							const today = new Date()
+	// 							today.setDate(today.getDate() + 3)
+	// 							return getISODateString(today)
+	// 					  })(),
+	// 				allDay: true,
+	// 				duration: 5,
+	// 				durationunit: 'day',
+	// 				name: connection.title,
+	// 				manuallyScheduled: true,
+	// 				expanded: true,
+	// 				leaf: false,
+	// 				isTask: true,
+	// 				team: connection?.team,
+	// 				task_group_id: connection?.task_group_id,
+	// 			}
+
+	// 			if (connection.children && connection.children.length > 0) {
+	// 				event.children = connection.children.map((child) => ({
+	// 					id: child.id || `child-${child.id}`,
+	// 					resourceId,
+	// 					startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
+	// 					endDate: child.end_date
+	// 						? getISODateString(child.end_date)
+	// 						: (() => {
+	// 								const today = new Date()
+	// 								return getISODateString(today)
+	// 						  })(),
+	// 					allDay: true,
+	// 					name: child.title,
+	// 					leaf: true,
+	// 					eventColor: 'red',
+	// 				}))
+	// 			}
+
+	// 			return event
+	// 		}),
+	// 		...installations?.map((installation, index) => {
+	// 			const noTeamTasks = installations?.filter((c) => !c.team)
+	// 			const hasTeam = installation?.team !== null && installation?.team !== undefined
+	// 			let resourceId
+
+	// 			if (hasTeam) {
+	// 				resourceId = `installations-${installation.team}`
+	// 			} else {
+	// 				const noTeamIndex = noTeamTasks.indexOf(installation)
+	// 				resourceId = `installations -  ${noTeamIndex + 1}`
+	// 			}
+	// 			const event = {
+	// 				id: installation.id,
+	// 				resourceId,
+	// 				startDate: installation.start_date ? getISODateString(installation.start_date) : getISODateString(new Date()),
+	// 				endDate: installation.end_date
+	// 					? getISODateString(installation.end_date)
+	// 					: (() => {
+	// 							const today = new Date()
+	// 							today.setDate(today.getDate() + 3)
+	// 							return getISODateString(today) // Use calculated end date
+	// 					  })(),
+	// 				allDay: true,
+	// 				name: installation.title,
+	// 				manuallyScheduled: true,
+	// 				expanded: true,
+	// 				leaf: false,
+	// 				duration: 5,
+	// 				durationunit: 'day',
+	// 				team: installation?.team,
+	// 				task_group_id: installation?.task_group_id,
+	// 			}
+	// 			if (installation.children && installation.children.length > 0) {
+	// 				event.children = installation.children.map((child) => ({
+	// 					id: child.id || `child-${child.id}`,
+	// 					resourceId,
+	// 					startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
+	// 					endDate: child.end_date
+	// 						? getISODateString(child.end_date)
+	// 						: (() => {
+	// 								const today = new Date()
+
+	// 								return getISODateString(today) // Default end date is today's date
+	// 						  })(),
+	// 					allDay: true,
+	// 					name: child.title,
+	// 					leaf: true,
+	// 					eventColor: 'blue',
+	// 				}))
+	// 			}
+	// 			console.log('installationEvent', event)
+	// 			return event
+	// 		}),
+	// 		...metal_fittings?.map((metal_fitting, index) => {
+	// 			const noTeamTasks = metal_fittings.filter((c) => !c.team)
+	// 			const hasTeam = metal_fitting?.team !== null && metal_fitting?.team !== undefined
+	// 			let resourceId
+
+	// 			if (hasTeam) {
+	// 				resourceId = `metal_fittings-${metal_fitting.team}`
+	// 			} else {
+	// 				const noTeamIndex = noTeamTasks.indexOf(metal_fitting)
+	// 				resourceId = `metal_fittings -  ${noTeamIndex + 1}`
+	// 			}
+	// 			const event = {
+	// 				id: metal_fitting.id || `metal_fitting-${index + 1}`,
+	// 				resourceId,
+	// 				startDate: metal_fitting.start_date
+	// 					? getISODateString(metal_fitting.start_date)
+	// 					: getISODateString(new Date()),
+	// 				endDate: metal_fitting.end_date
+	// 					? getISODateString(metal_fitting.end_date)
+	// 					: (() => {
+	// 							const today = new Date()
+	// 							today.setDate(today.getDate() + 3)
+	// 							return getISODateString(today) // Use calculated end date
+	// 					  })(),
+	// 				allDay: true,
+	// 				name: metal_fitting.title,
+	// 				manuallyScheduled: true,
+	// 				expanded: true,
+	// 				leaf: false,
+	// 				duration: 5,
+	// 				durationunit: 'day',
+	// 				team: metal_fitting?.team,
+	// 				task_group_id: metal_fitting?.task_group_id,
+	// 			}
+	// 			if (metal_fitting.children && metal_fitting.children.length > 0) {
+	// 				event.children = metal_fitting.children.map((child) => ({
+	// 					id: child.id || `child-${child.id}`,
+	// 					resourceId,
+	// 					startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
+	// 					endDate: child.end_date
+	// 						? getISODateString(child.end_date)
+	// 						: (() => {
+	// 								const today = new Date()
+
+	// 								return getISODateString(today) // Default end date is today's date
+	// 						  })(),
+	// 					allDay: true,
+	// 					name: child.title,
+	// 					leaf: true,
+	// 					eventColor: 'green',
+	// 				}))
+	// 			}
+	// 			return event
+	// 		}),
+	// 		...completion_test?.map((completion_tests, index) => {
+	// 			const noTeamTasks = completion_test?.filter((c) => !c.team)
+	// 			const hasTeam = completion_tests?.team !== null && completion_tests?.team !== undefined
+	// 			let resourceId
+
+	// 			if (hasTeam) {
+	// 				resourceId = `completion_test-${completion_tests.team}`
+	// 			} else {
+	// 				const noTeamIndex = noTeamTasks.indexOf(completion_tests)
+	// 				resourceId = `completion_test -  ${noTeamIndex + 1}`
+	// 			}
+	// 			const event = {
+	// 				id: completion_tests.id || `completion_test-${index + 1}`,
+	// 				resourceId,
+	// 				startDate: completion_tests.start_date
+	// 					? getISODateString(completion_tests.start_date)
+	// 					: getISODateString(new Date()),
+	// 				endDate: completion_tests.end_date
+	// 					? getISODateString(completion_tests.end_date)
+	// 					: (() => {
+	// 							const today = new Date()
+	// 							today.setDate(today.getDate() + 3)
+	// 							return getISODateString(today) // Use calculated end date
+	// 					  })(),
+	// 				allDay: true,
+	// 				name: completion_tests.title || `Completion Test + ${index + 1}`,
+	// 				manuallyScheduled: true,
+	// 				expanded: true,
+	// 				leaf: false,
+	// 				duration: 5,
+	// 				durationunit: 'day',
+	// 				team: completion_tests?.team,
+	// 				task_group_id: completion_tests?.task_group_id,
+	// 			}
+	// 			if (completion_tests.children && completion_tests.children.length > 0) {
+	// 				event.children = completion_tests.children.map((child) => ({
+	// 					id: child.id || `child-${child.id}`,
+	// 					resourceId,
+	// 					startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
+	// 					endDate: child.end_date
+	// 						? getISODateString(child.end_date)
+	// 						: (() => {
+	// 								const today = new Date()
+
+	// 								return getISODateString(today) // Default end date is today's date
+	// 						  })(),
+	// 					allDay: true,
+	// 					name: child.title,
+	// 					leaf: true,
+	// 					eventColor: 'green',
+	// 				}))
+	// 			}
+	// 			return event
+	// 		}),
+	// 		...office_work?.map((office_works, index) => {
+	// 			const noTeamTasks = office_work?.filter((c) => !c.team)
+	// 			const hasTeam = office_works?.team !== null && office_works?.team !== undefined
+	// 			let resourceId
+
+	// 			if (hasTeam) {
+	// 				resourceId = `office_work-${office_works.team}`
+	// 			} else {
+	// 				const noTeamIndex = noTeamTasks.indexOf(office_works)
+	// 				resourceId = `office_work -  ${noTeamIndex + 1}`
+	// 			}
+	// 			const event = {
+	// 				id: office_works.id || `office_work-${index + 1}`,
+	// 				resourceId,
+	// 				startDate: office_works.start_date ? getISODateString(office_works.start_date) : getISODateString(new Date()),
+	// 				endDate: office_works.end_date
+	// 					? getISODateString(office_works.end_date)
+	// 					: (() => {
+	// 							const today = new Date()
+	// 							today.setDate(today.getDate() + 3)
+	// 							return getISODateString(today) // Use calculated end date
+	// 					  })(),
+	// 				allDay: true,
+	// 				name: office_works.title || `Office Work + ${index + 1}`,
+	// 				manuallyScheduled: true,
+	// 				expanded: true,
+	// 				leaf: false,
+	// 				duration: 5,
+	// 				durationunit: 'day',
+	// 				team: office_works?.team,
+	// 				task_group_id: office_works?.task_group_id,
+	// 			}
+	// 			if (office_works.children && office_works.children.length > 0) {
+	// 				event.children = office_works.children.map((child) => ({
+	// 					id: child.id || `child-${child.id}`,
+	// 					resourceId,
+	// 					startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
+	// 					endDate: child.end_date
+	// 						? getISODateString(child.end_date)
+	// 						: (() => {
+	// 								const today = new Date()
+
+	// 								return getISODateString(today) // Default end date is today's date
+	// 						  })(),
+	// 					allDay: true,
+	// 					name: child.title,
+	// 					leaf: true,
+	// 					eventColor: 'green',
+	// 				}))
+	// 			}
+	// 			return event
+	// 		}),
+	// 		...auxiliary_construction?.map((auxiliary_constructions, index) => {
+	// 			const noTeamTasks = auxiliary_construction?.filter((c) => !c.team)
+	// 			const hasTeam = auxiliary_constructions?.team !== null && auxiliary_constructions?.team !== undefined
+	// 			let resourceId
+
+	// 			if (hasTeam) {
+	// 				resourceId = `auxiliary_construction-${auxiliary_constructions.team}`
+	// 			} else {
+	// 				const noTeamIndex = noTeamTasks.indexOf(auxiliary_constructions)
+	// 				resourceId = `auxiliary_construction -  ${noTeamIndex + 1}`
+	// 			}
+	// 			const event = {
+	// 				id: auxiliary_constructions.id || `auxiliary_construction-${index + 1}`,
+	// 				resourceId,
+	// 				startDate: auxiliary_constructions.start_date
+	// 					? getISODateString(auxiliary_constructions.start_date)
+	// 					: getISODateString(new Date()),
+	// 				endDate: auxiliary_constructions.end_date
+	// 					? getISODateString(auxiliary_constructions.end_date)
+	// 					: (() => {
+	// 							const today = new Date()
+	// 							today.setDate(today.getDate() + 3)
+	// 							return getISODateString(today) // Use calculated end date
+	// 					  })(),
+	// 				allDay: true,
+	// 				name: auxiliary_constructions.title || `Auxiliary Construction + ${index + 1}`,
+	// 				manuallyScheduled: true,
+	// 				expanded: true,
+	// 				leaf: false,
+	// 				duration: 5,
+	// 				durationunit: 'day',
+	// 				team: auxiliary_constructions?.team,
+	// 				task_group_id: auxiliary_constructions?.task_group_id,
+	// 			}
+	// 			if (auxiliary_constructions.children && auxiliary_constructions.children.length > 0) {
+	// 				event.children = auxiliary_constructions.children.map((child) => ({
+	// 					id: child.id || `child-${child.id}`,
+	// 					resourceId,
+	// 					startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
+	// 					endDate: child.end_date
+	// 						? getISODateString(child.end_date)
+	// 						: (() => {
+	// 								const today = new Date()
+
+	// 								return getISODateString(today) // Default end date is today's date
+	// 						  })(),
+	// 					allDay: true,
+	// 					name: child.title,
+	// 					leaf: true,
+	// 					eventColor: 'green',
+	// 				}))
+	// 			}
+	// 			return event
+	// 		}),
+	// 	]
+	// }, [taskGroup])
+
 	const events = React.useMemo(() => {
 		if (!taskGroup) return []
+
 		const {
 			connections = [],
 			installations = [],
@@ -356,329 +699,140 @@ const Calender2 = ({
 
 		console.log('mytask', taskGroup)
 
-		return [
-			...connections?.map((connection, index) => {
-				const noTeamTasks = connections.filter((c) => !c.team)
-				const hasTeam = connection?.team !== null && connection?.team !== undefined
-				let resourceId
+		const allEvents = []
 
-				if (hasTeam) {
-					resourceId = `connections-${connection.team}`
-				} else {
-					const noTeamIndex = noTeamTasks.indexOf(connection)
-					resourceId = `connections -  ${noTeamIndex + 1}`
-				}
-				const event = {
-					id: connection.id || `connection-${index + 1}`,
+		const processWorkType = (tasks, typeName, resourcePrefix, eventColor) => {
+			const eventsForType = []
+			const tasksWithTeams = tasks.filter((task) => task.team)
+			const tasksWithoutTeam = tasks.filter((task) => !task.team)
+
+			// 1. Create events for tasks WITH a team (one event per task)
+
+			tasksWithTeams.forEach((task, index) => {
+				const resourceId = `${resourcePrefix}-${task.team}`
+				const id = task.id || `${resourcePrefix}-${task.team}-${index + 1}`
+				const startDate = task.start_date ? getISODateString(task.start_date) : getISODateString(new Date())
+				const endDate = task.end_date
+					? getISODateString(task.end_date)
+					: (() => {
+							const today = new Date()
+							today.setDate(today.getDate() + 3)
+							return getISODateString(today)
+					  })()
+				const name = task.title
+				const team = task?.team
+				const task_group_id = task?.task_group_id
+
+				const hasChildren = task?.children && task?.children.length > 0
+
+				eventsForType.push({
+					id,
 					resourceId,
-					startDate: connection.start_date ? getISODateString(connection.start_date) : getISODateString(new Date()),
-					endDate: connection.end_date
-						? getISODateString(connection.end_date)
+					startDate,
+					endDate,
+					allDay: true,
+					duration: 5,
+					durationunit: 'day',
+					name,
+					manuallyScheduled: true,
+					expanded: false,
+					leaf: !hasChildren,
+					isTask: true,
+					team,
+					task_group_id,
+					eventColor,
+					...(hasChildren && {
+						children: task.children.map((child) => {
+							const childId = child.id || `child-${id}-${Math.random().toString(36).substr(2, 9)}` // Unique ID for child
+							const childStartDate = child.start_date ? getISODateString(child.start_date) : getISODateString(startDate)
+							const childEndDate = child.end_date ? getISODateString(child.end_date) : getISODateString(endDate)
+							const childName = child.title
+
+							return {
+								id: childId,
+								resourceId,
+								startDate: childStartDate,
+								endDate: childEndDate,
+								allDay: true,
+								name: childName,
+								leaf: true,
+								eventColor,
+							}
+						}),
+					}),
+				})
+			})
+			if (tasksWithoutTeam.length > 0) {
+				tasksWithoutTeam.forEach((task, idx) => {
+					const resourceId = `${resourcePrefix}-no-team`
+					const id = task.id || `${resourceId}-task-${idx}`
+
+					const startDate = task.start_date ? getISODateString(task.start_date) : getISODateString(new Date())
+					const endDate = task.end_date
+						? getISODateString(task.end_date)
 						: (() => {
 								const today = new Date()
 								today.setDate(today.getDate() + 3)
 								return getISODateString(today)
-						  })(),
-					allDay: true,
-					duration: 5,
-					durationunit: 'day',
-					name: connection.title,
-					manuallyScheduled: true,
-					expanded: true,
-					leaf: false,
-					isTask: true,
-					team: connection?.team,
-					task_group_id: connection?.task_group_id,
-				}
+						  })()
+					const name = task.title
+					const team = null
 
-				if (connection.children && connection.children.length > 0) {
-					event.children = connection.children.map((child) => ({
-						id: child.id || `child-${child.id}`,
+					const hasChildren = task?.children && task?.children.length > 0
+
+					eventsForType.push({
+						id,
 						resourceId,
-						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
-						endDate: child.end_date
-							? getISODateString(child.end_date)
-							: (() => {
-									const today = new Date()
-									return getISODateString(today)
-							  })(),
+						startDate,
+						endDate,
 						allDay: true,
-						name: child.title,
-						leaf: true,
-						eventColor: 'red',
-					}))
-				}
+						duration: 5,
+						durationunit: 'day',
+						name,
+						manuallyScheduled: true,
+						expanded: false,
+						leaf: !hasChildren,
+						isTask: true,
+						team,
+						isNoTeamIndividualTask: true,
+						eventColor,
+						...(hasChildren && {
+							children: task.children.map((child) => {
+								const childId = child.id || `child-${id}-${Math.random().toString(36).substr(2, 9)}` // Unique ID for child
+								const childStartDate = child.start_date
+									? getISODateString(child.start_date)
+									: getISODateString(startDate)
+								const childEndDate = child.end_date ? getISODateString(child.end_date) : getISODateString(endDate)
+								const childName = child.title
 
-				return event
-			}),
-			...installations?.map((installation, index) => {
-				const noTeamTasks = installations?.filter((c) => !c.team)
-				const hasTeam = installation?.team !== null && installation?.team !== undefined
-				let resourceId
+								return {
+									id: childId,
+									resourceId,
+									startDate: childStartDate,
+									endDate: childEndDate,
+									allDay: true,
+									name: childName,
+									leaf: true,
+									eventColor,
+								}
+							}),
+						}),
+					})
+				})
+			}
+			return eventsForType
+		}
 
-				if (hasTeam) {
-					resourceId = `installations-${installation.team}`
-				} else {
-					const noTeamIndex = noTeamTasks.indexOf(installation)
-					resourceId = `installations -  ${noTeamIndex + 1}`
-				}
-				const event = {
-					id: installation.id,
-					resourceId,
-					startDate: installation.start_date ? getISODateString(installation.start_date) : getISODateString(new Date()),
-					endDate: installation.end_date
-						? getISODateString(installation.end_date)
-						: (() => {
-								const today = new Date()
-								today.setDate(today.getDate() + 3)
-								return getISODateString(today) // Use calculated end date
-						  })(),
-					allDay: true,
-					name: installation.title,
-					manuallyScheduled: true,
-					expanded: true,
-					leaf: false,
-					duration: 5,
-					durationunit: 'day',
-					team: installation?.team,
-					task_group_id: installation?.task_group_id,
-				}
-				if (installation.children && installation.children.length > 0) {
-					event.children = installation.children.map((child) => ({
-						id: child.id || `child-${child.id}`,
-						resourceId,
-						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
-						endDate: child.end_date
-							? getISODateString(child.end_date)
-							: (() => {
-									const today = new Date()
+		allEvents.push(...processWorkType(connections, 'Connection', 'connections', 'green'))
+		allEvents.push(...processWorkType(installations, 'Installation', 'installations', 'blue'))
+		allEvents.push(...processWorkType(metal_fittings, 'Metal Fittings Installation', 'metal_fittings', 'purple'))
+		allEvents.push(...processWorkType(completion_test, 'Completion Testing', 'completion_test', 'orange'))
+		allEvents.push(...processWorkType(office_work, 'Office Work', 'office_work', 'grey'))
+		allEvents.push(
+			...processWorkType(auxiliary_construction, 'Auxiliary Construction', 'auxiliary_construction', 'brown')
+		)
 
-									return getISODateString(today) // Default end date is today's date
-							  })(),
-						allDay: true,
-						name: child.title,
-						leaf: true,
-						eventColor: 'blue',
-					}))
-				}
-				console.log('installationEvent', event)
-				return event
-			}),
-			...metal_fittings?.map((metal_fitting, index) => {
-				const noTeamTasks = metal_fittings.filter((c) => !c.team)
-				const hasTeam = metal_fitting?.team !== null && metal_fitting?.team !== undefined
-				let resourceId
-
-				if (hasTeam) {
-					resourceId = `metal_fittings-${metal_fitting.team}`
-				} else {
-					const noTeamIndex = noTeamTasks.indexOf(metal_fitting)
-					resourceId = `metal_fittings -  ${noTeamIndex + 1}`
-				}
-				const event = {
-					id: metal_fitting.id || `metal_fitting-${index + 1}`,
-					resourceId,
-					startDate: metal_fitting.start_date
-						? getISODateString(metal_fitting.start_date)
-						: getISODateString(new Date()),
-					endDate: metal_fitting.end_date
-						? getISODateString(metal_fitting.end_date)
-						: (() => {
-								const today = new Date()
-								today.setDate(today.getDate() + 3)
-								return getISODateString(today) // Use calculated end date
-						  })(),
-					allDay: true,
-					name: metal_fitting.title,
-					manuallyScheduled: true,
-					expanded: true,
-					leaf: false,
-					duration: 5,
-					durationunit: 'day',
-					team: metal_fitting?.team,
-					task_group_id: metal_fitting?.task_group_id,
-				}
-				if (metal_fitting.children && metal_fitting.children.length > 0) {
-					event.children = metal_fitting.children.map((child) => ({
-						id: child.id || `child-${child.id}`,
-						resourceId,
-						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
-						endDate: child.end_date
-							? getISODateString(child.end_date)
-							: (() => {
-									const today = new Date()
-
-									return getISODateString(today) // Default end date is today's date
-							  })(),
-						allDay: true,
-						name: child.title,
-						leaf: true,
-						eventColor: 'green',
-					}))
-				}
-				return event
-			}),
-			...completion_test?.map((completion_tests, index) => {
-				const noTeamTasks = completion_test?.filter((c) => !c.team)
-				const hasTeam = completion_tests?.team !== null && completion_tests?.team !== undefined
-				let resourceId
-
-				if (hasTeam) {
-					resourceId = `completion_test-${completion_tests.team}`
-				} else {
-					const noTeamIndex = noTeamTasks.indexOf(completion_tests)
-					resourceId = `completion_test -  ${noTeamIndex + 1}`
-				}
-				const event = {
-					id: completion_tests.id || `completion_test-${index + 1}`,
-					resourceId,
-					startDate: completion_tests.start_date
-						? getISODateString(completion_tests.start_date)
-						: getISODateString(new Date()),
-					endDate: completion_tests.end_date
-						? getISODateString(completion_tests.end_date)
-						: (() => {
-								const today = new Date()
-								today.setDate(today.getDate() + 3)
-								return getISODateString(today) // Use calculated end date
-						  })(),
-					allDay: true,
-					name: completion_tests.title || `Completion Test + ${index + 1}`,
-					manuallyScheduled: true,
-					expanded: true,
-					leaf: false,
-					duration: 5,
-					durationunit: 'day',
-					team: completion_tests?.team,
-					task_group_id: completion_tests?.task_group_id,
-				}
-				if (completion_tests.children && completion_tests.children.length > 0) {
-					event.children = completion_tests.children.map((child) => ({
-						id: child.id || `child-${child.id}`,
-						resourceId,
-						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
-						endDate: child.end_date
-							? getISODateString(child.end_date)
-							: (() => {
-									const today = new Date()
-
-									return getISODateString(today) // Default end date is today's date
-							  })(),
-						allDay: true,
-						name: child.title,
-						leaf: true,
-						eventColor: 'green',
-					}))
-				}
-				return event
-			}),
-			...office_work?.map((office_works, index) => {
-				const noTeamTasks = office_work?.filter((c) => !c.team)
-				const hasTeam = office_works?.team !== null && office_works?.team !== undefined
-				let resourceId
-
-				if (hasTeam) {
-					resourceId = `office_work-${office_works.team}`
-				} else {
-					const noTeamIndex = noTeamTasks.indexOf(office_works)
-					resourceId = `office_work -  ${noTeamIndex + 1}`
-				}
-				const event = {
-					id: office_works.id || `office_work-${index + 1}`,
-					resourceId,
-					startDate: office_works.start_date ? getISODateString(office_works.start_date) : getISODateString(new Date()),
-					endDate: office_works.end_date
-						? getISODateString(office_works.end_date)
-						: (() => {
-								const today = new Date()
-								today.setDate(today.getDate() + 3)
-								return getISODateString(today) // Use calculated end date
-						  })(),
-					allDay: true,
-					name: office_works.title || `Office Work + ${index + 1}`,
-					manuallyScheduled: true,
-					expanded: true,
-					leaf: false,
-					duration: 5,
-					durationunit: 'day',
-					team: office_works?.team,
-					task_group_id: office_works?.task_group_id,
-				}
-				if (office_works.children && office_works.children.length > 0) {
-					event.children = office_works.children.map((child) => ({
-						id: child.id || `child-${child.id}`,
-						resourceId,
-						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
-						endDate: child.end_date
-							? getISODateString(child.end_date)
-							: (() => {
-									const today = new Date()
-
-									return getISODateString(today) // Default end date is today's date
-							  })(),
-						allDay: true,
-						name: child.title,
-						leaf: true,
-						eventColor: 'green',
-					}))
-				}
-				return event
-			}),
-			...auxiliary_construction?.map((auxiliary_constructions, index) => {
-				const noTeamTasks = auxiliary_construction?.filter((c) => !c.team)
-				const hasTeam = auxiliary_constructions?.team !== null && auxiliary_constructions?.team !== undefined
-				let resourceId
-
-				if (hasTeam) {
-					resourceId = `auxiliary_construction-${auxiliary_constructions.team}`
-				} else {
-					const noTeamIndex = noTeamTasks.indexOf(auxiliary_constructions)
-					resourceId = `auxiliary_construction -  ${noTeamIndex + 1}`
-				}
-				const event = {
-					id: auxiliary_constructions.id || `auxiliary_construction-${index + 1}`,
-					resourceId,
-					startDate: auxiliary_constructions.start_date
-						? getISODateString(auxiliary_constructions.start_date)
-						: getISODateString(new Date()),
-					endDate: auxiliary_constructions.end_date
-						? getISODateString(auxiliary_constructions.end_date)
-						: (() => {
-								const today = new Date()
-								today.setDate(today.getDate() + 3)
-								return getISODateString(today) // Use calculated end date
-						  })(),
-					allDay: true,
-					name: auxiliary_constructions.title || `Auxiliary Construction + ${index + 1}`,
-					manuallyScheduled: true,
-					expanded: true,
-					leaf: false,
-					duration: 5,
-					durationunit: 'day',
-					team: auxiliary_constructions?.team,
-					task_group_id: auxiliary_constructions?.task_group_id,
-				}
-				if (auxiliary_constructions.children && auxiliary_constructions.children.length > 0) {
-					event.children = auxiliary_constructions.children.map((child) => ({
-						id: child.id || `child-${child.id}`,
-						resourceId,
-						startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
-						endDate: child.end_date
-							? getISODateString(child.end_date)
-							: (() => {
-									const today = new Date()
-
-									return getISODateString(today) // Default end date is today's date
-							  })(),
-						allDay: true,
-						name: child.title,
-						leaf: true,
-						eventColor: 'green',
-					}))
-				}
-				return event
-			}),
-		]
+		return allEvents
 	}, [taskGroup])
 
 	console.log('events', taskGroup)
@@ -703,11 +857,65 @@ const Calender2 = ({
 
 	console.log('project', project)
 
+	// function sortTasksByStartDate(tasks) {
+	// 	const seenStartDates = new Set()
+	// 	const uniqueStartDateTasks = []
+	// 	const duplicateStartDateTasks = []
+
+	// 	// Separate tasks into unique and duplicate start dates using forEach
+	// 	tasks.forEach((task) => {
+	// 		const startDate = task.data.startDate.toDateString() // Use toDateString for consistent comparison
+	// 		if (!seenStartDates.has(startDate)) {
+	// 			uniqueStartDateTasks.push(task)
+	// 			seenStartDates.add(startDate)
+	// 		} else {
+	// 			duplicateStartDateTasks.push(task)
+	// 		}
+	// 	})
+
+	// 	// Sort tasks with unique start dates
+	// 	uniqueStartDateTasks.sort((a, b) => {
+	// 		return a.data.startDate.getTime() - b.data.startDate.getTime()
+	// 	})
+
+	// 	// Concatenate the unique tasks with the duplicate tasks at the end
+	// 	return uniqueStartDateTasks.concat(duplicateStartDateTasks)
+	// }
+	function sortTasksByStartDate(tasks) {
+		const seenStartDates = new Set()
+		const uniqueStartDateTasks = []
+		const duplicateStartDateTasks = []
+
+		// First pass: Separate tasks into unique and duplicate start dates based on their original start date
+		tasks.forEach((task) => {
+			// Ensure task.data.startDate is a Date object or convert it for consistent comparison
+			const startDate = task.data.startDate instanceof Date ? task.data.startDate : new Date(task.data.startDate)
+
+			const startDateString = startDate.toDateString() // Use toDateString() to ignore time part for uniqueness check
+
+			if (!seenStartDates.has(startDateString)) {
+				uniqueStartDateTasks.push(task)
+				seenStartDates.add(startDateString)
+			} else {
+				duplicateStartDateTasks.push(task)
+			}
+		})
+
+		// Sort only the unique tasks by their start date
+		uniqueStartDateTasks.sort((a, b) => {
+			const dateA = a.data.startDate instanceof Date ? a.data.startDate : new Date(a.data.startDate)
+			const dateB = b.data.startDate instanceof Date ? b.data.startDate : new Date(b.data.startDate)
+			return dateA.getTime() - dateB.getTime()
+		})
+
+		// Return both lists explicitly
+		return { unique: uniqueStartDateTasks, duplicates: duplicateStartDateTasks }
+	}
+
 	useEffect(() => {
 		if (!schedulerRef.current) return
 
 		const ganttProps = {
-			// other config
 			stripeFeature: true,
 			dependenciesFeature: true,
 		}
@@ -775,16 +983,6 @@ const Calender2 = ({
 											// If the preceding task exists, start the new subtask from its end date
 											newSubtaskStartDate = moment(precedingExistingChild.endDate)
 										} else {
-											// Fallback: If the ideal preceding task is also missing,
-											// we'll start from the parent's start date, or the latest existing child's end date
-											// This is a simpler fallback. For precise placement, you might need to
-											// recursively find the closest *existing* predecessor.
-											// For now, let's keep it simple as per your request:
-											// if the direct predecessor is missing, we use the parent's start date
-											// or if there are other children, the latest existing child's end date.
-											// However, to ensure correct sequential placement, we should try to find the last *known* preceding task.
-
-											// Let's refine this fallback to find the closest *existing* predecessor
 											let closestExistingPredecessor = null
 											for (let i = missingTaskIndex - 1; i >= 0; i -= 1) {
 												const currentDefaultTaskName = defaultSubTaskNames[i]
@@ -916,37 +1114,102 @@ const Calender2 = ({
 				eventDrop: ({ eventRecords }) => {
 					console.log('eventDrop', eventRecords)
 
-					console.log('Event drag ended:', eventRecords)
-					// Corrected from forEach to standard array forEach
 					eventRecords.forEach((event) => {
-						// Get Bryntum's Date objects
 						const bryntumStartDate = event.data.startDate
-						const bryntumEndDate = event.data.endDate // This is the start of the day AFTER the event ends
+						const bryntumEndDate = event.data.endDate
 
-						// Format start_date to YYYY-MM-DD
 						const start_date_for_backend = DateHelper.format(bryntumStartDate, 'YYYY-MM-DD')
-
-						// Adjust endDate to be inclusive and format to YYYY-MM-DD
 						const inclusiveEndDate = DateHelper.add(bryntumEndDate, -1, 'day')
 						const end_date_for_backend = DateHelper.format(inclusiveEndDate, 'YYYY-MM-DD')
 
-						console.log('eventDrop - Sending to backend:', {
+						const lastEndDate = new Date(end_date_for_backend)
+
+						lastEndDate.setDate(lastEndDate.getDate() + 1)
+
+						const final_end_date = DateHelper.format(lastEndDate, 'YYYY-MM-DD')
+
+						//  basically converting string date type to object to compare
+						const end_date_obj = new Date(end_date_for_backend)
+						const final_end_date_obj = new Date(final_end_date)
+
+						console.log('Updating main task:', {
 							id: event.data.id,
 							start_date: start_date_for_backend,
 							end_date: end_date_for_backend,
+							final_end_date,
 						})
 
+						// 1. Update parent task
 						updateTask({ start_date: start_date_for_backend, end_date: end_date_for_backend }, event.data.id).then(
 							(res) => {
 								if (res.status >= 200 && res.status < 300) {
-									console.log('Task updated successfully:', res.data)
+									// 2. Update subtasks
+									const subtasks = event.children || []
+
+									const { unique, duplicates } = sortTasksByStartDate(subtasks)
+
+									console.log('Parent task updated:', duplicates)
+
+									if (unique?.length > 0) {
+										let subtaskStart = new Date(bryntumStartDate)
+
+										const tempStartData = subtaskStart
+
+										unique.forEach((subtask, index) => {
+											const subtaskStartDate = new Date(subtaskStart)
+											const subtaskEndDate = DateHelper.add(subtaskStartDate, 1, 'day')
+
+											const formattedStart = DateHelper.format(subtaskStartDate, 'YYYY-MM-DD')
+											const formattedEnd = DateHelper.format(subtaskEndDate, 'YYYY-MM-DD')
+
+											console.log(`Updating subtask ${index + 1}`, {
+												id: subtask.data.id,
+												start_date: formattedStart,
+												end_date: formattedEnd,
+											})
+
+											updateTask({ start_date: formattedStart, end_date: formattedEnd }, subtask.data.id)
+
+											console.log('formattedStart', formattedEnd, final_end_date, formattedEnd === final_end_date)
+
+											subtaskStart = subtaskEndDate
+										})
+									}
+									if (duplicates?.length > 0) {
+										let subtaskStart = new Date(bryntumStartDate)
+
+										const tempStartData = subtaskStart
+
+										duplicates.forEach((subtask, index) => {
+											const subtaskStartDate = new Date(subtaskStart)
+											const subtaskEndDate = DateHelper.add(subtaskStartDate, 1, 'day')
+
+											const formattedStart = DateHelper.format(subtaskStartDate, 'YYYY-MM-DD')
+											const formattedEnd = DateHelper.format(subtaskEndDate, 'YYYY-MM-DD')
+
+											console.log('MyCurrent', subtask.data.name, formattedStart, formattedEnd)
+
+											console.log(`Updating subtask ${index + 1}`, {
+												id: subtask.data.id,
+												start_date: formattedStart,
+												end_date: formattedEnd,
+											})
+
+											updateTask({ start_date: formattedStart, end_date: formattedEnd }, subtask.data.id)
+
+											console.log('formattedStart', formattedEnd, final_end_date, formattedEnd === final_end_date)
+
+											subtaskStart = subtaskEndDate
+										})
+									}
 								} else {
-									console.error('Error updating: ', res.error.message)
+									console.error('Error updating parent task:', res.error.message)
 								}
 							}
 						)
 					})
 				},
+
 				eventResizeStart: ({ eventRecord }) => {
 					console.log('Event resize started:', eventRecord)
 				},
@@ -1029,7 +1292,8 @@ const Calender2 = ({
 					console.log('After event edit listener:', action)
 				},
 				beforeEventEditShow({ editor, eventRecord }) {
-					console.log('beforeEventEditShow', eventRecord)
+					const data = sortTasksByStartDate(eventRecord?.children)
+					console.log('beforeEventEditShow', data)
 					console.log('--- Editor Debug Info ---')
 					console.log('Editor object:', editor) // The main editor instance
 					console.log('Editor initialConfig:', editor.initialConfig) // What config it received
