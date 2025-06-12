@@ -14,3 +14,4 @@
 - mobiscoll for timeline
 
 - added bryntum for gantt chart
+- support for impl schedule
