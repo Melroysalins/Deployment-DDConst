@@ -22,7 +22,7 @@ import Iconify from 'components/Iconify'
 import HoverBox from 'components/hover'
 import NotePopup from 'components/NotePopup'
 import { getColorFromValue } from '../helper'
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next'
 
 const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
 	height: '24px',
@@ -40,8 +40,8 @@ const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
 	},
 	'& .MuiSelect-select': {
 		display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center', // Center the text horizontally
+		alignItems: 'center',
+		justifyContent: 'center', // Center the text horizontally
 		paddingRight: '0.2rem !important',
 		gap: '4px',
 		color: textColor,
@@ -49,88 +49,103 @@ const StyledSelect = styled(MuiSelect)(({ bgColor, textColor }) => ({
 		'@media (max-width: 105rem)': {
 			fontSize: '12px',
 			height: '14px',
-		}, 
+		},
 	},
-}));
+}))
 
 const CustomSelectIcon = () => (
 	<>
-		<Box sx={{ width: '0px', height: '0px'}} />
+		<Box sx={{ width: '0px', height: '0px' }} />
 	</>
-  );
+)
 
-  const renderTableCell = (text, cellWidth='3.73vw', isTableHead=false, BoxWidth) => { 
-	const shouldEllipsis = BoxWidth === 2;
+const renderTableCell = (text, cellWidth = '3.73vw', isTableHead = false, BoxWidth) => {
+	const shouldEllipsis = BoxWidth === 2
 	return (
-	<TableCell sx={{ padding: '0.425rem 0.175rem', width: '100%', height: '48px'}}>
-	  <Typography 
-	  	sx={{ 
-			maxWidth: '10.47vw', 
-			whiteSpace: 'nowrap', 
-			overflow: 'hidden', 
-			textOverflow: 'ellipsis', 
-			paddingLeft: '8px', 
-			fontSize: '14px', 
-			textAlign: isTableHead && 'center', 
-			color: isTableHead ? '#000' : '#596570', // Conditional color
-			fontWeight: isTableHead ? 600 : 'normal', // Conditional fontWeight
-			'@media (max-width: 1510px)': {
-				maxWidth: shouldEllipsis ? '6.47vw': 'none',
-			},
-		}}>
-		  {text}
-	  </Typography>
-	</TableCell>
-  )
-  };
-  
-const renderTableRow = (demolitionInstallation, index, handleChangeInstallation, displayName, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, t) => {
+		<TableCell sx={{ padding: '0.425rem 0.175rem', width: '100%', height: '48px' }}>
+			<Typography
+				sx={{
+					maxWidth: '10.47vw',
+					whiteSpace: 'nowrap',
+					overflow: 'hidden',
+					textOverflow: 'ellipsis',
+					paddingLeft: '8px',
+					fontSize: '14px',
+					textAlign: isTableHead && 'center',
+					color: isTableHead ? '#000' : '#596570', // Conditional color
+					fontWeight: isTableHead ? 600 : 'normal', // Conditional fontWeight
+					'@media (max-width: 1510px)': {
+						maxWidth: shouldEllipsis ? '6.47vw' : 'none',
+					},
+				}}
+			>
+				{text}
+			</Typography>
+		</TableCell>
+	)
+}
+
+const renderTableRow = (
+	demolitionInstallation,
+	index,
+	handleChangeInstallation,
+	displayName,
+	newObj,
+	isEdit,
+	hoveredRowIndex,
+	setHoveredRowIndex,
+	handleOpenPopup,
+	isNotePopupOpen,
+	t
+) => {
 	const BoxWidth = demolitionInstallation.statuses.length
 	return (
-	<>
-	<TableRow  sx={{ position: 'relative'}} onMouseEnter={() => setHoveredRowIndex(index)}
-	onMouseLeave={() => {
-        if (!isNotePopupOpen) { // Check if NotePopup is not open
-            setHoveredRowIndex(null);
-        }
-    }} >
-		{renderTableCell(`${displayName}`, '10%', false, BoxWidth)}
-		<TableCell className={style.TableCell} >
-			{isEdit ? (
-				<TextField
-					className={style.TextField}
-					variant="outlined"
-					sx={{ '& .MuiInputBase-root': { height: '32px', borderRadius: '8px', maxWidth: '98px' } }}
-					placeholder="320"
-					onChange={(e) => handleChangeInstallation(e.target.value, 'length_demolition', newObj.id, index)}
-					value={newObj.currentObj.length_demolition[index]}
-				/>
-			) : (
-				<Typography
-					variant="body1"
-					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
-					className={style.Typography}
-				>
-					{newObj.currentObj.length_demolition[index]}
-				</Typography>
-			)}
-		</TableCell>
-		{demolitionInstallation.statuses.map((e, statusIndex) => (
-			<>{renderStatus(demolitionInstallation, isEdit, handleChangeInstallation, newObj, index, statusIndex, t)}</>
-		))}
-		{hoveredRowIndex === index && isEdit && (
-			<HoverBox index={index} setVisibleNotes={handleOpenPopup}/>
-		)}
-	</TableRow>
-	</>
-	
-)}
+		<>
+			<TableRow
+				sx={{ position: 'relative' }}
+				onMouseEnter={() => setHoveredRowIndex(index)}
+				onMouseLeave={() => {
+					if (!isNotePopupOpen) {
+						// Check if NotePopup is not open
+						setHoveredRowIndex(null)
+					}
+				}}
+			>
+				{renderTableCell(`${displayName}`, '10%', false, BoxWidth)}
+				<TableCell className={style.TableCell}>
+					{isEdit ? (
+						<TextField
+							className={style.TextField}
+							variant="outlined"
+							sx={{ '& .MuiInputBase-root': { height: '32px', borderRadius: '8px', maxWidth: '98px' } }}
+							placeholder="320"
+							onChange={(e) => handleChangeInstallation(e.target.value, 'length_demolition', newObj.id, index)}
+							value={newObj.currentObj.length_demolition[index]}
+						/>
+					) : (
+						<Typography
+							variant="body1"
+							sx={{ padding: '0px', fontSize: '14px', textAlign: 'center' }}
+							className={style.Typography}
+						>
+							{newObj.currentObj.length_demolition[index]}
+						</Typography>
+					)}
+				</TableCell>
+				{demolitionInstallation.statuses.map((e, statusIndex) => (
+					<>{renderStatus(demolitionInstallation, isEdit, handleChangeInstallation, newObj, index, statusIndex, t)}</>
+				))}
+				{hoveredRowIndex === index && isEdit && <HoverBox index={index} setVisibleNotes={handleOpenPopup} />}
+			</TableRow>
+		</>
+	)
+}
 
 const renderStatus = (demolitionInstallation, isEdit, handleChangeInstallation, newObj, connIndex, statusIndex, t) => {
-	const { bgColor, textColor } = getColorFromValue(demolitionInstallation.statuses?.[statusIndex]);
+	const { bgColor, textColor } = getColorFromValue(demolitionInstallation.statuses?.[statusIndex])
 
 	return (
-		<TableCell className={style.TableCell} >
+		<TableCell className={style.TableCell}>
 			{isEdit ? (
 				<StyledSelect
 					value={demolitionInstallation.statuses?.[statusIndex]}
@@ -152,7 +167,7 @@ const renderStatus = (demolitionInstallation, isEdit, handleChangeInstallation, 
 			) : (
 				<Typography
 					variant="body1"
-					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', whiteSpace: 'nowrap'  }}
+					sx={{ padding: '0px', fontSize: '14px', textAlign: 'center', whiteSpace: 'nowrap' }}
 					className={style.Typography}
 				>
 					{t(STATUS_MAP[demolitionInstallation.statuses?.[statusIndex]])}
@@ -162,110 +177,149 @@ const renderStatus = (demolitionInstallation, isEdit, handleChangeInstallation, 
 	)
 }
 
-const InstallationTable = ({ handleChangeInstallation, newObj, isEdit, isDemolitionExpanded, toggleDemolitionExpand, handleAddNote}) => {
+const InstallationTable = ({
+	handleChangeInstallation,
+	newObj,
+	isEdit,
+	isDemolitionExpanded,
+	toggleDemolitionExpand,
+	handleAddNote,
+}) => {
 	const [hoveredRowIndex, setHoveredRowIndex] = useState(null)
 	const [isNotePopupOpen, setIsNotePopupOpen] = useState(false)
-	const [inputValue, setInputValue] = useState(); 
+	const [inputValue, setInputValue] = useState()
 
-	const { t } = useTranslation(['diagram']);
+	const { t } = useTranslation(['diagram'])
 
 	const handleOpenPopup = (index) => {
-		setIsNotePopupOpen(true);
+		setIsNotePopupOpen(true)
 		setInputValue(newObj.currentObj.demolitionInstallations[index].note)
-	};
+	}
 
 	const handleClosePopup = () => {
-		setIsNotePopupOpen(false);
-		setInputValue('')
-	};
-
-	const AddNote = () => {
-		handleAddNote(newObj.id, inputValue, "demolitionInstallations", hoveredRowIndex)
 		setIsNotePopupOpen(false)
 		setInputValue('')
 	}
 
-	const button = { label: 'Continue', onClick: (() => AddNote()) }
+	const AddNote = () => {
+		handleAddNote(newObj.id, inputValue, 'demolitionInstallations', hoveredRowIndex)
+		setIsNotePopupOpen(false)
+		setInputValue('')
+	}
+
+	const button = { label: 'Continue', onClick: () => AddNote() }
 
 	return (
-	<>
-	<Box sx={{ position: 'relative', width: '100%'}}>
-		<Collapse
-			sx={{ overflow: 'hidden', position: 'relative', zIndex: 1, border: '1px solid lightgrey', borderRadius: '8px' }}
-			in={isDemolitionExpanded}
-			collapsedSize={
-				newObj.currentObj.demolitionInstallations.length < 7 ? `${(newObj.currentObj.demolitionInstallations.length * 48) + 48}px`: '338px'
-			}
-		>
-			<TableContainer
-				sx={{
-					width: '100%',
-					overflow: 'visible',
-				}}
-			>
-				<Table>
-					<TableHead>
-						<TableRow style={{width: '100%', backgroundColor: '#f9f9fa' }}>
-							{renderTableCell(t('T/L Section'), '10%', true)}
-							{renderTableCell(t('Length(m)'), '40%', true)}
-							{newObj.currentObj.demolitionInstallations[0]?.statuses.map((_, index) => (
-								<>{renderTableCell(t('TLWithNumber', { number: index + 1, tl: t('T/L') }), '10%', true)}</>
-							))}
-						</TableRow>
-					</TableHead>
-					<TableBody>
-						{newObj.currentObj.demolitionInstallations.map((demolitionInstallation, index) => {
-							let status = ''
-							const joinType = newObj.currentObj.demolitions[index]?.joinType
-							console.log(newObj, newObj.currentObj.demolitionInstallations)
-							if (index === 0) {
-								status = `${newObj?.cable_name?.startLocation}${t(`${newObj.currentObj.endpoints.start}`)}#${index + 1}~${t(`${joinType}`)}#${
-									index + 1
-								}`
-							} else if (index === newObj.currentObj.demolitionInstallations.length - 1) {
-								status = `${t(`${newObj.currentObj.connections[index - 1]?.joinType}`)}#${index}~${newObj?.cable_name?.endLocation}${t(`${newObj.currentObj.endpoints.end}`)}`;
-							} else {
-								status = `${t(`${newObj.currentObj.connections[index - 1]?.joinType}`)}#${index}~${
-									t(`${joinType}`)
-								}#${index + 1}`
-							}
-							return <>{renderTableRow(demolitionInstallation, index, handleChangeInstallation, status, newObj, isEdit, hoveredRowIndex, setHoveredRowIndex, handleOpenPopup, isNotePopupOpen, t)}</>
-						})}
-
-					</TableBody>
-				</Table>
-			</TableContainer>
-		</Collapse>
-		{newObj.currentObj.demolitionInstallations.length > 6 && (
-			<IconButton
-				style={{
-					border: '1px solid rgba(0, 0, 0, 0.1)',
-					backgroundColor: '#fff',
-					boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
-					borderRadius: '32px',
-					width: '24px', // Adjusted size
-					height: '24px', // Adjusted size
-					boxSizing: 'border-box',
-					zIndex: '5',
-					position: 'absolute',
-					right: `20px`,
-					bottom: '-12px',
-					padding: '0px',
-				}}
-				onClick={toggleDemolitionExpand}
-			>
-				<Iconify
-					icon={isDemolitionExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
-					width={window.innerWidth < 1600 ? 14 : 16} // Adjusted size
-					height={window.innerHeight < 900 ? 14 : 16} // Adjusted size
-					sx={{ color: '#596570' }}
-				/>
-			</IconButton>
-		)}
-	</Box>
-	<NotePopup isOpen={isNotePopupOpen} onClose={handleClosePopup} title={"Add Note"} button={button} inputValue={inputValue} setInputValue={setInputValue} /> 
-	</>
-)
+		<>
+			<Box sx={{ position: 'relative', width: '100%' }}>
+				<Collapse
+					sx={{
+						overflow: 'hidden',
+						position: 'relative',
+						zIndex: 1,
+						border: '1px solid lightgrey',
+						borderRadius: '8px',
+					}}
+					in={isDemolitionExpanded}
+					collapsedSize={
+						newObj.currentObj.demolitionInstallations.length < 7
+							? `${newObj.currentObj.demolitionInstallations.length * 48 + 48}px`
+							: '338px'
+					}
+				>
+					<TableContainer
+						sx={{
+							width: '100%',
+							overflow: 'visible',
+						}}
+					>
+						<Table>
+							<TableHead>
+								<TableRow style={{ width: '100%', backgroundColor: '#f9f9fa' }}>
+									{renderTableCell(t('T/L Section'), '10%', true)}
+									{renderTableCell(t('Length(m)'), '40%', true)}
+									{newObj.currentObj.demolitionInstallations[0]?.statuses.map((_, index) => (
+										<>{renderTableCell(t('TLWithNumber', { number: index + 1, tl: t('T/L') }), '10%', true)}</>
+									))}
+								</TableRow>
+							</TableHead>
+							<TableBody>
+								{newObj.currentObj.demolitionInstallations.map((demolitionInstallation, index) => {
+									let status = ''
+									const joinType = newObj.currentObj.demolitions[index]?.joinType
+									console.log(newObj, newObj.currentObj.demolitionInstallations)
+									if (index === 0) {
+										status = `${newObj?.cable_name?.startLocation}${t(`${newObj.currentObj.endpoints.start}`)}#${
+											index + 1
+										}~${t(`${joinType}`)}#${index + 1}`
+									} else if (index === newObj.currentObj.demolitionInstallations.length - 1) {
+										status = `${t(`${newObj.currentObj.connections[index - 1]?.joinType}`)}#${index}~${
+											newObj?.cable_name?.endLocation
+										}${t(`${newObj.currentObj.endpoints.end}`)}`
+									} else {
+										status = `${t(`${newObj.currentObj.connections[index - 1]?.joinType}`)}#${index}~${t(
+											`${joinType}`
+										)}#${index + 1}`
+									}
+									return (
+										<>
+											{renderTableRow(
+												demolitionInstallation,
+												index,
+												handleChangeInstallation,
+												status,
+												newObj,
+												isEdit,
+												hoveredRowIndex,
+												setHoveredRowIndex,
+												handleOpenPopup,
+												isNotePopupOpen,
+												t
+											)}
+										</>
+									)
+								})}
+							</TableBody>
+						</Table>
+					</TableContainer>
+				</Collapse>
+				{newObj.currentObj.demolitionInstallations.length > 6 && (
+					<IconButton
+						style={{
+							border: '1px solid rgba(0, 0, 0, 0.1)',
+							backgroundColor: '#fff',
+							boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.04)',
+							borderRadius: '32px',
+							width: '24px', // Adjusted size
+							height: '24px', // Adjusted size
+							boxSizing: 'border-box',
+							zIndex: '5',
+							position: 'absolute',
+							right: `20px`,
+							bottom: '-12px',
+							padding: '0px',
+						}}
+						onClick={toggleDemolitionExpand}
+					>
+						<Iconify
+							icon={isDemolitionExpanded ? 'mi:chevron-double-up' : 'mi:chevron-double-down'}
+							width={window.innerWidth < 1600 ? 14 : 16} // Adjusted size
+							height={window.innerHeight < 900 ? 14 : 16} // Adjusted size
+							sx={{ color: '#596570' }}
+						/>
+					</IconButton>
+				)}
+			</Box>
+			<NotePopup
+				isOpen={isNotePopupOpen}
+				onClose={handleClosePopup}
+				title={'Add Note'}
+				button={button}
+				inputValue={inputValue}
+				setInputValue={setInputValue}
+			/>
+		</>
+	)
 }
 
 InstallationTable.propTypes = {

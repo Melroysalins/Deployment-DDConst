@@ -46,6 +46,8 @@ export const updateTask = async (data, id) => {
 	const { nested_tasks, allDay, comments, overlap, resource, ...rest } = data
 	const res = await supabase.from('project_tasks').update(rest).eq('id', id).select()
 	console.log('update', res)
+	console.log('Updating task ID:', id)
+	console.log('Payload:', rest, res)
 	return res
 }
 export const deleteTask = async (id) => {

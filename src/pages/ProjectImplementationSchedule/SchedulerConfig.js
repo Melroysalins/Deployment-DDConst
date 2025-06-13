@@ -38,85 +38,67 @@ export const resources = [
 export const columns = [{ text: 'Work / Team', field: 'name', width: 200 }]
 
 export const features = {
-	// autoAdjustTimeAxis: true,
 	dependencyEdit: true,
 	nestedEvents: true,
-
+	dependencies: true,
 	eventDrag: {
 		constrainDragToTimeline: false,
 		showExactDropPosition: true,
-		constrainDragToResource: true, // <-- Only allow dragging within the same row/resource
+		constrainDragToResource: true,
 	},
 	eventResize: true,
-	// Add event drag selection feature
 	eventDragSelect: {
 		disabled: false,
-		allowSelect: true, // Allow selecting events
-		showTooltip: true, // Show tooltip with selected events count
+		allowSelect: true,
+		showTooltip: true,
 	},
 	eventCopyPaste: {
 		disabled: false,
 	},
 	taskEdit: {
+		editorConfig: {
+			title: 'Example ',
+		},
 		items: {
 			generalTab: true,
+			notesTab: true,
 			predecessorsTab: true,
 			successorsTab: true,
+			newTab: {
+				title: 'SubTask',
+				weight: 90,
+				items: {
+					subtasksContainer: {
+						type: 'container',
+						ref: 'subtasksContainer',
+						layout: 'vbox',
+						flex: 1,
+						style: 'padding: 10px;',
+					},
+				},
+			},
 		},
 	},
-	// eventEdit: {
-	//     // Custom event editor to handle task creation and editing
-	//     editorConfig: {
-	//         items: {
-	//             // Add custom fields for task creation
-	//             dependency: true,
-	//         },
-	//     },
+	// eventMenu: {
+	// 	items: {
+	// 		addTask: {
+	// 			text: 'Add SubTask',
+	// 			icon: 'b-fa b-fa-plus',
+	// 			ref: 'addSubtaskItem',
+	// 		},
+	// 	},
 	// },
-	dependencies: {
-		clickWidth: 6,
-		radius: 30,
-	}, // draw dependency lines
-	// dependencyEdit: true,            // allow editing dependencies
-	dependencyMenu: true, // (optional) context-menu support
-	// eventEdit: {                // configure the task editor
-	//     // show Predecessors/Successors tabs
-	//     items: {
-	//         general: true,          // default fields
-	//         predecessors: true,          // Predecessors dropdown
-	//         successors: true           // Successors dropdown
-	//     }
-	// },
-	// taskEdit: {
-	//     items: {
-	//         successorsTab: {
-	//             items: {
-	//                 grid: {
-	//                     columns: {
-	//                         // Columns are held in a store, thus it uses `data`
-	//                         // instead of `items`
-	//                         data: {
-	//                             name: {
-	//                                 // Change header text for the name column
-	//                                 text: 'Linked to'
-	//                             }
-	//                         }
-	//                     }
-	//                 }
-	//             }
-	//         }
-	//     }
-	// },
-	// Optionally add tooltip to show scheduling conflicts
+
+	dependencyMenu: true,
 	eventTooltip: {
 		template: (data) => {
 			return `
-                        <div class="b-sch-event-title">${data.eventRecord.name}</div>
-                        <div class="b-sch-event-time">${DateHelper.format(
-													data.eventRecord.startDate,
-													'HH:mm'
-												)} - ${DateHelper.format(data.eventRecord.endDate, 'HH:mm')}</div>
-                    `
+                <div class="b-sch-event-title">${data.eventRecord.name}</div>
+                <div class="b-sch-event-time">${DateHelper.format(
+									data.eventRecord.startDate,
+									'HH:mm'
+								)} - ${DateHelper.format(data.eventRecord.endDate, 'HH:mm')}</div>
+            `
 		},
 	},
 }
@@ -145,4 +127,14 @@ export const getTimelineRange = () => {
 	const startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1) // 1 month in the past
 	const endDate = new Date(today.getFullYear(), today.getMonth() + 2, 0) // 1 month in the future
 	return { startDate, endDate }
+}
+
+export const getISODateString = (date) => {
+	// Ensure it's a Date object
+	const d = new Date(date)
+	// Get year, month (0-indexed), and day
+	const year = d.getFullYear()
+	const month = String(d.getMonth() + 1).padStart(2, '0') // Add 1 because months are 0-indexed
+	const day = String(d.getDate()).padStart(2, '0')
+	return `${year}-${month}-${day}`
 }

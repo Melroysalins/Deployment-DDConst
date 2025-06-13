@@ -13,6 +13,7 @@ import BasicTabs from 'components/Drawer/BasicTabs'
 import { useTranslation } from 'react-i18next'
 import RequestApproval from 'layouts/RequestApproval'
 import Calendar2 from './Calender2'
+import FilterPopup from 'components/FilterPopUp'
 
 const ProjectIntro = styled(Box)(({ theme }) => ({
 	backgroundColor: theme.palette.background.paper,
@@ -30,6 +31,21 @@ const ProjectImplementationSchedule = () => {
 	const { id } = useParams()
 	const [loading, setLoading] = useState(false)
 	const [data, setData] = useState({})
+	// Filters code
+	const [isFilterOpen, SetIsFilterOpen] = useState(false)
+	const [isFilteredApplied, SetIsFilterApplied] = useState(false)
+	const [filters, SetFilters] = useState({
+		tasktype: '',
+		lines: '',
+		demolition: '',
+	})
+	const [taskGroup, SetTaskGroup] = useState([])
+	const [allTaskGroup, SetAllTaskGroup] = useState([])
+	const [allResources, SetAllRescources] = useState([])
+	const [resources, SetResources] = useState([])
+	const [taskType, SetTaskType] = useState([])
+
+	// Filters Code End
 	const {
 		isDrawerOpen,
 		setopenRequestApproval,
@@ -53,6 +69,82 @@ const ProjectImplementationSchedule = () => {
 		if (id) fetchData(id)
 	}, [id])
 
+	// Filters code
+
+	const handleChange = (field, value) => {
+		SetTaskGroup(allTaskGroup)
+		if (field === 'tasktype') {
+			SetFilters((prev) => ({ ...prev, [field]: value }))
+		} else {
+			SetFilters((prev) => ({ ...prev, [field]: value }))
+		}
+	}
+
+	const handleonClearFilter = () => {
+		SetFilters({
+			diagramName: '',
+			lines: '',
+			demolition: '',
+			diagramId: '',
+		})
+
+		SetResources(allResources)
+		SetTaskGroup(allTaskGroup)
+		SetIsFilterOpen(false)
+
+		console.log('myresoucers', resources, allResources)
+	}
+
+	const handleApplyFilters = (filters) => {
+		SetIsFilterApplied(true)
+		console.log('value', filters)
+
+		const { tasktype, lines, demolition } = filters
+
+		if (tasktype) {
+			const filteredResources = allResources?.filter((resource) => resource?.id === tasktype)
+
+			SetResources(filteredResources)
+		} else {
+			SetResources(allResources)
+		}
+
+		if (lines?.length || demolition?.length) {
+			console.log('mecalled')
+			const filterTasks = (tasks) =>
+				tasks?.filter((item) => {
+					const matchLines = item?.title?.toLowerCase()?.includes(lines.toLowerCase())
+					const matchDemolition = demolition !== ' ' && String(item?.isDemolition) === demolition
+
+					if (lines?.length && demolition?.length) {
+						return matchLines && matchDemolition
+					}
+
+					if (lines) {
+						return matchLines
+					}
+
+					if (demolition !== undefined) {
+						return matchDemolition
+					}
+					return true
+				})
+
+			const modifiedData = {
+				metal_fittings: filterTasks(allTaskGroup?.metal_fittings),
+				connections: filterTasks(allTaskGroup?.connections),
+				installations: filterTasks(allTaskGroup?.installations),
+				completion_test: filterTasks(allTaskGroup?.completion_test),
+				office_work: filterTasks(allTaskGroup?.office_work),
+				auxiliary_construction: filterTasks(allTaskGroup?.auxiliary_construction),
+			}
+
+			SetTaskGroup(modifiedData)
+
+			console.log('Melroy', modifiedData)
+		}
+	}
+
 	return (
 		<div>
 			{/* <Box
@@ -70,7 +162,46 @@ const ProjectImplementationSchedule = () => {
 				</ProjectIntro> 
 			</Box> */}
 
-			<Box sx={{ display: 'flex', gap: '10px', position: 'absolute', top: 28, right: 44 }}>
+			<Box
+				sx={{
+					display: 'flex',
+					gap: '13px',
+					position: 'absolute',
+					flexDirection: 'row',
+					top: 28,
+					right: 44,
+					alignItems: 'center',
+					justifyContent: 'center',
+				}}
+			>
+				<Stack direction={'row'} justifyContent={'flex-end'}>
+					<MuiButton
+						size="small"
+						variant="contained"
+						sx={{ padding: 0.5, minWidth: 0, width: 30 }}
+						onClick={(e) => {
+							e.stopPropagation() // Stop Accordion behv(open or close) on click on button
+							SetIsFilterOpen(true)
+						}}
+					>
+						<Iconify icon="heroicons-funnel" width={20} height={20} />
+					</MuiButton>
+					{isFilterOpen && (
+						<FilterPopup
+							open={isFilterOpen}
+							onClose={() => {
+								SetIsFilterOpen(false)
+							}}
+							onClearFilter={handleonClearFilter}
+							onApplyFilters={handleApplyFilters}
+							handleChange={handleChange}
+							filters={filters}
+							SetFilters={SetFilters}
+							isTaskType={true}
+							taskType={taskType}
+						/>
+					)}
+				</Stack>
 				<MuiButton
 					variant="contained"
 					size="medium"
@@ -110,7 +241,24 @@ const ProjectImplementationSchedule = () => {
 			{openRequestApproval && <RequestApproval />}
 			<Page title="PS">
 				<Stack px={2} mt={7}>
-					<Calendar2 />
+					<Calendar2
+						isFilterOpen={isFilterOpen}
+						SetIsFilterOpen={SetIsFilterOpen}
+						isFilteredApplied={isFilteredApplied}
+						SetIsFilterApplied={SetIsFilterApplied}
+						filters={filters}
+						SetFilters={SetFilters}
+						taskGroup={taskGroup}
+						SetTaskGroup={SetTaskGroup}
+						allTaskGroup={allTaskGroup}
+						SetAllTaskGroup={SetAllTaskGroup}
+						allResources={allResources}
+						SetAllRescources={SetAllRescources}
+						resources={resources}
+						SetResources={SetResources}
+						taskType={taskType}
+						SetTaskType={SetTaskType}
+					/>
 				</Stack>
 			</Page>
 			{/* <Page title="PS">

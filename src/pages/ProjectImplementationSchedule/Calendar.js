@@ -85,6 +85,8 @@ function App() {
 			setColor(event.color)
 			setDate([startDate, endDate])
 			setCheckedResources(event.resource)
+
+			console.log('POPUP', startDate, endDate)
 		} catch (error) {
 			console.log(error)
 		}
@@ -114,19 +116,19 @@ function App() {
 
 	const createEventsByProject = () => {
 		if (!objs || !objs[0]?.currentObj) return []
-		
+
 		// Combine connections and installations into one array
 		const combinedTasks = [
 			...(objs[0]?.currentObj?.connections || []),
-			...(objs[0]?.currentObj?.installations || [])
-		].map(task => ({
+			...(objs[0]?.currentObj?.installations || []),
+		].map((task) => ({
 			...task,
 			// Add any additional formatting needed for calendar events
 			start: new Date(task.start),
 			end: new Date(task.end),
 			// You can add a type field to distinguish between connections and installations
-			type: task.task_group || 'unknown'
-		}));
+			type: task.task_group || 'unknown',
+		}))
 
 		handleSetEvent(combinedTasks)
 		handlesetMyResources(combinedTasks)
@@ -151,6 +153,7 @@ function App() {
 			setLoader(true)
 			const startDate = moment(popupEventDate[0]).format('YYYY-MM-DD')
 			const endDate = moment(popupEventDate[1]).format('YYYY-MM-DD')
+			console.log('POPUP', startDate, endDate)
 			const newEvent = {
 				title: popupEventTitle,
 				start: startDate,
@@ -179,9 +182,9 @@ function App() {
 			title += ` (${differenceInDays(start, end) + 1} DAYS, ${last} WORK DAYS)`
 		}
 		return (
-			<div 
-				className="timeline-event" 
-				style={{ background: bg, color, border }} 
+			<div
+				className="timeline-event"
+				style={{ background: bg, color, border }}
 				onClick={(e) => {
 					if (allowTaskCursor && !event.original?.task_id) {
 						e.stopPropagation()
@@ -200,22 +203,22 @@ function App() {
 				}}
 			>
 				{event.original?.comments?.length ? (
-                    <>
-                        <Box>
-                            <img
-                                width={16}
-                                height={16}
-                                src={'/static/icons/Message.svg'} // Path to the message icon
-                                alt={'message'}
-                                style={{ position: 'absolute', right: 5, top: -5 }} // Positioning the icon
-                            />
-                        </Box>
+					<>
+						<Box>
+							<img
+								width={16}
+								height={16}
+								src={'/static/icons/Message.svg'} // Path to the message icon
+								alt={'message'}
+								style={{ position: 'absolute', right: 5, top: -5 }} // Positioning the icon
+							/>
+						</Box>
 
-                        {title}
-                    </>
-                ) : (
-                    <>{title}</>
-                )}
+						{title}
+					</>
+				) : (
+					<>{title}</>
+				)}
 			</div>
 		)
 	}
@@ -231,7 +234,7 @@ function App() {
 
 	// popup options
 	const headerText = React.useMemo(() => (isEdit ? 'View work order' : 'New work order'), [isEdit])
-	
+
 	const popupButtons = React.useMemo(() => {
 		if (isEdit) {
 			return ['cancel']

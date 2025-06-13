@@ -39,8 +39,8 @@
 		]
 	},
 	"dependencies": {
-		"@bryntum/schedulerpro": "npm:@bryntum/schedulerpro-trial@^6.1.8",
-		"@bryntum/schedulerpro-react": "^6.1.8",
+		"@bryntum/schedulerpro": "npm:@bryntum/schedulerpro-trial@^6.2.2",
+		"@bryntum/schedulerpro-react": "^6.2.2",
 		"@bryntum/schedulerpro-trial-lib": "https://npm.bryntum.com/@bryntum%2fschedulerpro-trial-lib/-/schedulerpro-trial-lib-1.0.0.tgz",
 		"@emotion/react": "^11.9.3",
 		"@emotion/styled": "^11.9.3",

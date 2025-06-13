@@ -1,7 +1,7 @@
 import React from 'react'
-import { Box, Button, Tooltip, styled } from '@mui/material';
-import Iconify from 'components/Iconify';
-import PropTypes from 'prop-types';
+import { Box, Button, Tooltip, styled } from '@mui/material'
+import Iconify from 'components/Iconify'
+import PropTypes from 'prop-types'
 
 const HoverDiv = styled(Box)(({ index, scrollPosition }) => ({
 	visibility: 'hidden', // Hide the box by default
@@ -17,80 +17,88 @@ const HoverDiv = styled(Box)(({ index, scrollPosition }) => ({
 	borderRadius: '4px', // Example border radius, adjust to match your design
 	border: '1px solid #e0e0e0', // Example border, adjust as needed
 	zIndex: 10, // Place the box above other elements
-	padding: '2px',	
+	padding: '2px',
 	transform: 'translateY(-50%)',
 	'&:hover': {
 		boxShadow: 'none',
 	},
 	gap: '4px',
-}));
+}))
 
 const HoverBox = ({ index, setVisibleNotes, isDelete, deleteRow }) => {
-    
 	console.log('HoverBox index:', index)
 
-  return (
-	<HoverDiv
-	sx={{
-		visibility: 'visible', // Initially hidden
-	}}
-	index={index}
-	>
-		<Tooltip title="Add note" arrow placement='right'>
-			<Button
-				sx={{ 	
-					padding: '0px',
-					minWidth: 'auto', // Adjust as needed
-					width: '24px',
-					height: '24px',
-					borderRadius: '2px', // Rounds the corners to create a circle
-					backgroundColor: '#fff',
-					'& .iconify': { // Assuming a className of 'iconify' is added to the Iconify component
-						opacity: '0.5',
-					},
-					'&:hover': {
-						backgroundColor: '#EDEDEF',
-						'& .iconify': { // Assuming a className of 'iconify' is added to the Iconify component
-						opacity: '1',
-					},
-					},
-				}}
-				onClick={() => setVisibleNotes(index)}
-			>
-				<Iconify icon="uil:clipboard-notes" width={20} height={20} sx={{ color: '#596570'}} />
-			</Button>
-		</Tooltip>
-		{isDelete && (
-			<Button
-				sx={{
-					padding: '0px',
-					minWidth: 'auto', // Adjust as needed
-					width: '24px',
-					height: '24px',
-					borderRadius: '2px', // Rounds the corners to create a circle
-					backgroundColor: '#fff',
-					'& .iconify': { // Assuming a className of 'iconify' is added to the Iconify component
-						opacity: '0.5',
-					},
-					'&:hover': {
-						backgroundColor: '#EDEDEF',
-						'& .iconify': { // Assuming a className of 'iconify' is added to the Iconify component
-						opacity: '1',
-					},
-					},
-				}}
-				onClick={() => deleteRow(index)}
-			>
-				<Iconify icon="tabler:trash" width={20} height={20} sx={{ color: '#596570', Opacity: '0.5', '&: hover': { Opacity: 1}}} />
-			</Button>
-		)}
-	</HoverDiv>
-  )
+	return (
+		<HoverDiv
+			sx={{
+				visibility: 'visible', // Initially hidden
+			}}
+			index={index}
+		>
+			<Tooltip title="Add note" arrow placement="right">
+				<Button
+					sx={{
+						padding: '0px',
+						minWidth: 'auto', // Adjust as needed
+						width: '24px',
+						height: '24px',
+						borderRadius: '2px', // Rounds the corners to create a circle
+						backgroundColor: '#fff',
+						'& .iconify': {
+							// Assuming a className of 'iconify' is added to the Iconify component
+							opacity: '0.5',
+						},
+						'&:hover': {
+							backgroundColor: '#EDEDEF',
+							'& .iconify': {
+								// Assuming a className of 'iconify' is added to the Iconify component
+								opacity: '1',
+							},
+						},
+					}}
+					onClick={() => setVisibleNotes(index)}
+				>
+					<Iconify icon="uil:clipboard-notes" width={20} height={20} sx={{ color: '#596570' }} />
+				</Button>
+			</Tooltip>
+			{isDelete && (
+				<Button
+					sx={{
+						padding: '0px',
+						minWidth: 'auto', // Adjust as needed
+						width: '24px',
+						height: '24px',
+						borderRadius: '2px', // Rounds the corners to create a circle
+						backgroundColor: '#fff',
+						'& .iconify': {
+							// Assuming a className of 'iconify' is added to the Iconify component
+							opacity: '0.5',
+						},
+						'&:hover': {
+							backgroundColor: '#EDEDEF',
+							'& .iconify': {
+								// Assuming a className of 'iconify' is added to the Iconify component
+								opacity: '1',
+							},
+						},
+					}}
+					onClick={() => deleteRow(index)}
+				>
+					<Iconify
+						icon="tabler:trash"
+						width={20}
+						height={20}
+						sx={{ color: '#596570', Opacity: '0.5', '&: hover': { Opacity: 1 } }}
+					/>
+				</Button>
+			)}
+		</HoverDiv>
+	)
 }
 
 HoverBox.propTypes = {
-  index: PropTypes.any,
-  setVisibleNotes: PropTypes.func,
+	index: PropTypes.any,
+	setVisibleNotes: PropTypes.func,
 }
 
 export default HoverBox

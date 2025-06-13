@@ -368,7 +368,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const start = new Date()
 	const end = new Date()
-	end.setDate(start.getDate() + 5)
+	end.setDate(start.getDate() + 4)
 
 	useEffect(() => {
 		// console.log(hasChanges)
@@ -430,6 +430,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 				data.map(async (diagram) => {
 					const tableData1 = await getTableByProjectDiagram(diagram.id, false)
 					const tableData2 = await getTableByProjectDiagram(diagram.id, true)
+					console.log('tableData1', tableData1, tableData2)
 					return {
 						...diagram,
 						currentObj: {
