@@ -89,7 +89,7 @@ const TaskPopUp = forwardRef(
 								onRowSelected={onRowSelected}
 							/>
 							<Box display="flex" justifyContent="flex-end" padding={'7px'}>
-								<Button color="secondary" onClick={() => onclick(true)} sx={{ ml: 1, background: '#eeee' }}>
+								<Button color="secondary" onClick={() => onclick(false)} sx={{ ml: 1, background: '#eeee' }}>
 									Add Subtask
 								</Button>
 							</Box>
