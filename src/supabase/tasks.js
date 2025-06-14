@@ -64,3 +64,20 @@ export const listAllTaskGroups = async () => {
 	const res = await supabase.from('task_groups').select('*')
 	return res
 }
+
+export const listTaskThatHasSubTasks = async (project) => {
+	const res = await supabase.from('project_tasks').select('id, parent_task').match({ project })
+
+	if (res.error) {
+		console.error('Error !! while fetching the paren tasks')
+
+		return []
+	}
+	const tasks = res.data
+
+	const parentIds = tasks.map((task) => task.parent_task).filter((id) => id !== null)
+
+	const uniqueParentIds = [...new Set(parentIds)]
+
+	return uniqueParentIds
+}
