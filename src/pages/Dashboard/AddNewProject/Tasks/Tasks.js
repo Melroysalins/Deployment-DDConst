@@ -684,14 +684,13 @@ const Task = React.memo(
 		const columnDefs = useMemo(
 			() => [
 				{
-					// New column for the checkbox selection
-					headerName: '', // Usually empty for a selection checkbox
-					field: 'isSelected', // Tie the checkbox to your new boolean field
-					width: 50, // Keep it narrow
+					headerName: '',
+					field: 'isSelected',
+					width: 50,
 					headerCheckboxSelection: true,
-					checkboxSelection: true, // Use AG Grid's built-in boolean selection
+					checkboxSelection: true,
 					showDisabledCheckboxes: true,
-					editable: false, // Checkboxes are not typically "edited"
+					editable: false,
 					resizable: false,
 					sortable: false,
 					filter: false,
