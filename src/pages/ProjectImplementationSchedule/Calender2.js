@@ -32,6 +32,7 @@ import {
 	getAllTaskDependencyByProject,
 	getSelectedWorkTypes,
 	getTeamDetails,
+	updateTaskDependency,
 } from 'supabase'
 
 import {
@@ -68,7 +69,7 @@ const Calender2 = ({
 	])
 	const [istTaskUpdated, SetIsTaskUpdated] = useState(false)
 	const [isResourceBuildingLoading, setIsResourceBuildingLoading] = useState(true)
-	const [teamsDetails, SetTeamDetails] = useState(new Set())
+	const [teamsDetails, SetTeamDetails] = useState([])
 
 	const schedulerRef = useRef(null)
 	const { id } = useParams()
@@ -279,6 +280,7 @@ const Calender2 = ({
 								width: 100,
 								workTeam: teamName,
 							})
+							SetTeamDetails((prev) => [...prev, { name: uniqueId, teamNumber }])
 						} catch (error) {
 							console.error(`Failed to get details for team ${teamNumber}`, error)
 							expandedResources.push({
@@ -287,6 +289,7 @@ const Calender2 = ({
 								width: 100,
 								workTeam: `Team ${teamNumber}`,
 							})
+							SetTeamDetails((prev) => [...prev, { name: uniqueId, teamNumber }])
 						}
 					})
 
@@ -299,6 +302,7 @@ const Calender2 = ({
 							workTeam: '',
 							tasksWithoutTeam: taskWithNoTeam,
 						})
+						SetTeamDetails((prev) => [...prev, { name: uniqueId, teamNumber: null }])
 					}
 
 					await Promise.all(teamPromises)
@@ -347,344 +351,6 @@ const Calender2 = ({
 		})()
 		SetIsTaskUpdated(true)
 	}, [selectedWorkTypesData, taskGroup])
-
-	// const events = React.useMemo(() => {
-	// 	if (!taskGroup) return []
-	// 	const {
-	// 		connections = [],
-	// 		installations = [],
-	// 		metal_fittings = [],
-	// 		completion_test = [],
-	// 		office_work = [],
-	// 		auxiliary_construction = [],
-	// 	} = taskGroup
-
-	// 	console.log('mytask', taskGroup)
-
-	// 	return [
-	// 		...connections?.map((connection, index) => {
-	// 			const noTeamTasks = connections.filter((c) => !c.team)
-	// 			const hasTeam = connection?.team !== null && connection?.team !== undefined
-	// 			let resourceId
-
-	// 			if (hasTeam) {
-	// 				resourceId = `connections-${connection.team}`
-	// 			} else {
-	// 				const noTeamIndex = noTeamTasks.indexOf(connection)
-	// 				resourceId = `connections -  ${noTeamIndex + 1}`
-	// 			}
-	// 			const event = {
-	// 				id: connection.id || `connection-${index + 1}`,
-	// 				resourceId,
-	// 				startDate: connection.start_date ? getISODateString(connection.start_date) : getISODateString(new Date()),
-	// 				endDate: connection.end_date
-	// 					? getISODateString(connection.end_date)
-	// 					: (() => {
-	// 							const today = new Date()
-	// 							today.setDate(today.getDate() + 3)
-	// 							return getISODateString(today)
-	// 					  })(),
-	// 				allDay: true,
-	// 				duration: 5,
-	// 				durationunit: 'day',
-	// 				name: connection.title,
-	// 				manuallyScheduled: true,
-	// 				expanded: true,
-	// 				leaf: false,
-	// 				isTask: true,
-	// 				team: connection?.team,
-	// 				task_group_id: connection?.task_group_id,
-	// 			}
-
-	// 			if (connection.children && connection.children.length > 0) {
-	// 				event.children = connection.children.map((child) => ({
-	// 					id: child.id || `child-${child.id}`,
-	// 					resourceId,
-	// 					startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
-	// 					endDate: child.end_date
-	// 						? getISODateString(child.end_date)
-	// 						: (() => {
-	// 								const today = new Date()
-	// 								return getISODateString(today)
-	// 						  })(),
-	// 					allDay: true,
-	// 					name: child.title,
-	// 					leaf: true,
-	// 					eventColor: 'red',
-	// 				}))
-	// 			}
-
-	// 			return event
-	// 		}),
-	// 		...installations?.map((installation, index) => {
-	// 			const noTeamTasks = installations?.filter((c) => !c.team)
-	// 			const hasTeam = installation?.team !== null && installation?.team !== undefined
-	// 			let resourceId
-
-	// 			if (hasTeam) {
-	// 				resourceId = `installations-${installation.team}`
-	// 			} else {
-	// 				const noTeamIndex = noTeamTasks.indexOf(installation)
-	// 				resourceId = `installations -  ${noTeamIndex + 1}`
-	// 			}
-	// 			const event = {
-	// 				id: installation.id,
-	// 				resourceId,
-	// 				startDate: installation.start_date ? getISODateString(installation.start_date) : getISODateString(new Date()),
-	// 				endDate: installation.end_date
-	// 					? getISODateString(installation.end_date)
-	// 					: (() => {
-	// 							const today = new Date()
-	// 							today.setDate(today.getDate() + 3)
-	// 							return getISODateString(today) // Use calculated end date
-	// 					  })(),
-	// 				allDay: true,
-	// 				name: installation.title,
-	// 				manuallyScheduled: true,
-	// 				expanded: true,
-	// 				leaf: false,
-	// 				duration: 5,
-	// 				durationunit: 'day',
-	// 				team: installation?.team,
-	// 				task_group_id: installation?.task_group_id,
-	// 			}
-	// 			if (installation.children && installation.children.length > 0) {
-	// 				event.children = installation.children.map((child) => ({
-	// 					id: child.id || `child-${child.id}`,
-	// 					resourceId,
-	// 					startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
-	// 					endDate: child.end_date
-	// 						? getISODateString(child.end_date)
-	// 						: (() => {
-	// 								const today = new Date()
-
-	// 								return getISODateString(today) // Default end date is today's date
-	// 						  })(),
-	// 					allDay: true,
-	// 					name: child.title,
-	// 					leaf: true,
-	// 					eventColor: 'blue',
-	// 				}))
-	// 			}
-	// 			console.log('installationEvent', event)
-	// 			return event
-	// 		}),
-	// 		...metal_fittings?.map((metal_fitting, index) => {
-	// 			const noTeamTasks = metal_fittings.filter((c) => !c.team)
-	// 			const hasTeam = metal_fitting?.team !== null && metal_fitting?.team !== undefined
-	// 			let resourceId
-
-	// 			if (hasTeam) {
-	// 				resourceId = `metal_fittings-${metal_fitting.team}`
-	// 			} else {
-	// 				const noTeamIndex = noTeamTasks.indexOf(metal_fitting)
-	// 				resourceId = `metal_fittings -  ${noTeamIndex + 1}`
-	// 			}
-	// 			const event = {
-	// 				id: metal_fitting.id || `metal_fitting-${index + 1}`,
-	// 				resourceId,
-	// 				startDate: metal_fitting.start_date
-	// 					? getISODateString(metal_fitting.start_date)
-	// 					: getISODateString(new Date()),
-	// 				endDate: metal_fitting.end_date
-	// 					? getISODateString(metal_fitting.end_date)
-	// 					: (() => {
-	// 							const today = new Date()
-	// 							today.setDate(today.getDate() + 3)
-	// 							return getISODateString(today) // Use calculated end date
-	// 					  })(),
-	// 				allDay: true,
-	// 				name: metal_fitting.title,
-	// 				manuallyScheduled: true,
-	// 				expanded: true,
-	// 				leaf: false,
-	// 				duration: 5,
-	// 				durationunit: 'day',
-	// 				team: metal_fitting?.team,
-	// 				task_group_id: metal_fitting?.task_group_id,
-	// 			}
-	// 			if (metal_fitting.children && metal_fitting.children.length > 0) {
-	// 				event.children = metal_fitting.children.map((child) => ({
-	// 					id: child.id || `child-${child.id}`,
-	// 					resourceId,
-	// 					startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
-	// 					endDate: child.end_date
-	// 						? getISODateString(child.end_date)
-	// 						: (() => {
-	// 								const today = new Date()
-
-	// 								return getISODateString(today) // Default end date is today's date
-	// 						  })(),
-	// 					allDay: true,
-	// 					name: child.title,
-	// 					leaf: true,
-	// 					eventColor: 'green',
-	// 				}))
-	// 			}
-	// 			return event
-	// 		}),
-	// 		...completion_test?.map((completion_tests, index) => {
-	// 			const noTeamTasks = completion_test?.filter((c) => !c.team)
-	// 			const hasTeam = completion_tests?.team !== null && completion_tests?.team !== undefined
-	// 			let resourceId
-
-	// 			if (hasTeam) {
-	// 				resourceId = `completion_test-${completion_tests.team}`
-	// 			} else {
-	// 				const noTeamIndex = noTeamTasks.indexOf(completion_tests)
-	// 				resourceId = `completion_test -  ${noTeamIndex + 1}`
-	// 			}
-	// 			const event = {
-	// 				id: completion_tests.id || `completion_test-${index + 1}`,
-	// 				resourceId,
-	// 				startDate: completion_tests.start_date
-	// 					? getISODateString(completion_tests.start_date)
-	// 					: getISODateString(new Date()),
-	// 				endDate: completion_tests.end_date
-	// 					? getISODateString(completion_tests.end_date)
-	// 					: (() => {
-	// 							const today = new Date()
-	// 							today.setDate(today.getDate() + 3)
-	// 							return getISODateString(today) // Use calculated end date
-	// 					  })(),
-	// 				allDay: true,
-	// 				name: completion_tests.title || `Completion Test + ${index + 1}`,
-	// 				manuallyScheduled: true,
-	// 				expanded: true,
-	// 				leaf: false,
-	// 				duration: 5,
-	// 				durationunit: 'day',
-	// 				team: completion_tests?.team,
-	// 				task_group_id: completion_tests?.task_group_id,
-	// 			}
-	// 			if (completion_tests.children && completion_tests.children.length > 0) {
-	// 				event.children = completion_tests.children.map((child) => ({
-	// 					id: child.id || `child-${child.id}`,
-	// 					resourceId,
-	// 					startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
-	// 					endDate: child.end_date
-	// 						? getISODateString(child.end_date)
-	// 						: (() => {
-	// 								const today = new Date()
-
-	// 								return getISODateString(today) // Default end date is today's date
-	// 						  })(),
-	// 					allDay: true,
-	// 					name: child.title,
-	// 					leaf: true,
-	// 					eventColor: 'green',
-	// 				}))
-	// 			}
-	// 			return event
-	// 		}),
-	// 		...office_work?.map((office_works, index) => {
-	// 			const noTeamTasks = office_work?.filter((c) => !c.team)
-	// 			const hasTeam = office_works?.team !== null && office_works?.team !== undefined
-	// 			let resourceId
-
-	// 			if (hasTeam) {
-	// 				resourceId = `office_work-${office_works.team}`
-	// 			} else {
-	// 				const noTeamIndex = noTeamTasks.indexOf(office_works)
-	// 				resourceId = `office_work -  ${noTeamIndex + 1}`
-	// 			}
-	// 			const event = {
-	// 				id: office_works.id || `office_work-${index + 1}`,
-	// 				resourceId,
-	// 				startDate: office_works.start_date ? getISODateString(office_works.start_date) : getISODateString(new Date()),
-	// 				endDate: office_works.end_date
-	// 					? getISODateString(office_works.end_date)
-	// 					: (() => {
-	// 							const today = new Date()
-	// 							today.setDate(today.getDate() + 3)
-	// 							return getISODateString(today) // Use calculated end date
-	// 					  })(),
-	// 				allDay: true,
-	// 				name: office_works.title || `Office Work + ${index + 1}`,
-	// 				manuallyScheduled: true,
-	// 				expanded: true,
-	// 				leaf: false,
-	// 				duration: 5,
-	// 				durationunit: 'day',
-	// 				team: office_works?.team,
-	// 				task_group_id: office_works?.task_group_id,
-	// 			}
-	// 			if (office_works.children && office_works.children.length > 0) {
-	// 				event.children = office_works.children.map((child) => ({
-	// 					id: child.id || `child-${child.id}`,
-	// 					resourceId,
-	// 					startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
-	// 					endDate: child.end_date
-	// 						? getISODateString(child.end_date)
-	// 						: (() => {
-	// 								const today = new Date()
-
-	// 								return getISODateString(today) // Default end date is today's date
-	// 						  })(),
-	// 					allDay: true,
-	// 					name: child.title,
-	// 					leaf: true,
-	// 					eventColor: 'green',
-	// 				}))
-	// 			}
-	// 			return event
-	// 		}),
-	// 		...auxiliary_construction?.map((auxiliary_constructions, index) => {
-	// 			const noTeamTasks = auxiliary_construction?.filter((c) => !c.team)
-	// 			const hasTeam = auxiliary_constructions?.team !== null && auxiliary_constructions?.team !== undefined
-	// 			let resourceId
-
-	// 			if (hasTeam) {
-	// 				resourceId = `auxiliary_construction-${auxiliary_constructions.team}`
-	// 			} else {
-	// 				const noTeamIndex = noTeamTasks.indexOf(auxiliary_constructions)
-	// 				resourceId = `auxiliary_construction -  ${noTeamIndex + 1}`
-	// 			}
-	// 			const event = {
-	// 				id: auxiliary_constructions.id || `auxiliary_construction-${index + 1}`,
-	// 				resourceId,
-	// 				startDate: auxiliary_constructions.start_date
-	// 					? getISODateString(auxiliary_constructions.start_date)
-	// 					: getISODateString(new Date()),
-	// 				endDate: auxiliary_constructions.end_date
-	// 					? getISODateString(auxiliary_constructions.end_date)
-	// 					: (() => {
-	// 							const today = new Date()
-	// 							today.setDate(today.getDate() + 3)
-	// 							return getISODateString(today) // Use calculated end date
-	// 					  })(),
-	// 				allDay: true,
-	// 				name: auxiliary_constructions.title || `Auxiliary Construction + ${index + 1}`,
-	// 				manuallyScheduled: true,
-	// 				expanded: true,
-	// 				leaf: false,
-	// 				duration: 5,
-	// 				durationunit: 'day',
-	// 				team: auxiliary_constructions?.team,
-	// 				task_group_id: auxiliary_constructions?.task_group_id,
-	// 			}
-	// 			if (auxiliary_constructions.children && auxiliary_constructions.children.length > 0) {
-	// 				event.children = auxiliary_constructions.children.map((child) => ({
-	// 					id: child.id || `child-${child.id}`,
-	// 					resourceId,
-	// 					startDate: child.start_date ? getISODateString(child.start_date) : getISODateString(new Date()),
-	// 					endDate: child.end_date
-	// 						? getISODateString(child.end_date)
-	// 						: (() => {
-	// 								const today = new Date()
-
-	// 								return getISODateString(today) // Default end date is today's date
-	// 						  })(),
-	// 					allDay: true,
-	// 					name: child.title,
-	// 					leaf: true,
-	// 					eventColor: 'green',
-	// 				}))
-	// 			}
-	// 			return event
-	// 		}),
-	// 	]
-	// }, [taskGroup])
 
 	const events = React.useMemo(() => {
 		if (!taskGroup) return []
@@ -1679,6 +1345,11 @@ const Calender2 = ({
 				const from_date_for_backend = DateHelper.format(dep.fromEvent.startDate, 'YYYY-MM-DD')
 				const to_date_for_backend = DateHelper.format(dep.toEvent.startDate, 'YYYY-MM-DD') // Assuming toEvent start date is used for lag calculation reference
 
+				const lagUnitMap = {
+					day: 'd',
+					hour: 'h',
+					minute: 'm',
+				}
 				createTaskDependency({
 					from_task_id: dep.fromEvent.data.id,
 					to_task_id: dep.toEvent.data.id,
@@ -1691,7 +1362,7 @@ const Calender2 = ({
 						dep.toEvent.startDate, // Bryntum's startDate (start of day)
 						dep.lagUnit
 					),
-					lag_unit: dep.lagUnit, // Ensure lagUnit is a string like 'day', 'hour', etc.
+					lag_unit: lagUnitMap[dep.lagUnit] || dep.lagUnit,
 					active: dep.active || true,
 				}).then((res) => {
 					console.log('Backend dependency created:', res)
@@ -1878,8 +1549,167 @@ const Calender2 = ({
 				console.log('Event edit action:', action)
 			}
 		)
+
+		scheduler.on(
+			'paste',
+			async ({ pastedEventRecords, eventRecords, assignmentRecords, resourceRecord, entityName }) => {
+				const copiedData = eventRecords?.[0]
+
+				await scheduler.project.commitAsync()
+
+				const taskGroupID = resourceRecord?.data?.name === 'Connection' ? 3 : 2
+
+				const projectDiagramID = resourceRecord?.data?.tasksWithoutTeam?.find(
+					(item) => item?.project_diagram_id
+				)?.project_diagram_id
+
+				if (!copiedData?.children) {
+					const resourceId = eventRecords?.[0]?.data?.resourceId
+
+					const currentTeam = teamsDetails?.find((item) => item?.name === resourceId)?.teamNumber
+
+					console.log('Copy Paste', resourceId, currentTeam, teamsDetails)
+
+					try {
+						const formattedSubtaskData = {
+							title: eventRecords?.[0]?.data?.name,
+							start_date: DateHelper.format(eventRecords?.[0]?.data?.startDate, 'YYYY-MM-DD'),
+							end_date: DateHelper.format(DateHelper.add(eventRecords?.[0]?.data?.endDate, -1, 'd'), 'YYYY-MM-DD'),
+							team: currentTeam,
+							project: id,
+							project_diagram_id: projectDiagramID,
+							task_group_id: taskGroupID,
+							// resourceId: eventRecords?.[0]?.data?.resourceId,
+						}
+
+						createNewTasks(formattedSubtaskData).then((res) => {
+							const backendNewSubtask = res?.data?.[0]
+
+							const bryntumReadytask = {
+								id: backendNewSubtask.id,
+								name: backendNewSubtask.title,
+								startDate: backendNewSubtask?.start_date,
+								endDate: backendNewSubtask?.end_date,
+								team: currentTeam,
+								notes: backendNewSubtask.notes,
+								task_group_id: backendNewSubtask.task_group_id,
+								project: backendNewSubtask.project,
+								parentId: backendNewSubtask.parent_task,
+								resourceId,
+							}
+							scheduler.eventStore.add(bryntumReadytask)
+							scheduler.project.commitAsync()
+
+							console.log('Event Paste', bryntumReadytask)
+
+							myQueryClient.invalidateQueries(['projectData', id])
+						})
+					} catch (error) {
+						console.log('Error', error)
+					}
+				} else {
+					try {
+						const resourceId = eventRecords?.[0]?.data?.resourceId
+
+						const currentTeam = teamsDetails?.find((item) => item?.name === resourceId)?.teamNumber
+
+						const formattedSubtaskData = {
+							title: eventRecords?.[0]?.data?.name,
+							start_date: DateHelper.format(eventRecords?.[0]?.data?.startDate, 'YYYY-MM-DD'),
+							end_date: DateHelper.format(DateHelper.add(eventRecords?.[0]?.data?.endDate, -1, 'd'), 'YYYY-MM-DD'),
+							team: currentTeam,
+							project: id,
+							project_diagram_id: projectDiagramID,
+							task_group_id: taskGroupID,
+						}
+						const res = await createNewTasks(formattedSubtaskData)
+
+						const backendNewSubtask = res?.data?.[0]
+						const parentID = backendNewSubtask?.id
+						const childTasks = eventRecords?.[0]?.data?.children || []
+						const promises = childTasks.map((item) => {
+							const bryntumStartDate = item?.data?.startDate
+							const bryntumEndDate = item?.data?.endDate
+							const subTaskData = [
+								{
+									title: item?.data?.name,
+									team: item?.data?.team,
+									start_date: DateHelper.format(bryntumStartDate, 'YYYY-MM-DD'),
+									end_date: DateHelper.format(bryntumEndDate, 'YYYY-MM-DD'),
+									notes: '',
+									task_group_id: taskGroupID,
+									project: id,
+									parent_task: parentID,
+									// resourceId,
+								},
+							]
+							console.log('Parent Event Paste:', subTaskData, res)
+
+							return createNewTasks(subTaskData)
+						})
+						await Promise.all(promises)
+						await scheduler.project.commitAsync()
+						await myQueryClient.invalidateQueries(['projectData', id])
+					} catch (error) {
+						console.error('Error!!', error)
+					}
+				}
+			}
+		)
+
+		// scheduler dependency code
+
+		scheduler.dependencyStore.on('update', ({ record, changes }) => {
+			console.log('Dependency updated:', record)
+			console.log('Changes:', changes)
+			// Prepare the update payload for all changed fields
+			if (changes && Object.keys(changes).length > 0) {
+				const updatePayload = { id: record.id }
+				console.log('updatePayload', updatePayload)
+				const enumMap = {
+					start_to_start: 'StartToStart',
+					start_to_end: 'StartToEnd',
+					end_to_start: 'EndToStart',
+					end_to_end: 'EndToEnd',
+				}
+				Object.entries(changes).forEach(([key, valueObj]) => {
+					console.log('myLagUnit', key)
+					if (key === 'toEvent') updatePayload.to_task_id = valueObj.value
+					else if (key === 'fromEvent') updatePayload.from_task_id = valueObj.value
+					else if (key === 'type') {
+						updatePayload.type = enumMap[valueObj.value] || valueObj.value
+					} else if (key === 'lag') updatePayload.lag = valueObj.value
+					else if (key === 'lagUnit') {
+						const lagUnitMap = {
+							day: 'd',
+							hour: 'h',
+							minute: 'm',
+						}
+						const rawValue = valueObj?.value || record.lagUnit
+						updatePayload.lag_unit = lagUnitMap[rawValue] || rawValue
+					} else if (key === 'active') {
+						updatePayload.active = 'FALSE'
+					}
+				})
+
+				updateTaskDependency(updatePayload)
+					.then((res) => {
+						if (res.error === null) {
+							console.log('Dependency updated in backend:', res)
+						} else {
+							console.error('Error updating dependency:', res.error)
+						}
+					})
+					.catch((err) => {
+						console.error('Exception updating dependency:', err)
+					})
+			}
+		})
+
 		return () => scheduler.destroy()
 	}, [events, resources])
+
+	console.log('teamsDetails', teamsDetails)
 
 	if (isLoading) return <div>Loading...</div>
 	if (error) return <div>Error loading tasks</div>
