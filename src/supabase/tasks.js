@@ -38,6 +38,8 @@ export const listFilteredTasks = async (task_group_id, project) => {
 		.match({ task_group_id, project })
 		.order('tl', { ascending: true })
 		.order('priority', { ascending: true })
+		.order('start_date', { ascending: true })
+		.order('end_date', { ascending: true })
 
 	return res
 }

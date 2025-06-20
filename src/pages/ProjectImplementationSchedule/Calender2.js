@@ -1094,12 +1094,38 @@ const Calender2 = ({
 											childToUpdate.set('startDate', startDate)
 
 											childToUpdate.set('yesModified', true)
+
+											const currentStartData = new Date(startDate)
+
+											const currentEndDate = new Date(childToUpdate?.endDate)
+
+											const diffinMins = currentEndDate - currentStartData
+
+											const diffinDays = diffinMins / (1000 * 60 * 60 * 24)
+
+											childToUpdate.set('duration', diffinDays)
+
+											record.set('duration', diffinDays)
+
+											console.log('changesStartDate', childToUpdate, diffinDays)
 										}
 										if (changes?.endDate) {
 											const endDate = changes?.endDate?.value
 											childToUpdate.set('endDate', endDate)
 
 											childToUpdate.set('yesModified', true)
+
+											const currentStartData = new Date(childToUpdate?.startDate)
+
+											const currentEndDate = new Date(endDate)
+
+											const diffinMins = currentEndDate - currentStartData
+
+											const diffinDays = diffinMins / (1000 * 60 * 60 * 24)
+
+											childToUpdate.set('duration', diffinDays)
+
+											record.set('duration', diffinDays)
 										}
 
 										if (changes?.completed?.value) {
@@ -1144,11 +1170,11 @@ const Calender2 = ({
 									editor: true,
 									align: 'center',
 								},
-								{ text: 'ID', field: 'id', flex: 0.5 }, // Added flex for better layout
+								{ text: 'ID', field: 'id', flex: 0.5 },
 								{ text: 'Name', field: 'name', flex: 1.5 },
 								{ text: 'Start Date', field: 'startDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
 								{ text: 'End Date', field: 'endDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
-								{ text: 'Duration', field: 'duration', flex: 0.5 },
+								{ text: 'Duration', field: 'duration', flex: 0.5, editable: true },
 							],
 							bbar: [
 								'->',

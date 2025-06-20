@@ -1009,7 +1009,67 @@ const Task = React.memo(
 			}
 		}
 
-		console.log('myselectedRows', selectedRows)
+		const updateTaskDates = async () => {
+			if (!list || list.length === 0) return
+
+			const formatDate = (date) => {
+				const yyyy = date.getFullYear()
+				const mm = String(date.getMonth() + 1).padStart(2, '0')
+				const dd = String(date.getDate()).padStart(2, '0')
+				return `${yyyy}-${mm}-${dd}`
+			}
+
+			const sortedList = [...list].sort((a, b) => a.priority - b.priority)
+
+			let currentEndDate = new Date(sortedList[1].end_date)
+			const updatePromises = []
+
+			for (let i = 2; i <= list.length - 1; i += 1) {
+				const newStartDate = new Date(currentEndDate)
+				newStartDate.setDate(newStartDate.getDate() + 1)
+
+				const newEndDate = new Date(newStartDate)
+				newEndDate.setDate(newEndDate.getDate() + 4)
+
+				const updatedStart_date = formatDate(newStartDate)
+				const updatedEnd_date = formatDate(newEndDate)
+				const updatedTask_period = [updatedStart_date, updatedEnd_date]
+
+				// Update currentEndDate for next iteration
+				currentEndDate = newEndDate
+
+				// Collect promise (but don't await inside loop)
+				const updatePromise = updateTask(
+					{
+						start_date: updatedStart_date,
+						end_date: updatedEnd_date,
+					},
+					list[i]?.id
+				)
+					.then((res) => {
+						if (res?.error === null) {
+							console.log('res', res)
+						}
+					})
+					.catch((error) => {
+						console.error('Error while updating task', list[i]?.id, error)
+					})
+
+				updatePromises.push(updatePromise)
+
+				// console.log('updateTaskDates', updatedStart_date, updatedEnd_date, updatedTask_period, list[i]?.id)
+			}
+
+			// Await all updates in parallel
+			await Promise.all(updatePromises)
+
+			refetch()
+		}
+
+		useEffect(() => {
+			updateTaskDates()
+			console.log('updateTaskDates', list)
+		}, [list])
 
 		return (
 			<>
@@ -1025,6 +1085,7 @@ const Task = React.memo(
 				</Snackbar>
 				<div style={containerStyle}>
 					<div style={gridStyle} className="ag-theme-ddconst">
+						{console.log('rowData', list)}
 						<Stack gap={2}>
 							<AgGridReact
 								ref={gridRef}
@@ -1050,9 +1111,6 @@ const Task = React.memo(
 							{/* {console.log('list', list)} */}
 							<Box display="flex" justifyContent="space-between">
 								<Button onClick={handleAdd}>Add Task</Button>
-								<Button color="secondary" onClick={() => handleAddSubtask(true)} sx={{ ml: 1 }}>
-									Add Subtask
-								</Button>
 								{selectedRows?.length > 0 && (
 									<Box>
 										{selectedRows?.length} items selected:

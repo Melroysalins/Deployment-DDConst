@@ -370,6 +370,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	const end = new Date()
 	end.setDate(start.getDate() + 4)
 
+	let endPointCount = 0
+
+	let startPointCount = 0
+
+	const installationEndPointsArray = []
+
+	let installationStartPointCount = 0
+
 	useEffect(() => {
 		// console.log(hasChanges)
 		if (objs !== null && hasChanges) {
@@ -424,7 +432,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	const getDiagram = async () => {
 		const { data } = await getDiagramsByProject(id)
 
-		console.log('diagram', data)
+		console.log('DiagramOnly', data)
 		if (data?.length) {
 			const updatedData = await Promise.all(
 				data.map(async (diagram) => {
@@ -443,8 +451,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							endpoints: tableData1.data?.endpoints || [],
 							endpointsDemolition: tableData2.data?.endpoints || [],
 						},
-						nodes: tableData1.data.nodes,
-						edges: tableData1.data.edges,
+						nodes: tableData1?.data?.nodes,
+						edges: tableData1?.data?.edges,
 						nodes_demolition: tableData2?.data?.nodes || [],
 						edges_demolition: tableData2?.data?.edges || [],
 						isEditing: false,
@@ -462,7 +470,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 			const minId = Math.min(...ids)
 			setExpanded(`panel${minId}`)
 
-			console.log('updatedData', updatedData)
+			console.log('updatedMapData', updatedData)
+
+			console.log('DiagramOnly', updatedData)
 		}
 	}
 
@@ -518,23 +528,54 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					}
 				} else {
 					try {
-						const response = await createNewTasks({
-							approval_status: 'Planned',
-							created_at: new Date().toISOString(),
-							from_page: 'projects',
-							notes: '',
-							project: id,
-							task_group_id: 3,
-							task_type: null,
-							title: taskTitle,
-							project_diagram_id,
-							tl: i + 1,
-							isDemolition,
-							start_date: formatDate(start),
-							end_date: formatDate(end),
-							priority: -1,
-						})
-						console.log('Starting New Start Point')
+						startPointCount += 1
+
+						let response = null
+
+						if (startPointCount === 1) {
+							response = await createNewTasks({
+								approval_status: 'Planned',
+								created_at: new Date().toISOString(),
+								from_page: 'projects',
+								notes: '',
+								project: id,
+								task_group_id: 3,
+								task_type: null,
+								title: taskTitle,
+								project_diagram_id,
+								tl: i + 1,
+								isDemolition,
+								start_date: formatDate(start),
+								end_date: formatDate(end),
+								priority: -2,
+							})
+						} else {
+							const newStartDate = new Date(end)
+							newStartDate.setDate(newStartDate.getDate() + 1)
+
+							const newEndDate = new Date(newStartDate)
+							newEndDate.setDate(newStartDate.getDate() + 4)
+
+							response = await createNewTasks({
+								approval_status: 'Planned',
+								created_at: new Date().toISOString(),
+								from_page: 'projects',
+								notes: '',
+								project: id,
+								task_group_id: 3,
+								task_type: null,
+								title: taskTitle,
+								project_diagram_id,
+								tl: i + 1,
+								isDemolition,
+								start_date: formatDate(newStartDate),
+								end_date: formatDate(newEndDate),
+								priority: -1,
+							})
+						}
+
+						console.log(`🟢 Start Task ${startPointCount}`, response)
+
 						if (response?.data?.[0]) {
 							updatedEndpoints.start_task_id.push(response.data[0].id)
 						} else {
@@ -545,7 +586,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					}
 				}
 			})
-
+			console.log('createOrUpdateConnectionTasks', startTasksPromises)
 			await Promise.all(startTasksPromises)
 		}
 
@@ -576,23 +617,50 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					}
 				} else {
 					try {
-						const response = await createNewTasks({
-							approval_status: 'Planned',
-							created_at: new Date().toISOString(),
-							from_page: 'projects',
-							notes: '',
-							project: id,
-							task_group_id: 3,
-							task_type: null,
-							title: taskTitle,
-							project_diagram_id,
-							tl: i + 1,
-							isDemolition,
-							start_date: formatDate(start),
-							end_date: formatDate(end),
-							priority: 99,
-						})
-						// console.log('No Created  New End point')
+						endPointCount += 1
+						let response = null
+						if (endPointCount === 1) {
+							response = await createNewTasks({
+								approval_status: 'Planned',
+								created_at: new Date().toISOString(),
+								from_page: 'projects',
+								notes: '',
+								project: id,
+								task_group_id: 3,
+								task_type: null,
+								title: taskTitle,
+								project_diagram_id,
+								tl: i + 1,
+								isDemolition,
+								start_date: formatDate(start),
+								end_date: formatDate(end),
+								priority: 99,
+							})
+						} else {
+							const newStartDate = new Date(end)
+							newStartDate.setDate(newStartDate.getDate() + 1)
+
+							const newEndDate = new Date(newStartDate)
+							newEndDate.setDate(newStartDate.getDate() + 4)
+							response = await createNewTasks({
+								approval_status: 'Planned',
+								created_at: new Date().toISOString(),
+								from_page: 'projects',
+								notes: '',
+								project: id,
+								task_group_id: 3,
+								task_type: null,
+								title: taskTitle,
+								project_diagram_id,
+								tl: i + 1,
+								isDemolition,
+								start_date: formatDate(newStartDate),
+								end_date: formatDate(newEndDate),
+								priority: 100,
+							})
+						}
+
+						// console.log('🟢 Start Task', response)
 
 						if (response?.data?.[0]) {
 							updatedEndpoints.end_task_id.push(response.data[0].id)
@@ -734,7 +802,6 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		const updatedInstallations = await Promise.all(
 			installations.map(async (installation, i) => {
 				const installationStatuses = installation.statuses || [] // Assuming this is an array of statuses
-
 				const taskPromises = installationStatuses.map(async (status, j) => {
 					let title = ''
 					if (i === 0) {
@@ -750,7 +817,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 							j + 1
 						}T/L`
 					}
-
+					if (i === 0) installationStartPointCount += 1
 					if (isEdit && installation.task_id) {
 						const existingTask = installationTasks.find((task) => task.id === installation.task_id[j])
 						if (existingTask) {
@@ -763,6 +830,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 								},
 								installation.task_id[j]
 							)
+							console.log('CalledinstallationExisting')
 							return installation
 						}
 					}
@@ -784,6 +852,9 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 						priority: i, // priority can stay as i
 					})
 
+					console.log('createOrUpdateInstallationTasks', response, installationStartPointCount)
+
+					installationEndPointsArray.push(response.data?.[0])
 					if (response.data?.[0]) {
 						if (!installation.task_id) {
 							installation.task_id = [] // Initialize if it doesn't exist
@@ -793,18 +864,41 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					}
 					return installation
 				})
-
 				await Promise.all(taskPromises)
 				if (installation.task_id?.length > installationStatuses.length) {
 					const extraTaskIds = installation.task_id.slice(installationStatuses.length)
-
 					await deleteTasks(extraTaskIds)
-
 					installation.task_id = installation.task_id.slice(0, installationStatuses.length)
 				}
+
 				return installation
 			})
 		)
+
+		if (isEdit === false) {
+			const sortedInstallationTasks = installationEndPointsArray?.sort((a, b) => a.priority - b.priority)
+
+			const firstTaskEndDateStr = sortedInstallationTasks[0]?.end_date
+			const firstTaskEndDate = new Date(firstTaskEndDateStr)
+
+			const id = sortedInstallationTasks[1]?.id
+
+			const newStartDate = firstTaskEndDate
+
+			newStartDate.setDate(firstTaskEndDate.getDate() + 1)
+
+			const newEndDate = new Date()
+			newEndDate.setDate(newStartDate.getDate() + 4)
+			await updateTask(
+				{
+					start_date: formatDate(newStartDate),
+					end_date: formatDate(newEndDate),
+				},
+				id
+			).then((res) => {
+				console.log('Updated second task dates:', res)
+			})
+		}
 
 		// Update the project diagram table with the new installations
 		await updateProjectDiagramTable(
