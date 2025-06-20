@@ -42,6 +42,7 @@ import {
 	updateNestedTasks,
 	listAllTaskGroups,
 	updateProject,
+	listTaskThatHasSubTasks,
 } from 'supabase'
 import { getSelectedWorkTypes } from 'supabase/projects'
 import { getProjectDiagram } from 'supabase/project_diagram'
@@ -325,7 +326,11 @@ const Task = React.memo(
 		const [openSubTasks, SetOpenSubTaks] = useState(false)
 		const [isSubTask, SetIsSubTask] = useState(false)
 
+		const [parenTaskId, SetParentTaskID] = useState([])
+
 		const myQueryClient = useQueryClient()
+
+		const { data: allParentTasks } = useQuery(['project_tasks'], () => listTaskThatHasSubTasks(id))
 
 		const { data: teams } = useQuery(['Teams teams'], () => listAllTeams())
 		// first we need to find the task_group_id
@@ -386,6 +391,8 @@ const Task = React.memo(
 				},
 			}
 		)
+
+		console.log('allParentTasks', allParentTasks)
 
 		const fetchSubTasks = useCallback(
 			(id, data) => {
@@ -456,26 +463,33 @@ const Task = React.memo(
 			return diagrams[value]
 		}
 
-		const DeleteCellRenderer = ({ value, task_group_id, gridRef }) => {
+		const DeleteCellRenderer = ({ value, task_group_id, gridRef, isubTaskDelete }) => {
 			const [openPopup, setOpenPopup] = useState(false)
 
 			const isRestricted = task_group_id === 2 || task_group_id === 3
 
-			const handleDelete = (event) => {
+			const handleDelete = async (event) => {
 				if (isRestricted) {
 					setOpenPopup(true) // Open the popup if the task group is restricted
 					return // Exit early
 				}
 
-				// Now handle the case when the task is not restricted
+				// Handle deletion for non-restricted tasks
 				if (Array.isArray(value)) {
-					deleteTasks(value).then(() => refetch())
+					await deleteTasks(value)
 				} else {
-					deleteTask(value).then(() => refetch())
+					await deleteTask(value)
+				}
+				await refetch()
+
+				if (isubTaskDelete) {
+					const { data: latestTasks } = await refetchFull()
+					const filteredSubTasks = latestTasks?.filter((item) => item?.parent_task === taskID)
+					SetSubTasksData(filteredSubTasks)
+					setSelectedRows([])
 				}
 			}
 
-			// Close the popup
 			const handleClosePopup = () => {
 				setOpenPopup(false)
 
@@ -516,6 +530,7 @@ const Task = React.memo(
 				</>
 			)
 		}
+
 		const TimeRangeRenderer = ({ value }) =>
 			value && value[0] && value[1]
 				? `${moment(value[0]).format('DD/MM/YYYY')} - ${moment(value[1]).format('DD/MM/YYYY')}`
@@ -669,14 +684,13 @@ const Task = React.memo(
 		const columnDefs = useMemo(
 			() => [
 				{
-					// New column for the checkbox selection
-					headerName: '', // Usually empty for a selection checkbox
-					field: 'isSelected', // Tie the checkbox to your new boolean field
-					width: 50, // Keep it narrow
+					headerName: '',
+					field: 'isSelected',
+					width: 50,
 					headerCheckboxSelection: true,
-					checkboxSelection: true, // Use AG Grid's built-in boolean selection
+					checkboxSelection: true,
 					showDisabledCheckboxes: true,
-					editable: false, // Checkboxes are not typically "edited"
+					editable: false,
 					resizable: false,
 					sortable: false,
 					filter: false,
@@ -687,19 +701,21 @@ const Task = React.memo(
 					flex: 2,
 					editable: true, // If you want the task name to be editable
 				},
-				// {
-				// 	headerName: 'Task Name',
-				// 	field: 'title',
-				// 	headerCheckboxSelection: true,
-				// 	checkboxSelection: (params) => !!params.data,
-				// 	showDisabledCheckboxes: true,
-				// 	flex: 2,
-				// },
+
 				{
 					headerName: 'Duration (days)',
 					field: 'duration',
 					flex: 2,
-					valueFormatter: (params) => params.value ?? 0,
+					valueGetter: (params) => {
+						const [start, end] = params.data.task_period || []
+						if (!start || !end) return 0
+
+						const startDate = moment(start)
+						const endDate = moment(end)
+
+						return endDate.diff(startDate, 'days') + 1 // include both start & end dates
+					},
+					editable: false,
 					cellStyle: { textAlign: 'center' },
 				},
 				{
@@ -715,7 +731,7 @@ const Task = React.memo(
 					field: 'subtasks',
 					flex: 2,
 					cellRenderer: SubtaskRenderer,
-					editable: false,
+					editable: true,
 				},
 				{
 					headerName: 'Team',
@@ -758,12 +774,22 @@ const Task = React.memo(
 					checkboxSelection: (params) => !!params.data,
 					showDisabledCheckboxes: true,
 					flex: 2,
+					editable: true,
 				},
 				{
 					headerName: 'Duration (days)',
 					field: 'duration',
 					flex: 2,
-					valueFormatter: (params) => params.value ?? 0,
+					valueGetter: (params) => {
+						const [start, end] = params.data.task_period || []
+						if (!start || !end) return 0
+
+						const startDate = moment(start)
+						const endDate = moment(end)
+
+						return endDate.diff(startDate, 'days')
+					},
+					editable: false,
 				},
 				{
 					headerName: 'Task Period',
@@ -772,6 +798,7 @@ const Task = React.memo(
 					cellRenderer: TimeRangeRenderer,
 					cellClass: 'ag-grid-datepicker',
 					flex: 2,
+					editable: true,
 				},
 				{
 					headerName: 'Team',
@@ -779,18 +806,7 @@ const Task = React.memo(
 					cellEditor: SelectCellEditor,
 					cellRenderer: TeamRenderer,
 					flex: 2,
-				},
-				{
-					headerName: 'Is Demolition',
-					field: 'isDemolition',
-					cellRenderer: (params) => (params.value ? 'Yes' : 'No'),
-					flex: 1,
-				},
-				{
-					headerName: 'Diagram Name',
-					field: 'project_diagram_id',
-					cellRenderer: DiagramRenderer,
-					flex: 1,
+					editable: true,
 				},
 			],
 			[
@@ -899,6 +915,7 @@ const Task = React.memo(
 						message: 'Subtask has been created successfully',
 					})
 					myQueryClient.invalidateQueries({ queryKey: [`raw-task-${task_group}`] })
+					myQueryClient.invalidateQueries(['project_tasks'])
 				})
 				console.log('HRT', fullResponse)
 			} else {
@@ -966,10 +983,9 @@ const Task = React.memo(
 			const newItem = { ...data }
 			newItem[field] = newValue
 			const { id } = newItem
+
+			console.log('onCellEditRequest', newItem)
 			if (typeof id !== 'string') {
-				// if (newItem.task_period[0] && newItem.task_period[1]) {
-				// 	updateNestedTasks(newItem.task_period, newItem.id)
-				// }
 				console.log('newItem', newItem)
 				updateTask(
 					{
@@ -993,6 +1009,8 @@ const Task = React.memo(
 			}
 		}
 
+		console.log('myselectedRows', selectedRows)
+
 		return (
 			<>
 				<Snackbar
@@ -1015,15 +1033,10 @@ const Task = React.memo(
 								defaultColDef={defaultColDef}
 								rowSelection={'multiple'}
 								suppressRowClickSelection={true}
-								// suppressColumnVirtualisation={true}
 								domLayout="autoHeight"
 								onCellEditRequest={onCellEditRequest}
 								getRowId={(params) => params.data.id}
 								readOnlyEdit
-								// onRowSelected={() => {
-								// 	console.log('KLLL', gridRef?.current?.api?.getSelectedRows(), list)
-								// 	setSelectedRows(gridRef?.current?.api?.getSelectedRows().map(({ id }) => id))
-								// }}
 								onRowSelected={(params) => {
 									const api = params.api // Get the API directly from the event params
 									const currentSelectedRows = api.getSelectedRows() // Use this API instance
@@ -1066,13 +1079,18 @@ const Task = React.memo(
 						rowSelection={'multiple'}
 						suppressRowClickSelection={true}
 						suppressColumnVirtualisation={true}
-						// domLayout="autoHeight"
-						onCellEditRequest={onCellEditRequest}
 						getRowId={(params) => params.data.id}
-						readOnlyEdit
 						onclick={handleAddSubtask}
 						SetIsSubTask={SetIsSubTask}
 						isSubTask={isSubTask}
+						refetch={refetch}
+						refetchFull={refetchFull}
+						myQueryClient={myQueryClient}
+						SetSubTasksData={SetSubTasksData}
+						taskID={taskID}
+						selectedRows={selectedRows}
+						task_group_id={task_group_id}
+						DeleteCellRenderer={DeleteCellRenderer}
 						onRowSelected={() => {
 							if (gridRef.current?.api) {
 								const selected = gridRef.current?.api?.getSelectedRows()

@@ -1,10 +1,11 @@
-import React, { forwardRef } from 'react'
+import React, { forwardRef, useState } from 'react'
 import { Box, Dialog, DialogTitle, Stack, Typography, Button } from '@mui/material'
 import Iconify from 'components/Iconify'
 import 'ag-grid-community/styles/ag-grid.css'
 import 'ag-grid-community/styles/ag-theme-alpine.css'
 import '../../../../ag-theme-ddconst.scss'
 import { AgGridReact } from 'ag-grid-react'
+import { updateTask } from 'supabase'
 
 const TaskPopUp = forwardRef(
 	(
@@ -18,18 +19,30 @@ const TaskPopUp = forwardRef(
 			suppressRowClickSelection,
 			suppressColumnVirtualisation,
 			domLayout,
-			onCellEditRequest,
 			getRowId,
 			onRowSelected,
 			onclick,
 			SetIsSubTask,
 			isSubTask,
+			refetch,
+			refetchFull,
+			SetSubTasksData,
+			myQueryClient,
+			taskID,
+			selectedRows,
+			DeleteCellRenderer,
+			task_group_id,
 		},
 		gridRef
 	) => {
+		const [toast, setToast] = useState(false)
 		const handleClose = () => {
 			onClose()
 		}
+
+		const rowHeight = 40 // or use gridOptions.getRowHeight if customized
+		const maxRowsVisible = 6 // or whatever fits your modal best
+		const gridHeight = Math.min(rowData.length, maxRowsVisible) * rowHeight + 60 // buffer for header, padding
 
 		return (
 			<Dialog
@@ -46,6 +59,7 @@ const TaskPopUp = forwardRef(
 						color: '#4f46e5',
 						p: 5,
 						overflowY: 'auto',
+						minHeight: '400px',
 					},
 					onClick: (e) => e.stopPropagation(),
 				}}
@@ -72,7 +86,7 @@ const TaskPopUp = forwardRef(
 				>
 					SubTasks
 				</DialogTitle>
-				<div className="ag-theme-alpine" style={{ width: '100%', height: '340px' }}>
+				<div className="ag-theme-alpine" style={{ width: '100%', height: `${gridHeight || 350}px` }}>
 					{rowData?.length > 0 && rowData !== null ? (
 						<>
 							<AgGridReact
@@ -83,15 +97,70 @@ const TaskPopUp = forwardRef(
 								rowSelection={rowSelection}
 								suppressRowClickSelection={suppressRowClickSelection}
 								suppressColumnVirtualisation={suppressColumnVirtualisation}
-								// domLayout={domLayout}
-								onCellEditRequest={onCellEditRequest}
+								domLayout={domLayout}
+								onCellValueChanged={async (event) => {
+									const {
+										data,
+										newValue,
+										colDef: { field },
+									} = event
+
+									const newItem = { ...data }
+									newItem[field] = newValue
+									const { id } = newItem
+
+									console.log('onCellValueChanged', newItem)
+
+									if (typeof id !== 'string') {
+										try {
+											await updateTask(
+												{
+													title: newItem.title,
+													team: newItem.team,
+													notes: newItem.notes,
+													duration: newItem.duration,
+													start_date: newItem.task_period ? newItem.task_period[0] : null,
+													end_date: newItem.task_period ? newItem.task_period[1] : null,
+												},
+												newItem.id
+											)
+
+											await refetch()
+											const { data: latestTasks } = await refetchFull()
+											const filteredSubTasks = latestTasks?.filter((item) => item?.parent_task === taskID)
+											SetSubTasksData(filteredSubTasks)
+										} catch (error) {
+											console.error('Error updating task:', error)
+											setToast({
+												severity: 'error',
+												message: 'Failed to update task. Please try again.',
+											})
+										}
+									}
+								}}
 								getRowId={getRowId}
 								onRowSelected={onRowSelected}
 							/>
-							<Box display="flex" justifyContent="flex-end" padding={'7px'}>
-								<Button color="secondary" onClick={() => onclick(false)} sx={{ ml: 1, background: '#eeee' }}>
+
+							<Box display="flex" justifyContent="flex-end" padding={'7px'} marginBottom={'10px'} gap={'12px'}>
+								<Button
+									color="secondary"
+									onClick={() => onclick(false)}
+									sx={{ ml: 1, background: '#eeee', marginBottom: '10px' }}
+								>
 									Add Subtask
 								</Button>
+								{selectedRows?.length > 0 && (
+									<Box>
+										{selectedRows?.length} items selected:
+										<DeleteCellRenderer
+											value={selectedRows}
+											task_group_id={task_group_id}
+											gridRef={gridRef}
+											isubTaskDelete={true}
+										/>
+									</Box>
+								)}
 							</Box>
 						</>
 					) : (
@@ -104,7 +173,7 @@ const TaskPopUp = forwardRef(
 								alignItems: 'center',
 								color: '#666',
 								textAlign: 'center',
-								padding: 3,
+								padding: 7,
 								cursor: 'pointer',
 							}}
 						>
@@ -117,7 +186,7 @@ const TaskPopUp = forwardRef(
 							<Typography variant="h6" sx={{ fontWeight: 600, marginBottom: 1 }}>
 								No Subtasks Found
 							</Typography>
-							<Typography
+							{/* <Typography
 								variant="body2"
 								sx={{
 									maxWidth: 280,
@@ -127,10 +196,17 @@ const TaskPopUp = forwardRef(
 								}}
 							>
 								This task doesn’t have any subtasks yet.
-								<br />
-								You can add one using the <span style={{ fontWeight: 600, color: '#1976d2' }}>"Add Subtask"</span>{' '}
-								button.
-							</Typography>
+							</Typography> */}
+
+							<Box display="flex" justifyContent="flex-end" padding={'7px'} marginBottom={'10px'}>
+								<Button
+									color="secondary"
+									onClick={() => onclick(false)}
+									sx={{ ml: 1, background: '#eeee', marginBottom: '10px' }}
+								>
+									Add Subtask
+								</Button>
+							</Box>
 						</Box>
 					)}
 				</div>

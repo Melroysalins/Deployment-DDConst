@@ -1,6 +1,5 @@
 import { supabase } from 'lib/api'
 
-
 /**
  * Creates a new task dependency in the database.
  *
@@ -11,16 +10,20 @@ import { supabase } from 'lib/api'
  * @returns {Promise<Object>} A promise that resolves to the newly created task dependency.
  */
 
-export const createTaskDependency = async({
-    from_task_id,
-    to_task_id,
-    project_id,
-    type,
-    lag,
-    lag_unit,
-    active=true}) => {
-    const res = await supabase.from('tasks_dependency').insert({from_task_id, to_task_id, project_id, type, lag, lagUnit:lag_unit, active}).select()
-    return res
+export const createTaskDependency = async ({
+	from_task_id,
+	to_task_id,
+	project_id,
+	type,
+	lag,
+	lag_unit,
+	active = true,
+}) => {
+	const res = await supabase
+		.from('tasks_dependency')
+		.insert({ from_task_id, to_task_id, project_id, type, lag, lagUnit: lag_unit, active })
+		.select()
+	return res
 }
 
 /**
@@ -32,10 +35,10 @@ export const createTaskDependency = async({
  * @returns {Promise<Object>} A promise that resolves to the updated task dependency.
  */
 
-export const updateTaskDependency = async ({to_task_id, id}) => {
-    const res = await supabase.from('tasks_dependency').update({to_task_id}).eq('id', id).select('*')
-    return res
-}
+// export const updateTaskDependency = async ({ to_task_id, id }) => {
+// 	const res = await supabase.from('tasks_dependency').update({ to_task_id }).eq('id', id).select('*')
+// 	return res
+// }
 
 /**
  * Gets a task dependency from the database.
@@ -44,8 +47,8 @@ export const updateTaskDependency = async ({to_task_id, id}) => {
  * @returns {Promise<Object>} A promise that resolves to the task dependency.
  */
 export const getTaskDependency = async (id) => {
-    const res = await supabase.from('tasks_dependency').select('*').eq('id', id).single()
-    return res
+	const res = await supabase.from('tasks_dependency').select('*').eq('id', id).single()
+	return res
 }
 
 /**
@@ -62,8 +65,8 @@ export const getTaskDependency = async (id) => {
  * @returns {Promise<Object>} A promise that resolves to the task dependencies associated with the specified project.
  */
 export const getAllTaskDependencyByProject = async (project) => {
-    const res = await supabase.from('tasks_dependency').select('*').eq('project_id', project)
-    return res
+	const res = await supabase.from('tasks_dependency').select('*').eq('project_id', project)
+	return res
 }
 
 /**
@@ -73,6 +76,12 @@ export const getAllTaskDependencyByProject = async (project) => {
  * @returns {Promise<Object>} A promise that resolves to the deleted task dependency.
  */
 export const deleteTaskDependency = async (id) => {
-    const res = await supabase.from('tasks_dependency').delete().eq('id', id)
-    return res
+	const res = await supabase.from('tasks_dependency').delete().eq('id', id)
+	return res
+}
+
+export const updateTaskDependency = async (params) => {
+	const { id, ...fields } = params
+	const res = await supabase.from('tasks_dependency').update(fields).eq('id', id).select()
+	return res
 }
