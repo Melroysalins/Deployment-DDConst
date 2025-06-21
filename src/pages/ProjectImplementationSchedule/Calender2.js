@@ -74,6 +74,7 @@ const Calender2 = ({
 	const schedulerRef = useRef(null)
 	const { id } = useParams()
 	console.log('myID', id)
+	let suppressNextEditor = false
 
 	const myQueryClient = useQueryClient()
 
@@ -97,56 +98,6 @@ const Calender2 = ({
 	)
 
 	const uniqueWorkTypes = [...new Set(selectedWorkTypesData)]
-
-	// Group tasks as before
-	// const groupedTasks = React.useMemo(() => {
-	// 	if (!data?.tasks) return null
-
-	// 	const task_groups = {
-	// 		1: 'metal_fittings',
-	// 		2: 'installations',
-	// 		3: 'connections',
-	// 		4: 'completion_test',
-	// 		5: 'office_work',
-	// 		6: 'auxiliary_construction',
-	// 	}
-	// 	const grouped = {
-	// 		metal_fittings: [],
-	// 		installations: [],
-	// 		connections: [],
-	// 		completion_test: [],
-	// 		office_work: [],
-	// 		auxiliary_construction: [],
-	// 	}
-
-	// 	// Group nested tasks on the basis of parentId
-	// 	const nestedTasks = data.tasks.data.filter((task) => task.parent_id !== null)
-	// 	const nestedTaskGroupedOnParentId = {}
-
-	// 	nestedTasks.forEach((task) => {
-	// 		const parentId = task.parent_task
-	// 		if (parentId) {
-	// 			if (!nestedTaskGroupedOnParentId[parentId]) {
-	// 				nestedTaskGroupedOnParentId[parentId] = []
-	// 			}
-	// 			nestedTaskGroupedOnParentId[parentId].push(task)
-	// 		}
-	// 	})
-
-	// 	data.tasks.data?.forEach((task) => {
-	// 		const groupId = task.task_group_id
-	// 		if (!task.parent_task && groupId !== null && task_groups[groupId]) {
-	// 			grouped[task_groups[groupId]]?.push({
-	// 				...task,
-	// 				children: nestedTaskGroupedOnParentId[task.id] || [],
-	// 			})
-	// 		}
-	// 	})
-	// 	console.log('yyy', data)
-	// 	SetTaskGroup(grouped)
-	// 	SetAllTaskGroup(grouped)
-	// 	return grouped
-	// }, [data?.tasks])
 
 	const memoizedGroupedTasks = React.useMemo(() => {
 		if (!data?.tasks) {
@@ -663,7 +614,11 @@ const Calender2 = ({
 			dependencyEditFeature: true,
 			ganttProps,
 			features: {
+				eventEdit: {
+					autoEdit: false, // ✅ prevents auto-opening on event add
+				},
 				...features,
+
 				eventMenu: {
 					processItems({ items, eventRecord }) {
 						items.addCustomSubtask = {
@@ -762,7 +717,7 @@ const Calender2 = ({
 										}
 
 										// Append to parent. Bryntum will handle placement based on dates.
-										topParent.appendChild(bryntumReadySubtask)
+										eventRecord.appendChild(bryntumReadySubtask)
 										await scheduler.project.commitAsync()
 										myQueryClient.invalidateQueries(['projectData', id])
 									} catch (error) {
@@ -1029,7 +984,7 @@ const Calender2 = ({
 					const subtasksContainer = editor.widgetMap.subtasksContainer
 
 					let subTaskToBeDeleted = []
-					console.log('beforeEventEditShow', eventRecord)
+
 					if (subtasksContainer) {
 						subtasksContainer.items.forEach((item) => item.destroy())
 						subtasksContainer.removeAll()
@@ -1045,7 +1000,7 @@ const Calender2 = ({
 					let subtasksGridInstance
 
 					const createSubtasksGrid = (initialData = []) => {
-						const noSubtasksLabel = subtasksContainer.widgetMap.noSubtasksLabel
+						const noSubtasksLabel = subtasksContainer?.widgetMap?.noSubtasksLabel
 
 						if (noSubtasksLabel) {
 							noSubtasksLabel.destroy()
@@ -1358,8 +1313,75 @@ const Calender2 = ({
 							}
 						},
 					})
+					return true
+				},
+				eventAdd: async ({ records }) => {
+					console.log('Add NewEVent CLicked', records)
 				},
 			},
+		})
+
+		scheduler.eventStore.on('add', ({ source, records, isMove, isReplace }) => {
+			const event = records[0]
+			event.set('suppressEditor', true)
+			const resourceId = event.resourceId
+			const resourceRecord = scheduler.resourceStore.getById(resourceId)
+
+			const currentTeam = teamsDetails?.find((item) => item?.name === resourceId)?.teamNumber
+
+			const isTrueSubtask = event.data.parentId && event.data.parentId !== scheduler.project.id
+
+			suppressNextEditor = true
+
+			if (isTrueSubtask) {
+				return
+			}
+
+			scheduler.features.eventEdit.disabled = true
+
+			let taskGroupID = null
+
+			if (resourceRecord?.name === 'Connection') {
+				taskGroupID = 3
+			} else if (resourceRecord?.name === 'Completion Testing') {
+				taskGroupID = 4
+			} else if (resourceRecord?.name === 'Metal Fittings Installation') {
+				taskGroupID = 1
+			} else if (resourceRecord?.name === 'Auxiliary Construction') {
+				taskGroupID = 6
+			} else if (resourceRecord?.name === 'Office Work') {
+				taskGroupID = 5
+			} else {
+				taskGroupID = 2
+			}
+
+			try {
+				const formattedSubtaskData = {
+					title: event?.data?.name,
+					start_date: DateHelper.format(event?.data?.startDate, 'YYYY-MM-DD'),
+					end_date: DateHelper.format(DateHelper.add(event?.data?.endDate, -1, 'd'), 'YYYY-MM-DD'),
+					team: currentTeam,
+					project: id,
+					task_group_id: taskGroupID,
+					// resourceId: eventRecords?.[0]?.data?.resourceId,
+				}
+
+				createNewTasks(formattedSubtaskData).then((res) => {
+					const backendNewSubtask = res?.data?.[0]
+
+					if (backendNewSubtask?.id) {
+						event.id = backendNewSubtask.id
+						event.set('task_group_id', backendNewSubtask.task_group_id)
+						event.commit()
+
+						myQueryClient.invalidateQueries(['projectData', id])
+					}
+
+					scheduler.features.eventEdit.disabled = false
+				})
+			} catch (error) {
+				console.log('Error !! Failed to add new event', error)
+			}
 		})
 
 		scheduler.dependencyStore.on('add', ({ records }) => {
@@ -1583,11 +1605,27 @@ const Calender2 = ({
 
 				await scheduler.project.commitAsync()
 
-				const taskGroupID = resourceRecord?.data?.name === 'Connection' ? 3 : 2
+				let taskGroupID = null
+
+				if (resourceRecord?.name === 'Connection') {
+					taskGroupID = 3
+				} else if (resourceRecord?.name === 'Completion Testing') {
+					taskGroupID = 4
+				} else if (resourceRecord?.name === 'Metal Fittings Installation') {
+					taskGroupID = 1
+				} else if (resourceRecord?.name === 'Auxiliary Construction') {
+					taskGroupID = 6
+				} else if (resourceRecord?.name === 'Office Work') {
+					taskGroupID = 5
+				} else {
+					taskGroupID = 2
+				}
 
 				const projectDiagramID = resourceRecord?.data?.tasksWithoutTeam?.find(
 					(item) => item?.project_diagram_id
 				)?.project_diagram_id
+
+				console.log('MyCopyPaste', resourceRecord)
 
 				if (!copiedData?.children) {
 					const resourceId = eventRecords?.[0]?.data?.resourceId

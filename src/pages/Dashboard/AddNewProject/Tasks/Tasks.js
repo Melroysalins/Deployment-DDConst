@@ -1021,7 +1021,7 @@ const Task = React.memo(
 
 			const sortedList = [...list].sort((a, b) => a.priority - b.priority)
 
-			let currentEndDate = new Date(sortedList[1].end_date)
+			let currentEndDate = new Date(sortedList[1]?.end_date)
 			const updatePromises = []
 
 			for (let i = 2; i <= list.length - 1; i += 1) {
