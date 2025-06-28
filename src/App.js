@@ -12,6 +12,28 @@ import { MainProvider } from 'pages/context/context'
 import { I18nextProvider } from 'react-i18next'
 import i18n from './utils/locales/i18n'
 
+// This disables the ResizeObserver error from appearing in the red React error overlay
+const originalResizeObserver = window.ResizeObserver
+window.ResizeObserver = class extends originalResizeObserver {
+	constructor(callback) {
+		super((entries, observer) => {
+			try {
+				callback(entries, observer)
+			} catch (e) {
+				// Just silently ignore the error
+				if (
+					e.message.includes('ResizeObserver loop completed') ||
+					e.message.includes('ResizeObserver loop limit exceeded')
+				) {
+					// Do nothing
+				} else {
+					throw e
+				}
+			}
+		})
+	}
+}
+
 // ----------------------------------------------------------------------
 const queryClient = new QueryClient({
 	defaultOptions: {

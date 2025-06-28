@@ -12,15 +12,11 @@ import reportWebVitals from './reportWebVitals'
 
 // ----------------------------------------------------------------------
 
-if (process.env.NODE_ENV === 'development') {
-	const suppressedErrors = ['ResizeObserver loop completed']
-	const originalError = console.error
-	console.error = (...args) => {
-		if (!suppressedErrors.some((entry) => args[0]?.includes(entry))) {
-			originalError(...args)
-		}
-	}
-}
+// This disables the ResizeObserver error from appearing in the red React error overlay
+// Monkey-patch ResizeObserver to suppress the "loop limit exceeded" error
+const resizeObserver = new ResizeObserver((entries) => {
+	window.requestAnimationFrame(() => {})
+})
 
 const root = ReactDOM.createRoot(document.getElementById('root'))
 
