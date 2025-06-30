@@ -52,6 +52,11 @@ import WarningDialog from 'pages/WeeklyPlan/FlowDiagram/WarningDialog'
 import FilterPopUp from 'components/FilterPopUp'
 import TaskPopUp from './TaskPopUp'
 
+// This disables the ResizeObserver error from appearing in the red React error overlay
+const resizeObserver = new ResizeObserver((entries) => {
+	window.requestAnimationFrame(() => {})
+})
+
 setOptions({
 	theme: 'ios',
 	themeVariant: 'light',
@@ -1009,7 +1014,141 @@ const Task = React.memo(
 			}
 		}
 
-		console.log('myselectedRows', selectedRows)
+		// const updateTaskDates = async () => {
+		// 	if (!list || list.length === 0) return
+
+		// 	const formatDate = (date) => {
+		// 		const yyyy = date.getFullYear()
+		// 		const mm = String(date.getMonth() + 1).padStart(2, '0')
+		// 		const dd = String(date.getDate()).padStart(2, '0')
+		// 		return `${yyyy}-${mm}-${dd}`
+		// 	}
+
+		// 	const sortedList = [...list].sort((a, b) => a.priority - b.priority)
+
+		// 	let currentEndDate = new Date(sortedList[0]?.end_date)
+		// 	const updatePromises = []
+
+		// 	for (let i = 1; i <= list.length - 1; i += 1) {
+		// 		const newStartDate = new Date(currentEndDate)
+		// 		newStartDate.setDate(newStartDate.getDate() + 1)
+
+		// 		const newEndDate = new Date(newStartDate)
+		// 		newEndDate.setDate(newEndDate.getDate() + 4)
+
+		// 		const updatedStart_date = formatDate(newStartDate)
+		// 		const updatedEnd_date = formatDate(newEndDate)
+		// 		const updatedTask_period = [updatedStart_date, updatedEnd_date]
+
+		// 		// Update currentEndDate for next iteration
+		// 		currentEndDate = newEndDate
+
+		// 		// Collect promise (but don't await inside loop)
+		// 		const updatePromise = updateTask(
+		// 			{
+		// 				start_date: updatedStart_date,
+		// 				end_date: updatedEnd_date,
+		// 			},
+		// 			list[i]?.id
+		// 		)
+		// 			.then((res) => {
+		// 				if (res?.error === null) {
+		// 					console.log('res', res)
+		// 				}
+		// 			})
+		// 			.catch((error) => {
+		// 				console.error('Error while updating task', list[i]?.id, error)
+		// 			})
+
+		// 		updatePromises.push(updatePromise)
+
+		// 		// console.log('updateTaskDates', updatedStart_date, updatedEnd_date, updatedTask_period, list[i]?.id)
+		// 	}
+
+		// 	// Await all updates in parallel
+		// 	await Promise.all(updatePromises)
+
+		// 	refetch()
+		// }
+
+		const updateTaskDates = async () => {
+			if (!list || list.length === 0) return
+
+			const formatDate = (date) => {
+				const yyyy = date.getFullYear()
+				const mm = String(date.getMonth() + 1).padStart(2, '0')
+				const dd = String(date.getDate()).padStart(2, '0')
+				return `${yyyy}-${mm}-${dd}`
+			}
+
+			const sortedList = [...list].sort((a, b) => {
+				if (a.tl !== b.tl) return a.tl - b.tl
+				if (a.priority !== b.priority) return a.priority - b.priority
+
+				const aStart = new Date(a.start_date)
+				const bStart = new Date(b.start_date)
+				if (aStart.getTime() !== bStart.getTime()) return aStart - bStart
+
+				const aEnd = new Date(a.end_date)
+				const bEnd = new Date(b.end_date)
+				return aEnd - bEnd
+			})
+
+			let currentEndDate = new Date(sortedList[0]?.end_date)
+			const updatePromises = []
+
+			console.log('updateTaskDates 1', sortedList)
+
+			for (let i = 1; i < list.length; i += 1) {
+				const task = sortedList[i]
+
+				const newStartDate = new Date(currentEndDate)
+				newStartDate.setDate(newStartDate.getDate() + 1)
+
+				const newEndDate = new Date(newStartDate)
+				newEndDate.setDate(newStartDate.getDate() + 4)
+
+				const updatedStart_date = formatDate(newStartDate)
+				const updatedEnd_date = formatDate(newEndDate)
+
+				currentEndDate = newEndDate
+
+				console.log(
+					`Updating Task ID: ${task.id}, Old: (${task.start_date} - ${task.end_date}) → New: (${updatedStart_date} - ${updatedEnd_date})`
+				)
+
+				const updatePromise = updateTask(
+					{
+						start_date: updatedStart_date,
+						end_date: updatedEnd_date,
+					},
+					task?.id
+				)
+					.then((res) => {
+						if (res?.error === null) {
+							console.log('✅ Updated Task ID:', task?.id)
+							// eslint-disable-next-line
+
+							// console.log('updateTaskDates', res?.data?.[0]?.title, 'Current ENd Date---->', newEndDate)
+						} else {
+							console.warn('⚠️ Update failed for Task ID:', task?.id)
+						}
+					})
+					.catch((error) => {
+						console.error('❌ Error while updating Task ID:', task?.id, error)
+					})
+
+				updatePromises.push(updatePromise)
+			}
+
+			await Promise.all(updatePromises)
+
+			refetch()
+		}
+
+		useEffect(() => {
+			updateTaskDates()
+		}, [list])
 
 		return (
 			<>
@@ -1025,7 +1164,9 @@ const Task = React.memo(
 				</Snackbar>
 				<div style={containerStyle}>
 					<div style={gridStyle} className="ag-theme-ddconst">
+						{console.log('rowData', list)}
 						<Stack gap={2}>
+							{console.log('updateTaskDates 2', list)}
 							<AgGridReact
 								ref={gridRef}
 								rowData={list}
@@ -1050,9 +1191,6 @@ const Task = React.memo(
 							{/* {console.log('list', list)} */}
 							<Box display="flex" justifyContent="space-between">
 								<Button onClick={handleAdd}>Add Task</Button>
-								<Button color="secondary" onClick={() => handleAddSubtask(true)} sx={{ ml: 1 }}>
-									Add Subtask
-								</Button>
 								{selectedRows?.length > 0 && (
 									<Box>
 										{selectedRows?.length} items selected:
