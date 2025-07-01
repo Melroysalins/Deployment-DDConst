@@ -382,7 +382,7 @@ const Calender2 = ({
 					startDate,
 					endDate,
 					allDay: true,
-					duration: actualDuration,
+					duration: 5,
 					durationunit: 'day',
 					name,
 					manuallyScheduled: true,
@@ -1652,9 +1652,17 @@ const Calender2 = ({
 					),
 					lag_unit: lagUnitMap[dep.lagUnit] || dep.lagUnit,
 					active: dep.active || true,
-				}).then((res) => {
+				}).then(async (res) => {
 					console.log('Backend dependency created:', res)
 					if (res.error === null) {
+						const realId = res.data?.[0]?.id
+						const days = DateHelper.diff(dep.fromEvent.endDate, dep.toEvent.startDate, dep.lagUnit)
+
+						dep.set('lag', days)
+						dep.set('id', realId)
+
+						await scheduler.project.propagateAsync()
+
 						console.log('dependency created successfully ', res)
 					} else {
 						console.log('Error creating task:', res.error.message)
@@ -1662,10 +1670,10 @@ const Calender2 = ({
 				})
 			})
 		})
-		scheduler.dependencyStore.on('update', ({ record, changes }) => {
-			console.log('Dependency updated:', record)
-			console.log('Changes:', changes)
-		})
+		// scheduler.dependencyStore.on('update', ({ record, changes }) => {
+		// 	console.log('Dependency updated:', record)
+		// 	console.log('Changes:', changes)
+		// })
 		scheduler.dependencyStore.on('remove', ({ records }) => {
 			console.log('Dependency removed:', records)
 			records.forEach((dep) => {
@@ -2102,8 +2110,51 @@ const Calender2 = ({
 				})
 
 				updateTaskDependency(updatePayload)
-					.then((res) => {
+					.then(async (res) => {
 						if (res.error === null) {
+							const fromTask = res?.data?.[0]?.from_task_id
+
+							const toTask = res?.data?.[0]?.to_task_id
+
+							const lagDays = res?.data?.[0]?.lag
+
+							const fromEventRecord = scheduler.eventStore.getById(fromTask)
+
+							const toEventRecord = scheduler.eventStore.getById(toTask)
+
+							const fromStartDate = fromEventRecord?.data?.startDate
+							const fromEndDate = fromEventRecord?.data?.endDate
+
+							const toStartDate = toEventRecord?.data?.startDate
+							const toEndDate = toEventRecord?.data?.endDate
+
+							if (lagDays || !lagDays) {
+								const fromTaskEndDate = DateHelper.add(fromEndDate, -1, 'day') // 30 -> 29
+
+								const toTaskStartDateForBackend = DateHelper.add(fromTaskEndDate, +lagDays, 'day') // 29->4
+
+								const toTaskEndDateForBackend = DateHelper.add(toTaskStartDateForBackend, +5, 'day') // 4->9
+
+								const toTaskStartDateForBryntum = DateHelper.add(toTaskStartDateForBackend, +1, 'day') // 5 start date for bryntum
+
+								const toTaskEndDateForBryntum = DateHelper.add(toTaskEndDateForBackend, +1, 'day') // 5 end date for bryntum
+
+								const formatToTaskStartDateForBackend = DateHelper.format(toTaskStartDateForBackend, 'YYYY-MM-DD')
+
+								const formatToTaskEndDateForBackend = DateHelper.format(toTaskEndDateForBackend, 'YYYY-MM-DD')
+
+								updateTask(
+									{ start_date: formatToTaskStartDateForBackend, end_date: formatToTaskEndDateForBackend },
+									toTask
+								)
+
+								myQueryClient.invalidateQueries(['projectData', toTask])
+
+								toEventRecord.set('startDate', toTaskStartDateForBryntum)
+								toEventRecord.set('endDate', toTaskEndDateForBryntum)
+
+								await scheduler.project.commitAsync()
+							}
 							console.log('Dependency updated in backend:', res)
 						} else {
 							console.error('Error updating dependency:', res.error)
