@@ -1003,9 +1003,7 @@ const Calender2 = ({
 					}
 				}
 
-				// If it's a parent or standalone task, render with duration info
-				// Determine the name color for parent/standalone tasks
-				let parentNameColor = 'white' // Default color for standalone tasks (no subtasks)
+				let parentNameColor = 'white'
 				if (eventRecord.children && eventRecord.children.length > 0) {
 					parentNameColor = '#666' // Color if it HAS subtasks
 				}
@@ -1020,13 +1018,16 @@ const Calender2 = ({
 							className: 'b-sch-event-name',
 							text: originalName,
 							// Apply the conditionally determined color here
-							style: `flex-grow: 1; text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: ${parentNameColor};`,
+							style: `  font-size: ${
+								durationDays - 1 < 2 ? '11px' : '1em'
+							}; flex-grow: 1; text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: ${parentNameColor};`,
 						},
 						{
 							tag: 'div',
 							className: 'event-duration-info',
-							style:
-								'flex-shrink: 0; margin-left: 30px; font-size: 0.8em; opacity: 1; color: black; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; display: flex; align-items: center; justify-content: flex-end;',
+							style: `flex-shrink: 0; margin-left: ${durationDays - 1 <= 2 ? '10px' : '30px'}; font-size: ${
+								durationDays - 1 < 2 ? '6.2px' : '0.8em'
+							}; opacity: 1; color: black; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; display: flex; align-items: center; justify-content: flex-end;`,
 							children: [
 								{
 									tag: 'span', // First part of the text
@@ -1188,6 +1189,8 @@ const Calender2 = ({
 
 					const defaultSubTaskNames = ['Line', 'Assemble', 'Trim', 'Galvanize', 'Install']
 					const parentId = eventRecord?.data?.id
+
+					eventRecord.set('manuallyScheduled', true)
 
 					if (!eventRecord.isTask) {
 						eventRecord.set('isTask', true)

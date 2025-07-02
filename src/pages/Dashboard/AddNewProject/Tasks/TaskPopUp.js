@@ -15,6 +15,7 @@ const TaskPopUp = forwardRef(
 			rowData,
 			columnDefs,
 			defaultColDef,
+			setSelectedRows,
 			rowSelection,
 			suppressRowClickSelection,
 			suppressColumnVirtualisation,
@@ -32,6 +33,9 @@ const TaskPopUp = forwardRef(
 			selectedRows,
 			DeleteCellRenderer,
 			task_group_id,
+			stopEditingWhenCellsLoseFocus,
+			isSubTaskCreated,
+			SetIsSubTaskCreated,
 		},
 		gridRef
 	) => {
@@ -98,6 +102,7 @@ const TaskPopUp = forwardRef(
 								suppressRowClickSelection={suppressRowClickSelection}
 								suppressColumnVirtualisation={suppressColumnVirtualisation}
 								domLayout={domLayout}
+								stopEditingWhenCellsLoseFocus={stopEditingWhenCellsLoseFocus}
 								onCellValueChanged={async (event) => {
 									const {
 										data,
@@ -145,7 +150,10 @@ const TaskPopUp = forwardRef(
 							<Box display="flex" justifyContent="flex-end" padding={'7px'} marginBottom={'10px'} gap={'12px'}>
 								<Button
 									color="secondary"
-									onClick={() => onclick(false)}
+									onClick={() => {
+										onclick(false)
+									}}
+									disabled={isSubTaskCreated}
 									sx={{ ml: 1, background: '#eeee', marginBottom: '10px' }}
 								>
 									Add Subtask

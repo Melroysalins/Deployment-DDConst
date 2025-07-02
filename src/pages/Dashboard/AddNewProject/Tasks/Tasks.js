@@ -132,6 +132,9 @@ const Tasks = () => {
 		demolition: '',
 		diagramId: '',
 	})
+
+	const [isSubTaskCreated, SetIsSubTaskCreated] = useState(false)
+
 	const { data: selectedWorkTypesData, isLoading: isLoadingWorkTypes } = useQuery(
 		['selectedWorkTypes', projectId],
 		() => getSelectedWorkTypes(projectId),
@@ -278,6 +281,8 @@ const Tasks = () => {
 										activeTaskID={activeTaskID}
 										filters={filters}
 										isFilteredApplied={isFilteredApplied}
+										SetIsSubTaskCreated={SetIsSubTaskCreated}
+										isSubTaskCreated={isSubTaskCreated}
 									/>
 								</AccordionDetails>
 							</Accordion>
@@ -312,7 +317,17 @@ const Tasks = () => {
 }
 
 const Task = React.memo(
-	({ task_group, task_group_id, cableTypeData, SetCableTypeData, activeTaskID, filters, isFilteredApplied }) => {
+	({
+		task_group,
+		task_group_id,
+		cableTypeData,
+		SetCableTypeData,
+		activeTaskID,
+		filters,
+		isFilteredApplied,
+		isSubTaskCreated,
+		SetIsSubTaskCreated,
+	}) => {
 		const { id } = useParams()
 		const [diagrams, setDiagrams] = useState({}) // State to hold diagram data
 		const [toast, setToast] = useState(false)
@@ -488,10 +503,10 @@ const Task = React.memo(
 				await refetch()
 
 				if (isubTaskDelete) {
+					setSelectedRows([])
 					const { data: latestTasks } = await refetchFull()
 					const filteredSubTasks = latestTasks?.filter((item) => item?.parent_task === taskID)
 					SetSubTasksData(filteredSubTasks)
-					setSelectedRows([])
 				}
 			}
 
@@ -708,7 +723,7 @@ const Task = React.memo(
 				},
 
 				{
-					headerName: 'Duration (days)',
+					headerName: 'Mandays',
 					field: 'duration',
 					flex: 2,
 					valueGetter: (params) => {
@@ -782,7 +797,7 @@ const Task = React.memo(
 					editable: true,
 				},
 				{
-					headerName: 'Duration (days)',
+					headerName: 'Mandays',
 					field: 'duration',
 					flex: 2,
 					valueGetter: (params) => {
@@ -924,6 +939,7 @@ const Task = React.memo(
 				})
 				console.log('HRT', fullResponse)
 			} else {
+				SetIsSubTaskCreated(true)
 				const defaultSubTaskNames = ['Line', 'Trim', 'Assemble', 'Galvanize', 'Install']
 
 				const selectedTaskObj = fullResponse?.find((task) => task.id === taskID)
@@ -954,7 +970,7 @@ const Task = React.memo(
 
 				const subtasks = [
 					{
-						title: nextTitle,
+						title: '',
 						team: selectedTaskObj.team,
 						start_date: nextStartDate.format('YYYY-MM-DD'),
 						end_date: nextEndDate.format('YYYY-MM-DD'),
@@ -975,6 +991,22 @@ const Task = React.memo(
 
 					const filteredSubTasks = latestTasks?.filter((item) => item?.parent_task === taskID)
 					SetSubTasksData(filteredSubTasks)
+					SetIsSubTaskCreated(false)
+
+					setTimeout(() => {
+						const rowIndex = filteredSubTasks.length - 1
+
+						// Ensure the row is visible (scroll if needed)
+						gridRef.current.api.stopEditing()
+						gridRef.current.api.ensureIndexVisible(rowIndex)
+
+						// Focus the 'title' (Task Name) cell with blinking cursor
+						gridRef.current.api.startEditingCell({
+							rowIndex,
+							colKey: 'title', // Column key for Task Name
+						})
+					}, 50)
+					return () => {}
 				})
 			}
 		}
@@ -1013,63 +1045,6 @@ const Task = React.memo(
 					})
 			}
 		}
-
-		// const updateTaskDates = async () => {
-		// 	if (!list || list.length === 0) return
-
-		// 	const formatDate = (date) => {
-		// 		const yyyy = date.getFullYear()
-		// 		const mm = String(date.getMonth() + 1).padStart(2, '0')
-		// 		const dd = String(date.getDate()).padStart(2, '0')
-		// 		return `${yyyy}-${mm}-${dd}`
-		// 	}
-
-		// 	const sortedList = [...list].sort((a, b) => a.priority - b.priority)
-
-		// 	let currentEndDate = new Date(sortedList[0]?.end_date)
-		// 	const updatePromises = []
-
-		// 	for (let i = 1; i <= list.length - 1; i += 1) {
-		// 		const newStartDate = new Date(currentEndDate)
-		// 		newStartDate.setDate(newStartDate.getDate() + 1)
-
-		// 		const newEndDate = new Date(newStartDate)
-		// 		newEndDate.setDate(newEndDate.getDate() + 4)
-
-		// 		const updatedStart_date = formatDate(newStartDate)
-		// 		const updatedEnd_date = formatDate(newEndDate)
-		// 		const updatedTask_period = [updatedStart_date, updatedEnd_date]
-
-		// 		// Update currentEndDate for next iteration
-		// 		currentEndDate = newEndDate
-
-		// 		// Collect promise (but don't await inside loop)
-		// 		const updatePromise = updateTask(
-		// 			{
-		// 				start_date: updatedStart_date,
-		// 				end_date: updatedEnd_date,
-		// 			},
-		// 			list[i]?.id
-		// 		)
-		// 			.then((res) => {
-		// 				if (res?.error === null) {
-		// 					console.log('res', res)
-		// 				}
-		// 			})
-		// 			.catch((error) => {
-		// 				console.error('Error while updating task', list[i]?.id, error)
-		// 			})
-
-		// 		updatePromises.push(updatePromise)
-
-		// 		// console.log('updateTaskDates', updatedStart_date, updatedEnd_date, updatedTask_period, list[i]?.id)
-		// 	}
-
-		// 	// Await all updates in parallel
-		// 	await Promise.all(updatePromises)
-
-		// 	refetch()
-		// }
 
 		const updateTaskDates = async () => {
 			if (!list || list.length === 0) return
@@ -1226,9 +1201,13 @@ const Task = React.memo(
 						myQueryClient={myQueryClient}
 						SetSubTasksData={SetSubTasksData}
 						taskID={taskID}
+						isSubTaskCreated={isSubTaskCreated}
+						SetIsSubTaskCreated={SetIsSubTaskCreated}
 						selectedRows={selectedRows}
 						task_group_id={task_group_id}
 						DeleteCellRenderer={DeleteCellRenderer}
+						setSelectedRows={setSelectedRows}
+						stopEditingWhenCellsLoseFocus={true}
 						onRowSelected={() => {
 							if (gridRef.current?.api) {
 								const selected = gridRef.current?.api?.getSelectedRows()
