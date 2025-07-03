@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from 'react-query'
+
 import {
 	Scheduler,
 	SchedulerPro,
@@ -13,14 +14,14 @@ import {
 	SuccessorsTab,
 	DependencyEdit,
 	DependencyMenu,
-	Widgets,
-} from '@bryntum/schedulerpro'
+} from '../../lib/bryntum/schedulerpro.module'
+import '../../lib/bryntum/schedulerpro.stockholm.css'
+
 import { Button as MuiButton, Stack } from '@mui/material'
 import Iconify from 'components/Iconify'
 import moment, { duration } from 'moment-timezone'
 
 import './Calender2.css'
-import '@bryntum/schedulerpro/schedulerpro.stockholm.css'
 
 import {
 	createNewTasks,

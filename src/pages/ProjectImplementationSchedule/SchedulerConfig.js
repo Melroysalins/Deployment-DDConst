@@ -6,7 +6,7 @@ import {
 	PredecessorsTab,
 	SuccessorsTab,
 	NestedEvents,
-} from '@bryntum/schedulerpro'
+} from '../../lib/bryntum/schedulerpro.module'
 import React from 'react'
 
 // view preset config object
