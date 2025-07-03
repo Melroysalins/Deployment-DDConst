@@ -99,9 +99,21 @@ header {
   
 
   .light-red-time-range {
-    background-color: rgba(255, 0, 0, 0.1) !important;
-    border-top: 1px solid rgba(255, 0, 0, 0.3);
-    border-bottom: 1px solid rgba(255, 0, 0, 0.3);
+    background-color: #f0f0f0 !important;
+    border-top: 1px solid #f0f0f0 !;
+    border-bottom: 1px solid #f0f0f0 !important;
+    border: 0.5px solid rgb(224, 223, 223);
   }
-  
-  
+
+ /* Saturday (day 6) */
+.b-sch-dayheadercell-6 {
+  color: red !important;
+  font-weight: bold;
+}
+
+/* Sunday (day 0) */
+.b-sch-dayheadercell-0 {
+  color: red !important;
+  font-weight: bold;
+}
+

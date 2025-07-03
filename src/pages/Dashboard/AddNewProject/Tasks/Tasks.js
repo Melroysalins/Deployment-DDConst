@@ -553,7 +553,7 @@ const Task = React.memo(
 
 		const TimeRangeRenderer = ({ value }) =>
 			value && value[0] && value[1]
-				? `${moment(value[0]).format('DD/MM/YYYY')} - ${moment(value[1]).format('DD/MM/YYYY')}`
+				? `${moment(value[0]).format('YYYY/MM/DD')} - ${moment(value[1]).format('YYYY/MM/DD')}`
 				: '-'
 
 		const TeamRenderer = ({ value }) => (value && teams ? teams?.data.find((team) => team.id === value)?.name : '-')
@@ -739,7 +739,7 @@ const Task = React.memo(
 					cellStyle: { textAlign: 'center' },
 				},
 				{
-					headerName: 'Task Period',
+					headerName: 'Work Days',
 					field: 'task_period',
 					cellEditor: TimeRangeEditor,
 					cellRenderer: TimeRangeRenderer,
@@ -812,7 +812,7 @@ const Task = React.memo(
 					editable: false,
 				},
 				{
-					headerName: 'Task Period',
+					headerName: 'Work Days',
 					field: 'task_period',
 					cellEditor: TimeRangeEditor,
 					cellRenderer: TimeRangeRenderer,

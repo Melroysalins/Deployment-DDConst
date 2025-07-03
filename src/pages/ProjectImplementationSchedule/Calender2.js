@@ -964,11 +964,12 @@ const Calender2 = ({
 			],
 			project,
 			eventRenderer: ({ eventRecord }) => {
-				const durationDays = eventRecord.duration
 				const originalName = eventRecord.name
 
 				const startDate = new Date(eventRecord.startDate)
 				const endDate = new Date(eventRecord.endDate)
+
+				const durationDays = DateHelper.diff(startDate, endDate, 'day')
 
 				const actualEnDate = DateHelper.add(endDate, -1, 'day')
 
@@ -1032,7 +1033,7 @@ const Calender2 = ({
 							children: [
 								{
 									tag: 'span', // First part of the text
-									text: `[ ${title} Task Period `, // Using 'title' (calculated workdays)
+									text: `[ ${title} Mandays `, // Using 'title' (calculated workdays)
 								},
 								{
 									tag: 'i', // The Font Awesome icon
@@ -1041,7 +1042,7 @@ const Calender2 = ({
 								},
 								{
 									tag: 'span', // Second part of the text
-									text: `${durationDays} Mandays ]`, // Using 'durationDays' (eventRecord.duration)
+									text: `${durationDays} Work Days ]`, // Using 'durationDays' (eventRecord.duration)
 								},
 							],
 						},
@@ -1434,7 +1435,7 @@ const Calender2 = ({
 								{ text: 'Name', field: 'name', flex: 1.5 },
 								{ text: 'Start Date', field: 'startDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
 								{ text: 'End Date', field: 'endDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
-								{ text: 'Duration', field: 'duration', flex: 0.5, editable: true },
+								{ text: 'Mandays', field: 'duration', flex: 0.5, editable: true },
 							],
 							bbar: [
 								'->',
