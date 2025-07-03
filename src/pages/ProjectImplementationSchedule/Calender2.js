@@ -3,17 +3,17 @@ import { useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from 'react-query'
 
 import {
-	Scheduler,
+	// Scheduler,
 	SchedulerPro,
-	ResourceStore,
+	// ResourceStore,
 	DependencyStore,
 	DateHelper,
 	ProjectModel,
-	DependencyTab,
-	PredecessorsTab,
-	SuccessorsTab,
-	DependencyEdit,
-	DependencyMenu,
+	// DependencyTab,
+	// PredecessorsTab,
+	// SuccessorsTab,
+	// DependencyEdit,
+	// DependencyMenu,
 } from '../../lib/bryntum/schedulerpro.module'
 import '../../lib/bryntum/schedulerpro.stockholm.css'
 

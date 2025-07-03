@@ -1,13 +1,12 @@
 import {
 	DateHelper,
-	DependencyMenu,
-	EventEdit,
-	DependencyStore,
-	PredecessorsTab,
-	SuccessorsTab,
-	NestedEvents,
+	// DependencyMenu,
+	// EventEdit,
+	// DependencyStore,
+	// PredecessorsTab,
+	// SuccessorsTab,
+	// NestedEvents,
 } from '../../lib/bryntum/schedulerpro.module'
-import React from 'react'
 
 // view preset config object
 export const customMonthViewPreset = {
