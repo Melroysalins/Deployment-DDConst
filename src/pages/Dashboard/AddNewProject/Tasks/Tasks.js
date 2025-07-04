@@ -733,7 +733,18 @@ const Task = React.memo(
 						const startDate = moment(start)
 						const endDate = moment(end)
 
-						return endDate.diff(startDate, 'days') + 1 // include both start & end dates
+						let count = 0
+						const current = moment(startDate)
+
+						while (current <= endDate) {
+							const day = current.day()
+							if (day !== 0 && day !== 6) {
+								count += 1
+							}
+							current.add(1, 'day')
+						}
+
+						return count
 					},
 					editable: false,
 					cellStyle: { textAlign: 'center' },
@@ -1046,6 +1057,81 @@ const Task = React.memo(
 			}
 		}
 
+		// const updateTaskDates = async () => {
+		// 	if (!list || list.length === 0) return
+
+		// 	const formatDate = (date) => {
+		// 		const yyyy = date.getFullYear()
+		// 		const mm = String(date.getMonth() + 1).padStart(2, '0')
+		// 		const dd = String(date.getDate()).padStart(2, '0')
+		// 		return `${yyyy}-${mm}-${dd}`
+		// 	}
+
+		// 	const sortedList = [...list].sort((a, b) => {
+		// 		if (a.tl !== b.tl) return a.tl - b.tl
+		// 		if (a.priority !== b.priority) return a.priority - b.priority
+
+		// 		const aStart = new Date(a.start_date)
+		// 		const bStart = new Date(b.start_date)
+		// 		if (aStart.getTime() !== bStart.getTime()) return aStart - bStart
+
+		// 		const aEnd = new Date(a.end_date)
+		// 		const bEnd = new Date(b.end_date)
+		// 		return aEnd - bEnd
+		// 	})
+
+		// 	let currentEndDate = new Date(sortedList[0]?.end_date)
+		// 	const updatePromises = []
+
+		// 	console.log('updateTaskDates 1', sortedList)
+
+		// 	for (let i = 1; i < list.length; i += 1) {
+		// 		const task = sortedList[i]
+
+		// 		const newStartDate = new Date(currentEndDate)
+		// 		newStartDate.setDate(newStartDate.getDate() + 1)
+
+		// 		const newEndDate = new Date(newStartDate)
+		// 		newEndDate.setDate(newStartDate.getDate() + 4)
+
+		// 		const updatedStart_date = formatDate(newStartDate)
+		// 		const updatedEnd_date = formatDate(newEndDate)
+
+		// 		currentEndDate = newEndDate
+
+		// 		console.log(
+		// 			`Updating Task ID: ${task.id}, Old: (${task.start_date} - ${task.end_date}) → New: (${updatedStart_date} - ${updatedEnd_date})`
+		// 		)
+
+		// 		const updatePromise = updateTask(
+		// 			{
+		// 				start_date: updatedStart_date,
+		// 				end_date: updatedEnd_date,
+		// 			},
+		// 			task?.id
+		// 		)
+		// 			.then((res) => {
+		// 				if (res?.error === null) {
+		// 					console.log('✅ Updated Task ID:', task?.id)
+		// 					// eslint-disable-next-line
+
+		// 					// console.log('updateTaskDates', res?.data?.[0]?.title, 'Current ENd Date---->', newEndDate)
+		// 				} else {
+		// 					console.warn('⚠️ Update failed for Task ID:', task?.id)
+		// 				}
+		// 			})
+		// 			.catch((error) => {
+		// 				console.error('❌ Error while updating Task ID:', task?.id, error)
+		// 			})
+
+		// 		updatePromises.push(updatePromise)
+		// 	}
+
+		// 	await Promise.all(updatePromises)
+
+		// 	refetch()
+		// }
+
 		const updateTaskDates = async () => {
 			if (!list || list.length === 0) return
 
@@ -1054,6 +1140,20 @@ const Task = React.memo(
 				const mm = String(date.getMonth() + 1).padStart(2, '0')
 				const dd = String(date.getDate()).padStart(2, '0')
 				return `${yyyy}-${mm}-${dd}`
+			}
+
+			const addWorkingDays = (startDate, daysToAdd) => {
+				const date = new Date(startDate)
+				let addedDays = 0
+
+				while (addedDays < daysToAdd) {
+					date.setDate(date.getDate() + 1)
+					const day = date.getDay()
+					if (day !== 0 && day !== 6) {
+						addedDays += 1
+					}
+				}
+				return date
 			}
 
 			const sortedList = [...list].sort((a, b) => {
@@ -1080,8 +1180,7 @@ const Task = React.memo(
 				const newStartDate = new Date(currentEndDate)
 				newStartDate.setDate(newStartDate.getDate() + 1)
 
-				const newEndDate = new Date(newStartDate)
-				newEndDate.setDate(newStartDate.getDate() + 4)
+				const newEndDate = addWorkingDays(newStartDate, 4)
 
 				const updatedStart_date = formatDate(newStartDate)
 				const updatedEnd_date = formatDate(newEndDate)
@@ -1102,9 +1201,6 @@ const Task = React.memo(
 					.then((res) => {
 						if (res?.error === null) {
 							console.log('✅ Updated Task ID:', task?.id)
-							// eslint-disable-next-line
-
-							// console.log('updateTaskDates', res?.data?.[0]?.title, 'Current ENd Date---->', newEndDate)
 						} else {
 							console.warn('⚠️ Update failed for Task ID:', task?.id)
 						}
@@ -1117,7 +1213,6 @@ const Task = React.memo(
 			}
 
 			await Promise.all(updatePromises)
-
 			refetch()
 		}
 

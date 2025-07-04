@@ -636,7 +636,7 @@ const Calender2 = ({
 			dependencyEditFeature: true,
 			ganttProps,
 			features: {
-				stripe: true,
+				// stripe: true,
 				eventEdit: {
 					autoEdit: false,
 				},
