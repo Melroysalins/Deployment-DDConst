@@ -1180,7 +1180,7 @@ const Task = React.memo(
 				const newStartDate = new Date(currentEndDate)
 				newStartDate.setDate(newStartDate.getDate() + 1)
 
-				const newEndDate = addWorkingDays(newStartDate, 4)
+				const newEndDate = addWorkingDays(newStartDate, 5)
 
 				const updatedStart_date = formatDate(newStartDate)
 				const updatedEnd_date = formatDate(newEndDate)

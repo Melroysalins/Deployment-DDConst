@@ -983,8 +983,6 @@ const Calender2 = ({
 					}
 
 					tempStartDate.setDate(tempStartDate.getDate() + 1)
-
-					console.log('Event Debug Info2.0', tempStartDate, endDate, title)
 				}
 
 				if (eventRecord.parentId && eventRecord.parentId !== 'events-rootNode') {
@@ -1954,30 +1952,42 @@ const Calender2 = ({
 			}
 		)
 
+		scheduler.on('beforePaste', ({ context }) => {
+			context?.preventDefault()
+		})
+
 		scheduler.on(
 			'paste',
-			async ({ pastedEventRecords, eventRecords, assignmentRecords, resourceRecord, entityName }) => {
-				const copiedData = eventRecords?.[0]
+			async ({ pastedEventRecords, eventRecords, assignmentRecords, resourceRecord, entityName, context }) => {
+				context?.preventDefault()
 
-				await scheduler.project.commitAsync()
+				const currentResouceID = pastedEventRecords?.[0]?.data?.resourceId
 
-				let taskGroupID = null
+				const destinationResource = scheduler.resourceStore.getById(currentResouceID)
 
-				if (resourceRecord?.name === 'Connection') {
-					taskGroupID = 3
-				} else if (resourceRecord?.name === 'Completion Testing') {
-					taskGroupID = 4
-				} else if (resourceRecord?.name === 'Metal Fittings Installation') {
-					taskGroupID = 1
-				} else if (resourceRecord?.name === 'Auxiliary Construction') {
-					taskGroupID = 6
-				} else if (resourceRecord?.name === 'Office Work') {
-					taskGroupID = 5
-				} else {
-					taskGroupID = 2
+				let taskGroupID = destinationResource?.data?.tasksWithoutTeam?.[0]?.task_group_id
+
+				const withTeams = destinationResource?.data?.name
+
+				if (!taskGroupID) {
+					if (withTeams === 'Connection') {
+						taskGroupID = 3
+					} else if (withTeams === 'Completion Testing') {
+						taskGroupID = 4
+					} else if (withTeams === 'Metal Fittings Installation') {
+						taskGroupID = 1
+					} else if (withTeams === 'Auxiliary Construction') {
+						taskGroupID = 6
+					} else if (withTeams === 'Office Work') {
+						taskGroupID = 5
+					} else {
+						taskGroupID = 2
+					}
 				}
 
-				console.log('COPYPASTE', resourceRecord?.name, taskGroupID)
+				const currentTeam = teamsDetails?.find((item) => item?.name === currentResouceID)?.teamNumber
+
+				console.log('COPYPASTE', resourceRecord.id, currentResouceID)
 
 				const projectDiagramID = resourceRecord?.data?.tasksWithoutTeam?.find(
 					(item) => item?.project_diagram_id
@@ -1986,11 +1996,6 @@ const Calender2 = ({
 				/* eslint-disable no-await-in-loop */
 				for (let i = 0; i < eventRecords.length; i += 1) {
 					const eventRecord = eventRecords[i]
-
-					// const resourceId = eventRecord?.data?.resourceId
-
-					const resourceId = resourceRecord?.id
-					const currentTeam = teamsDetails?.find((item) => item?.name === resourceId)?.teamNumber
 
 					const hasChildren = eventRecord?.data?.children?.length > 0
 
@@ -2003,6 +2008,7 @@ const Calender2 = ({
 						project_diagram_id: projectDiagramID,
 						task_group_id: taskGroupID,
 					}
+					eventRecord.set('resourceId', currentResouceID)
 
 					try {
 						const res = await createNewTasks(formattedSubtaskData)
@@ -2016,14 +2022,20 @@ const Calender2 = ({
 								endDate: backendNewSubtask?.end_date,
 								team: currentTeam,
 								notes: backendNewSubtask.notes,
-								task_group_id: backendNewSubtask.task_group_id,
+								task_group_id: taskGroupID,
 								project: backendNewSubtask.project,
-								parentId: backendNewSubtask.parent_task,
-								resourceId,
+								// parentId: backendNewSubtask?.id,
+								resourceId: currentResouceID,
 								isPastedEvent: true,
+								manuallyScheduled: true,
 							}
+							console.log('My New Event', res, bryntumReadytask)
+
 							scheduler.eventStore.add(bryntumReadytask)
-							console.log('Pasted single event', bryntumReadytask)
+
+							await scheduler.project.commitAsync()
+
+							// Remove Bryntum's auto-generated pasted ghost events
 						} else {
 							const parentID = backendNewSubtask.id
 							const childTasks = eventRecord.data.children || []
@@ -2041,11 +2053,12 @@ const Calender2 = ({
 										parent_task: parentID,
 									},
 								]
+								eventRecord.set('resourceId', currentResouceID)
 								return createNewTasks(subTaskData)
 							})
 
 							await Promise.all(childPromises)
-							console.log('Pasted parent with children:', backendNewSubtask.title, childTasks.length)
+							console.log('Pasted New Event with children:', backendNewSubtask.title, childTasks.length)
 						}
 					} catch (error) {
 						console.error('Error pasting event:', error)
@@ -2053,8 +2066,6 @@ const Calender2 = ({
 				}
 			}
 		)
-
-		// scheduler dependency code
 
 		scheduler.dependencyStore.on('update', ({ record, changes }) => {
 			console.log('Dependency updated:', record)

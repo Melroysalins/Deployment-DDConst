@@ -363,10 +363,14 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		const date = new Date(startDate)
 		let addedDays = 0
 
+		// Check if startDate itself is a working day
+		if (date.getDay() !== 0 && date.getDay() !== 6) {
+			addedDays += 1
+		}
+
 		while (addedDays < daysToAdd) {
 			date.setDate(date.getDate() + 1)
 			const day = date.getDay()
-			// Skip Saturday (6) and Sunday (0)
 			if (day !== 0 && day !== 6) {
 				addedDays += 1
 			}
@@ -385,7 +389,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	let end = new Date()
 	end.setDate(start.getDate() + 4)
 
-	end = addWorkingDays(start, 4)
+	end = addWorkingDays(start, 5)
 
 	let endPointCount = 0
 
