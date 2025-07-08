@@ -42,6 +42,7 @@ import {
 	getTimelineRange,
 	dependencyTypeMap,
 	getISODateString,
+	zoomPresets,
 } from './SchedulerConfig'
 import { filter, forEach } from 'lodash'
 import FilterPopup from 'components/FilterPopUp'
@@ -135,7 +136,7 @@ const Calender2 = ({
 		}
 
 		// Group nested tasks on the basis of parentId
-		const nestedTasks = data.tasks.data.filter((task) => task.parent_id !== null)
+		const nestedTasks = data?.tasks?.data?.filter((task) => task.parent_id !== null)
 		const nestedTaskGroupedOnParentId = {}
 
 		nestedTasks.forEach((task) => {
@@ -620,14 +621,14 @@ const Calender2 = ({
 			dependenciesFeature: true,
 		}
 
+		const currentZoomIndex = 1
+
 		const scheduler = new SchedulerPro({
 			appendTo: schedulerRef.current,
 			autoHeight: true,
 			width: '100%',
 			infiniteScroll: true,
-			autoAdjustTimeAxis: true,
 			viewPreset: customMonthViewPreset,
-			multiEventSelect: true,
 			tickSize: 100,
 			rowHeight: 100,
 			endDateIsInclusive: true,
@@ -635,11 +636,15 @@ const Calender2 = ({
 			dependenciesFeature: true,
 			dependencyEditFeature: true,
 			ganttProps,
+			autoAdjustTimeAxis: false,
+			maxZoomLevel: 12,
+			timeResolution: {
+				unit: 'day',
+				increment: 1,
+			},
+			snapToIncrement: true,
 			features: {
-				// stripe: true,
-				eventEdit: {
-					autoEdit: false,
-				},
+				...features,
 				resourceTimeRanges: {
 					enableResizing: false,
 					showHeaderElements: true,
@@ -665,8 +670,6 @@ const Calender2 = ({
 						return resourceTimeRangeRecord.name
 					},
 				},
-				...features,
-
 				eventMenu: {
 					processItems({ items, eventRecord }) {
 						const originalEventRecord = eventRecord
@@ -1625,6 +1628,11 @@ const Calender2 = ({
 			},
 		})
 
+		console.log('All dependencies in store:')
+		scheduler.dependencyStore.forEach((dep) => {
+			console.log(`From Event ID ${dep.fromEvent} → To Event ID ${dep.toEvent}`)
+		})
+
 		scheduler.eventStore.on('add', ({ source, records, isMove, isReplace }) => {
 			suppressNextEditor = true
 			const event = records[0]
@@ -2158,6 +2166,8 @@ const Calender2 = ({
 					})
 			}
 		})
+
+		scheduler.displayDateFormat = 'll'
 
 		// // ✅ Proper async commit block
 		;(async () => {

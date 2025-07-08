@@ -9,6 +9,7 @@ import {
 } from '../../lib/bryntum/schedulerpro.module'
 
 // view preset config object
+
 export const customMonthViewPreset = {
 	id: 'customMonthViewPreset',
 	name: 'Custom Month View',
@@ -56,7 +57,7 @@ export const features = {
 	},
 	taskEdit: {
 		editorConfig: {
-			title: 'Example ',
+			title: '1234 ',
 		},
 		items: {
 			generalTab: true,
@@ -90,14 +91,30 @@ export const features = {
 
 	dependencyMenu: true,
 	eventTooltip: {
-		template: (data) => {
+		showTooltip: true,
+		tooltipTemplate({ eventRecord }) {
+			const start = DateHelper.format(eventRecord.startDate, 'YYYY MMM, D')
+			const end = DateHelper.format(eventRecord.endDate, 'YYYY MMM, D')
+
+			console.log('TOOLTIP', start, end)
+
+			const name = eventRecord.name || 'Unnamed Task'
+
 			return `
-                <div class="b-sch-event-title">${data.eventRecord.name}</div>
-                <div class="b-sch-event-time">${DateHelper.format(
-									data.eventRecord.startDate,
-									'HH:mm'
-								)} - ${DateHelper.format(data.eventRecord.endDate, 'HH:mm')}</div>
-            `
+						<div class="custom-tooltip">
+						  <div class="task-name">${name}</div>
+						  <div class="task-dates">
+							<div>
+							  <span class="label">Start:</span>
+							  <span class="value">${start}</span>
+							</div>
+							<div>
+							  <span class="label">End:</span>
+							  <span class="value">${end}</span>
+							</div>
+						  </div>
+						</div>
+					  `
 		},
 	},
 }
@@ -137,3 +154,30 @@ export const getISODateString = (date) => {
 	const day = String(d.getDate()).padStart(2, '0')
 	return `${year}-${month}-${day}`
 }
+
+export const zoomPresets = [
+	{
+		id: 'zoom-out',
+		tickWidth: 60,
+		headers: [
+			{ unit: 'month', dateFormat: 'MMMM YYYY' },
+			{ unit: 'day', dateFormat: 'D ddd' },
+		],
+	},
+	{
+		id: 'zoom-normal',
+		tickWidth: 100,
+		headers: [
+			{ unit: 'month', dateFormat: 'MMMM YYYY' },
+			{ unit: 'day', dateFormat: 'D ddd' },
+		],
+	},
+	{
+		id: 'zoom-in',
+		tickWidth: 160,
+		headers: [
+			{ unit: 'month', dateFormat: 'MMMM YYYY' },
+			{ unit: 'day', dateFormat: 'D ddd' },
+		],
+	},
+]

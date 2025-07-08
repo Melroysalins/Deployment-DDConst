@@ -363,18 +363,17 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 		const date = new Date(startDate)
 		let addedDays = 0
 
-		// Check if startDate itself is a working day
-		if (date.getDay() !== 0 && date.getDay() !== 6) {
-			addedDays += 1
-		}
-
-		while (addedDays < daysToAdd) {
-			date.setDate(date.getDate() + 1)
+		while (addedDays <= daysToAdd) {
+			console.log('setDate', date)
 			const day = date.getDay()
 			if (day !== 0 && day !== 6) {
 				addedDays += 1
 			}
+			if (addedDays < daysToAdd) {
+				date.setDate(date.getDate() + 1)
+			}
 		}
+
 		return date
 	}
 

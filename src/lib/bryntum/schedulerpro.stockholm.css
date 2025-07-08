@@ -18289,7 +18289,7 @@ svg.b-sch-dependencies-canvas{
   flex-direction:column;
 }
 .b-popup.b-sch-event-tooltip .b-sch-event-title{
-  font-weight:600;
+  font-weight: bold;
 }
 
 .b-eventtip-content{
@@ -19018,7 +19018,7 @@ svg.b-sch-dependencies-canvas{
   display:flex;
 }
 .b-sch-clockwrap:not(:first-child){
-  margin-top:0.3em;
+  margin-top:0.7em;
 }
 
 .b-sch-clock{
@@ -21722,4 +21722,5 @@ svg.b-sch-dependencies-canvas .b-sch-dependency.b-inactive{
 .b-popup.b-schedulerpro-taskeditor .b-tabpanel-body{
   padding-bottom:0;
 }
+
 

@@ -1146,13 +1146,17 @@ const Task = React.memo(
 				const date = new Date(startDate)
 				let addedDays = 0
 
-				while (addedDays < daysToAdd) {
-					date.setDate(date.getDate() + 1)
+				while (addedDays <= daysToAdd) {
+					console.log('setDate', date)
 					const day = date.getDay()
 					if (day !== 0 && day !== 6) {
 						addedDays += 1
 					}
+					if (addedDays < daysToAdd) {
+						date.setDate(date.getDate() + 1)
+					}
 				}
+
 				return date
 			}
 
@@ -1172,8 +1176,6 @@ const Task = React.memo(
 			let currentEndDate = new Date(sortedList[0]?.end_date)
 			const updatePromises = []
 
-			console.log('updateTaskDates 1', sortedList)
-
 			for (let i = 1; i < list.length; i += 1) {
 				const task = sortedList[i]
 
@@ -1181,6 +1183,8 @@ const Task = React.memo(
 				newStartDate.setDate(newStartDate.getDate() + 1)
 
 				const newEndDate = addWorkingDays(newStartDate, 5)
+
+				console.log('updateTaskDates 1', currentEndDate)
 
 				const updatedStart_date = formatDate(newStartDate)
 				const updatedEnd_date = formatDate(newEndDate)
