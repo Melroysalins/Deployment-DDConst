@@ -52,12 +52,10 @@ export const features = {
 		allowSelect: true,
 		showTooltip: true,
 	},
-	eventCopyPaste: {
-		disabled: false,
-	},
+
 	taskEdit: {
 		editorConfig: {
-			title: '1234 ',
+			title: 'Example ',
 		},
 		items: {
 			generalTab: true,

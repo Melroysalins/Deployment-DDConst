@@ -558,6 +558,8 @@ const Task = React.memo(
 
 		const TeamRenderer = ({ value }) => (value && teams ? teams?.data.find((team) => team.id === value)?.name : '-')
 
+		console.log('TimeRangeEditorCalled', TeamRenderer)
+
 		DeleteCellRenderer.propTypes = {
 			value: PropTypes.any,
 		}
@@ -829,7 +831,7 @@ const Task = React.memo(
 					cellRenderer: TimeRangeRenderer,
 					cellClass: 'ag-grid-datepicker',
 					flex: 2,
-					editable: true,
+					cellEditorPopup: true,
 				},
 				{
 					headerName: 'Team',
@@ -1284,6 +1286,7 @@ const Task = React.memo(
 							SetIsSubTaskOpen(false)
 							SetTaskID('')
 						}}
+						disableEnforceFocus
 						ref={gridRef}
 						rowData={subTasksData}
 						columnDefs={subTaskColumnDefs}
@@ -1307,6 +1310,7 @@ const Task = React.memo(
 						DeleteCellRenderer={DeleteCellRenderer}
 						setSelectedRows={setSelectedRows}
 						stopEditingWhenCellsLoseFocus={true}
+						onCellEditRequest={onCellEditRequest}
 						onRowSelected={() => {
 							if (gridRef.current?.api) {
 								const selected = gridRef.current?.api?.getSelectedRows()

@@ -6,6 +6,10 @@ import 'ag-grid-community/styles/ag-theme-alpine.css'
 import '../../../../ag-theme-ddconst.scss'
 import { AgGridReact } from 'ag-grid-react'
 import { updateTask } from 'supabase'
+import { momentTimezone, setOptions } from '@mobiscroll/react'
+import moment, { duration } from 'moment-timezone'
+import PropTypes from 'prop-types'
+import '@mobiscroll/react/dist/css/mobiscroll.min.css'
 
 const TaskPopUp = forwardRef(
 	(
@@ -36,6 +40,7 @@ const TaskPopUp = forwardRef(
 			stopEditingWhenCellsLoseFocus,
 			isSubTaskCreated,
 			SetIsSubTaskCreated,
+			disableEnforceFocus,
 		},
 		gridRef
 	) => {
@@ -54,6 +59,7 @@ const TaskPopUp = forwardRef(
 				onClose={handleClose}
 				maxWidth={rowData?.length > 0 && rowData !== null ? false : 'xs'}
 				fullWidth
+				disableEnforceFocus
 				PaperProps={{
 					sx: {
 						background: '#fff',
@@ -102,7 +108,8 @@ const TaskPopUp = forwardRef(
 								suppressRowClickSelection={suppressRowClickSelection}
 								suppressColumnVirtualisation={suppressColumnVirtualisation}
 								domLayout={domLayout}
-								stopEditingWhenCellsLoseFocus={stopEditingWhenCellsLoseFocus}
+								stopEditingWhenCellsLoseFocus={false}
+								// stopEditingWhenCellsLoseFocus={stopEditingWhenCellsLoseFocus}
 								onCellValueChanged={async (event) => {
 									const {
 										data,
