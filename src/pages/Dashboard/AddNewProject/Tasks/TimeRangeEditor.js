@@ -1,3 +1,5 @@
+import './index.css'
+
 const { Datepicker, Input, momentTimezone, setOptions } = require('@mobiscroll/react')
 const { forwardRef, useState, useRef, useEffect, useImperativeHandle, useMemo } = require('react')
 const moment = require('moment-timezone')
@@ -39,14 +41,34 @@ const DoublingEditor = forwardRef((props, ref) => {
 			// our editor will reject any value greater than 1000
 			return false
 		},
+		isPopup() {
+			return true // <--- This tells AG Grid not to close on blur
+		},
 	}))
+
+	console.log('TimeRangeEditorCalled', value, props)
+
+	useEffect(() => {
+		const handler = (e) => {
+			// Prevent AG Grid from closing the editor when clicking on Mobiscroll popup
+			if (e.target.closest('.mbsc-popup')) {
+				e.stopPropagation()
+			}
+		}
+
+		document.addEventListener('mousedown', handler, true) // useCapture = true is important
+
+		return () => {
+			document.removeEventListener('mousedown', handler, true)
+		}
+	}, [])
 
 	return (
 		<>
 			<Datepicker
 				select="range"
 				controls={['calendar']}
-				touchUi={true}
+				touchUi={false}
 				returnFormat="iso8601"
 				dateFormat="DD/MM/YYYY"
 				showRangeLabels={false}
@@ -54,6 +76,7 @@ const DoublingEditor = forwardRef((props, ref) => {
 				onChange={(event) => setValue(event.value)}
 				value={value}
 				ref={setInstance}
+				closeOnOverlayClick={true}
 			/>
 		</>
 	)

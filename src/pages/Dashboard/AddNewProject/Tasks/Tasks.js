@@ -132,6 +132,9 @@ const Tasks = () => {
 		demolition: '',
 		diagramId: '',
 	})
+
+	const [isSubTaskCreated, SetIsSubTaskCreated] = useState(false)
+
 	const { data: selectedWorkTypesData, isLoading: isLoadingWorkTypes } = useQuery(
 		['selectedWorkTypes', projectId],
 		() => getSelectedWorkTypes(projectId),
@@ -278,6 +281,8 @@ const Tasks = () => {
 										activeTaskID={activeTaskID}
 										filters={filters}
 										isFilteredApplied={isFilteredApplied}
+										SetIsSubTaskCreated={SetIsSubTaskCreated}
+										isSubTaskCreated={isSubTaskCreated}
 									/>
 								</AccordionDetails>
 							</Accordion>
@@ -312,7 +317,17 @@ const Tasks = () => {
 }
 
 const Task = React.memo(
-	({ task_group, task_group_id, cableTypeData, SetCableTypeData, activeTaskID, filters, isFilteredApplied }) => {
+	({
+		task_group,
+		task_group_id,
+		cableTypeData,
+		SetCableTypeData,
+		activeTaskID,
+		filters,
+		isFilteredApplied,
+		isSubTaskCreated,
+		SetIsSubTaskCreated,
+	}) => {
 		const { id } = useParams()
 		const [diagrams, setDiagrams] = useState({}) // State to hold diagram data
 		const [toast, setToast] = useState(false)
@@ -488,10 +503,10 @@ const Task = React.memo(
 				await refetch()
 
 				if (isubTaskDelete) {
+					setSelectedRows([])
 					const { data: latestTasks } = await refetchFull()
 					const filteredSubTasks = latestTasks?.filter((item) => item?.parent_task === taskID)
 					SetSubTasksData(filteredSubTasks)
-					setSelectedRows([])
 				}
 			}
 
@@ -538,10 +553,12 @@ const Task = React.memo(
 
 		const TimeRangeRenderer = ({ value }) =>
 			value && value[0] && value[1]
-				? `${moment(value[0]).format('DD/MM/YYYY')} - ${moment(value[1]).format('DD/MM/YYYY')}`
+				? `${moment(value[0]).format('YYYY/MM/DD')} - ${moment(value[1]).format('YYYY/MM/DD')}`
 				: '-'
 
 		const TeamRenderer = ({ value }) => (value && teams ? teams?.data.find((team) => team.id === value)?.name : '-')
+
+		console.log('TimeRangeEditorCalled', TeamRenderer)
 
 		DeleteCellRenderer.propTypes = {
 			value: PropTypes.any,
@@ -708,7 +725,7 @@ const Task = React.memo(
 				},
 
 				{
-					headerName: 'Duration (days)',
+					headerName: 'Mandays',
 					field: 'duration',
 					flex: 2,
 					valueGetter: (params) => {
@@ -718,13 +735,24 @@ const Task = React.memo(
 						const startDate = moment(start)
 						const endDate = moment(end)
 
-						return endDate.diff(startDate, 'days') + 1 // include both start & end dates
+						let count = 0
+						const current = moment(startDate)
+
+						while (current <= endDate) {
+							const day = current.day()
+							if (day !== 0 && day !== 6) {
+								count += 1
+							}
+							current.add(1, 'day')
+						}
+
+						return count
 					},
 					editable: false,
 					cellStyle: { textAlign: 'center' },
 				},
 				{
-					headerName: 'Task Period',
+					headerName: 'Work Days',
 					field: 'task_period',
 					cellEditor: TimeRangeEditor,
 					cellRenderer: TimeRangeRenderer,
@@ -782,7 +810,7 @@ const Task = React.memo(
 					editable: true,
 				},
 				{
-					headerName: 'Duration (days)',
+					headerName: 'Mandays',
 					field: 'duration',
 					flex: 2,
 					valueGetter: (params) => {
@@ -797,13 +825,13 @@ const Task = React.memo(
 					editable: false,
 				},
 				{
-					headerName: 'Task Period',
+					headerName: 'Work Days',
 					field: 'task_period',
 					cellEditor: TimeRangeEditor,
 					cellRenderer: TimeRangeRenderer,
 					cellClass: 'ag-grid-datepicker',
 					flex: 2,
-					editable: true,
+					cellEditorPopup: true,
 				},
 				{
 					headerName: 'Team',
@@ -924,6 +952,7 @@ const Task = React.memo(
 				})
 				console.log('HRT', fullResponse)
 			} else {
+				SetIsSubTaskCreated(true)
 				const defaultSubTaskNames = ['Line', 'Trim', 'Assemble', 'Galvanize', 'Install']
 
 				const selectedTaskObj = fullResponse?.find((task) => task.id === taskID)
@@ -954,7 +983,7 @@ const Task = React.memo(
 
 				const subtasks = [
 					{
-						title: nextTitle,
+						title: '',
 						team: selectedTaskObj.team,
 						start_date: nextStartDate.format('YYYY-MM-DD'),
 						end_date: nextEndDate.format('YYYY-MM-DD'),
@@ -975,6 +1004,22 @@ const Task = React.memo(
 
 					const filteredSubTasks = latestTasks?.filter((item) => item?.parent_task === taskID)
 					SetSubTasksData(filteredSubTasks)
+					SetIsSubTaskCreated(false)
+
+					setTimeout(() => {
+						const rowIndex = filteredSubTasks.length - 1
+
+						// Ensure the row is visible (scroll if needed)
+						gridRef.current.api.stopEditing()
+						gridRef.current.api.ensureIndexVisible(rowIndex)
+
+						// Focus the 'title' (Task Name) cell with blinking cursor
+						gridRef.current.api.startEditingCell({
+							rowIndex,
+							colKey: 'title', // Column key for Task Name
+						})
+					}, 50)
+					return () => {}
 				})
 			}
 		}
@@ -1024,48 +1069,66 @@ const Task = React.memo(
 		// 		return `${yyyy}-${mm}-${dd}`
 		// 	}
 
-		// 	const sortedList = [...list].sort((a, b) => a.priority - b.priority)
+		// 	const sortedList = [...list].sort((a, b) => {
+		// 		if (a.tl !== b.tl) return a.tl - b.tl
+		// 		if (a.priority !== b.priority) return a.priority - b.priority
+
+		// 		const aStart = new Date(a.start_date)
+		// 		const bStart = new Date(b.start_date)
+		// 		if (aStart.getTime() !== bStart.getTime()) return aStart - bStart
+
+		// 		const aEnd = new Date(a.end_date)
+		// 		const bEnd = new Date(b.end_date)
+		// 		return aEnd - bEnd
+		// 	})
 
 		// 	let currentEndDate = new Date(sortedList[0]?.end_date)
 		// 	const updatePromises = []
 
-		// 	for (let i = 1; i <= list.length - 1; i += 1) {
+		// 	console.log('updateTaskDates 1', sortedList)
+
+		// 	for (let i = 1; i < list.length; i += 1) {
+		// 		const task = sortedList[i]
+
 		// 		const newStartDate = new Date(currentEndDate)
 		// 		newStartDate.setDate(newStartDate.getDate() + 1)
 
 		// 		const newEndDate = new Date(newStartDate)
-		// 		newEndDate.setDate(newEndDate.getDate() + 4)
+		// 		newEndDate.setDate(newStartDate.getDate() + 4)
 
 		// 		const updatedStart_date = formatDate(newStartDate)
 		// 		const updatedEnd_date = formatDate(newEndDate)
-		// 		const updatedTask_period = [updatedStart_date, updatedEnd_date]
 
-		// 		// Update currentEndDate for next iteration
 		// 		currentEndDate = newEndDate
 
-		// 		// Collect promise (but don't await inside loop)
+		// 		console.log(
+		// 			`Updating Task ID: ${task.id}, Old: (${task.start_date} - ${task.end_date}) → New: (${updatedStart_date} - ${updatedEnd_date})`
+		// 		)
+
 		// 		const updatePromise = updateTask(
 		// 			{
 		// 				start_date: updatedStart_date,
 		// 				end_date: updatedEnd_date,
 		// 			},
-		// 			list[i]?.id
+		// 			task?.id
 		// 		)
 		// 			.then((res) => {
 		// 				if (res?.error === null) {
-		// 					console.log('res', res)
+		// 					console.log('✅ Updated Task ID:', task?.id)
+		// 					// eslint-disable-next-line
+
+		// 					// console.log('updateTaskDates', res?.data?.[0]?.title, 'Current ENd Date---->', newEndDate)
+		// 				} else {
+		// 					console.warn('⚠️ Update failed for Task ID:', task?.id)
 		// 				}
 		// 			})
 		// 			.catch((error) => {
-		// 				console.error('Error while updating task', list[i]?.id, error)
+		// 				console.error('❌ Error while updating Task ID:', task?.id, error)
 		// 			})
 
 		// 		updatePromises.push(updatePromise)
-
-		// 		// console.log('updateTaskDates', updatedStart_date, updatedEnd_date, updatedTask_period, list[i]?.id)
 		// 	}
 
-		// 	// Await all updates in parallel
 		// 	await Promise.all(updatePromises)
 
 		// 	refetch()
@@ -1079,6 +1142,24 @@ const Task = React.memo(
 				const mm = String(date.getMonth() + 1).padStart(2, '0')
 				const dd = String(date.getDate()).padStart(2, '0')
 				return `${yyyy}-${mm}-${dd}`
+			}
+
+			const addWorkingDays = (startDate, daysToAdd) => {
+				const date = new Date(startDate)
+				let addedDays = 0
+
+				while (addedDays <= daysToAdd) {
+					console.log('setDate', date)
+					const day = date.getDay()
+					if (day !== 0 && day !== 6) {
+						addedDays += 1
+					}
+					if (addedDays < daysToAdd) {
+						date.setDate(date.getDate() + 1)
+					}
+				}
+
+				return date
 			}
 
 			const sortedList = [...list].sort((a, b) => {
@@ -1097,16 +1178,15 @@ const Task = React.memo(
 			let currentEndDate = new Date(sortedList[0]?.end_date)
 			const updatePromises = []
 
-			console.log('updateTaskDates 1', sortedList)
-
 			for (let i = 1; i < list.length; i += 1) {
 				const task = sortedList[i]
 
 				const newStartDate = new Date(currentEndDate)
 				newStartDate.setDate(newStartDate.getDate() + 1)
 
-				const newEndDate = new Date(newStartDate)
-				newEndDate.setDate(newStartDate.getDate() + 4)
+				const newEndDate = addWorkingDays(newStartDate, 5)
+
+				console.log('updateTaskDates 1', currentEndDate)
 
 				const updatedStart_date = formatDate(newStartDate)
 				const updatedEnd_date = formatDate(newEndDate)
@@ -1127,9 +1207,6 @@ const Task = React.memo(
 					.then((res) => {
 						if (res?.error === null) {
 							console.log('✅ Updated Task ID:', task?.id)
-							// eslint-disable-next-line
-
-							// console.log('updateTaskDates', res?.data?.[0]?.title, 'Current ENd Date---->', newEndDate)
 						} else {
 							console.warn('⚠️ Update failed for Task ID:', task?.id)
 						}
@@ -1142,7 +1219,6 @@ const Task = React.memo(
 			}
 
 			await Promise.all(updatePromises)
-
 			refetch()
 		}
 
@@ -1210,6 +1286,7 @@ const Task = React.memo(
 							SetIsSubTaskOpen(false)
 							SetTaskID('')
 						}}
+						disableEnforceFocus
 						ref={gridRef}
 						rowData={subTasksData}
 						columnDefs={subTaskColumnDefs}
@@ -1226,9 +1303,14 @@ const Task = React.memo(
 						myQueryClient={myQueryClient}
 						SetSubTasksData={SetSubTasksData}
 						taskID={taskID}
+						isSubTaskCreated={isSubTaskCreated}
+						SetIsSubTaskCreated={SetIsSubTaskCreated}
 						selectedRows={selectedRows}
 						task_group_id={task_group_id}
 						DeleteCellRenderer={DeleteCellRenderer}
+						setSelectedRows={setSelectedRows}
+						stopEditingWhenCellsLoseFocus={true}
+						onCellEditRequest={onCellEditRequest}
 						onRowSelected={() => {
 							if (gridRef.current?.api) {
 								const selected = gridRef.current?.api?.getSelectedRows()

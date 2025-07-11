@@ -1,12 +1,13 @@
+/* eslint-disable */
 // material
 import { styled } from '@mui/material/styles'
 import { Box, Stack, Typography, Button as MuiButton } from '@mui/material'
 import Iconify from 'components/Iconify'
-import Calendar from './Calendar'
+// import Calendar from './Calendar'
 import { useState, useEffect } from 'react'
 import { getProjectDetails } from 'supabase'
 import { useParams } from 'react-router'
-import EventHeader from 'components/EventHeader'
+// import EventHeader from 'components/EventHeader'
 import Page from 'components/Page'
 import useMain from 'pages/context/context'
 import BasicTabs from 'components/Drawer/BasicTabs'

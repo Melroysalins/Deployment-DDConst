@@ -6,6 +6,10 @@ import 'ag-grid-community/styles/ag-theme-alpine.css'
 import '../../../../ag-theme-ddconst.scss'
 import { AgGridReact } from 'ag-grid-react'
 import { updateTask } from 'supabase'
+import { momentTimezone, setOptions } from '@mobiscroll/react'
+import moment, { duration } from 'moment-timezone'
+import PropTypes from 'prop-types'
+import '@mobiscroll/react/dist/css/mobiscroll.min.css'
 
 const TaskPopUp = forwardRef(
 	(
@@ -15,6 +19,7 @@ const TaskPopUp = forwardRef(
 			rowData,
 			columnDefs,
 			defaultColDef,
+			setSelectedRows,
 			rowSelection,
 			suppressRowClickSelection,
 			suppressColumnVirtualisation,
@@ -32,6 +37,10 @@ const TaskPopUp = forwardRef(
 			selectedRows,
 			DeleteCellRenderer,
 			task_group_id,
+			stopEditingWhenCellsLoseFocus,
+			isSubTaskCreated,
+			SetIsSubTaskCreated,
+			disableEnforceFocus,
 		},
 		gridRef
 	) => {
@@ -50,6 +59,7 @@ const TaskPopUp = forwardRef(
 				onClose={handleClose}
 				maxWidth={rowData?.length > 0 && rowData !== null ? false : 'xs'}
 				fullWidth
+				disableEnforceFocus
 				PaperProps={{
 					sx: {
 						background: '#fff',
@@ -98,6 +108,8 @@ const TaskPopUp = forwardRef(
 								suppressRowClickSelection={suppressRowClickSelection}
 								suppressColumnVirtualisation={suppressColumnVirtualisation}
 								domLayout={domLayout}
+								stopEditingWhenCellsLoseFocus={false}
+								// stopEditingWhenCellsLoseFocus={stopEditingWhenCellsLoseFocus}
 								onCellValueChanged={async (event) => {
 									const {
 										data,
@@ -145,7 +157,10 @@ const TaskPopUp = forwardRef(
 							<Box display="flex" justifyContent="flex-end" padding={'7px'} marginBottom={'10px'} gap={'12px'}>
 								<Button
 									color="secondary"
-									onClick={() => onclick(false)}
+									onClick={() => {
+										onclick(false)
+									}}
+									disabled={isSubTaskCreated}
 									sx={{ ml: 1, background: '#eeee', marginBottom: '10px' }}
 								>
 									Add Subtask

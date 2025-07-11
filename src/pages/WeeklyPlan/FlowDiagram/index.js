@@ -359,6 +359,24 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 
 	const { t } = useTranslation(['diagram'])
 
+	const addWorkingDays = (startDate, daysToAdd) => {
+		const date = new Date(startDate)
+		let addedDays = 0
+
+		while (addedDays <= daysToAdd) {
+			console.log('setDate', date)
+			const day = date.getDay()
+			if (day !== 0 && day !== 6) {
+				addedDays += 1
+			}
+			if (addedDays < daysToAdd) {
+				date.setDate(date.getDate() + 1)
+			}
+		}
+
+		return date
+	}
+
 	const formatDate = (date) => {
 		const yyyy = date.getFullYear()
 		const mm = String(date.getMonth() + 1).padStart(2, '0')
@@ -367,8 +385,10 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 	}
 
 	const start = new Date()
-	const end = new Date()
+	let end = new Date()
 	end.setDate(start.getDate() + 4)
+
+	end = addWorkingDays(start, 5)
 
 	let endPointCount = 0
 
