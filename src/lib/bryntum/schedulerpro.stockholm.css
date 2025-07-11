@@ -21724,3 +21724,6 @@ svg.b-sch-dependencies-canvas .b-sch-dependency.b-inactive{
 }
 
 
+.b-schedulerpro-taskeditor{
+  width: 36em !important;
+}

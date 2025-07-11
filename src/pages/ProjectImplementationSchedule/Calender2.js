@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from 'react-query'
 import flatpickr from 'flatpickr'
 import rangePlugin from 'flatpickr/dist/plugins/rangePlugin'
+import TimeRangeEditor from '../Dashboard/AddNewProject/Tasks/TimeRangeEditor'
+import DateRangeEditor from './workDaysEditor'
 import {
 	// Scheduler,
 	SchedulerPro,
@@ -10,11 +12,13 @@ import {
 	DependencyStore,
 	DateHelper,
 	ProjectModel,
+	Grid,
 	// DependencyTab,
 	// PredecessorsTab,
 	// SuccessorsTab,
 	// DependencyEdit,
 	// DependencyMenu,
+	WidgetHelper,
 } from '../../lib/bryntum/schedulerpro.module'
 import '../../lib/bryntum/schedulerpro.stockholm.css'
 
@@ -1327,6 +1331,7 @@ const Calender2 = ({
 							height: '272px',
 							ref: 'subtasksGridWidget',
 							scrollable: true,
+							cls: 'custom-aggrid-style',
 							features: {
 								cellEdit: true,
 							},
@@ -1367,7 +1372,7 @@ const Calender2 = ({
 
 											childToUpdate.set('startDate', startDate)
 
-											console.log('changesStartDate', record, changes)
+											console.log('changesStartDate 1', record, changes)
 
 											childToUpdate.set('yesModified', true)
 
@@ -1409,12 +1414,24 @@ const Calender2 = ({
 											childToUpdate.set('duration', diffinDays)
 
 											record.set('duration', diffinDays)
-										}
-										if (changes?.workDays) {
-											const workDaysValue = changes.workDays.value
 
-											console.log('changesStartDate', workDaysValue)
+											console.log('changesStartDate 2', record, changes)
 										}
+										// if (changes?.workDays) {
+										// 	const workDaysValue = changes.workDays.value
+
+										// 	const splitDates = workDaysValue?.split('/')
+
+										// 	const startDate = splitDates[0]
+
+										// 	const endDate = splitDates[1]
+
+										// 	childToUpdate.set('startDate', startDate)
+
+										// 	childToUpdate.set('endDate', endDate)
+
+										// 	console.log('changesStartDate', workDaysValue, splitDates, startDate, endDate)
+										// }
 
 										if (changes?.completed?.value) {
 											subTaskToBeDeleted.push(record?.data?.id)
@@ -1485,22 +1502,39 @@ const Calender2 = ({
 								{ text: 'Start Date', field: 'startDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
 								{ text: 'End Date', field: 'endDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
 								// {
-								// 	text: 'Team',
-								// 	field: 'team',
-								// 	flex: 1,
-								// 	editable: false,
+								// 	text: 'Work Days',
+								// 	field: 'workDays',
+								// 	flex: 1.5,
+								// 	editor: 'date',
 								// 	renderer: ({ record }) => {
-								// 		const currentResourceID = record?.data?.resourceId
+								// 		const start = record.data.startDate
+								// 		const end = record.data.endDate
 
-								// 		const teamName = teamsDetails?.find((item) => item?.name === currentResourceID)?.teamNumber
+								// 		const format = (d) => new Date(d).toLocaleDateString('en-US')
 
-								// 		const teamInfo = teams?.flatMap((res) => res.data || []).find((team) => team.id === teamName)?.name
+								// 		const text = start && end ? `${format(start)} - ${format(end)}` : ''
 
-								// 		const team = teamInfo || ' '
+								// 		record.set('workDays', text)
 
-								// 		console.log('POPUP', record)
+								// 		return text
+								// 	},
+								// },
+								// {
+								// 	text: 'Work Days',
+								// 	field: 'workDays',
+								// 	flex: 1.5,
 
-								// 		return `${team}`
+								// 	renderer: ({ record }) => {
+								// 		const { startDate, endDate } = record
+
+								// 		record.set('workDays', `${startDate} / ${endDate}`)
+
+								// 		const start = startDate instanceof Date ? startDate : new Date(startDate)
+								// 		const end = endDate instanceof Date ? endDate : new Date(endDate)
+
+								// 		const formatedWorkDays = `${startDate} - ${endDate}`
+
+								// 		return formatedWorkDays
 								// 	},
 								// },
 							],
