@@ -13,6 +13,7 @@ import {
 	DateHelper,
 	ProjectModel,
 	Grid,
+	PresetManager,
 	// DependencyTab,
 	// PredecessorsTab,
 	// SuccessorsTab,
@@ -22,11 +23,13 @@ import {
 } from '../../lib/bryntum/schedulerpro.module'
 import '../../lib/bryntum/schedulerpro.stockholm.css'
 
-import { Button as MuiButton, Stack } from '@mui/material'
+import { Button as MuiButton, Stack, Typography, Switch } from '@mui/material'
 import Iconify from 'components/Iconify'
 import moment, { duration } from 'moment-timezone'
 
 import './Calender2.css'
+
+import { styled } from '@mui/material/styles'
 
 import {
 	createNewTasks,
@@ -48,6 +51,7 @@ import {
 	dependencyTypeMap,
 	getISODateString,
 	zoomPresets,
+	CustomViewDay,
 } from './SchedulerConfig'
 import { filter, forEach } from 'lodash'
 import FilterPopup from 'components/FilterPopUp'
@@ -55,6 +59,36 @@ import { getProjectDiagram } from 'supabase/project_diagram'
 import { da } from 'date-fns/locale'
 import { autoDetect, Datepicker, Input, momentTimezone, setOptions } from '@mobiscroll/react'
 import SchedulerComponent from './SchedulerCode'
+
+const CompactSwitch = styled(Switch)(({ theme }) => ({
+	width: 44,
+	height: 23,
+	padding: 4,
+	'& .MuiSwitch-switchBase': {
+		padding: 1,
+		'&.Mui-checked': {
+			transform: 'translateX(20px)',
+			color: '#fff',
+			'& + .MuiSwitch-track': {
+				backgroundColor: '#4caf50',
+				opacity: 1,
+			},
+		},
+	},
+	'& .MuiSwitch-thumb': {
+		width: 20,
+		height: 20,
+		boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+	},
+	'& .MuiSwitch-track': {
+		borderRadius: 20 / 2,
+		backgroundColor: '#ccc',
+		opacity: 1,
+		transition: theme.transitions.create(['background-color'], {
+			duration: 200,
+		}),
+	},
+}))
 
 const Calender2 = ({
 	isFilteredApplied,
@@ -85,14 +119,24 @@ const Calender2 = ({
 	const [teamsDetails, SetTeamDetails] = useState([])
 	const [teams, SetTeam] = useState([])
 
+	const [showSubTasks, SetshowSubTasks] = useState(true)
+
 	let originalStartDate = null
 
 	let orignalEndDate = null
 
 	const schedulerRef = useRef(null)
+	const schedulerInstanceRef = useRef(null)
+
 	const { id } = useParams()
 	console.log('myID', id)
-	let suppressNextEditor = false
+	// let suppressNextEditor = false
+
+	const handleToggle = () => {
+		SetshowSubTasks(!showSubTasks)
+	}
+
+	console.log('SHow SubTaks', showSubTasks)
 
 	const myQueryClient = useQueryClient()
 
@@ -421,26 +465,29 @@ const Calender2 = ({
 					team,
 					task_group_id,
 					eventColor,
-					...(hasChildren && {
-						children: task.children.map((child) => {
-							const childId = child.id || `child-${id}-${Math.random().toString(36).substr(2, 9)}` // Unique ID for child
-							const childStartDate = child.start_date ? getISODateString(child.start_date) : getISODateString(startDate)
-							const childEndDate = child.end_date ? getISODateString(child.end_date) : getISODateString(endDate)
-							const childName = child.title
+					...(hasChildren &&
+						showSubTasks && {
+							children: task.children.map((child) => {
+								const childId = child.id || `child-${id}-${Math.random().toString(36).substr(2, 9)}` // Unique ID for child
+								const childStartDate = child.start_date
+									? getISODateString(child.start_date)
+									: getISODateString(startDate)
+								const childEndDate = child.end_date ? getISODateString(child.end_date) : getISODateString(endDate)
+								const childName = child.title
 
-							return {
-								id: childId,
-								parentId: id,
-								resourceId,
-								startDate: childStartDate,
-								endDate: childEndDate,
-								allDay: true,
-								name: childName,
-								leaf: true,
-								eventColor,
-							}
+								return {
+									id: childId,
+									parentId: id,
+									resourceId,
+									startDate: childStartDate,
+									endDate: childEndDate,
+									allDay: true,
+									name: childName,
+									leaf: true,
+									eventColor,
+								}
+							}),
 						}),
-					}),
 				})
 			})
 			if (tasksWithoutTeam.length > 0) {
@@ -510,28 +557,29 @@ const Calender2 = ({
 						task_group_id,
 						isNoTeamIndividualTask: true,
 						eventColor,
-						...(hasChildren && {
-							children: task.children.map((child) => {
-								const childId = child.id || `child-${id}-${Math.random().toString(36).substr(2, 9)}` // Unique ID for child
-								const childStartDate = child.start_date
-									? getISODateString(child.start_date)
-									: getISODateString(startDate)
-								const childEndDate = child.end_date ? getISODateString(child.end_date) : getISODateString(endDate)
-								const childName = child.title
+						...(hasChildren &&
+							showSubTasks && {
+								children: task.children.map((child) => {
+									const childId = child.id || `child-${id}-${Math.random().toString(36).substr(2, 9)}` // Unique ID for child
+									const childStartDate = child.start_date
+										? getISODateString(child.start_date)
+										: getISODateString(startDate)
+									const childEndDate = child.end_date ? getISODateString(child.end_date) : getISODateString(endDate)
+									const childName = child.title
 
-								return {
-									id: childId,
-									parentId: id,
-									resourceId,
-									startDate: childStartDate,
-									endDate: childEndDate,
-									allDay: true,
-									name: childName,
-									leaf: true,
-									eventColor,
-								}
+									return {
+										id: childId,
+										parentId: id,
+										resourceId,
+										startDate: childStartDate,
+										endDate: childEndDate,
+										allDay: true,
+										name: childName,
+										leaf: true,
+										eventColor,
+									}
+								}),
 							}),
-						}),
 					})
 				})
 			}
@@ -548,7 +596,7 @@ const Calender2 = ({
 		)
 
 		return allEvents
-	}, [taskGroup])
+	}, [taskGroup, showSubTasks])
 
 	console.log('events', taskGroup)
 
@@ -628,6 +676,9 @@ const Calender2 = ({
 	useEffect(() => {
 		if (!schedulerRef.current) return
 
+		PresetManager.add(CustomViewDay)
+		PresetManager.add(customMonthViewPreset)
+
 		const ganttProps = {
 			stripeFeature: true,
 			dependenciesFeature: true,
@@ -641,9 +692,35 @@ const Calender2 = ({
 			width: '100%',
 			infiniteScroll: true,
 			viewPreset: customMonthViewPreset,
+			// tbar: [
+			// 	{
+			// 		type: 'combo',
+			// 		label: 'View',
+			// 		editable: false,
+			// 		items: [
+			// 			{ text: 'Day', value: 'customDayView' },
+			// 			{ text: 'Week', value: 'weekAndDay' },
+			// 			{ text: 'Month', value: 'monthAndYear' },
+			// 			{ text: 'Year', value: 'year' },
+			// 		],
+			// 		listeners: {
+			// 			change({ value }) {
+			// 				if (value === 'monthAndYear') {
+			// 					scheduler.viewPreset = value
+			// 					scheduler.startDate = new Date(2025, 0, 1) // January 1, 2025
+
+			// 					console.log('SchedulerDATE', scheduler.startDate)
+			// 				} else {
+			// 					scheduler.viewPreset = value
+			// 					console.log('SchedulerDATE', scheduler.startDate)
+			// 				}
+			// 			},
+			// 		},
+			// 	},
+			// ],
 			tickSize: 100,
 			rowHeight: 100,
-			endDateIsInclusive: true,
+			// endDateIsInclusive: true,
 			eventLayout: 'stack',
 			dependenciesFeature: true,
 			dependencyEditFeature: true,
@@ -1838,85 +1915,85 @@ const Calender2 = ({
 
 		// copy paste code
 
-		console.log('All dependencies in store:')
+		console.log('All dependencies in store:', scheduler.startDate)
 		scheduler.dependencyStore.forEach((dep) => {
 			console.log(`From Event ID ${dep.fromEvent} → To Event ID ${dep.toEvent}`)
 		})
 
-		scheduler.eventStore.on('add', ({ source, records, isMove, isReplace }) => {
-			suppressNextEditor = true
-			const event = records[0]
+		// scheduler.eventStore.on('add', ({ source, records, isMove, isReplace }) => {
+		// 	suppressNextEditor = true
+		// 	const event = records[0]
 
-			const resourceId = event.resourceId
-			const resourceRecord = scheduler.resourceStore.getById(resourceId)
+		// 	const resourceId = event.resourceId
+		// 	const resourceRecord = scheduler.resourceStore.getById(resourceId)
 
-			const currentTeam = teamsDetails?.find((item) => item?.name === resourceId)?.teamNumber
+		// 	const currentTeam = teamsDetails?.find((item) => item?.name === resourceId)?.teamNumber
 
-			const isTrueSubtask = event.data.parentId && event.data.parentId !== scheduler.project.id
+		// 	const isTrueSubtask = event.data.parentId && event.data.parentId !== scheduler.project.id
 
-			const projectDiagramID = resourceRecord?.data?.tasksWithoutTeam?.find(
-				(item) => item?.project_diagram_id
-			)?.project_diagram_id
+		// 	const projectDiagramID = resourceRecord?.data?.tasksWithoutTeam?.find(
+		// 		(item) => item?.project_diagram_id
+		// 	)?.project_diagram_id
 
-			if (isTrueSubtask) {
-				return
-			}
+		// 	if (isTrueSubtask) {
+		// 		return
+		// 	}
 
-			if (event.copyOf) {
-				return ''
-			}
-			// eslint-disable-next-line
-			if (event.data.isPastedEvent) {
-				return ''
-			}
+		// 	if (event.copyOf) {
+		// 		return ''
+		// 	}
+		// 	// eslint-disable-next-line
+		// 	if (event.data.isPastedEvent) {
+		// 		return ''
+		// 	}
 
-			if (event.data?.isAddNewSubTask) {
-				return ''
-			}
+		// 	if (event.data?.isAddNewSubTask) {
+		// 		return ''
+		// 	}
 
-			// eslint-disable-next-line
-			else {
-				scheduler.features.eventEdit.disabled = true
+		// 	// eslint-disable-next-line
+		// 	else {
+		// 		scheduler.features.eventEdit.disabled = true
 
-				let taskGroupID = null
+		// 		let taskGroupID = null
 
-				if (resourceRecord?.name === 'Connection') {
-					taskGroupID = 3
-				}
-				if (resourceRecord?.name === 'Completion Testing') {
-					taskGroupID = 4
-				}
-				if (resourceRecord?.name === 'Metal Fittings Installation') {
-					taskGroupID = 1
-				}
-				if (resourceRecord?.name === 'Auxiliary Construction') {
-					taskGroupID = 6
-				}
-				if (resourceRecord?.name === 'Office Work') {
-					taskGroupID = 5
-				}
-				if (resourceRecord?.name === 'Installation') {
-					taskGroupID = 2
-				}
+		// 		if (resourceRecord?.name === 'Connection') {
+		// 			taskGroupID = 3
+		// 		}
+		// 		if (resourceRecord?.name === 'Completion Testing') {
+		// 			taskGroupID = 4
+		// 		}
+		// 		if (resourceRecord?.name === 'Metal Fittings Installation') {
+		// 			taskGroupID = 1
+		// 		}
+		// 		if (resourceRecord?.name === 'Auxiliary Construction') {
+		// 			taskGroupID = 6
+		// 		}
+		// 		if (resourceRecord?.name === 'Office Work') {
+		// 			taskGroupID = 5
+		// 		}
+		// 		if (resourceRecord?.name === 'Installation') {
+		// 			taskGroupID = 2
+		// 		}
 
-				try {
-					const formattedSubtaskData = {
-						title: event?.data?.name,
-						start_date: DateHelper.format(event?.data?.startDate, 'YYYY-MM-DD'),
-						end_date: DateHelper.format(DateHelper.add(event?.data?.endDate, -1, 'd'), 'YYYY-MM-DD'),
-						team: currentTeam,
-						project: id,
-						task_group_id: taskGroupID,
-						project_diagram_id: projectDiagramID,
-						// resourceId: eventRecords?.[0]?.data?.resourceId,
-					}
+		// 		try {
+		// 			const formattedSubtaskData = {
+		// 				title: event?.data?.name,
+		// 				start_date: DateHelper.format(event?.data?.startDate, 'YYYY-MM-DD'),
+		// 				end_date: DateHelper.format(DateHelper.add(event?.data?.endDate, -1, 'd'), 'YYYY-MM-DD'),
+		// 				team: currentTeam,
+		// 				project: id,
+		// 				task_group_id: taskGroupID,
+		// 				project_diagram_id: projectDiagramID,
+		// 				// resourceId: eventRecords?.[0]?.data?.resourceId,
+		// 			}
 
-					console.log('Melroy', taskGroupID, formattedSubtaskData)
-				} catch (error) {
-					console.log('Error !! Failed to add new event', error)
-				}
-			}
-		})
+		// 			console.log('Melroy', taskGroupID, formattedSubtaskData)
+		// 		} catch (error) {
+		// 			console.log('Error !! Failed to add new event', error)
+		// 		}
+		// 	}
+		// })
 
 		scheduler.dependencyStore.on('add', ({ records }) => {
 			console.log('Dependency added:', records)
@@ -2324,7 +2401,6 @@ const Calender2 = ({
 
 						if (!hasChildren) {
 							const bryntumReadytask = {
-								id: backendNewSubtask.id,
 								name: backendNewSubtask.title,
 								startDate: backendNewSubtask?.start_date,
 								endDate: backendNewSubtask?.end_date,
@@ -2341,11 +2417,13 @@ const Calender2 = ({
 
 							scheduler.eventStore.add(bryntumReadytask)
 
+							eventRecord.set('id', backendNewSubtask.id)
+
 							console.log('BEFORE after', bryntumReadytask)
 
 							await scheduler.project.commitAsync()
 
-							eventRecord.set('id', backendNewSubtask.id)
+							// eventRecord.set('id', backendNewSubtask.id)
 
 							eventRecord.set('resourceId', currentResouceID)
 
@@ -2484,13 +2562,27 @@ const Calender2 = ({
 		return () => scheduler.destroy()
 	}, [events, resources])
 
-	console.log('teamsDetails', events, resources)
+	console.log('SchedulerRed', schedulerRef)
 
 	if (isLoading) return <div>Loading...</div>
 	if (error) return <div>Error loading tasks</div>
 
 	return (
 		<>
+			<Stack
+				direction={'row'}
+				justifyContent={'flex-end'}
+				marginTop={'18px'}
+				padding={'3px'}
+				alignItems={'center'}
+				spacing={2}
+			>
+				<Typography variant="body1" fontWeight="bold">
+					Show SubTasks
+				</Typography>
+				<CompactSwitch checked={showSubTasks} onChange={handleToggle} />
+			</Stack>
+
 			<div ref={schedulerRef} style={{ height: '500px', width: '100%', marginTop: '15px' }} />
 			{/* <SchedulerComponent
 				events={events}

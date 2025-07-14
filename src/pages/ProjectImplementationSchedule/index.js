@@ -1,7 +1,7 @@
 /* eslint-disable */
 // material
 import { styled } from '@mui/material/styles'
-import { Box, Stack, Typography, Button as MuiButton } from '@mui/material'
+import { Box, Stack, Switch, Typography, Button as MuiButton } from '@mui/material'
 import Iconify from 'components/Iconify'
 // import Calendar from './Calendar'
 import { useState, useEffect } from 'react'
@@ -22,6 +22,35 @@ const ProjectIntro = styled(Box)(({ theme }) => ({
 	marginTop: 24,
 }))
 
+const CompactSwitch = styled(Switch)(({ theme }) => ({
+	width: 44,
+	height: 23,
+	padding: 4,
+	'& .MuiSwitch-switchBase': {
+		padding: 1,
+		'&.Mui-checked': {
+			transform: 'translateX(20px)',
+			color: '#fff',
+			'& + .MuiSwitch-track': {
+				backgroundColor: '#4caf50',
+				opacity: 1,
+			},
+		},
+	},
+	'& .MuiSwitch-thumb': {
+		width: 20,
+		height: 20,
+		boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+	},
+	'& .MuiSwitch-track': {
+		borderRadius: 20 / 2,
+		backgroundColor: '#ccc',
+		opacity: 1,
+		transition: theme.transitions.create(['background-color'], {
+			duration: 200,
+		}),
+	},
+}))
 const breadcrumbElements = [
 	<Typography key="4" color="text.primary">
 		Implementation Schedule
@@ -45,6 +74,12 @@ const ProjectImplementationSchedule = () => {
 	const [allResources, SetAllRescources] = useState([])
 	const [resources, SetResources] = useState([])
 	const [taskType, SetTaskType] = useState([])
+
+	const [checked, setChecked] = useState(true)
+
+	const handleToggle = () => {
+		setChecked(!checked)
+	}
 
 	// Filters Code End
 	const {
@@ -241,6 +276,19 @@ const ProjectImplementationSchedule = () => {
 			{isDrawerOpen && <BasicTabs open={isDrawerOpen} setopen={setisDrawerOpen} />}
 			{openRequestApproval && <RequestApproval />}
 			<Page title="PS">
+				{/* <Stack
+					direction={'row'}
+					justifyContent={'flex-end'}
+					marginTop={'18px'}
+					padding={'3px'}
+					alignItems={'center'}
+					spacing={2}
+				>
+					<Typography variant="body1" fontWeight="bold">
+						Show SubTasks
+					</Typography>
+					<CompactSwitch checked={checked} onChange={handleToggle} />
+				</Stack> */}
 				<Stack px={2} mt={7}>
 					<Calendar2
 						isFilterOpen={isFilterOpen}
@@ -259,6 +307,7 @@ const ProjectImplementationSchedule = () => {
 						SetResources={SetResources}
 						taskType={taskType}
 						SetTaskType={SetTaskType}
+						showSubTasks={checked}
 					/>
 				</Stack>
 			</Page>

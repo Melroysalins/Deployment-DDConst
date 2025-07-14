@@ -27,6 +27,27 @@ export const customMonthViewPreset = {
 	],
 }
 
+export const CustomViewDay = {
+	id: 'customDayView',
+	base: 'hourAndDay',
+	headers: [
+		{
+			unit: 'day',
+			align: 'center',
+			renderer: (startDate) => {
+				console.log('MYYYYYStart Date:', startDate) // Optional debug
+				// Format: Sunday 06-07-2025
+				return DateHelper.format(startDate, 'dddd YYYY-MM-DD')
+			},
+		},
+		{
+			unit: 'hour',
+			increment: 1,
+			dateFormat: 'h A',
+		},
+	],
+}
+
 // resources array
 export const resources = [
 	{ id: 'metal_fittings', name: 'Metal Fittings', width: 100 },
