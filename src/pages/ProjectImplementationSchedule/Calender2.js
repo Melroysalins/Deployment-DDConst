@@ -20,6 +20,7 @@ import {
 	// DependencyEdit,
 	// DependencyMenu,
 	WidgetHelper,
+	CalendarModel,
 } from '../../lib/bryntum/schedulerpro.module'
 import '../../lib/bryntum/schedulerpro.stockholm.css'
 
@@ -600,6 +601,17 @@ const Calender2 = ({
 
 	console.log('events', taskGroup)
 
+	const calendar = new CalendarModel({
+		id: 'general',
+		intervals: [
+			{
+				recurrentStartDate: 'on Sat',
+				recurrentEndDate: 'on Mon',
+				isWorking: true,
+			},
+		],
+	})
+
 	const project = React.useMemo(() => {
 		if (!events?.length || !resources?.length)
 			return new ProjectModel({
@@ -615,6 +627,7 @@ const Calender2 = ({
 				data: dependencies,
 				autoLoad: true,
 			}),
+			calendar,
 		})
 	}, [events, resources, dependencies])
 
@@ -692,32 +705,32 @@ const Calender2 = ({
 			width: '100%',
 			infiniteScroll: true,
 			viewPreset: customMonthViewPreset,
-			// tbar: [
-			// 	{
-			// 		type: 'combo',
-			// 		label: 'View',
-			// 		editable: false,
-			// 		items: [
-			// 			{ text: 'Day', value: 'customDayView' },
-			// 			{ text: 'Week', value: 'weekAndDay' },
-			// 			{ text: 'Month', value: 'monthAndYear' },
-			// 			{ text: 'Year', value: 'year' },
-			// 		],
-			// 		listeners: {
-			// 			change({ value }) {
-			// 				if (value === 'monthAndYear') {
-			// 					scheduler.viewPreset = value
-			// 					scheduler.startDate = new Date(2025, 0, 1) // January 1, 2025
+			tbar: [
+				{
+					type: 'combo',
+					label: 'View',
+					editable: false,
+					items: [
+						{ text: 'Week', value: 'weekAndDay' },
+						{ text: 'Month', value: 'monthAndYear' },
+					],
+					listeners: {
+						change({ value }) {
+							if (value === 'monthAndYear') {
+								scheduler.viewPreset = value
+								scheduler.startDate = new Date(2025, 0, 1) // January 1, 2025
 
-			// 					console.log('SchedulerDATE', scheduler.startDate)
-			// 				} else {
-			// 					scheduler.viewPreset = value
-			// 					console.log('SchedulerDATE', scheduler.startDate)
-			// 				}
-			// 			},
-			// 		},
-			// 	},
-			// ],
+								console.log('SchedulerDATE', scheduler.startDate)
+							} else {
+								scheduler.suspendRefresh()
+								scheduler.viewPreset = value
+								scheduler.resumeRefresh()
+								console.log('SchedulerDATE', scheduler.startDate)
+							}
+						},
+					},
+				},
+			],
 			tickSize: 100,
 			rowHeight: 100,
 			// endDateIsInclusive: true,
@@ -2554,6 +2567,12 @@ const Calender2 = ({
 
 		scheduler.displayDateFormat = 'll'
 
+		scheduler.on('presetChange', ({ preset }) => {
+			if (preset.id === 'monthAndYear') {
+				scheduler.setTimeSpan(new Date(2025, 0, 1))
+			}
+		})
+
 		// // ✅ Proper async commit block
 		;(async () => {
 			await scheduler.project.commitAsync()
@@ -2580,7 +2599,14 @@ const Calender2 = ({
 				<Typography variant="body1" fontWeight="bold">
 					Show SubTasks
 				</Typography>
-				<CompactSwitch checked={showSubTasks} onChange={handleToggle} />
+				<CompactSwitch
+					checked={showSubTasks}
+					onChange={() => {
+						// scheduler.suspendRefresh()
+						SetshowSubTasks(!showSubTasks)
+						// scheduler.resumeRefresh()
+					}}
+				/>
 			</Stack>
 
 			<div ref={schedulerRef} style={{ height: '500px', width: '100%', marginTop: '15px' }} />
