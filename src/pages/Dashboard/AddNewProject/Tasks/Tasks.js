@@ -425,6 +425,8 @@ const Task = React.memo(
 			[taskID]
 		)
 
+		const existingSubTasks = fullResponse?.filter((task) => task?.parent_task === taskID)
+
 		// Fetch all diagram data based on unique diagram IDs from tasks
 		useEffect(() => {
 			if (list) {
@@ -867,6 +869,12 @@ const Task = React.memo(
 		}
 
 		const handleAddSubtask = (value) => {
+			const tempDateData = new Map()
+
+			const currentCount = existingSubTasks.length
+
+			const nextIndex = currentCount
+
 			if (value) {
 				const selectedTaskId = selectedRows[0]
 
@@ -951,27 +959,133 @@ const Task = React.memo(
 					myQueryClient.invalidateQueries(['project_tasks'])
 				})
 				console.log('HRT', fullResponse)
-			} else {
+			}
+			// else {
+			// 	SetIsSubTaskCreated(true)
+
+			// 	if (selectedRows?.length) {
+			// 		setToast({
+			// 			severity: 'warning',
+			// 			message: 'Please deselect the current subtask before adding a new one.',
+			// 		})
+			// 		return
+			// 	}
+
+			// 	const selectedTaskObj = fullResponse?.find((task) => task.id === taskID)
+			// 	const existingSubTasks = fullResponse?.filter((task) => task?.parent_task === taskID)
+
+			// 	const parentId = selectedTaskObj?.id
+
+			// 	const parentStart = moment(selectedTaskObj?.start_date)
+			// 	const parentEnd = moment(selectedTaskObj?.end_date)
+
+			// 	const nextStartDate = parentStart.clone().add(nextIndex, 'days')
+			// 	const nextEndDate = nextStartDate.clone().add(1, 'days')
+
+			// 	let subtasks = null
+
+			// 	const currentStartDate = nextStartDate.format('YYYY-MM-DD')
+
+			// 	const currentEndDate = nextEndDate.format('YYYY-MM-DD')
+
+			// 	const startDay = new Date(currentStartDate).getDay()
+
+			// 	const endDay = new Date(currentEndDate).getDay()
+
+			// 	const parentStartDate = new Date(parentStart)
+
+			// 	const parentEndDate = new Date(parentEnd)
+
+			// 	if (startDay === 0 || startDay === 6) {
+			// 		let newStartDate = null
+			// 		let newEndDate = null
+			// 		const isWeekend = (day) => day === 0 || day === 6
+
+			// 		let currentStartDate = new Date(nextStartDate.format('YYYY-MM-DD'))
+
+			// 		while (true) {
+			// 			const day = currentStartDate.getDay()
+
+			// 			if (!isWeekend(day)) {
+			// 				newStartDate = new Date(currentStartDate)
+			// 				newEndDate = new Date(newStartDate)
+			// 				newEndDate.setDate(newStartDate.getDate() + 1)
+
+			// 				// If newEndDate exceeds parent end, wrap to start
+			// 				if (newEndDate > parentEndDate) {
+			// 					currentStartDate = new Date(parentStartDate)
+			// 				}
+
+			// 				break // ✅ Exit loop when valid pair found
+			// 			} else {
+			// 				currentStartDate.setDate(currentStartDate.getDate() + 1)
+
+			// 				if (currentStartDate > parentEndDate) {
+			// 					currentStartDate = new Date(parentStartDate)
+			// 				}
+			// 			}
+			// 		}
+
+			// 		console.log('SUBTASKPOPUP IF', existingSubTasks)
+
+			// 		subtasks = [
+			// 			{
+			// 				title: '',
+			// 				team: selectedTaskObj.team,
+			// 				start_date: moment(newStartDate).format('YYYY-MM-DD'),
+			// 				end_date: moment(newEndDate).format('YYYY-MM-DD'),
+			// 				notes: '',
+			// 				task_group_id,
+			// 				project: id,
+			// 				parent_task: parentId,
+			// 			},
+			// 		]
+			// 	} else {
+			// 		subtasks = [
+			// 			{
+			// 				title: '',
+			// 				team: selectedTaskObj.team,
+			// 				start_date: nextStartDate.format('YYYY-MM-DD'),
+			// 				end_date: nextEndDate.format('YYYY-MM-DD'),
+			// 				notes: '',
+			// 				task_group_id,
+			// 				project: id,
+			// 				parent_task: parentId,
+			// 			},
+			// 		]
+			// 		console.log('SUBTASKPOPUP else', existingSubTasks, nextIndex)
+			// 	}
+
+			// 	createNewTasks(subtasks).then(async (res) => {
+			// 		setToast({
+			// 			severity: 'success',
+			// 			message: `Subtask has been created successfully.`,
+			// 		})
+
+			// 		const { data: latestTasks } = await refetchFull()
+
+			// 		const filteredSubTasks = latestTasks?.filter((item) => item?.parent_task === taskID)
+			// 		SetSubTasksData(filteredSubTasks)
+			// 		SetIsSubTaskCreated(false)
+
+			// 		setTimeout(() => {
+			// 			const rowIndex = filteredSubTasks.length - 1
+
+			// 			// Ensure the row is visible (scroll if needed)
+			// 			gridRef.current.api.stopEditing()
+			// 			gridRef.current.api.ensureIndexVisible(rowIndex)
+
+			// 			// Focus the 'title' (Task Name) cell with blinking cursor
+			// 			gridRef.current.api.startEditingCell({
+			// 				rowIndex,
+			// 				colKey: 'title', // Column key for Task Name
+			// 			})
+			// 		}, 50)
+			// 		return () => {}
+			// 	})
+			// }
+			else {
 				SetIsSubTaskCreated(true)
-				const defaultSubTaskNames = ['Line', 'Trim', 'Assemble', 'Galvanize', 'Install']
-
-				const selectedTaskObj = fullResponse?.find((task) => task.id === taskID)
-				const existingSubTasks = fullResponse?.filter((task) => task?.parent_task === taskID)
-				const parentId = selectedTaskObj?.id
-
-				const parentStart = moment(selectedTaskObj?.start_date)
-				const parentEnd = moment(selectedTaskObj?.end_date)
-
-				const totalAllowed = parentEnd.diff(parentStart, 'days') + 1
-
-				const currentCount = existingSubTasks.length
-
-				const nextIndex = currentCount % totalAllowed
-
-				const nextStartDate = parentStart.clone().add(nextIndex, 'days')
-				const nextEndDate = nextStartDate.clone().add(1, 'days')
-
-				const nextTitle = defaultSubTaskNames[currentCount % defaultSubTaskNames.length]
 
 				if (selectedRows?.length) {
 					setToast({
@@ -981,18 +1095,55 @@ const Task = React.memo(
 					return
 				}
 
+				const selectedTaskObj = fullResponse?.find((task) => task.id === taskID)
+				const existingSubTasks = fullResponse?.filter((task) => task?.parent_task === taskID)
+
+				const parentId = selectedTaskObj?.id
+				const parentStart = moment(selectedTaskObj?.start_date)
+				const parentEnd = moment(selectedTaskObj?.end_date)
+
+				const parentStartDate = new Date(parentStart.format('YYYY-MM-DD'))
+				const parentEndDate = new Date(parentEnd.format('YYYY-MM-DD'))
+
+				const tempEndDate = new Date(parentEndDate)
+
+				tempEndDate.setDate(tempEndDate.getDate() + 1)
+
+				const isWeekend = (day) => day === 0 || day === 6
+
+				const validPairs = []
+				const temp = new Date(parentStartDate)
+
+				while (temp <= tempEndDate) {
+					const next = new Date(temp)
+					next.setDate(temp.getDate() + 1)
+
+					if (!isWeekend(temp.getDay()) && next <= tempEndDate) {
+						validPairs.push([new Date(temp), new Date(next)])
+					}
+
+					temp.setDate(temp.getDate() + 1)
+				}
+
+				
+				const currentCount = existingSubTasks.length
+				const pairIndex = currentCount % validPairs.length
+				const [startDateObj, endDateObj] = validPairs[pairIndex]
+
 				const subtasks = [
 					{
-						title: '',
+						title: '', // You can assign a title from defaultSubTaskNames if needed
 						team: selectedTaskObj.team,
-						start_date: nextStartDate.format('YYYY-MM-DD'),
-						end_date: nextEndDate.format('YYYY-MM-DD'),
+						start_date: moment(startDateObj).format('YYYY-MM-DD'),
+						end_date: moment(endDateObj).format('YYYY-MM-DD'),
 						notes: '',
 						task_group_id,
 						project: id,
 						parent_task: parentId,
 					},
 				]
+
+				console.log('Creating MYSUbtask:', validPairs)
 
 				createNewTasks(subtasks).then(async (res) => {
 					setToast({
@@ -1001,24 +1152,23 @@ const Task = React.memo(
 					})
 
 					const { data: latestTasks } = await refetchFull()
-
 					const filteredSubTasks = latestTasks?.filter((item) => item?.parent_task === taskID)
+
 					SetSubTasksData(filteredSubTasks)
 					SetIsSubTaskCreated(false)
 
 					setTimeout(() => {
 						const rowIndex = filteredSubTasks.length - 1
 
-						// Ensure the row is visible (scroll if needed)
 						gridRef.current.api.stopEditing()
 						gridRef.current.api.ensureIndexVisible(rowIndex)
 
-						// Focus the 'title' (Task Name) cell with blinking cursor
 						gridRef.current.api.startEditingCell({
 							rowIndex,
-							colKey: 'title', // Column key for Task Name
+							colKey: 'title',
 						})
 					}, 50)
+
 					return () => {}
 				})
 			}

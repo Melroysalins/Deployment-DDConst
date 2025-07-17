@@ -137,7 +137,7 @@ const Calender2 = ({
 		SetshowSubTasks(!showSubTasks)
 	}
 
-	console.log('SHow SubTaks', showSubTasks)
+	console.log('SHow SubTaks', taskGroup)
 
 	const myQueryClient = useQueryClient()
 
@@ -232,6 +232,7 @@ const Calender2 = ({
 		EndToStart: 2,
 		EndToEnd: 3,
 	}
+
 	const dependencies = React.useMemo(() => {
 		if (!data?.dependencies?.data) return []
 		return data.dependencies.data.map((dep) => ({
@@ -286,6 +287,7 @@ const Calender2 = ({
 						const uniqueId = `${resourceId}-${teamNumber}`
 						try {
 							const response = await getTeamDetails(teamNumber)
+							console.log('Team Promises', response, teamNumber)
 							SetTeam((prev) => [...prev, response])
 							const teamName = response?.data?.[0]?.name || `Team ${teamNumber}`
 
@@ -851,16 +853,46 @@ const Calender2 = ({
 									// New subtask will always be 1 day duration
 									newSubtaskEndDate = newSubtaskStartDate.clone().add(1, 'days')
 
+									// skip weekend code
+
+									const parentStartDate = eventRecord?.startDate
+
+									const parentEndDate = eventRecord.endDate
+
+									const tempEndDate = new Date(parentEndDate)
+
+									const isWeekend = (day) => day === 0 || day === 6
+
+									const validPairs = []
+									const temp = new Date(parentStartDate)
+
+									while (temp <= tempEndDate) {
+										const next = new Date(temp)
+										next.setDate(temp.getDate() + 1)
+
+										if (!isWeekend(temp.getDay()) && next <= tempEndDate) {
+											validPairs.push([new Date(temp), new Date(next)])
+										}
+
+										temp.setDate(temp.getDate() + 1)
+									}
+
+									const currentCount = existingSubtaskNames?.length
+									const pairIndex = currentCount % validPairs.length
+									const [startDateObj, endDateObj] = validPairs[pairIndex]
+
 									subtasks.push({
 										title: missingSubTask,
 										team: eventRecord?.data?.team,
-										start_date: newSubtaskStartDate.format('YYYY-MM-DD'),
-										end_date: newSubtaskEndDate.format('YYYY-MM-DD'),
+										start_date: moment(startDateObj).format('YYYY-MM-DD'),
+										end_date: moment(endDateObj).format('YYYY-MM-DD'),
 										notes: '',
 										task_group_id: eventRecord?.data?.task_group_id,
 										project: id,
 										parent_task: parentId,
 									})
+
+									//  skip weekend code ends
 
 									try {
 										const res = await createNewTasks(subtasks) // Create the single new subtask
@@ -1591,42 +1623,6 @@ const Calender2 = ({
 								},
 								{ text: 'Start Date', field: 'startDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
 								{ text: 'End Date', field: 'endDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
-								// {
-								// 	text: 'Work Days',
-								// 	field: 'workDays',
-								// 	flex: 1.5,
-								// 	editor: 'date',
-								// 	renderer: ({ record }) => {
-								// 		const start = record.data.startDate
-								// 		const end = record.data.endDate
-
-								// 		const format = (d) => new Date(d).toLocaleDateString('en-US')
-
-								// 		const text = start && end ? `${format(start)} - ${format(end)}` : ''
-
-								// 		record.set('workDays', text)
-
-								// 		return text
-								// 	},
-								// },
-								// {
-								// 	text: 'Work Days',
-								// 	field: 'workDays',
-								// 	flex: 1.5,
-
-								// 	renderer: ({ record }) => {
-								// 		const { startDate, endDate } = record
-
-								// 		record.set('workDays', `${startDate} / ${endDate}`)
-
-								// 		const start = startDate instanceof Date ? startDate : new Date(startDate)
-								// 		const end = endDate instanceof Date ? endDate : new Date(endDate)
-
-								// 		const formatedWorkDays = `${startDate} - ${endDate}`
-
-								// 		return formatedWorkDays
-								// 	},
-								// },
 							],
 							bbar: [
 								'->',
@@ -1840,10 +1836,9 @@ const Calender2 = ({
 
 							const alreadyExistingSubTasks = eventRecord?.children || []
 
-							console.log('ALREADY', alreadyExistingSubTasks)
-
 							const parentStartDate = moment(eventRecord.startDate)
 							const parentEndDate = moment(eventRecord.endDate)
+
 							const parentID = eventRecord?.id
 							const { team, task_group_id, id } = eventRecord?.data
 
@@ -1867,11 +1862,40 @@ const Calender2 = ({
 								newSubtaskEndDate = parentEndDate.clone()
 							}
 
+							// New Code
+
+							const newParentStartDate = new Date(parentStartDate.format('YYYY-MM-DD'))
+							const newParentEndDate = new Date(parentEndDate.format('YYYY-MM-DD'))
+
+							const isWeekend = (day) => day === 0 || day === 6
+
+							const validPairs = []
+
+							const temp = new Date(parentStartDate)
+
+							while (temp <= newParentEndDate) {
+								const next = new Date(temp)
+								next.setDate(temp.getDate() + 1)
+
+								if (!isWeekend(temp.getDay()) && next <= newParentEndDate) {
+									validPairs.push([new Date(temp), new Date(next)])
+								}
+
+								temp.setDate(temp.getDate() + 1)
+							}
+
+							const pairIndex = subtaskCount % validPairs.length
+							const [startDateObj, endDateObj] = validPairs[pairIndex]
+
+							console.log('ALREADY', validPairs, sortedSubtasks, eventRecord?.childre, eventRecord?.data)
+
+							// new code end
+
 							const newSubtaskData = {
 								id: Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 1000),
 								name: ' ',
-								startDate: newSubtaskStartDate.toDate(),
-								endDate: newSubtaskEndDate.toDate(),
+								startDate: startDateObj,
+								endDate: endDateObj,
 								duration: 1,
 								team,
 								project: id,
@@ -1932,81 +1956,6 @@ const Calender2 = ({
 		scheduler.dependencyStore.forEach((dep) => {
 			console.log(`From Event ID ${dep.fromEvent} → To Event ID ${dep.toEvent}`)
 		})
-
-		// scheduler.eventStore.on('add', ({ source, records, isMove, isReplace }) => {
-		// 	suppressNextEditor = true
-		// 	const event = records[0]
-
-		// 	const resourceId = event.resourceId
-		// 	const resourceRecord = scheduler.resourceStore.getById(resourceId)
-
-		// 	const currentTeam = teamsDetails?.find((item) => item?.name === resourceId)?.teamNumber
-
-		// 	const isTrueSubtask = event.data.parentId && event.data.parentId !== scheduler.project.id
-
-		// 	const projectDiagramID = resourceRecord?.data?.tasksWithoutTeam?.find(
-		// 		(item) => item?.project_diagram_id
-		// 	)?.project_diagram_id
-
-		// 	if (isTrueSubtask) {
-		// 		return
-		// 	}
-
-		// 	if (event.copyOf) {
-		// 		return ''
-		// 	}
-		// 	// eslint-disable-next-line
-		// 	if (event.data.isPastedEvent) {
-		// 		return ''
-		// 	}
-
-		// 	if (event.data?.isAddNewSubTask) {
-		// 		return ''
-		// 	}
-
-		// 	// eslint-disable-next-line
-		// 	else {
-		// 		scheduler.features.eventEdit.disabled = true
-
-		// 		let taskGroupID = null
-
-		// 		if (resourceRecord?.name === 'Connection') {
-		// 			taskGroupID = 3
-		// 		}
-		// 		if (resourceRecord?.name === 'Completion Testing') {
-		// 			taskGroupID = 4
-		// 		}
-		// 		if (resourceRecord?.name === 'Metal Fittings Installation') {
-		// 			taskGroupID = 1
-		// 		}
-		// 		if (resourceRecord?.name === 'Auxiliary Construction') {
-		// 			taskGroupID = 6
-		// 		}
-		// 		if (resourceRecord?.name === 'Office Work') {
-		// 			taskGroupID = 5
-		// 		}
-		// 		if (resourceRecord?.name === 'Installation') {
-		// 			taskGroupID = 2
-		// 		}
-
-		// 		try {
-		// 			const formattedSubtaskData = {
-		// 				title: event?.data?.name,
-		// 				start_date: DateHelper.format(event?.data?.startDate, 'YYYY-MM-DD'),
-		// 				end_date: DateHelper.format(DateHelper.add(event?.data?.endDate, -1, 'd'), 'YYYY-MM-DD'),
-		// 				team: currentTeam,
-		// 				project: id,
-		// 				task_group_id: taskGroupID,
-		// 				project_diagram_id: projectDiagramID,
-		// 				// resourceId: eventRecords?.[0]?.data?.resourceId,
-		// 			}
-
-		// 			console.log('Melroy', taskGroupID, formattedSubtaskData)
-		// 		} catch (error) {
-		// 			console.log('Error !! Failed to add new event', error)
-		// 		}
-		// 	}
-		// })
 
 		scheduler.dependencyStore.on('add', ({ records }) => {
 			console.log('Dependency added:', records)
