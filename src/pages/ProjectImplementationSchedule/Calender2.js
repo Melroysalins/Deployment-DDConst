@@ -60,6 +60,7 @@ import { getProjectDiagram } from 'supabase/project_diagram'
 import { da } from 'date-fns/locale'
 import { autoDetect, Datepicker, Input, momentTimezone, setOptions } from '@mobiscroll/react'
 import SchedulerComponent from './SchedulerCode'
+import ManageSubtasksDialog from './ManageSubtasks'
 
 const CompactSwitch = styled(Switch)(({ theme }) => ({
 	width: 44,
@@ -103,6 +104,9 @@ const Calender2 = ({
 	SetTaskType,
 }) => {
 	const [range, setRange] = React.useState(getTimelineRange())
+	const [openSubtaskPopup, setOpenSubtaskPopup] = useState(false)
+	const [currentEventRecord, setCurrentEventRecord] = useState(null)
+	const [tempScheduler, SetTeampScheduler] = useState(null)
 	const [allWorkTypes, SetAllWorkTypes] = useState([
 		'Connection',
 		'Installation',
@@ -121,6 +125,7 @@ const Calender2 = ({
 	const [teams, SetTeam] = useState([])
 
 	const [showSubTasks, SetshowSubTasks] = useState(true)
+	const [lockWeekend, SetlockWeekend] = useState(true)
 
 	let originalStartDate = null
 
@@ -128,6 +133,10 @@ const Calender2 = ({
 
 	const schedulerRef = useRef(null)
 	const schedulerInstanceRef = useRef(null)
+
+	let currentCenterDate = null
+
+	let scheduler = null
 
 	const { id } = useParams()
 	console.log('myID', id)
@@ -688,6 +697,240 @@ const Calender2 = ({
 		return { unique: uniqueStartDateTasks, duplicates: duplicateStartDateTasks }
 	}
 
+	function openManageSubtaskPopup(eventRecord) {
+		// scheduler.editEvent(eventRecord)
+		const editor = scheduler.features.eventEdit?.editor
+		const subtasksContainer = editor?.widgetMap?.subtasksContainer
+
+		console.log('Manage Subtask', editor, scheduler.features.eventEdit)
+
+		let subTaskToBeDeleted = []
+
+		if (subtasksContainer) {
+			subtasksContainer.items.forEach((item) => item.destroy())
+			subtasksContainer.removeAll()
+		}
+
+		const createSubtasksGrid = (initialData = []) => {
+			const noSubtasksLabel = subtasksContainer?.widgetMap?.noSubtasksLabel
+
+			if (noSubtasksLabel) {
+				noSubtasksLabel.destroy()
+			}
+
+			return subtasksContainer?.add({
+				type: 'grid',
+				height: '272px',
+				ref: 'subtasksGridWidget',
+				scrollable: true,
+				cls: 'custom-aggrid-style',
+				features: {
+					cellEdit: true,
+				},
+				store: {
+					data: initialData,
+					listeners: {
+						update: ({ record, changes }) => {
+							const { id } = record
+							const newName = changes?.name?.value
+
+							const childToUpdate = eventRecord.children.find((child) => child.id === id)
+
+							const gridWidget = subtasksContainer?.widgetMap?.subtasksGridWidget
+							const labelWidget = gridWidget?.widgetMap?.deleteStatusLabel
+							const deleteButtonWidget = gridWidget?.widgetMap?.deleteButton
+
+							deleteButtonWidget?.hide()
+
+							if (!childToUpdate) {
+								console.warn('Could not find matching subtask in eventRecord.children for ID:', id)
+								return
+							}
+
+							if (childToUpdate.isPhantom) {
+								console.warn('The subtask is a phantom (unsaved). May cause duplication on save.')
+							}
+
+							if (newName) childToUpdate.set('name', newName)
+							childToUpdate.set('yesModified', true)
+
+							// Handle startDate and endDate changes
+							;['startDate', 'endDate'].forEach((field) => {
+								if (changes?.[field]) {
+									const newDate = changes?.[field]?.value
+									childToUpdate.set(field, newDate)
+									childToUpdate.set('yesModified', true)
+
+									const start = new Date(childToUpdate.startDate)
+									const end = new Date(childToUpdate.endDate)
+									const diffInDays = (end - start) / (1000 * 60 * 60 * 24)
+
+									childToUpdate.set('duration', diffInDays)
+									record.set('duration', diffInDays)
+								}
+							})
+
+							if (changes?.completed?.value) {
+								subTaskToBeDeleted.push(record?.data?.id)
+							} else {
+								subTaskToBeDeleted = subTaskToBeDeleted.filter((id) => id !== record?.data?.id)
+							}
+
+							if (labelWidget) {
+								if (subTaskToBeDeleted.length > 0) {
+									labelWidget.show()
+									labelWidget.html = `Items selected: ${subTaskToBeDeleted.length}`
+									deleteButtonWidget?.show()
+								} else {
+									labelWidget.hide()
+									deleteButtonWidget?.hide()
+								}
+							}
+						},
+					},
+				},
+
+				columns: [
+					{ type: 'check', text: '', field: 'completed', width: 70, editor: true, align: 'center' },
+					{ text: 'Task Name', field: 'name', flex: 0.5, editor: 'text', editable: true },
+					{
+						text: 'Mandays',
+						field: 'duration',
+						flex: 0.5,
+						editable: false,
+						renderer: ({ record }) => {
+							const start = new Date(record.data.startDate)
+							const end = new Date(record.data.endDate)
+							const diff = (end - start) / (1000 * 60 * 60 * 24)
+							return Number.isNaN(diff) ? '' : Math.round(diff)
+						},
+					},
+					{ text: 'Start Date', field: 'startDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
+					{ text: 'End Date', field: 'endDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
+				],
+
+				bbar: [
+					'->',
+					{
+						type: 'label',
+						ref: 'deleteStatusLabel',
+						html: '',
+						hidden: true,
+						margin: '0 0.5em 0 1em',
+					},
+					{
+						type: 'button',
+						icon: 'b-icon b-icon-trash',
+						cls: 'b-blue',
+						ref: 'deleteButton',
+						hidden: true,
+						onClick: async () => {
+							try {
+								const res = await deleteTasks(subTaskToBeDeleted)
+
+								subTaskToBeDeleted.forEach((id) => {
+									const index = eventRecord.children.findIndex((child) => child.id === id)
+									if (index !== -1) eventRecord.children.splice(index, 1)
+									const taskRecord = scheduler.eventStore.getById(id)
+									if (taskRecord) scheduler.eventStore.remove(taskRecord)
+
+									const dataIndex = eventRecord.data?.children?.findIndex((child) => child.id === id)
+									if (dataIndex !== -1) eventRecord.data.children.splice(dataIndex, 1)
+								})
+
+								const gridWidget = subtasksContainer?.widgetMap?.subtasksGridWidget
+								const labelWidget = gridWidget?.widgetMap?.deleteStatusLabel
+								const deleteButtonWidget = gridWidget?.widgetMap?.deleteButton
+
+								labelWidget?.hide()
+								deleteButtonWidget?.hide()
+
+								gridWidget?.store?.loadData(eventRecord.children)
+								await scheduler.project.commitAsync()
+							} catch (e) {
+								console.error('Delete failed:', e)
+							}
+						},
+					},
+				],
+			})
+		}
+
+		if (eventRecord.children?.length) {
+			const sorted = [...(eventRecord.data?.children || [])].sort((a, b) => {
+				const aStart = new Date(a.startDate)
+				const bStart = new Date(b.startDate)
+				return aStart - bStart || new Date(a.endDate) - new Date(b.endDate)
+			})
+			createSubtasksGrid(sorted)
+		} else {
+			subtasksContainer?.add({ type: 'label', html: 'No subtasks', ref: 'noSubtasksLabel' })
+		}
+
+		subtasksContainer?.add({
+			type: 'button',
+			text: 'Add New Subtask',
+			cls: 'b-blue b-raised',
+			margin: '1em 0',
+			onClick: () => {
+				const sorted = [...(eventRecord?.children || [])].sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+				const parentStart = moment(eventRecord.startDate)
+				const parentEnd = moment(eventRecord.endDate)
+
+				const cycleLength = parentEnd.diff(parentStart, 'days')
+				if (cycleLength <= 0) return
+
+				const validPairs = []
+				const temp = new Date(parentStart)
+
+				while (temp <= new Date(parentEnd)) {
+					const next = new Date(temp)
+					next.setDate(temp.getDate() + 1)
+					if (![0, 6].includes(temp.getDay()) && next <= new Date(parentEnd)) {
+						validPairs.push([new Date(temp), new Date(next)])
+					}
+					temp.setDate(temp.getDate() + 1)
+				}
+
+				const pairIndex = sorted.length % validPairs.length
+				const [startDateObj, endDateObj] = validPairs[pairIndex]
+
+				const newSubtaskData = {
+					id: Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 1000),
+					name: ' ',
+					startDate: startDateObj,
+					endDate: endDateObj,
+					duration: 1,
+					...eventRecord.data,
+					parent_task: eventRecord.id,
+					isSaved: false,
+					resourceId: sorted[sorted.length - 1]?.data?.resourceId,
+				}
+
+				const EventModel = scheduler.eventStore.modelClass
+				const newTaskModel = new EventModel(newSubtaskData)
+				eventRecord.appendChild(newTaskModel)
+
+				const grid = subtasksContainer?.widgetMap?.subtasksGridWidget
+				grid?.store?.add(newSubtaskData)
+
+				const newRecord = grid?.store?.last
+				const editingFeature = grid?.features?.cellEdit
+				if (editingFeature) {
+					setTimeout(() => {
+						requestAnimationFrame(() => {
+							editingFeature.startEditing({
+								record: newRecord,
+								field: 'name',
+							})
+						})
+					}, 10)
+				}
+			},
+		})
+		return true
+	}
+
 	useEffect(() => {
 		if (!schedulerRef.current) return
 
@@ -701,7 +944,7 @@ const Calender2 = ({
 
 		const currentZoomIndex = 1
 
-		const scheduler = new SchedulerPro({
+		scheduler = new SchedulerPro({
 			appendTo: schedulerRef.current,
 			autoHeight: true,
 			width: '100%',
@@ -726,8 +969,19 @@ const Calender2 = ({
 							} else {
 								scheduler.suspendRefresh()
 								scheduler.viewPreset = value
+								const day = currentCenterDate?.getDate()
+								const year = currentCenterDate.getFullYear()
+								const month = currentCenterDate.getMonth() // 0-based
+								scheduler.startDate = new Date(year, month, day)
+
 								scheduler.resumeRefresh()
-								console.log('SchedulerDATE', scheduler.startDate)
+
+								console.log(
+									'SchedulerDATE123',
+									currentCenterDate?.getDate(),
+									currentCenterDate?.getMonth(),
+									currentCenterDate?.getFullYear()
+								)
 							}
 						},
 					},
@@ -748,8 +1002,58 @@ const Calender2 = ({
 			},
 			snapToIncrement: true,
 			features: {
+				taskEdit: {
+					editorConfig: {
+						title: 'Task Info ',
+					},
+					items: {
+						generalTab: {
+							title: 'General',
+							items: {
+								nameField: {
+									type: 'textfield',
+									name: 'name',
+									label: 'Task Name',
+									required: true,
+								},
+								startDateField: {
+									type: 'datefield',
+									name: 'startDate',
+									label: 'Start Date',
+									format: 'YYYY-MM-DD',
+								},
+								endDateField: {
+									type: 'datefield',
+									name: 'endDate',
+									label: 'End Date',
+									format: 'YYYY-MM-DD',
+								},
+								effortField: false,
+								resourceField: false,
+							},
+						},
+						notesTab: true,
+						predecessorsTab: true,
+						successorsTab: true,
+					},
+				},
+				dependencyEdit: true,
+				nestedEvents: true,
+				dependencies: true,
+				eventDrag: {
+					constrainDragToTimeline: false,
+					showExactDropPosition: true,
+					constrainDragToResource: true,
+				},
+				eventResize: true,
+				eventDragSelect: {
+					disabled: false,
+					allowSelect: true,
+					showTooltip: true,
+				},
 				...features,
 				eventCopyPaste: true,
+				eventEdit: false,
 				resourceTimeRanges: {
 					enableResizing: false,
 					showHeaderElements: true,
@@ -1052,6 +1356,447 @@ const Calender2 = ({
 									}
 								}
 							},
+						}
+						items.addCustomManageSubtask = {
+							text: 'Manage SubTask',
+							icon: 'b-fa b-fa-tasks',
+
+							onItem({ eventRecord }) {
+								setCurrentEventRecord(eventRecord)
+								setOpenSubtaskPopup(true)
+							},
+
+							// onItem({ eventRecord }) {
+							// 	scheduler.editEvent(eventRecord)
+							// 	const editor = scheduler.features.eventEdit?.editor
+							// 	const subtasksContainer = editor?.widgetMap?.subtasksContainer
+
+							// 	console.log('Manage Subtask', editor)
+
+							// 	// console.log('beforeeventEditShow', eventRecord)
+
+							// 	let subTaskToBeDeleted = []
+
+							// 	if (subtasksContainer) {
+							// 		subtasksContainer.items.forEach((item) => item.destroy())
+							// 		subtasksContainer.removeAll()
+							// 	}
+							// 	subtasksContainer?.removeAll()
+
+							// 	console.log('OP Editing CLicked')
+
+							// 	let subtasksGridInstance
+
+							// 	const createSubtasksGrid = (initialData = []) => {
+							// 		const noSubtasksLabel = subtasksContainer?.widgetMap?.noSubtasksLabel
+
+							// 		if (noSubtasksLabel) {
+							// 			noSubtasksLabel.destroy()
+							// 		}
+
+							// 		return subtasksContainer?.add({
+							// 			type: 'grid',
+							// 			height: '272px',
+							// 			ref: 'subtasksGridWidget',
+							// 			scrollable: true,
+							// 			cls: 'custom-aggrid-style',
+							// 			features: {
+							// 				cellEdit: true,
+							// 			},
+							// 			store: {
+							// 				data: initialData,
+							// 				listeners: {
+							// 					update: ({ record, changes }) => {
+							// 						const { id } = record
+							// 						const newName = changes?.name?.value
+
+							// 						const childToUpdate = eventRecord.children.find((child) => child.id === id)
+
+							// 						const gridWidget = subtasksContainer?.widgetMap?.subtasksGridWidget
+
+							// 						const labelWidget = gridWidget?.widgetMap?.deleteStatusLabel
+
+							// 						const deleteButtonWidget = gridWidget?.widgetMap?.deleteButton
+
+							// 						deleteButtonWidget?.hide()
+
+							// 						console.log('gridWidget', gridWidget, labelWidget)
+
+							// 						if (!childToUpdate) {
+							// 							console.warn('Could not find matching subtask in eventRecord.children for ID:', id)
+							// 							return
+							// 						}
+
+							// 						if (childToUpdate.isPhantom) {
+							// 							console.warn(' The subtask is a phantom (unsaved). May cause duplication on save.')
+							// 						}
+
+							// 						childToUpdate.set('name', newName)
+
+							// 						childToUpdate.set('yesModified', true)
+
+							// 						if (changes?.startDate) {
+							// 							const startDate = changes?.startDate?.value
+
+							// 							childToUpdate.set('startDate', startDate)
+
+							// 							console.log('changesStartDate 1', record, changes)
+
+							// 							childToUpdate.set('yesModified', true)
+
+							// 							const currentStartData = new Date(startDate)
+
+							// 							const currentEndDate = new Date(childToUpdate?.endDate)
+
+							// 							const diffinMins = currentEndDate - currentStartData
+
+							// 							const diffinDays = diffinMins / (1000 * 60 * 60 * 24)
+
+							// 							childToUpdate.set('duration', diffinDays)
+
+							// 							record.set('duration', diffinDays)
+
+							// 							if (Array.isArray(eventRecord.data?.children) && Array.isArray(eventRecord.children)) {
+							// 								eventRecord.children.forEach((child) => {
+							// 									const matchingData = eventRecord.data.children.find(
+							// 										(dataChild) => dataChild.id === child.id
+							// 									)
+							// 									if (matchingData && matchingData.name) {
+							// 										child.set('name', matchingData.name)
+							// 									}
+							// 								})
+							// 							}
+							// 						}
+							// 						if (changes?.endDate) {
+							// 							const endDate = changes?.endDate?.value
+							// 							childToUpdate.set('endDate', endDate)
+
+							// 							childToUpdate.set('yesModified', true)
+
+							// 							const currentStartData = new Date(childToUpdate?.startDate)
+
+							// 							const currentEndDate = new Date(endDate)
+
+							// 							const diffinMins = currentEndDate - currentStartData
+
+							// 							const diffinDays = diffinMins / (1000 * 60 * 60 * 24)
+
+							// 							childToUpdate.set('duration', diffinDays)
+
+							// 							record.set('duration', diffinDays)
+
+							// 							console.log('changesStartDate 2', record, changes)
+							// 						}
+							// 						// if (changes?.workDays) {
+							// 						// 	const workDaysValue = changes.workDays.value
+
+							// 						// 	const splitDates = workDaysValue?.split('/')
+
+							// 						// 	const startDate = splitDates[0]
+
+							// 						// 	const endDate = splitDates[1]
+
+							// 						// 	childToUpdate.set('startDate', startDate)
+
+							// 						// 	childToUpdate.set('endDate', endDate)
+
+							// 						// 	console.log('changesStartDate', workDaysValue, splitDates, startDate, endDate)
+							// 						// }
+
+							// 						if (changes?.completed?.value) {
+							// 							subTaskToBeDeleted.push(record?.data?.id)
+
+							// 							console.log('MyChanges ', subTaskToBeDeleted)
+							// 							if (labelWidget) {
+							// 								if (subTaskToBeDeleted.length > 0) {
+							// 									labelWidget.show()
+							// 									labelWidget.html = `Items selected: ${subTaskToBeDeleted.length}`
+							// 									deleteButtonWidget.show()
+							// 								} else {
+							// 									labelWidget.hide()
+							// 									deleteButtonWidget?.hide()
+							// 								}
+							// 							}
+							// 						} else {
+							// 							const filteredIDs = subTaskToBeDeleted?.filter((id) => id !== record?.data?.id)
+
+							// 							subTaskToBeDeleted = filteredIDs
+							// 							if (labelWidget) {
+							// 								if (subTaskToBeDeleted.length > 0) {
+							// 									labelWidget.show()
+							// 									labelWidget.html = `Items selected: ${subTaskToBeDeleted.length}`
+							// 									deleteButtonWidget?.show()
+							// 								} else {
+							// 									labelWidget.hide()
+							// 									deleteButtonWidget?.hide()
+							// 								}
+							// 							}
+							// 						}
+							// 					},
+							// 				},
+							// 			},
+
+							// 			columns: [
+							// 				{
+							// 					type: 'check',
+							// 					text: '',
+							// 					field: 'completed',
+							// 					width: 70,
+							// 					editor: true,
+							// 					align: 'center',
+							// 				},
+							// 				// { text: 'ID', field: 'id', flex: 0.5 },
+							// 				{ text: 'Task Name', field: 'name', flex: 0.5, editor: 'text', editable: true },
+							// 				{
+							// 					text: 'Mandays',
+							// 					field: 'duration',
+							// 					flex: 0.5,
+							// 					editable: false,
+							// 					renderer: ({ record }) => {
+							// 						const start = new Date(record.data.startDate)
+							// 						const end = new Date(record.data.endDate)
+
+							// 						if (
+							// 							start instanceof Date &&
+							// 							end instanceof Date &&
+							// 							!Number.isNaN(start.getTime()) &&
+							// 							!Number.isNaN(end.getTime())
+							// 						) {
+							// 							const millisecondsPerDay = 1000 * 60 * 60 * 24
+							// 							const diff = Math.round((end - start) / millisecondsPerDay)
+							// 							return `${diff}`
+							// 						}
+							// 						return ''
+							// 					},
+							// 				},
+							// 				{ text: 'Start Date', field: 'startDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
+							// 				{ text: 'End Date', field: 'endDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
+							// 			],
+							// 			bbar: [
+							// 				'->',
+							// 				{
+							// 					type: 'label',
+							// 					ref: 'deleteStatusLabel',
+							// 					html: '',
+							// 					hidden: true,
+							// 					margin: '0 0.5em 0 1em',
+							// 				},
+							// 				{
+							// 					type: 'button',
+							// 					icon: 'b-icon b-icon-trash',
+							// 					cls: 'b-blue',
+							// 					ref: 'deleteButton',
+							// 					hidden: true,
+							// 					onClick: async () => {
+							// 						try {
+							// 							const res = await deleteTasks(subTaskToBeDeleted)
+							// 							console.log('Deleted', res, eventRecord)
+
+							// 							subTaskToBeDeleted.forEach((id) => {
+							// 								const index = eventRecord.children.findIndex((child) => child.id === id)
+							// 								if (index !== -1) {
+							// 									eventRecord.children.splice(index, 1)
+							// 								}
+							// 								subTaskToBeDeleted.forEach((id) => {
+							// 									const taskRecord = scheduler.eventStore.getById(id)
+							// 									if (taskRecord) {
+							// 										scheduler.eventStore.remove(taskRecord)
+							// 									}
+							// 								})
+
+							// 								const dataIndex = eventRecord.data?.children?.findIndex((child) => child.id === id)
+							// 								if (dataIndex !== -1) {
+							// 									eventRecord.data.children.splice(dataIndex, 1)
+							// 								}
+							// 							})
+
+							// 							eventRecord?.children?.forEach((element) => {
+							// 								if (!subTaskToBeDeleted?.includes(element?.id)) {
+							// 									element?.set('yesModified', true)
+							// 								}
+							// 							})
+
+							// 							subTaskToBeDeleted = []
+
+							// 							// Refresh the grid if needed
+							// 							const gridWidget = subtasksContainer?.widgetMap?.subtasksGridWidget
+							// 							gridWidget?.store?.loadData(eventRecord.children)
+
+							// 							// Hide label and button again
+							// 							const labelWidget = gridWidget?.widgetMap?.deleteStatusLabel
+							// 							const deleteButtonWidget = gridWidget?.widgetMap?.deleteButton
+
+							// 							labelWidget?.hide()
+							// 							deleteButtonWidget?.hide()
+							// 							if (Array.isArray(eventRecord.data?.children) && Array.isArray(eventRecord.children)) {
+							// 								eventRecord.children.forEach((child) => {
+							// 									const matchingData = eventRecord.data.children.find(
+							// 										(dataChild) => dataChild.id === child.id
+							// 									)
+							// 									if (matchingData && matchingData.name) {
+							// 										child.set('name', matchingData.name)
+							// 									}
+							// 								})
+							// 							}
+							// 							await scheduler.project.commitAsync()
+							// 						} catch (error) {
+							// 							console.error('Delete failed:', error)
+							// 						}
+							// 					},
+							// 				},
+							// 			],
+							// 		})
+							// 	}
+
+							// 	if (eventRecord.children?.length) {
+							// 		const sortedSubtasks = [...(eventRecord.data?.children || [])].sort((a, b) => {
+							// 			const startA = new Date(a.startDate)
+							// 			const startB = new Date(b.startDate)
+
+							// 			// If startDates are equal, sort by endDate
+							// 			if (startA.getTime() === startB.getTime()) {
+							// 				return new Date(a.endDate) - new Date(b.endDate)
+							// 			}
+
+							// 			return startA - startB
+							// 		})
+
+							// 		subtasksGridInstance = createSubtasksGrid(sortedSubtasks)
+							// 	} else {
+							// 		subtasksContainer?.add({
+							// 			type: 'label',
+							// 			html: 'No subtasks',
+							// 			ref: 'noSubtasksLabel',
+							// 		})
+							// 	}
+
+							// 	subtasksContainer?.add({
+							// 		type: 'button',
+							// 		text: 'Add New Subtask',
+							// 		cls: 'b-blue b-raised',
+							// 		margin: '1em 0',
+							// 		onClick: async () => {
+							// 			const sortedSubtasks = [...(eventRecord?.children || [])].sort((a, b) => {
+							// 				const startA = new Date(a.startDate)
+							// 				const startB = new Date(b.startDate)
+
+							// 				if (startA.getTime() === startB.getTime()) {
+							// 					return new Date(a.endDate) - new Date(b.endDate)
+							// 				}
+
+							// 				return startA - startB
+							// 			})
+
+							// 			const alreadyExistingSubTasks = eventRecord?.children || []
+
+							// 			const parentStartDate = moment(eventRecord.startDate)
+							// 			const parentEndDate = moment(eventRecord.endDate)
+
+							// 			const parentID = eventRecord?.id
+							// 			const { team, task_group_id, id } = eventRecord?.data
+
+							// 			let newSubtaskStartDate = null
+							// 			let newSubtaskEndDate
+
+							// 			const cycleLength = parentEndDate.diff(parentStartDate, 'days') // e.g., 12–16 = 4 days
+							// 			if (cycleLength <= 0) {
+							// 				console.warn('❌ Invalid parent start/end dates')
+							// 				return
+							// 			}
+
+							// 			const subtaskCount = sortedSubtasks.length
+
+							// 			// Wrap around using modulo to cycle within the parent range
+							// 			newSubtaskStartDate = parentStartDate.clone().add(subtaskCount % cycleLength, 'days')
+							// 			newSubtaskEndDate = newSubtaskStartDate.clone().add(1, 'day')
+
+							// 			// Make sure subtask end doesn't exceed parentEndDate
+							// 			if (newSubtaskEndDate.isAfter(parentEndDate)) {
+							// 				newSubtaskEndDate = parentEndDate.clone()
+							// 			}
+
+							// 			// New Code
+
+							// 			const newParentStartDate = new Date(parentStartDate.format('YYYY-MM-DD'))
+							// 			const newParentEndDate = new Date(parentEndDate.format('YYYY-MM-DD'))
+
+							// 			const isWeekend = (day) => day === 0 || day === 6
+
+							// 			const validPairs = []
+
+							// 			const temp = new Date(parentStartDate)
+
+							// 			while (temp <= newParentEndDate) {
+							// 				const next = new Date(temp)
+							// 				next.setDate(temp.getDate() + 1)
+
+							// 				if (!isWeekend(temp.getDay()) && next <= newParentEndDate) {
+							// 					validPairs.push([new Date(temp), new Date(next)])
+							// 				}
+
+							// 				temp.setDate(temp.getDate() + 1)
+							// 			}
+
+							// 			const pairIndex = subtaskCount % validPairs.length
+							// 			const [startDateObj, endDateObj] = validPairs[pairIndex]
+
+							// 			console.log('ALREADY', validPairs, sortedSubtasks, eventRecord?.childre, eventRecord?.data)
+
+							// 			// new code end
+
+							// 			const newSubtaskData = {
+							// 				id: Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 1000),
+							// 				name: ' ',
+							// 				startDate: startDateObj,
+							// 				endDate: endDateObj,
+							// 				duration: 1,
+							// 				team,
+							// 				project: id,
+							// 				parent_task: parentID,
+							// 				task_group_id,
+							// 				isSaved: false,
+							// 				resourceId: sortedSubtasks[sortedSubtasks.length - 1]?.data?.resourceId,
+							// 			}
+
+							// 			console.log(
+							// 				'✅ Subtask Dates:',
+							// 				newSubtaskStartDate.format('YYYY-MM-DD'),
+							// 				'→',
+							// 				newSubtaskEndDate.format('YYYY-MM-DD')
+							// 			)
+
+							// 			const EventModel = scheduler.eventStore.modelClass
+							// 			const newTaskModel = new EventModel(newSubtaskData)
+							// 			eventRecord.appendChild(newTaskModel)
+
+							// 			if (!subtasksGridInstance) {
+							// 				subtasksGridInstance = createSubtasksGrid([newSubtaskData])
+							// 			} else if (subtasksGridInstance?.store) {
+							// 				subtasksGridInstance.store.add(newSubtaskData)
+
+							// 				const grid = subtasksContainer?.widgetMap?.subtasksGridWidget
+							// 				grid.store.add(newSubtaskData)
+							// 				const newRecord = grid.store.last
+
+							// 				const editingFeature = grid.features.cellEdit
+
+							// 				if (editingFeature) {
+							// 					setTimeout(() => {
+							// 						requestAnimationFrame(() => {
+							// 							editingFeature.startEditing({
+							// 								record: newRecord,
+							// 								field: 'name',
+							// 							})
+							// 						})
+							// 					}, 10)
+							// 				} else {
+							// 					console.warn('❌ cellEdit feature is not available on the grid.')
+							// 				}
+							// 			}
+							// 		},
+							// 	})
+							// 	return true
+							// },
 						}
 					},
 				},
@@ -1420,534 +2165,168 @@ const Calender2 = ({
 				afterEventEdit: ({ source, action }) => {
 					console.log('After event edit listener:', action)
 				},
-				beforeEventEditShow({ editor, eventRecord }) {
+				beforeEventEditShow({ editor, eventRecord, context }) {
+					console.log('beforeeventeditshow', eventRecord)
+
 					const subtasksContainer = editor.widgetMap.subtasksContainer
-
-					console.log('beforeeventEditShow', eventRecord)
-
-					let subTaskToBeDeleted = []
-
-					if (subtasksContainer) {
-						subtasksContainer.items.forEach((item) => item.destroy())
-						subtasksContainer.removeAll()
-					}
-					subtasksContainer?.removeAll()
-
-					console.log('OP', eventRecord?.children)
-					console.log(
-						'TabPanel items:',
-						editor.tabPanel?.items.map((tab) => tab.title || tab.type)
-					)
-
-					let subtasksGridInstance
-
-					const createSubtasksGrid = (initialData = []) => {
-						const noSubtasksLabel = subtasksContainer?.widgetMap?.noSubtasksLabel
-
-						if (noSubtasksLabel) {
-							noSubtasksLabel.destroy()
-						}
-
-						return subtasksContainer?.add({
-							type: 'grid',
-							height: '272px',
-							ref: 'subtasksGridWidget',
-							scrollable: true,
-							cls: 'custom-aggrid-style',
-							features: {
-								cellEdit: true,
-							},
-							store: {
-								data: initialData,
-								listeners: {
-									update: ({ record, changes }) => {
-										const { id } = record
-										const newName = changes?.name?.value
-
-										const childToUpdate = eventRecord.children.find((child) => child.id === id)
-
-										const gridWidget = subtasksContainer?.widgetMap?.subtasksGridWidget
-
-										const labelWidget = gridWidget?.widgetMap?.deleteStatusLabel
-
-										const deleteButtonWidget = gridWidget?.widgetMap?.deleteButton
-
-										deleteButtonWidget?.hide()
-
-										console.log('gridWidget', gridWidget, labelWidget)
-
-										if (!childToUpdate) {
-											console.warn('Could not find matching subtask in eventRecord.children for ID:', id)
-											return
-										}
-
-										if (childToUpdate.isPhantom) {
-											console.warn(' The subtask is a phantom (unsaved). May cause duplication on save.')
-										}
-
-										childToUpdate.set('name', newName)
-
-										childToUpdate.set('yesModified', true)
-
-										if (changes?.startDate) {
-											const startDate = changes?.startDate?.value
-
-											childToUpdate.set('startDate', startDate)
-
-											console.log('changesStartDate 1', record, changes)
-
-											childToUpdate.set('yesModified', true)
-
-											const currentStartData = new Date(startDate)
-
-											const currentEndDate = new Date(childToUpdate?.endDate)
-
-											const diffinMins = currentEndDate - currentStartData
-
-											const diffinDays = diffinMins / (1000 * 60 * 60 * 24)
-
-											childToUpdate.set('duration', diffinDays)
-
-											record.set('duration', diffinDays)
-
-											if (Array.isArray(eventRecord.data?.children) && Array.isArray(eventRecord.children)) {
-												eventRecord.children.forEach((child) => {
-													const matchingData = eventRecord.data.children.find((dataChild) => dataChild.id === child.id)
-													if (matchingData && matchingData.name) {
-														child.set('name', matchingData.name)
-													}
-												})
-											}
-										}
-										if (changes?.endDate) {
-											const endDate = changes?.endDate?.value
-											childToUpdate.set('endDate', endDate)
-
-											childToUpdate.set('yesModified', true)
-
-											const currentStartData = new Date(childToUpdate?.startDate)
-
-											const currentEndDate = new Date(endDate)
-
-											const diffinMins = currentEndDate - currentStartData
-
-											const diffinDays = diffinMins / (1000 * 60 * 60 * 24)
-
-											childToUpdate.set('duration', diffinDays)
-
-											record.set('duration', diffinDays)
-
-											console.log('changesStartDate 2', record, changes)
-										}
-										// if (changes?.workDays) {
-										// 	const workDaysValue = changes.workDays.value
-
-										// 	const splitDates = workDaysValue?.split('/')
-
-										// 	const startDate = splitDates[0]
-
-										// 	const endDate = splitDates[1]
-
-										// 	childToUpdate.set('startDate', startDate)
-
-										// 	childToUpdate.set('endDate', endDate)
-
-										// 	console.log('changesStartDate', workDaysValue, splitDates, startDate, endDate)
-										// }
-
-										if (changes?.completed?.value) {
-											subTaskToBeDeleted.push(record?.data?.id)
-
-											console.log('MyChanges ', subTaskToBeDeleted)
-											if (labelWidget) {
-												if (subTaskToBeDeleted.length > 0) {
-													labelWidget.show()
-													labelWidget.html = `Items selected: ${subTaskToBeDeleted.length}`
-													deleteButtonWidget.show()
-												} else {
-													labelWidget.hide()
-													deleteButtonWidget?.hide()
-												}
-											}
-										} else {
-											const filteredIDs = subTaskToBeDeleted?.filter((id) => id !== record?.data?.id)
-
-											subTaskToBeDeleted = filteredIDs
-											if (labelWidget) {
-												if (subTaskToBeDeleted.length > 0) {
-													labelWidget.show()
-													labelWidget.html = `Items selected: ${subTaskToBeDeleted.length}`
-													deleteButtonWidget?.show()
-												} else {
-													labelWidget.hide()
-													deleteButtonWidget?.hide()
-												}
-											}
-										}
-									},
-								},
-							},
-
-							columns: [
-								{
-									type: 'check',
-									text: '',
-									field: 'completed',
-									width: 70,
-									editor: true,
-									align: 'center',
-								},
-								// { text: 'ID', field: 'id', flex: 0.5 },
-								{ text: 'Task Name', field: 'name', flex: 0.5, editor: 'text', editable: true },
-								{
-									text: 'Mandays',
-									field: 'duration',
-									flex: 0.5,
-									editable: false,
-									renderer: ({ record }) => {
-										const start = new Date(record.data.startDate)
-										const end = new Date(record.data.endDate)
-
-										if (
-											start instanceof Date &&
-											end instanceof Date &&
-											!Number.isNaN(start.getTime()) &&
-											!Number.isNaN(end.getTime())
-										) {
-											const millisecondsPerDay = 1000 * 60 * 60 * 24
-											const diff = Math.round((end - start) / millisecondsPerDay)
-											return `${diff}`
-										}
-										return ''
-									},
-								},
-								{ text: 'Start Date', field: 'startDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
-								{ text: 'End Date', field: 'endDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
-							],
-							bbar: [
-								'->',
-								{
-									type: 'label',
-									ref: 'deleteStatusLabel',
-									html: '',
-									hidden: true,
-									margin: '0 0.5em 0 1em',
-								},
-								{
-									type: 'button',
-									icon: 'b-icon b-icon-trash',
-									cls: 'b-blue',
-									ref: 'deleteButton',
-									hidden: true,
-									onClick: async () => {
-										try {
-											const res = await deleteTasks(subTaskToBeDeleted)
-											console.log('Deleted', res, eventRecord)
-
-											subTaskToBeDeleted.forEach((id) => {
-												const index = eventRecord.children.findIndex((child) => child.id === id)
-												if (index !== -1) {
-													eventRecord.children.splice(index, 1)
-												}
-												subTaskToBeDeleted.forEach((id) => {
-													const taskRecord = scheduler.eventStore.getById(id)
-													if (taskRecord) {
-														scheduler.eventStore.remove(taskRecord)
-													}
-												})
-
-												const dataIndex = eventRecord.data?.children?.findIndex((child) => child.id === id)
-												if (dataIndex !== -1) {
-													eventRecord.data.children.splice(dataIndex, 1)
-												}
-											})
-
-											eventRecord?.children?.forEach((element) => {
-												if (!subTaskToBeDeleted?.includes(element?.id)) {
-													element?.set('yesModified', true)
-												}
-											})
-
-											subTaskToBeDeleted = []
-
-											// Refresh the grid if needed
-											const gridWidget = subtasksContainer?.widgetMap?.subtasksGridWidget
-											gridWidget?.store?.loadData(eventRecord.children)
-
-											// Hide label and button again
-											const labelWidget = gridWidget?.widgetMap?.deleteStatusLabel
-											const deleteButtonWidget = gridWidget?.widgetMap?.deleteButton
-
-											labelWidget?.hide()
-											deleteButtonWidget?.hide()
-											if (Array.isArray(eventRecord.data?.children) && Array.isArray(eventRecord.children)) {
-												eventRecord.children.forEach((child) => {
-													const matchingData = eventRecord.data.children.find((dataChild) => dataChild.id === child.id)
-													if (matchingData && matchingData.name) {
-														child.set('name', matchingData.name)
-													}
-												})
-											}
-											await scheduler.project.commitAsync()
-										} catch (error) {
-											console.error('Delete failed:', error)
-										}
-									},
-								},
-							],
-						})
-					}
-
-					if (eventRecord.children?.length) {
-						const sortedSubtasks = [...(eventRecord.data?.children || [])].sort((a, b) => {
-							const startA = new Date(a.startDate)
-							const startB = new Date(b.startDate)
-
-							// If startDates are equal, sort by endDate
-							if (startA.getTime() === startB.getTime()) {
-								return new Date(a.endDate) - new Date(b.endDate)
-							}
-
-							return startA - startB
-						})
-
-						subtasksGridInstance = createSubtasksGrid(sortedSubtasks)
-					} else {
-						subtasksContainer?.add({
-							type: 'label',
-							html: 'No subtasks',
-							ref: 'noSubtasksLabel',
-						})
-					}
-
-					subtasksContainer?.add({
-						type: 'button',
-						text: 'Add New Subtask',
-						cls: 'b-blue b-raised',
-						margin: '1em 0',
-						// onClick: async () => {
-						// 	const sortedSubtasks = [...(eventRecord?.children || [])].sort((a, b) => {
-						// 		const startA = new Date(a.startDate)
-						// 		const startB = new Date(b.startDate)
-
-						// 		// If startDates are equal, sort by endDate
-						// 		if (startA.getTime() === startB.getTime()) {
-						// 			return new Date(a.endDate) - new Date(b.endDate)
-						// 		}
-
-						// 		return startA - startB
-						// 	})
-						// 	const alreadyExistingSubTasks = eventRecord?.children || []
-
-						// 	console.log('ALREADY', alreadyExistingSubTasks)
-
-						// 	const parentStartDate = moment(eventRecord.startDate)
-						// 	const parentEndDate = moment(eventRecord.endDate)
-						// 	const parentID = eventRecord?.id
-						// 	const { team, task_group_id, id } = eventRecord?.data
-
-						// 	let newSubtaskStartDate
-						// 	let newSubtaskEndDate
-
-						// 	if (sortedSubtasks.length === 0) {
-						// 		// First subtask
-						// 		newSubtaskStartDate = parentStartDate.clone()
-						// 	} else {
-						// 		// Get the last added subtask
-						// 		const lastTask = sortedSubtasks[sortedSubtasks.length - 1]
-						// 		const lastStart = moment(lastTask.startDate)
-						// 		const nextStart = lastStart.clone().add(1, 'day')
-
-						// 		// If nextStart exceeds parent end, wrap to parentStartDate
-						// 		if (nextStart.isSameOrAfter(parentEndDate)) {
-						// 			newSubtaskStartDate = parentStartDate.clone()
-						// 		} else {
-						// 			newSubtaskStartDate = nextStart.clone()
-						// 		}
-						// 	}
-
-						// 	// Set endDate as +1 day
-						// 	newSubtaskEndDate = newSubtaskStartDate.clone().add(1, 'day')
-
-						// 	// Make sure subtask end doesn't go beyond parent endDate
-						// 	if (newSubtaskEndDate.isAfter(parentEndDate)) {
-						// 		// Optional: if needed, clip the endDate to parentEndDate (but this will reduce duration to <1 day)
-						// 		newSubtaskEndDate = parentEndDate.clone()
-						// 	}
-
-						// 	const newSubtaskData = {
-						// 		id: Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 1000),
-						// 		name: ' ',
-						// 		startDate: newSubtaskStartDate.toDate(),
-						// 		endDate: newSubtaskEndDate.toDate(),
-						// 		duration: 1,
-						// 		team,
-						// 		project: id,
-						// 		parent_task: parentID,
-						// 		task_group_id,
-						// 		isSaved: false,
-						// 		resourceId: alreadyExistingSubTasks[alreadyExistingSubTasks?.length - 1]?.data?.resourceId,
-						// 	}
-
-						// 	console.log('ECW', alreadyExistingSubTasks)
-
-						// 	const EventModel = scheduler.eventStore.modelClass
-						// 	const newTaskModel = new EventModel(newSubtaskData)
-						// 	eventRecord.appendChild(newTaskModel)
-
-						// 	if (!subtasksGridInstance) {
-						// 		subtasksGridInstance = createSubtasksGrid([newSubtaskData])
-						// 	} else if (subtasksGridInstance?.store) {
-						// 		subtasksGridInstance.store.add(newSubtaskData)
-
-						// 		const grid = subtasksContainer?.widgetMap?.subtasksGridWidget
-						// 		grid.store.add(newSubtaskData)
-						// 		const newRecord = grid.store.last
-
-						// 		const editingFeature = grid.features.cellEdit
-
-						// 		if (editingFeature) {
-						// 			setTimeout(() => {
-						// 				requestAnimationFrame(() => {
-						// 					editingFeature.startEditing({
-						// 						record: newRecord,
-						// 						field: 'name',
-						// 					})
-						// 				})
-						// 			}, 10) // slight delay ensures rendering is done
-						// 		} else {
-						// 			console.warn('❌ cellEdit feature is not available on the grid.')
-						// 		}
-						// 	}
-
-						// 	console.log('✅ Added new subtask on:', newSubtaskStartDate.format('YYYY-MM-DD'))
-						// },
-						onClick: async () => {
-							const sortedSubtasks = [...(eventRecord?.children || [])].sort((a, b) => {
-								const startA = new Date(a.startDate)
-								const startB = new Date(b.startDate)
-
-								if (startA.getTime() === startB.getTime()) {
-									return new Date(a.endDate) - new Date(b.endDate)
-								}
-
-								return startA - startB
-							})
-
-							const alreadyExistingSubTasks = eventRecord?.children || []
-
-							const parentStartDate = moment(eventRecord.startDate)
-							const parentEndDate = moment(eventRecord.endDate)
-
-							const parentID = eventRecord?.id
-							const { team, task_group_id, id } = eventRecord?.data
-
-							let newSubtaskStartDate = null
-							let newSubtaskEndDate
-
-							const cycleLength = parentEndDate.diff(parentStartDate, 'days') // e.g., 12–16 = 4 days
-							if (cycleLength <= 0) {
-								console.warn('❌ Invalid parent start/end dates')
-								return
-							}
-
-							const subtaskCount = sortedSubtasks.length
-
-							// Wrap around using modulo to cycle within the parent range
-							newSubtaskStartDate = parentStartDate.clone().add(subtaskCount % cycleLength, 'days')
-							newSubtaskEndDate = newSubtaskStartDate.clone().add(1, 'day')
-
-							// Make sure subtask end doesn't exceed parentEndDate
-							if (newSubtaskEndDate.isAfter(parentEndDate)) {
-								newSubtaskEndDate = parentEndDate.clone()
-							}
-
-							// New Code
-
-							const newParentStartDate = new Date(parentStartDate.format('YYYY-MM-DD'))
-							const newParentEndDate = new Date(parentEndDate.format('YYYY-MM-DD'))
-
-							const isWeekend = (day) => day === 0 || day === 6
-
-							const validPairs = []
-
-							const temp = new Date(parentStartDate)
-
-							while (temp <= newParentEndDate) {
-								const next = new Date(temp)
-								next.setDate(temp.getDate() + 1)
-
-								if (!isWeekend(temp.getDay()) && next <= newParentEndDate) {
-									validPairs.push([new Date(temp), new Date(next)])
-								}
-
-								temp.setDate(temp.getDate() + 1)
-							}
-
-							const pairIndex = subtaskCount % validPairs.length
-							const [startDateObj, endDateObj] = validPairs[pairIndex]
-
-							console.log('ALREADY', validPairs, sortedSubtasks, eventRecord?.childre, eventRecord?.data)
-
-							// new code end
-
-							const newSubtaskData = {
-								id: Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 1000),
-								name: ' ',
-								startDate: startDateObj,
-								endDate: endDateObj,
-								duration: 1,
-								team,
-								project: id,
-								parent_task: parentID,
-								task_group_id,
-								isSaved: false,
-								resourceId: sortedSubtasks[sortedSubtasks.length - 1]?.data?.resourceId,
-							}
-
-							console.log(
-								'✅ Subtask Dates:',
-								newSubtaskStartDate.format('YYYY-MM-DD'),
-								'→',
-								newSubtaskEndDate.format('YYYY-MM-DD')
-							)
-
-							const EventModel = scheduler.eventStore.modelClass
-							const newTaskModel = new EventModel(newSubtaskData)
-							eventRecord.appendChild(newTaskModel)
-
-							if (!subtasksGridInstance) {
-								subtasksGridInstance = createSubtasksGrid([newSubtaskData])
-							} else if (subtasksGridInstance?.store) {
-								subtasksGridInstance.store.add(newSubtaskData)
-
-								const grid = subtasksContainer?.widgetMap?.subtasksGridWidget
-								grid.store.add(newSubtaskData)
-								const newRecord = grid.store.last
-
-								const editingFeature = grid.features.cellEdit
-
-								if (editingFeature) {
-									setTimeout(() => {
-										requestAnimationFrame(() => {
-											editingFeature.startEditing({
-												record: newRecord,
-												field: 'name',
-											})
-										})
-									}, 10)
-								} else {
-									console.warn('❌ cellEdit feature is not available on the grid.')
-								}
-							}
+					if (!subtasksContainer) return true
+
+					subtasksContainer.removeAll(true) // true = destroy
+
+					subtasksContainer.removeAll()
+
+					subtasksContainer.add({
+						type: 'container',
+						layout: 'vbox',
+						cls: 'b-subtask-editor-container',
+						defaults: {
+							labelWidth: '150px',
+							width: '100%',
+							style: 'margin-bottom: 1em;',
 						},
+						items: [
+							{
+								type: 'textfield',
+								label: 'Parent Task Name',
+								name: 'name',
+								value: eventRecord.name,
+								required: true,
+							},
+							{
+								type: 'datefield',
+								label: 'Start Date',
+								name: 'startDate',
+								value: eventRecord.startDate,
+								format: 'YYYY-MM-DD',
+							},
+							{
+								type: 'datefield',
+								label: 'End Date',
+								name: 'endDate',
+								value: eventRecord.endDate,
+								format: 'YYYY-MM-DD',
+							},
+						],
 					})
+
 					return true
 				},
 				eventAdd: async ({ records }) => {
 					console.log('Add NewEVent CLicked', records)
 				},
+				// beforeEventEditShow({ editor, eventRecord }) {
+				// 	console.log('beforeeventeditshow', eventRecord)
+
+				// 	// Grab the general tab or first tab where form fields exist
+				// 	const formContainer = editor.widgetMap?.generalTab || editor.items[0]
+
+				// 	// Clean up old dynamic widget if exists
+				// 	if (editor.subtaskFields) {
+				// 		formContainer.remove(editor.subtaskFields, true)
+				// 		editor.subtaskFields = null
+				// 	}
+
+				// 	// Create new container
+				// 	const subtaskFields = {
+				// 		type: 'container',
+				// 		ref: 'subtasksContainer',
+				// 		layout: 'vbox',
+				// 		cls: 'b-subtask-editor-container',
+				// 		defaults: {
+				// 			labelWidth: '150px',
+				// 			width: '100%',
+				// 			style: 'margin-bottom: 1em;',
+				// 		},
+				// 		items: [
+				// 			{
+				// 				type: 'textfield',
+				// 				label: 'Parent Task Name',
+				// 				name: 'name',
+				// 				value: eventRecord.name,
+				// 				required: true,
+				// 			},
+				// 			{
+				// 				type: 'datefield',
+				// 				label: 'Start Date',
+				// 				name: 'startDate',
+				// 				value: eventRecord.startDate,
+				// 				format: 'YYYY-MM-DD',
+				// 			},
+				// 			{
+				// 				type: 'datefield',
+				// 				label: 'End Date',
+				// 				name: 'endDate',
+				// 				value: eventRecord.endDate,
+				// 				format: 'YYYY-MM-DD',
+				// 			},
+				// 		],
+				// 	}
+
+				// 	// Inject into the form section
+				// 	formContainer.insert(0, subtaskFields)
+				// 	editor.subtaskFields = formContainer.widgetMap?.subtasksContainer
+
+				// 	return true
+				// },
 			},
+		})
+
+		// scheduler.on('eventEdit', ({ editor, eventRecord }) => {
+		// 	const refName = 'subtasksContainer'
+
+		// 	// If already added, remove it to prevent duplicates
+		// 	const existing = editor.widgetMap[refName]
+		// 	if (existing) {
+		// 		existing.destroy()
+		// 	}
+
+		// 	// Insert your custom container after the default fields (usually after field #1)
+		// 	editor.insert(1, {
+		// 		type: 'container',
+		// 		ref: refName,
+		// 		layout: 'vbox',
+		// 		cls: 'b-subtask-editor-container',
+		// 		defaults: {
+		// 			labelWidth: '150px',
+		// 			width: '100%',
+		// 			style: 'margin-bottom: 1em;',
+		// 		},
+		// 		items: [
+		// 			{
+		// 				type: 'textfield',
+		// 				label: 'Parent Task Name',
+		// 				name: 'customTaskName',
+		// 				value: eventRecord.name || '',
+		// 				required: true,
+		// 			},
+		// 			{
+		// 				type: 'datefield',
+		// 				label: 'Start Date',
+		// 				name: 'customStartDate',
+		// 				value: eventRecord.startDate,
+		// 				format: 'YYYY-MM-DD',
+		// 			},
+		// 			{
+		// 				type: 'datefield',
+		// 				label: 'End Date',
+		// 				name: 'customEndDate',
+		// 				value: eventRecord.endDate,
+		// 				format: 'YYYY-MM-DD',
+		// 			},
+		// 		],
+		// 	})
+		// })
+
+		scheduler.on('eventEditCancel', () => {
+			const subtasksContainer = scheduler.features.eventEdit.editor.widgetMap.subtasksContainer
+			if (subtasksContainer) subtasksContainer.removeAll(true)
+		})
+
+		scheduler.on('beforePresetChange', () => {
+			// Step 1: Capture center of the current viewport
+			currentCenterDate = scheduler.viewportCenterDate
+
+			console.log('ViewPresetNoChanged', currentCenterDate)
 		})
 
 		// copy paste code
@@ -2522,6 +2901,8 @@ const Calender2 = ({
 			}
 		})
 
+		SetTeampScheduler(scheduler)
+
 		// // ✅ Proper async commit block
 		;(async () => {
 			await scheduler.project.commitAsync()
@@ -2551,30 +2932,34 @@ const Calender2 = ({
 				<CompactSwitch
 					checked={showSubTasks}
 					onChange={() => {
-						// scheduler.suspendRefresh()
+						scheduler?.suspendRefresh()
 						SetshowSubTasks(!showSubTasks)
-						// scheduler.resumeRefresh()
+						scheduler?.resumeRefresh()
+						if (scheduler) {
+							const currentCenterDate = scheduler?.viewportCenterDate
+							const day = currentCenterDate?.getDate()
+							const year = currentCenterDate?.getFullYear()
+							const month = currentCenterDate?.getMonth() // 0-based
+							scheduler.startDate = new Date(year, month, day)
+							scheduler.setTimeSpan(new Date(year, month, day))
+							console.log('ToggleButton Clicked', typeof scheduler.scrollToDate)
+						}
 					}}
 				/>
 			</Stack>
 
 			<div ref={schedulerRef} style={{ height: '500px', width: '100%', marginTop: '15px' }} />
-			{/* <SchedulerComponent
-				events={events}
-				resources={resources}
-				project={project}
-				customMonthViewPreset={customMonthViewPreset}
-				weekendTimeRanges={weekendTimeRanges}
-				createNewTasks={createNewTasks}
-				updateTask={updateTask}
-				deleteTasks={deleteTaskDependency}
-				createTaskDependency={createTaskDependency}
-				updateTaskDependency={updateTaskDependency}
-				deleteTaskDependency={deleteTaskDependency}
-				id={id}
-				myQueryClient={myQueryClient}
-				teamsDetails={teamsDetails}
-			/> */}
+
+			{openSubtaskPopup && (
+				<ManageSubtasksDialog
+					open={openSubtaskPopup}
+					onClose={() => setOpenSubtaskPopup(false)}
+					eventRecord={currentEventRecord}
+					scheduler={tempScheduler}
+					id={id}
+					lockWeekend={lockWeekend}
+				/>
+			)}
 		</>
 	)
 }
