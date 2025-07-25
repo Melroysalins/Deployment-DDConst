@@ -234,6 +234,7 @@ const Tasks = () => {
 			</Stack>
 			{/* Create a relative container for the Accordion Stack to allow for absolute positioning of overlay */}
 			<div style={{ position: 'relative' }}>
+				{console.log('All selected workType', selectedWorkTypes)}
 				{showSelectedWorkTypes && (
 					<Stack gap={2} mt={2}>
 						{selectedWorkTypes?.map((workType, index) => (
@@ -1109,23 +1110,28 @@ const Task = React.memo(
 
 				tempEndDate.setDate(tempEndDate.getDate() + 1)
 
+				const extensiveDays = 25
+
+				const extensiveEndDate = new Date(tempEndDate)
+
+				extensiveEndDate.setDate(extensiveEndDate.getDate() + extensiveDays)
+
 				const isWeekend = (day) => day === 0 || day === 6
 
 				const validPairs = []
 				const temp = new Date(parentStartDate)
 
-				while (temp <= tempEndDate) {
+				while (temp <= extensiveEndDate) {
 					const next = new Date(temp)
 					next.setDate(temp.getDate() + 1)
 
-					if (!isWeekend(temp.getDay()) && next <= tempEndDate) {
+					if (!isWeekend(temp.getDay()) && next <= extensiveEndDate) {
 						validPairs.push([new Date(temp), new Date(next)])
 					}
 
 					temp.setDate(temp.getDate() + 1)
 				}
 
-				
 				const currentCount = existingSubTasks.length
 				const pairIndex = currentCount % validPairs.length
 				const [startDateObj, endDateObj] = validPairs[pairIndex]
@@ -1143,8 +1149,6 @@ const Task = React.memo(
 					},
 				]
 
-				console.log('Creating MYSUbtask:', validPairs)
-
 				createNewTasks(subtasks).then(async (res) => {
 					setToast({
 						severity: 'success',
@@ -1156,6 +1160,8 @@ const Task = React.memo(
 
 					SetSubTasksData(filteredSubTasks)
 					SetIsSubTaskCreated(false)
+
+					console.log('Creating MYSUbtask:', validPairs)
 
 					setTimeout(() => {
 						const rowIndex = filteredSubTasks.length - 1
@@ -1208,173 +1214,6 @@ const Task = React.memo(
 					})
 			}
 		}
-
-		// const updateTaskDates = async () => {
-		// 	if (!list || list.length === 0) return
-
-		// 	const formatDate = (date) => {
-		// 		const yyyy = date.getFullYear()
-		// 		const mm = String(date.getMonth() + 1).padStart(2, '0')
-		// 		const dd = String(date.getDate()).padStart(2, '0')
-		// 		return `${yyyy}-${mm}-${dd}`
-		// 	}
-
-		// 	const sortedList = [...list].sort((a, b) => {
-		// 		if (a.tl !== b.tl) return a.tl - b.tl
-		// 		if (a.priority !== b.priority) return a.priority - b.priority
-
-		// 		const aStart = new Date(a.start_date)
-		// 		const bStart = new Date(b.start_date)
-		// 		if (aStart.getTime() !== bStart.getTime()) return aStart - bStart
-
-		// 		const aEnd = new Date(a.end_date)
-		// 		const bEnd = new Date(b.end_date)
-		// 		return aEnd - bEnd
-		// 	})
-
-		// 	let currentEndDate = new Date(sortedList[0]?.end_date)
-		// 	const updatePromises = []
-
-		// 	console.log('updateTaskDates 1', sortedList)
-
-		// 	for (let i = 1; i < list.length; i += 1) {
-		// 		const task = sortedList[i]
-
-		// 		const newStartDate = new Date(currentEndDate)
-		// 		newStartDate.setDate(newStartDate.getDate() + 1)
-
-		// 		const newEndDate = new Date(newStartDate)
-		// 		newEndDate.setDate(newStartDate.getDate() + 4)
-
-		// 		const updatedStart_date = formatDate(newStartDate)
-		// 		const updatedEnd_date = formatDate(newEndDate)
-
-		// 		currentEndDate = newEndDate
-
-		// 		console.log(
-		// 			`Updating Task ID: ${task.id}, Old: (${task.start_date} - ${task.end_date}) → New: (${updatedStart_date} - ${updatedEnd_date})`
-		// 		)
-
-		// 		const updatePromise = updateTask(
-		// 			{
-		// 				start_date: updatedStart_date,
-		// 				end_date: updatedEnd_date,
-		// 			},
-		// 			task?.id
-		// 		)
-		// 			.then((res) => {
-		// 				if (res?.error === null) {
-		// 					console.log('✅ Updated Task ID:', task?.id)
-		// 					// eslint-disable-next-line
-
-		// 					// console.log('updateTaskDates', res?.data?.[0]?.title, 'Current ENd Date---->', newEndDate)
-		// 				} else {
-		// 					console.warn('⚠️ Update failed for Task ID:', task?.id)
-		// 				}
-		// 			})
-		// 			.catch((error) => {
-		// 				console.error('❌ Error while updating Task ID:', task?.id, error)
-		// 			})
-
-		// 		updatePromises.push(updatePromise)
-		// 	}
-
-		// 	await Promise.all(updatePromises)
-
-		// 	refetch()
-		// }
-
-		const updateTaskDates = async () => {
-			if (!list || list.length === 0) return
-
-			const formatDate = (date) => {
-				const yyyy = date.getFullYear()
-				const mm = String(date.getMonth() + 1).padStart(2, '0')
-				const dd = String(date.getDate()).padStart(2, '0')
-				return `${yyyy}-${mm}-${dd}`
-			}
-
-			const addWorkingDays = (startDate, daysToAdd) => {
-				const date = new Date(startDate)
-				let addedDays = 0
-
-				while (addedDays <= daysToAdd) {
-					console.log('setDate', date)
-					const day = date.getDay()
-					if (day !== 0 && day !== 6) {
-						addedDays += 1
-					}
-					if (addedDays < daysToAdd) {
-						date.setDate(date.getDate() + 1)
-					}
-				}
-
-				return date
-			}
-
-			const sortedList = [...list].sort((a, b) => {
-				if (a.tl !== b.tl) return a.tl - b.tl
-				if (a.priority !== b.priority) return a.priority - b.priority
-
-				const aStart = new Date(a.start_date)
-				const bStart = new Date(b.start_date)
-				if (aStart.getTime() !== bStart.getTime()) return aStart - bStart
-
-				const aEnd = new Date(a.end_date)
-				const bEnd = new Date(b.end_date)
-				return aEnd - bEnd
-			})
-
-			let currentEndDate = new Date(sortedList[0]?.end_date)
-			const updatePromises = []
-
-			for (let i = 1; i < list.length; i += 1) {
-				const task = sortedList[i]
-
-				const newStartDate = new Date(currentEndDate)
-				newStartDate.setDate(newStartDate.getDate() + 1)
-
-				const newEndDate = addWorkingDays(newStartDate, 5)
-
-				console.log('updateTaskDates 1', currentEndDate)
-
-				const updatedStart_date = formatDate(newStartDate)
-				const updatedEnd_date = formatDate(newEndDate)
-
-				currentEndDate = newEndDate
-
-				console.log(
-					`Updating Task ID: ${task.id}, Old: (${task.start_date} - ${task.end_date}) → New: (${updatedStart_date} - ${updatedEnd_date})`
-				)
-
-				const updatePromise = updateTask(
-					{
-						start_date: updatedStart_date,
-						end_date: updatedEnd_date,
-					},
-					task?.id
-				)
-					.then((res) => {
-						if (res?.error === null) {
-							console.log('✅ Updated Task ID:', task?.id)
-						} else {
-							console.warn('⚠️ Update failed for Task ID:', task?.id)
-						}
-					})
-					.catch((error) => {
-						console.error('❌ Error while updating Task ID:', task?.id, error)
-					})
-
-				updatePromises.push(updatePromise)
-			}
-
-			await Promise.all(updatePromises)
-			refetch()
-		}
-
-		useEffect(() => {
-			updateTaskDates()
-		}, [list])
 
 		return (
 			<>

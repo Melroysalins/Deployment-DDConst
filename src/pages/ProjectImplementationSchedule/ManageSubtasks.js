@@ -104,10 +104,16 @@ export default function ManageSubtasksDialog({ open, onClose, eventRecord, sched
 		const validPairs = []
 
 		const temp = new Date(parentStart)
-		while (temp <= new Date(parentEnd)) {
+		const extensiveDays = 25
+
+		const extensiveEndDate = new Date(parentEnd)
+
+		extensiveEndDate.setDate(extensiveEndDate.getDate() + extensiveDays)
+
+		while (temp <= extensiveEndDate) {
 			const next = new Date(temp)
 			next.setDate(temp.getDate() + 1)
-			if (![0, 6].includes(temp.getDay()) && next <= new Date(parentEnd)) {
+			if (![0, 6].includes(temp.getDay()) && next <= extensiveEndDate) {
 				validPairs.push([new Date(temp), new Date(next)])
 			}
 			temp.setDate(temp.getDate() + 1)

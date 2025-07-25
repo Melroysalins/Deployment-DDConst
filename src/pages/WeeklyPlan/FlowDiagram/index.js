@@ -46,6 +46,8 @@ import {
 } from 'supabase/project_diagrams_table'
 import { useTranslation } from 'react-i18next'
 import { createNewTasks, deleteTask, deleteTasks, listFilteredTasks, updateTask } from 'supabase/tasks'
+import { useQuery, useQueryClient } from 'react-query'
+import { Rtt } from '@mui/icons-material'
 
 const StyledButtonContainer = styled(Box)({
 	alignSelf: 'stretch',
@@ -569,6 +571,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 								end_date: formatDate(end),
 								priority: -2,
 							})
+							console.log('createTaskFroEndPoint : 1', response)
 						} else {
 							const newStartDate = new Date(end)
 							newStartDate.setDate(newStartDate.getDate() + 1)
@@ -592,6 +595,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 								end_date: formatDate(newEndDate),
 								priority: -1,
 							})
+
+							console.log('createTaskFroEndPoint : 2', response)
 						}
 
 						console.log(`🟢 Start Task ${startPointCount}`, response)
@@ -656,6 +661,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 								end_date: formatDate(end),
 								priority: 99,
 							})
+							console.log('createTaskFroEndPoint : 3', response)
 						} else {
 							const newStartDate = new Date(end)
 							newStartDate.setDate(newStartDate.getDate() + 1)
@@ -678,6 +684,8 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 								end_date: formatDate(newEndDate),
 								priority: 100,
 							})
+
+							console.log('createTaskFroEndPoint : 4', response)
 						}
 
 						// console.log('🟢 Start Task', response)
@@ -1116,6 +1124,7 @@ const Tasks = ({ isEditable, cancel = true, delete1 = true, save = true }) => {
 					id: project_diagram_id,
 				})
 			}
+			updateTaskDates(id)
 		} catch (error) {
 			console.error('Error saving diagram:', error)
 		} finally {
@@ -1952,3 +1961,199 @@ Tasks.propTypes = {
 }
 
 export default Tasks
+
+const workTypeMap = {
+	'Office Work': 5,
+	'Metal Fittings Installation': 1,
+	Installation: 2,
+	Connection: 3,
+	'Completion Testing': 4,
+	'Auxiliary Construction': 6,
+}
+
+const resultMap = {}
+
+const updateTaskDates = async (id) => {
+	const selectedWorkType = [
+		'Installation',
+		'Connection',
+		'Metal Fittings Installation',
+		'Completion Testing',
+		'Auxiliary Construction',
+		'Office Work',
+	]
+
+	/* eslint-disable no-restricted-syntax, no-await-in-loop */
+	for (const workType of selectedWorkType) {
+		const workTypeId = String(workTypeMap[workType])
+		try {
+			const res = await listFilteredTasks(workTypeId, id)
+			const filteredData = res?.data
+				?.filter((item) => item?.parent_task === null)
+				?.map((ele) => ({
+					...ele,
+					task_period: [ele.start_date, ele?.end_date],
+				}))
+
+			resultMap[workType] = filteredData
+		} catch (error) {
+			console.error(`Error fetching tasks for ${workType}:`, error)
+			resultMap[workType] = []
+		}
+	}
+
+	const connectionData = []
+
+	const formatDate = (date) => {
+		const yyyy = date.getFullYear()
+		const mm = String(date.getMonth() + 1).padStart(2, '0')
+		const dd = String(date.getDate()).padStart(2, '0')
+		return `${yyyy}-${mm}-${dd}`
+	}
+
+	const addWorkingDays = (startDate, daysToAdd) => {
+		const date = new Date(startDate)
+		let addedDays = 0
+
+		while (addedDays <= daysToAdd) {
+			console.log('setDate', date)
+			const day = date.getDay()
+			if (day !== 0 && day !== 6) {
+				addedDays += 1
+			}
+			if (addedDays < daysToAdd) {
+				date.setDate(date.getDate() + 1)
+			}
+		}
+
+		return date
+	}
+
+	if (resultMap?.Connection?.length) {
+		const updatePromises = []
+		const currentLength = resultMap?.Connection?.length - 1
+
+		let StartDate = new Date(resultMap?.Connection[0]?.start_date)
+
+		let tempStartDate = new Date(resultMap?.Connection[0]?.start_date)
+
+		for (let i = 0; i <= currentLength; i += 1) {
+			if (StartDate.getDay() === 6) {
+				tempStartDate.setDate(tempStartDate.getDate() + 2)
+			} else if (StartDate.getDay() === 0) {
+				tempStartDate.setDate(tempStartDate.getDate() + 1)
+			}
+
+			const newEndDate = addWorkingDays(tempStartDate, +5)
+
+			const Updated_StartDate = formatDate(tempStartDate)
+
+			const updated_EndDate = formatDate(newEndDate)
+
+			connectionData.push({
+				id: resultMap.Connection[i]?.id,
+				title: resultMap?.Connection[i]?.title,
+				startDate: Updated_StartDate,
+				enDate: updated_EndDate,
+				priority: resultMap?.Connection[i]?.priority,
+			})
+
+			StartDate = new Date(updated_EndDate)
+
+			StartDate.setDate(StartDate.getDate() + 1)
+
+			tempStartDate = new Date(StartDate)
+
+			const updatePromise = updateTask(
+				{
+					start_date: Updated_StartDate,
+					end_date: updated_EndDate,
+				},
+				resultMap.Connection[i]?.id
+			)
+				.then((res) => {
+					if (res?.error === null) {
+						console.log('✅ Updated Task ID:', resultMap.Connection[i]?.id)
+					} else {
+						console.warn('⚠️ Update failed for Task ID:', resultMap.Connection[i]?.id)
+					}
+				})
+				.catch((error) => {
+					console.error('❌ Error while updating Task ID:', resultMap.Connection[i]?.id, error)
+				})
+
+			updatePromises.push(updatePromise)
+		}
+
+		await Promise.all(updatePromises)
+
+		console.log('resultMap', resultMap, connectionData)
+	}
+
+	// installation code
+
+	if (resultMap?.Installation?.length) {
+		const updatePromises = []
+		const currentLength = resultMap?.Installation?.length - 1
+
+		let StartDate = new Date(resultMap?.Installation[0]?.start_date)
+
+		let tempStartDate = new Date(resultMap?.Installation[0]?.start_date)
+
+		for (let i = 0; i <= currentLength; i += 1) {
+			if (StartDate.getDay() === 6) {
+				tempStartDate.setDate(tempStartDate.getDate() + 2)
+			} else if (StartDate.getDay() === 0) {
+				tempStartDate.setDate(tempStartDate.getDate() + 1)
+			}
+
+			const newEndDate = addWorkingDays(tempStartDate, +5)
+
+			const Updated_StartDate = formatDate(tempStartDate)
+
+			const updated_EndDate = formatDate(newEndDate)
+
+			connectionData.push({
+				id: resultMap.Installation[i]?.id,
+				title: resultMap?.Installation[i]?.title,
+				startDate: Updated_StartDate,
+				enDate: updated_EndDate,
+				priority: resultMap?.Installation[i]?.priority,
+			})
+
+			StartDate = new Date(updated_EndDate)
+
+			StartDate.setDate(StartDate.getDate() + 1)
+
+			tempStartDate = new Date(StartDate)
+
+			const updatePromise = updateTask(
+				{
+					start_date: Updated_StartDate,
+					end_date: updated_EndDate,
+				},
+				resultMap.Installation[i]?.id
+			)
+				.then((res) => {
+					if (res?.error === null) {
+						console.log('✅ Updated Task ID:', resultMap.Installation[i]?.id)
+					} else {
+						console.warn('⚠️ Update failed for Task ID:', resultMap.Installation[i]?.id)
+					}
+				})
+				.catch((error) => {
+					console.error('❌ Error while updating Task ID:', resultMap.Installation[i]?.id, error)
+				})
+
+			updatePromises.push(updatePromise)
+		}
+
+		await Promise.all(updatePromises)
+
+		console.log('resultMap', resultMap?.Installation, connectionData)
+	}
+
+	/* eslint-disable no-restricted-syntax, no-await-in-loop */
+
+	return resultMap
+}

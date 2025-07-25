@@ -57,7 +57,7 @@ import {
 import { filter, forEach } from 'lodash'
 import FilterPopup from 'components/FilterPopUp'
 import { getProjectDiagram } from 'supabase/project_diagram'
-import { da, de } from 'date-fns/locale'
+import { da } from 'date-fns/locale'
 import { autoDetect, Datepicker, Input, momentTimezone, setOptions } from '@mobiscroll/react'
 import SchedulerComponent from './SchedulerCode'
 import ManageSubtasksDialog from './ManageSubtasks'
@@ -134,11 +134,11 @@ const Calender2 = ({
 	const schedulerRef = useRef(null)
 	const schedulerInstanceRef = useRef(null)
 
-	const tempDep = new Map()
+	let currentCenterDate = null
 
 	const newlyCreatedDeps = new Set()
 
-	let currentCenterDate = null
+	const tempDep = new Map()
 
 	let scheduler = null
 
@@ -474,7 +474,7 @@ const Calender2 = ({
 					duration: actualDuration,
 					durationunit: 'day',
 					name,
-					manuallyScheduled: true,
+					// manuallyScheduled: false,
 					expanded: false,
 					leaf: !hasChildren,
 					isTask: true,
@@ -565,7 +565,7 @@ const Calender2 = ({
 						duration: actualDuration,
 						durationunit: 'day',
 						name,
-						manuallyScheduled: true,
+						// manuallyScheduled: false,
 						expanded: false,
 						leaf: !hasChildren,
 						isTask: true,
@@ -630,14 +630,12 @@ const Calender2 = ({
 	const project = React.useMemo(() => {
 		if (!events?.length || !resources?.length)
 			return new ProjectModel({
-				autoSchedule: true,
 				eventsData: [],
 				resourcesData: [],
 				dependencyStore: new DependencyStore({ data: [], autoLoad: true }),
 			})
 
 		return new ProjectModel({
-			autoSchedule: true,
 			eventsData: [...events],
 			resourcesData: resources,
 			dependencyStore: new DependencyStore({
@@ -1043,12 +1041,9 @@ const Calender2 = ({
 						successorsTab: true,
 					},
 				},
-				tree: true,
 				dependencyEdit: true,
 				nestedEvents: true,
-				dependencies: {
-					allowDependencyCreation: true,
-				},
+				dependencies: true,
 				eventDrag: {
 					constrainDragToTimeline: false,
 					showExactDropPosition: true,
@@ -1091,6 +1086,8 @@ const Calender2 = ({
 				eventMenu: {
 					processItems({ items, eventRecord }) {
 						const originalEventRecord = eventRecord
+						const OrignalParentStartDate = eventRecord.startDate
+						const originalParentEndDate = eventRecord.endDate
 						items.addCustomSubtask = {
 							text: 'Add SubTask',
 							icon: 'b-fa b-fa-plus',
@@ -1098,11 +1095,11 @@ const Calender2 = ({
 							async onItem({ eventRecord }) {
 								// 1. Find top-level parent
 								let topParent = eventRecord
-								const parentTaskStartDate = eventRecord.get('startDate')
-								const parentTaskEndDate = eventRecord.get('endDate	')
 								while (topParent.parent) {
 									topParent = topParent.parent
 								}
+
+								console.log('OriginalDATES', OrignalParentStartDate, originalParentEndDate)
 
 								console.log('This is add new Event', eventRecord.get('startDate'), eventRecord.get('endDate'))
 
@@ -1176,16 +1173,22 @@ const Calender2 = ({
 
 									const tempEndDate = new Date(parentEndDate)
 
+									const extensiveDays = 25
+
+									const extensiveEndDate = new Date(tempEndDate)
+
+									extensiveEndDate.setDate(extensiveEndDate.getDate() + extensiveDays)
+
 									const isWeekend = (day) => day === 0 || day === 6
 
 									const validPairs = []
 									const temp = new Date(parentStartDate)
 
-									while (temp <= tempEndDate) {
+									while (temp <= extensiveEndDate) {
 										const next = new Date(temp)
 										next.setDate(temp.getDate() + 1)
 
-										if (!isWeekend(temp.getDay()) && next <= tempEndDate) {
+										if (!isWeekend(temp.getDay()) && next <= extensiveEndDate) {
 											validPairs.push([new Date(temp), new Date(next)])
 										}
 
@@ -1197,7 +1200,7 @@ const Calender2 = ({
 									const [startDateObj, endDateObj] = validPairs[pairIndex]
 
 									subtasks.push({
-										title: missingSubTask,
+										title: '',
 										team: eventRecord?.data?.team,
 										start_date: moment(startDateObj).format('YYYY-MM-DD'),
 										end_date: moment(endDateObj).format('YYYY-MM-DD'),
@@ -1206,6 +1209,8 @@ const Calender2 = ({
 										project: id,
 										parent_task: parentId,
 									})
+
+									console.log('Creating MYSUbtask:', validPairs)
 
 									//  skip weekend code ends
 
@@ -1241,12 +1246,6 @@ const Calender2 = ({
 											eventRecord.get('endDate'),
 											newTaskRecord
 										)
-										eventRecord.set({
-											// startDate: parentTaskStartDate,
-											// endDate: parentTaskEndDate,
-											manuallyScheduled: true,
-										})
-										eventRecord.set('manuallyScheduled', true)
 
 										await scheduler.project.commitAsync()
 
@@ -1266,15 +1265,16 @@ const Calender2 = ({
 											eventId: newTaskRecord.id,
 											resourceId: eventRecord?.data?.resourceId,
 										})
-
 										await scheduler.project.commitAsync()
 
 										console.log('This is add new Event', eventRecord.get('startDate'), eventRecord.get('endDate'))
 
-										console.log('MyNewTask200', eventRecord?.isPhantom)
+										console.log('MyNewTask200', eventRecord)
 
 										scheduler.resumeEvents()
 										scheduler.resumeRefresh()
+
+										console.log('OriginalDATES', eventRecord.startDate, eventRecord.endDate)
 
 										console.log('This is add new Event', originalEventRecord, eventRecord)
 									} catch (error) {
@@ -1321,6 +1321,39 @@ const Calender2 = ({
 												break
 											}
 										}
+										// code starts from here
+
+										const tempEndDate = new Date(previousEndDate)
+
+										tempEndDate.setDate(tempEndDate.getDate() + 1)
+
+										const extensiveDays = 25
+
+										const extensiveEndDate = new Date(tempEndDate)
+
+										extensiveEndDate.setDate(extensiveEndDate.getDate() + extensiveDays)
+
+										const isWeekend = (day) => day === 0 || day === 6
+
+										const validPairs = []
+										const temp = new Date(eventRecord?.startDate)
+
+										while (temp <= extensiveEndDate) {
+											const next = new Date(temp)
+											next.setDate(temp.getDate() + 1)
+
+											if (!isWeekend(temp.getDay()) && next <= extensiveEndDate) {
+												validPairs.push([new Date(temp), new Date(next)])
+											}
+
+											temp.setDate(temp.getDate() + 1)
+										}
+
+										const currentCount = alreadyExistingSubTasks.length
+										const pairIndex = currentCount % validPairs.length
+										const [startDateObj, endDateObj] = validPairs[pairIndex]
+
+										// code ends here
 
 										const newSubtaskStartDate = previousEndDate
 										const newSubtaskEndDate = newSubtaskStartDate.clone().add(1, 'day')
@@ -1328,8 +1361,8 @@ const Calender2 = ({
 										subtasks.push({
 											title: missingSubTask,
 											team: eventRecord?.data?.team,
-											start_date: newSubtaskStartDate.format('YYYY-MM-DD'),
-											end_date: newSubtaskEndDate.format('YYYY-MM-DD'),
+											start_date: moment(startDateObj).format('YYYY-MM-DD'),
+											end_date: moment(endDateObj).format('YYYY-MM-DD'),
 											notes: '',
 											task_group_id: eventRecord?.data?.task_group_id,
 											project: id,
@@ -1355,8 +1388,6 @@ const Calender2 = ({
 											}
 
 											const newTaskRecord = scheduler.eventStore.add(bryntumReadySubtask)[0]
-
-											eventRecord.set('manuallyScheduled', true)
 
 											scheduler.assignmentStore.add({
 												id: Date.now(),
@@ -1539,7 +1570,6 @@ const Calender2 = ({
 					console.log('Event drag started:', data)
 				},
 				eventDrop: ({ eventRecords }) => {
-					console.log('EventDrop ended')
 					if (eventRecords?.[0]?.data?.isTask) {
 						eventRecords.forEach((event) => {
 							const bryntumStartDate = event.data.startDate
@@ -1600,11 +1630,8 @@ const Calender2 = ({
 												console.log('formattedStart', formattedEnd, final_end_date, formattedEnd === final_end_date)
 
 												subtaskStart = subtaskEndDate
-
-												// project.schedule()
 											})
 										}
-
 										if (duplicates?.length > 0) {
 											let subtaskStart = new Date(bryntumStartDate)
 
@@ -1629,8 +1656,6 @@ const Calender2 = ({
 
 												subtaskStart = subtaskEndDate
 												console.log('formattedStart', formattedStart, formattedEnd)
-
-												// project.schedule()
 											})
 										}
 									} else {
@@ -1651,8 +1676,6 @@ const Calender2 = ({
 						updateTask({ start_date: start_date_for_backend, end_date: end_date_for_backend }, id)
 
 						console.log("eventDrop you're dragging subtasks", eventRecords?.[0]?.data)
-
-						// project.schedule()
 					}
 				},
 
@@ -1863,14 +1886,6 @@ const Calender2 = ({
 
 			const sourceTask = scheduler.eventStore.getById(sourceEvent)
 			const destinationTask = scheduler.eventStore.getById(destinationEvent)
-
-			sourceTask.set({
-				manuallyScheduled: false,
-			})
-
-			destinationTask.set({
-				manuallyScheduled: false,
-			})
 
 			console.log('Dependency added: 0', sourceTask?.endDate, destinationTask?.startDate)
 
@@ -2417,7 +2432,7 @@ const Calender2 = ({
 								// parentId: backendNewSubtask?.id,
 								resourceId: currentResouceID,
 								isPastedEvent: true,
-								manuallyScheduled: true,
+								// manuallyScheduled: true,
 							}
 							console.log('My New Event', res, bryntumReadytask)
 
@@ -2466,6 +2481,98 @@ const Calender2 = ({
 			}
 		)
 
+		scheduler.dependencyStore.on('update', ({ record, changes }) => {
+			console.log('Dependency updated:', record)
+			console.log('Changes:', changes)
+			// Prepare the update payload for all changed fields
+			if (changes && Object.keys(changes).length > 0) {
+				const updatePayload = { id: record.id }
+				console.log('updatePayload', updatePayload)
+				const enumMap = {
+					start_to_start: 'StartToStart',
+					start_to_end: 'StartToEnd',
+					end_to_start: 'EndToStart',
+					end_to_end: 'EndToEnd',
+				}
+				Object.entries(changes).forEach(([key, valueObj]) => {
+					console.log('myLagUnit', key)
+					if (key === 'toEvent') updatePayload.to_task_id = valueObj.value
+					else if (key === 'fromEvent') updatePayload.from_task_id = valueObj.value
+					else if (key === 'type') {
+						updatePayload.type = enumMap[valueObj.value] || valueObj.value
+					} else if (key === 'lag') updatePayload.lag = valueObj.value
+					else if (key === 'lagUnit') {
+						const lagUnitMap = {
+							day: 'd',
+							hour: 'h',
+							minute: 'm',
+						}
+						const rawValue = valueObj?.value || record.lagUnit
+						updatePayload.lag_unit = lagUnitMap[rawValue] || rawValue
+					} else if (key === 'active') {
+						updatePayload.active = 'FALSE'
+					}
+				})
+
+				updateTaskDependency(updatePayload)
+					.then(async (res) => {
+						if (res.error === null) {
+							const fromTask = res?.data?.[0]?.from_task_id
+
+							const toTask = res?.data?.[0]?.to_task_id
+
+							const lagDays = res?.data?.[0]?.lag
+
+							const fromEventRecord = scheduler.eventStore.getById(fromTask)
+
+							const toEventRecord = scheduler.eventStore.getById(toTask)
+
+							const fromStartDate = fromEventRecord?.data?.startDate
+							const fromEndDate = fromEventRecord?.data?.endDate
+
+							const toStartDate = toEventRecord?.data?.startDate
+							const toEndDate = toEventRecord?.data?.endDate
+
+							if (lagDays || !lagDays) {
+								const fromTaskEndDate = DateHelper.add(fromEndDate, -1, 'day') // 30 -> 29
+
+								const toTaskStartDateForBackend = DateHelper.add(fromTaskEndDate, +lagDays, 'day') // 29->4
+
+								const toTaskEndDateForBackend = DateHelper.add(toTaskStartDateForBackend, +5, 'day') // 4->9
+
+								const toTaskStartDateForBryntum = DateHelper.add(toTaskStartDateForBackend, +1, 'day') // 5 start date for bryntum
+
+								const toTaskStartDateForBryntum2 = DateHelper.add(toTaskStartDateForBryntum, -1, 'day') // 5 start date for bryntum
+
+								const toTaskEndDateForBryntum = DateHelper.add(toTaskEndDateForBackend, +1, 'day') // 5 end date for bryntum
+
+								const formatToTaskStartDateForBackend = DateHelper.format(toTaskStartDateForBackend, 'YYYY-MM-DD')
+
+								const formatToTaskEndDateForBackend = DateHelper.format(toTaskEndDateForBackend, 'YYYY-MM-DD')
+
+								updateTask(
+									{ start_date: formatToTaskStartDateForBackend, end_date: formatToTaskEndDateForBackend },
+									toTask
+								)
+
+								myQueryClient.invalidateQueries(['projectData', toTask])
+
+								toEventRecord.set('startDate', toTaskStartDateForBryntum2)
+								toEventRecord.set('endDate', toTaskEndDateForBryntum)
+
+								await scheduler.project.commitAsync()
+							}
+							console.log('Dependency updated in backend:', res)
+						} else {
+							console.error('Error updating dependency:', res.error)
+						}
+					})
+					.catch((err) => {
+						console.error('Exception updating dependency:', err)
+					})
+			}
+		})
+
 		scheduler.displayDateFormat = 'll'
 
 		scheduler.on('presetChange', ({ preset }) => {
@@ -2484,7 +2591,7 @@ const Calender2 = ({
 		return () => scheduler.destroy()
 	}, [events, resources])
 
-	console.log('SchedulerRed', dependencies)
+	console.log('SchedulerRed', schedulerRef)
 
 	if (isLoading) return <div>Loading...</div>
 	if (error) return <div>Error loading tasks</div>
