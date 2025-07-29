@@ -354,6 +354,8 @@ const Task = React.memo(
 		const { data: allParentTasks } = useQuery(['project_tasks'], () => listTaskThatHasSubTasks(id))
 
 		const { data: teams } = useQuery(['Teams teams'], () => listAllTeams())
+
+		console.log('myTeamsINo', teams)
 		// first we need to find the task_group_id
 		const { refetch, data: list } = useQuery([`task-${task_group}`], () => listFilteredTasks(task_group_id, id), {
 			select: (r) => {
@@ -835,14 +837,6 @@ const Task = React.memo(
 					cellClass: 'ag-grid-datepicker',
 					flex: 2,
 					cellEditorPopup: true,
-				},
-				{
-					headerName: 'Team',
-					field: 'team',
-					cellEditor: SelectCellEditor,
-					cellRenderer: TeamRenderer,
-					flex: 2,
-					editable: true,
 				},
 			],
 			[

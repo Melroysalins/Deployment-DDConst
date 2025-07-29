@@ -1019,26 +1019,39 @@ const Calender2 = ({
 									name: 'name',
 									label: 'Task Name',
 									required: true,
+									weight: 100,
 								},
 								startDateField: {
 									type: 'datefield',
 									name: 'startDate',
 									label: 'Start Date',
 									format: 'YYYY-MM-DD',
+									weight: 200,
 								},
 								endDateField: {
 									type: 'datefield',
 									name: 'endDate',
 									label: 'End Date',
 									format: 'YYYY-MM-DD',
+									weight: 300,
 								},
+								teamFiled: {
+									type: 'combo',
+									name: 'team',
+									label: 'Team',
+									required: false,
+									weight: 400,
+								},
+
 								effortField: false,
-								resourceField: false,
+								resourcesField: false,
+								completedField: false,
 							},
 						},
 						notesTab: true,
 						predecessorsTab: true,
 						successorsTab: true,
+						resourcesTab: false,
 					},
 				},
 				dependencyEdit: true,
@@ -1200,7 +1213,7 @@ const Calender2 = ({
 									const [startDateObj, endDateObj] = validPairs[pairIndex]
 
 									subtasks.push({
-										title: '',
+										title: missingSubTask,
 										team: eventRecord?.data?.team,
 										start_date: moment(startDateObj).format('YYYY-MM-DD'),
 										end_date: moment(endDateObj).format('YYYY-MM-DD'),
@@ -2591,7 +2604,7 @@ const Calender2 = ({
 		return () => scheduler.destroy()
 	}, [events, resources])
 
-	console.log('SchedulerRed', schedulerRef)
+	console.log('SchedulerRed', teamsDetails, teams)
 
 	if (isLoading) return <div>Loading...</div>
 	if (error) return <div>Error loading tasks</div>

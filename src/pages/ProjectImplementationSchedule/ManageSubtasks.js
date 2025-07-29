@@ -145,7 +145,6 @@ export default function ManageSubtasksDialog({ open, onClose, eventRecord, sched
 
 		// console.log('EventModal', mysubtask, moment(start).format('YYYY-MM-DD'), moment(end).format('YYYY-MM-DD'))
 	}
-	subtasks?.map((task) => console.log('Popup save clicked', task?.data))
 
 	const handleSave = async () => {
 		if (taskToBeUpdated?.current?.length) {
@@ -320,6 +319,8 @@ export default function ManageSubtasksDialog({ open, onClose, eventRecord, sched
 
 		console.log('lastRef', lastInputRef.current)
 	}, [lastInputRef])
+
+	console.log('Manage Subtask', eventRecord)
 
 	return (
 		<Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
