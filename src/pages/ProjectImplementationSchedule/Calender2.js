@@ -43,6 +43,7 @@ import {
 	getSelectedWorkTypes,
 	getTeamDetails,
 	updateTaskDependency,
+	listAllTeams,
 } from 'supabase'
 
 import {
@@ -120,7 +121,7 @@ const Calender2 = ({
 	const activeRowRef = useRef(null)
 
 	const [istTaskUpdated, SetIsTaskUpdated] = useState(false)
-	const [isResourceBuildingLoading, setIsResourceBuildingLoading] = useState(true)
+	const [isResourceBuildingLoading, setIsResourceBuildingLoading] = useState(false)
 	const [teamsDetails, SetTeamDetails] = useState([])
 	const [teams, SetTeam] = useState([])
 
@@ -172,6 +173,8 @@ const Calender2 = ({
 			},
 		}
 	)
+
+	const { data: teamsInfo } = useQuery(['Teams teams'], () => listAllTeams())
 
 	const uniqueWorkTypes = [...new Set(selectedWorkTypesData)]
 
@@ -285,6 +288,8 @@ const Calender2 = ({
 
 				console.log('unique', resourceId, relatedTasks, taskGroup[resourceId])
 
+				let taskGroupID = null
+
 				if (Array.isArray(relatedTasks) && relatedTasks.length > 0) {
 					const uniqueTeams = new Set()
 					const taskWithNoTeam = []
@@ -296,8 +301,23 @@ const Calender2 = ({
 						}
 					})
 
+					if (resourceId === 'installations') {
+						taskGroupID = 2
+					} else if (resourceId === 'connections') {
+						taskGroupID = 3
+					} else if (resourceId === 'completion_test') {
+						taskGroupID = 4
+					} else if (resourceId === 'metal_fittings') {
+						taskGroupID = 1
+					} else if (resourceId === 'auxiliary_construction') {
+						taskGroupID = 6
+					} else {
+						taskGroupID = 5
+					}
+
 					const teamPromises = Array.from(uniqueTeams).map(async (teamNumber) => {
 						const uniqueId = `${resourceId}-${teamNumber}`
+
 						try {
 							const response = await getTeamDetails(teamNumber)
 							console.log('Team Promises', response, teamNumber)
@@ -310,7 +330,8 @@ const Calender2 = ({
 								width: 100,
 								workTeam: teamName,
 							})
-							SetTeamDetails((prev) => [...prev, { name: uniqueId, teamNumber }])
+
+							SetTeamDetails((prev) => [...prev, { name: uniqueId, teamNumber, task_group_id: taskGroupID }])
 						} catch (error) {
 							console.error(`Failed to get details for team ${teamNumber}`, error)
 							expandedResources.push({
@@ -319,7 +340,7 @@ const Calender2 = ({
 								width: 100,
 								workTeam: `Team ${teamNumber}`,
 							})
-							SetTeamDetails((prev) => [...prev, { name: uniqueId, teamNumber }])
+							SetTeamDetails((prev) => [...prev, { name: uniqueId, teamNumber, task_group_id: taskGroupID }])
 						}
 					})
 
@@ -332,7 +353,7 @@ const Calender2 = ({
 							workTeam: '',
 							tasksWithoutTeam: taskWithNoTeam,
 						})
-						SetTeamDetails((prev) => [...prev, { name: uniqueId, teamNumber: null }])
+						SetTeamDetails((prev) => [...prev, { name: uniqueId, teamNumber: null, task_group_id: taskGroupID }])
 					}
 
 					await Promise.all(teamPromises)
@@ -380,7 +401,7 @@ const Calender2 = ({
 			console.log('mGGGGG', results)
 		})()
 		SetIsTaskUpdated(true)
-	}, [selectedWorkTypesData, taskGroup])
+	}, [selectedWorkTypesData, taskGroup, isResourceBuildingLoading])
 
 	const weekendTimeRanges = resources.map((resource, index) => ({
 		id: `weekend-${resource.id || index}`, // give each a unique id
@@ -1041,6 +1062,12 @@ const Calender2 = ({
 									label: 'Team',
 									required: false,
 									weight: 400,
+									// items: teamsInfo?.data?.map((item) => item?.name) || [],
+									items:
+										teamsInfo?.data?.map((item) => ({
+											id: item?.id,
+											text: item?.name,
+										})) || [],
 								},
 
 								effortField: false,
@@ -1101,326 +1128,6 @@ const Calender2 = ({
 						const originalEventRecord = eventRecord
 						const OrignalParentStartDate = eventRecord.startDate
 						const originalParentEndDate = eventRecord.endDate
-						items.addCustomSubtask = {
-							text: 'Add SubTask',
-							icon: 'b-fa b-fa-plus',
-
-							async onItem({ eventRecord }) {
-								// 1. Find top-level parent
-								let topParent = eventRecord
-								while (topParent.parent) {
-									topParent = topParent.parent
-								}
-
-								console.log('OriginalDATES', OrignalParentStartDate, originalParentEndDate)
-
-								console.log('This is add new Event', eventRecord.get('startDate'), eventRecord.get('endDate'))
-
-								await scheduler.project.commitAsync()
-
-								const subtasks = []
-								const titleSubTasks = []
-
-								// let title = 1
-
-								const defaultSubTaskNames = ['Line', 'Assemble', 'Trim', 'Galvanize', 'Install']
-								const parentId = eventRecord?.data?.id
-
-								const existingSubtaskNames = eventRecord?.children?.map((item) => item?.name) || []
-
-								// Find the *first* missing subtask in the default order
-								const missingSubTask = defaultSubTaskNames.find((taskName) => !existingSubtaskNames.includes(taskName))
-
-								if (missingSubTask !== undefined) {
-									let newSubtaskStartDate
-									let newSubtaskEndDate = null
-
-									// Determine the ideal index of the missing subtask in the default order
-									const missingTaskIndex = defaultSubTaskNames.indexOf(missingSubTask)
-
-									// Case 1: The missing task is the very first one ('Line'), or no children exist yet
-									if (missingTaskIndex === 0 || !eventRecord?.data?.children?.length) {
-										newSubtaskStartDate = moment(eventRecord.data.startDate)
-									} else {
-										// Case 2: The missing task is in the middle or at the end
-										// Find the immediately preceding task in the default list
-										const previousDefaultTaskName = defaultSubTaskNames[missingTaskIndex - 1]
-
-										// Try to find this preceding task among the *currently existing* children
-										const precedingExistingChild = eventRecord?.data?.children?.find(
-											(child) => child?.name === previousDefaultTaskName
-										)
-
-										if (precedingExistingChild) {
-											// If the preceding task exists, start the new subtask from its end date
-											newSubtaskStartDate = moment(precedingExistingChild.endDate)
-										} else {
-											let closestExistingPredecessor = null
-											for (let i = missingTaskIndex - 1; i >= 0; i -= 1) {
-												const currentDefaultTaskName = defaultSubTaskNames[i]
-												closestExistingPredecessor = eventRecord?.data?.children?.find(
-													(child) => child?.name === currentDefaultTaskName
-												)
-												if (closestExistingPredecessor) {
-													break // Found the closest existing predecessor
-												}
-											}
-
-											if (closestExistingPredecessor) {
-												newSubtaskStartDate = moment(closestExistingPredecessor.endDate)
-											} else {
-												// If no preceding task exists at all, use the parent's start date
-												newSubtaskStartDate = moment(eventRecord.data.startDate)
-											}
-										}
-									}
-
-									// New subtask will always be 1 day duration
-									newSubtaskEndDate = newSubtaskStartDate.clone().add(1, 'days')
-
-									// skip weekend code
-
-									const parentStartDate = eventRecord?.startDate
-
-									const parentEndDate = eventRecord.endDate
-
-									const tempEndDate = new Date(parentEndDate)
-
-									const extensiveDays = 25
-
-									const extensiveEndDate = new Date(tempEndDate)
-
-									extensiveEndDate.setDate(extensiveEndDate.getDate() + extensiveDays)
-
-									const isWeekend = (day) => day === 0 || day === 6
-
-									const validPairs = []
-									const temp = new Date(parentStartDate)
-
-									while (temp <= extensiveEndDate) {
-										const next = new Date(temp)
-										next.setDate(temp.getDate() + 1)
-
-										if (!isWeekend(temp.getDay()) && next <= extensiveEndDate) {
-											validPairs.push([new Date(temp), new Date(next)])
-										}
-
-										temp.setDate(temp.getDate() + 1)
-									}
-
-									const currentCount = existingSubtaskNames?.length
-									const pairIndex = currentCount % validPairs.length
-									const [startDateObj, endDateObj] = validPairs[pairIndex]
-
-									subtasks.push({
-										title: missingSubTask,
-										team: eventRecord?.data?.team,
-										start_date: moment(startDateObj).format('YYYY-MM-DD'),
-										end_date: moment(endDateObj).format('YYYY-MM-DD'),
-										notes: '',
-										task_group_id: eventRecord?.data?.task_group_id,
-										project: id,
-										parent_task: parentId,
-									})
-
-									console.log('Creating MYSUbtask:', validPairs)
-
-									//  skip weekend code ends
-
-									try {
-										const res = await createNewTasks(subtasks) // Create the single new subtask
-
-										console.log('This is add new Event', eventRecord.get('startDate'), eventRecord.get('endDate'))
-
-										const backendNewSubtask = res?.data?.[0]
-
-										const bryntumReadySubtask = {
-											id: backendNewSubtask.id,
-											name: backendNewSubtask.title,
-											startDate: backendNewSubtask?.start_date,
-											endDate: backendNewSubtask?.end_date,
-											team: backendNewSubtask.team,
-											notes: backendNewSubtask.notes,
-											task_group_id: eventRecord.task_group_id,
-											project: backendNewSubtask.project,
-											parentId: backendNewSubtask.parent_task,
-											resourceId: eventRecord?.data?.resourceId,
-											isAddNewSubTask: true,
-											expanded: true, // optional: expand if it's a parent with children
-											leaf: true, // important: explicitly mark as leaf if it's a subtask
-											isTask: true, // helps Bryntum recognize this as a task if needed
-										}
-
-										const newTaskRecord = scheduler.eventStore.add(bryntumReadySubtask)[0]
-
-										console.log(
-											'This is add new Event',
-											eventRecord.get('startDate'),
-											eventRecord.get('endDate'),
-											newTaskRecord
-										)
-
-										await scheduler.project.commitAsync()
-
-										if (!eventRecord.data.children) {
-											eventRecord.data.children = []
-										}
-										eventRecord.data.children.push({
-											name: backendNewSubtask.title,
-											startDate: backendNewSubtask.start_date,
-											endDate: backendNewSubtask.end_date,
-										})
-
-										console.log('This is add new Event', eventRecord.get('startDate'), eventRecord.get('endDate'))
-
-										scheduler.assignmentStore.add({
-											id: Date.now(),
-											eventId: newTaskRecord.id,
-											resourceId: eventRecord?.data?.resourceId,
-										})
-										await scheduler.project.commitAsync()
-
-										console.log('This is add new Event', eventRecord.get('startDate'), eventRecord.get('endDate'))
-
-										console.log('MyNewTask200', eventRecord)
-
-										scheduler.resumeEvents()
-										scheduler.resumeRefresh()
-
-										console.log('OriginalDATES', eventRecord.startDate, eventRecord.endDate)
-
-										console.log('This is add new Event', originalEventRecord, eventRecord)
-									} catch (error) {
-										console.log('Error !! Failed to add a subtask', error)
-										// You might want to show a more user-friendly error here
-									}
-								} else {
-									const alreadyExistingSubTasks = eventRecord?.children || []
-
-									const subtaskCounts = {}
-									defaultSubTaskNames.forEach((name) => {
-										subtaskCounts[name] = 0
-									})
-
-									//  Line - 0 Trim - 0  Assemble -0
-
-									alreadyExistingSubTasks.forEach((task) => {
-										if (Object.prototype.hasOwnProperty.call(subtaskCounts, task.name)) {
-											subtaskCounts[task.name] += 1
-										}
-									})
-
-									let missingSubTask = null
-									let minCount = Infinity
-
-									defaultSubTaskNames.forEach((name) => {
-										if (subtaskCounts[name] < minCount) {
-											minCount = subtaskCounts[name]
-											missingSubTask = name // Line
-										}
-									})
-									const parentID = eventRecord?.id
-									const { team, task_group_id } = eventRecord?.data
-
-									if (missingSubTask) {
-										const missingIndex = defaultSubTaskNames.indexOf(missingSubTask)
-
-										let previousEndDate = moment(eventRecord.startDate)
-										for (let i = missingIndex - 1; i >= 0; i -= 1) {
-											const prevTaskName = defaultSubTaskNames[i]
-											const match = alreadyExistingSubTasks.find((t) => t.name === prevTaskName)
-											if (match) {
-												previousEndDate = moment(match.endDate)
-												break
-											}
-										}
-										// code starts from here
-
-										const tempEndDate = new Date(previousEndDate)
-
-										tempEndDate.setDate(tempEndDate.getDate() + 1)
-
-										const extensiveDays = 25
-
-										const extensiveEndDate = new Date(tempEndDate)
-
-										extensiveEndDate.setDate(extensiveEndDate.getDate() + extensiveDays)
-
-										const isWeekend = (day) => day === 0 || day === 6
-
-										const validPairs = []
-										const temp = new Date(eventRecord?.startDate)
-
-										while (temp <= extensiveEndDate) {
-											const next = new Date(temp)
-											next.setDate(temp.getDate() + 1)
-
-											if (!isWeekend(temp.getDay()) && next <= extensiveEndDate) {
-												validPairs.push([new Date(temp), new Date(next)])
-											}
-
-											temp.setDate(temp.getDate() + 1)
-										}
-
-										const currentCount = alreadyExistingSubTasks.length
-										const pairIndex = currentCount % validPairs.length
-										const [startDateObj, endDateObj] = validPairs[pairIndex]
-
-										// code ends here
-
-										const newSubtaskStartDate = previousEndDate
-										const newSubtaskEndDate = newSubtaskStartDate.clone().add(1, 'day')
-
-										subtasks.push({
-											title: missingSubTask,
-											team: eventRecord?.data?.team,
-											start_date: moment(startDateObj).format('YYYY-MM-DD'),
-											end_date: moment(endDateObj).format('YYYY-MM-DD'),
-											notes: '',
-											task_group_id: eventRecord?.data?.task_group_id,
-											project: id,
-											parent_task: parentId,
-										})
-
-										try {
-											const res = await createNewTasks(subtasks) // Create the single new subtask
-											const backendNewSubtask = res?.data?.[0]
-
-											const bryntumReadySubtask = {
-												id: backendNewSubtask.id,
-												name: backendNewSubtask.title,
-												startDate: backendNewSubtask?.start_date,
-												endDate: backendNewSubtask?.end_date,
-												team: backendNewSubtask.team,
-												notes: backendNewSubtask.notes,
-												task_group_id: eventRecord.task_group_id,
-												project: backendNewSubtask.project,
-												parentId: backendNewSubtask.parent_task,
-												resourceId: eventRecord?.data?.resourceId,
-												isAddNewSubTask: true,
-											}
-
-											const newTaskRecord = scheduler.eventStore.add(bryntumReadySubtask)[0]
-
-											scheduler.assignmentStore.add({
-												id: Date.now(),
-												eventId: newTaskRecord.id,
-												resourceId: eventRecord?.data?.resourceId,
-											})
-
-											await scheduler.project.commitAsync()
-
-											// console.log('MyNewTask200', eventRecord)
-
-											eventRecord.set('isAddNewSubTask', true)
-										} catch (error) {
-											console.log('Error !! Failed to add a subtask', error)
-											// You might want to show a more user-friendly error here
-										}
-									}
-								}
-							},
-						}
 						items.addCustomManageSubtask = {
 							text: 'Manage SubTask',
 							icon: 'b-fa b-fa-tasks',
@@ -2099,7 +1806,7 @@ const Calender2 = ({
 					})
 			})
 		})
-		scheduler.on('afterEventSave', ({ eventRecord }) => {
+		scheduler.on('afterEventSave', async ({ eventRecord }) => {
 			const isNewEvent = !events.some((e) => e.id === eventRecord.id) // Assuming 'events' is your original events data array
 			// saveSubtasks(eventRecord, createNewTasks, updateTask)
 			const task_groups = {
@@ -2110,30 +1817,46 @@ const Calender2 = ({
 			}
 			const resourceId = eventRecord.resourceId
 
+			let newResourceID = null
+
+			let resourceName = null
+
 			const resourceRecord = scheduler.resourceStore.getById(resourceId)
 
 			let taskGroupID = null
 
 			if (resourceRecord?.name === 'Connection') {
 				taskGroupID = 3
+				newResourceID = 'connections'
+				resourceName = 'Connection'
 			}
 			if (resourceRecord?.name === 'Completion Testing') {
 				taskGroupID = 4
+				newResourceID = 'completion_test'
+				resourceName = 'Completion Testing'
 			}
 			if (resourceRecord?.name === 'Metal Fittings Installation') {
 				taskGroupID = 1
+				newResourceID = 'metal_fittings'
+				resourceName = 'Metal Fittings Installation'
 			}
 			if (resourceRecord?.name === 'Auxiliary Construction') {
 				taskGroupID = 6
+				newResourceID = 'auxiliary_construction'
+				resourceName = 'Auxiliary Construction'
 			}
 			if (resourceRecord?.name === 'Office Work') {
 				taskGroupID = 5
+				newResourceID = 'office_work'
+				resourceName = 'Office Work'
 			}
 			if (resourceRecord?.name === 'Installation') {
 				taskGroupID = 2
+				newResourceID = 'installations'
+				resourceName = 'Installation'
 			}
 
-			console.log('eventRecord.resourceId', eventRecord.resourceId)
+			console.log('eventRecord.resourceId', eventRecord)
 			const groupName = eventRecord.resourceId
 			const taskGroupId = task_groups[groupName]
 
@@ -2153,6 +1876,7 @@ const Calender2 = ({
 				start_date: start_date_for_backend, // Use formatted date
 				end_date: end_date_for_backend, // Use formatted date
 				title: eventRecord.name,
+				team: eventRecord.data?.team,
 			}
 
 			console.log('afterEventSave100', formattedData)
@@ -2182,12 +1906,71 @@ const Calender2 = ({
 					}
 				})
 			} else {
-				updateTask(formattedData, eventRecord.id).then((res) => {
+				const task_group_id = eventRecord?.data?.task_group_id
+				const team = eventRecord.data?.team
+
+				const currentResourceID = teamsDetails?.find(
+					(ele) => ele?.teamNumber === team && ele?.task_group_id === task_group_id
+				)
+
+				const isCurrentResourceIDPresent = scheduler.resourceStore.getById(currentResourceID?.name)
+
+				const workTeam = teamsInfo?.data?.filter((ele) => ele?.id === team)
+
+				const previousResourceIDPresent = scheduler.resourceStore.getById(eventRecord.data.resourceId)
+				const newParentIndex = previousResourceIDPresent?.data?.parentIndex + 1
+
+				const targetResourceId = eventRecord.data?.resourceId
+				const targetTaskGroupId = eventRecord.data.task_group_id
+
+				if (!isCurrentResourceIDPresent || isCurrentResourceIDPresent === undefined) {
+					console.log('Task updated successfully 123', targetResourceId, targetTaskGroupId)
+
+					scheduler.resourceStore.add({
+						id: `${newResourceID}-${team}`,
+						width: 100,
+						maxUnits: 100,
+						name: resourceName,
+						workTeam: workTeam?.[0]?.name,
+						parentIndex: newParentIndex,
+					})
+
+					eventRecord.resourceId = `${newResourceID}-${team}`
+
+					await scheduler.project.commitAsync()
+
+					const matchingTasks = scheduler.eventStore.query(
+						(event) => event.resourceId === targetResourceId && event.task_group_id === targetTaskGroupId
+					)
+
+					if (matchingTasks.length === 0) {
+						const resourceRow = scheduler.resourceStore.getById(targetResourceId)
+						console.log('Task updated successfully 123', resourceRow)
+						if (resourceRow) {
+							scheduler.resourceStore.remove(resourceRow)
+							console.log(`Removed resource row with ID: ${targetResourceId}`)
+						}
+					}
+				}
+
+				updateTask(formattedData, eventRecord.id).then(async (res) => {
 					console.log('Backend updated:', res)
-					console.log('No its new Event')
 					if (res.error === null) {
-						console.log('Task updated successfully')
+						eventRecord.resourceId = currentResourceID?.name || eventRecord?.resourceId
+						await scheduler.project.commitAsync()
 						saveSubtasks(eventRecord, createNewTasks, updateTask)
+						const matchingTasks = scheduler.eventStore.query(
+							(event) => event.resourceId === targetResourceId && event.task_group_id === targetTaskGroupId
+						)
+
+						if (matchingTasks.length === 0) {
+							const resourceRow = scheduler.resourceStore.getById(targetResourceId)
+							console.log('Task updated successfully 123', resourceRow)
+							if (resourceRow) {
+								scheduler.resourceStore.remove(resourceRow)
+								console.log(`Removed resource row with ID: ${targetResourceId}`)
+							}
+						}
 					} else {
 						console.log('Error updating task:', res.error.message)
 					}
@@ -2214,10 +1997,11 @@ const Calender2 = ({
 				console.log('Saving subtask:', subtask.get('isSaved'), formattedSubtaskData)
 
 				if (subtask.get('yesModified') && subtask.get('isSaved')) {
+					console.log('Task updated successfully 123')
 					try {
 						const res = await updateFn(formattedSubtaskData, subtask?.id)
 						if (res.error === null && res.data?.[0]?.id) {
-							console.log(' Subtask created: yes modified', res, formattedSubtaskData)
+							console.log('Subtask created: yes modified', res, formattedSubtaskData)
 							subtask.set('id', res.data[0].id)
 
 							parentEventRecord.data.children = parentEventRecord.data.children.filter(
@@ -2244,6 +2028,7 @@ const Calender2 = ({
 						console.error(' Create exception:', err)
 					}
 				} else if (!subtask.get('isSaved')) {
+					console.log('Task updated successfully 123')
 					try {
 						const res = await createFn(formattedSubtaskData)
 						const backendNewSubtask = res?.data?.[0]
@@ -2604,7 +2389,7 @@ const Calender2 = ({
 		return () => scheduler.destroy()
 	}, [events, resources])
 
-	console.log('SchedulerRed', teamsDetails, teams)
+	// console.log('SchedulerRed', teamsInfo, teamsDetails)
 
 	if (isLoading) return <div>Loading...</div>
 	if (error) return <div>Error loading tasks</div>
