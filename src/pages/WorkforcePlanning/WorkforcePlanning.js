@@ -122,12 +122,9 @@ function App() {
 	const [loader, setLoader] = React.useState(false)
 	const [projectError, setProjectError] = React.useState(false)
 	const [holidays, setHolidays] = React.useState(defaultHolidays)
-	const {
-		setisDrawerOpen,
-		isDrawerOpen,
-		setapprovalIdDrawerRight,
-	} = useMain()
+	const { setisDrawerOpen, isDrawerOpen, setapprovalIdDrawerRight } = useMain()
 	const handleSetEvent = (data) => {
+		console.log('handleEventCalled', data)
 		setMyEvents(data.map((e) => ({ ...e, resource: e.employee })))
 	}
 
@@ -404,6 +401,8 @@ function App() {
 			</Typography>
 		</Stack>
 	)
+
+	console.log('myevents', myResources, projectSites)
 
 	return (
 		<>

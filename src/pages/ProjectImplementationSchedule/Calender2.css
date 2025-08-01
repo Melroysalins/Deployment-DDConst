@@ -115,3 +115,77 @@ header {
   font-weight: bold;
 }
 
+
+/* Make container look like a card */
+.custom-aggrid-style {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* Row style */
+.custom-aggrid-style .b-grid-row {
+  height: 44px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+/* Cell padding and font */
+.custom-aggrid-style .b-grid-cell {
+  padding: 10px;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Header style */
+.custom-aggrid-style .b-grid-header {
+  background-color: #fafafa;
+  font-weight: 600;
+  color: #444;
+  border-bottom: 1px solid #dcdcdc;
+}
+
+.custom-aggrid-style .b-grid-header .b-grid-header-cell {
+  padding: 12px;
+  font-size: 13.5px;
+}
+
+/* Checkbox alignment and size */
+/* Make checkbox clearly visible in light UI */
+.custom-aggrid-style .b-checkbox {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #666;  /* Darker border */
+  background-color: #fff;     /* Bright background */
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* When checked */
+.custom-aggrid-style .b-checkbox.b-checked {
+  background-color: #1a73e8;  /* Brighter blue */
+  border-color: #1a73e8;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.285 6.709l-11.2 11.2-5.657-5.657 1.414-1.414 4.243 4.243 9.785-9.785z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px 12px;
+}
+
+
+/* Remove any grid borders */
+.custom-aggrid-style .b-grid-header, 
+.custom-aggrid-style .b-grid-footer, 
+.custom-aggrid-style .b-grid-row {
+  border: none;
+}
+
+/* On hover row */
+.custom-aggrid-style .b-grid-row:hover {
+  background-color: #f5f8ff;
+}
+
+/* Editing highlight */
+.custom-aggrid-style .b-grid-cell.b-editing {
+  background-color: #fff7e6;
+}
