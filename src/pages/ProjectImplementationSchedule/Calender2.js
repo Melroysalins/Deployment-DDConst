@@ -413,6 +413,8 @@ const Calender2 = ({
 		recurrenceRule: 'FREQ=WEEKLY;BYDAY=SA,SU',
 	}))
 
+	console.log('weekendTimeRanges', resources)
+
 	const events = React.useMemo(() => {
 		if (!taskGroup) return []
 
@@ -667,7 +669,7 @@ const Calender2 = ({
 		})
 	}, [events, resources, dependencies])
 
-	console.log('project', project)
+	console.log('project 123', resources, events)
 
 	function sortTasksByStartDate(tasks) {
 		const seenStartDates = new Set()
@@ -720,240 +722,6 @@ const Calender2 = ({
 
 		// Return both lists explicitly
 		return { unique: uniqueStartDateTasks, duplicates: duplicateStartDateTasks }
-	}
-
-	function openManageSubtaskPopup(eventRecord) {
-		// scheduler.editEvent(eventRecord)
-		const editor = scheduler.features.eventEdit?.editor
-		const subtasksContainer = editor?.widgetMap?.subtasksContainer
-
-		console.log('Manage Subtask', editor, scheduler.features.eventEdit)
-
-		let subTaskToBeDeleted = []
-
-		if (subtasksContainer) {
-			subtasksContainer.items.forEach((item) => item.destroy())
-			subtasksContainer.removeAll()
-		}
-
-		const createSubtasksGrid = (initialData = []) => {
-			const noSubtasksLabel = subtasksContainer?.widgetMap?.noSubtasksLabel
-
-			if (noSubtasksLabel) {
-				noSubtasksLabel.destroy()
-			}
-
-			return subtasksContainer?.add({
-				type: 'grid',
-				height: '272px',
-				ref: 'subtasksGridWidget',
-				scrollable: true,
-				cls: 'custom-aggrid-style',
-				features: {
-					cellEdit: true,
-				},
-				store: {
-					data: initialData,
-					listeners: {
-						update: ({ record, changes }) => {
-							const { id } = record
-							const newName = changes?.name?.value
-
-							const childToUpdate = eventRecord.children.find((child) => child.id === id)
-
-							const gridWidget = subtasksContainer?.widgetMap?.subtasksGridWidget
-							const labelWidget = gridWidget?.widgetMap?.deleteStatusLabel
-							const deleteButtonWidget = gridWidget?.widgetMap?.deleteButton
-
-							deleteButtonWidget?.hide()
-
-							if (!childToUpdate) {
-								console.warn('Could not find matching subtask in eventRecord.children for ID:', id)
-								return
-							}
-
-							if (childToUpdate.isPhantom) {
-								console.warn('The subtask is a phantom (unsaved). May cause duplication on save.')
-							}
-
-							if (newName) childToUpdate.set('name', newName)
-							childToUpdate.set('yesModified', true)
-
-							// Handle startDate and endDate changes
-							;['startDate', 'endDate'].forEach((field) => {
-								if (changes?.[field]) {
-									const newDate = changes?.[field]?.value
-									childToUpdate.set(field, newDate)
-									childToUpdate.set('yesModified', true)
-
-									const start = new Date(childToUpdate.startDate)
-									const end = new Date(childToUpdate.endDate)
-									const diffInDays = (end - start) / (1000 * 60 * 60 * 24)
-
-									childToUpdate.set('duration', diffInDays)
-									record.set('duration', diffInDays)
-								}
-							})
-
-							if (changes?.completed?.value) {
-								subTaskToBeDeleted.push(record?.data?.id)
-							} else {
-								subTaskToBeDeleted = subTaskToBeDeleted.filter((id) => id !== record?.data?.id)
-							}
-
-							if (labelWidget) {
-								if (subTaskToBeDeleted.length > 0) {
-									labelWidget.show()
-									labelWidget.html = `Items selected: ${subTaskToBeDeleted.length}`
-									deleteButtonWidget?.show()
-								} else {
-									labelWidget.hide()
-									deleteButtonWidget?.hide()
-								}
-							}
-						},
-					},
-				},
-
-				columns: [
-					{ type: 'check', text: '', field: 'completed', width: 70, editor: true, align: 'center' },
-					{ text: 'Task Name', field: 'name', flex: 0.5, editor: 'text', editable: true },
-					{
-						text: 'Mandays',
-						field: 'duration',
-						flex: 0.5,
-						editable: false,
-						renderer: ({ record }) => {
-							const start = new Date(record.data.startDate)
-							const end = new Date(record.data.endDate)
-							const diff = (end - start) / (1000 * 60 * 60 * 24)
-							return Number.isNaN(diff) ? '' : Math.round(diff)
-						},
-					},
-					{ text: 'Start Date', field: 'startDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
-					{ text: 'End Date', field: 'endDate', type: 'date', format: 'YYYY-MM-DD', flex: 1 },
-				],
-
-				bbar: [
-					'->',
-					{
-						type: 'label',
-						ref: 'deleteStatusLabel',
-						html: '',
-						hidden: true,
-						margin: '0 0.5em 0 1em',
-					},
-					{
-						type: 'button',
-						icon: 'b-icon b-icon-trash',
-						cls: 'b-blue',
-						ref: 'deleteButton',
-						hidden: true,
-						onClick: async () => {
-							try {
-								const res = await deleteTasks(subTaskToBeDeleted)
-
-								subTaskToBeDeleted.forEach((id) => {
-									const index = eventRecord.children.findIndex((child) => child.id === id)
-									if (index !== -1) eventRecord.children.splice(index, 1)
-									const taskRecord = scheduler.eventStore.getById(id)
-									if (taskRecord) scheduler.eventStore.remove(taskRecord)
-
-									const dataIndex = eventRecord.data?.children?.findIndex((child) => child.id === id)
-									if (dataIndex !== -1) eventRecord.data.children.splice(dataIndex, 1)
-								})
-
-								const gridWidget = subtasksContainer?.widgetMap?.subtasksGridWidget
-								const labelWidget = gridWidget?.widgetMap?.deleteStatusLabel
-								const deleteButtonWidget = gridWidget?.widgetMap?.deleteButton
-
-								labelWidget?.hide()
-								deleteButtonWidget?.hide()
-
-								gridWidget?.store?.loadData(eventRecord.children)
-								await scheduler.project.commitAsync()
-							} catch (e) {
-								console.error('Delete failed:', e)
-							}
-						},
-					},
-				],
-			})
-		}
-
-		if (eventRecord.children?.length) {
-			const sorted = [...(eventRecord.data?.children || [])].sort((a, b) => {
-				const aStart = new Date(a.startDate)
-				const bStart = new Date(b.startDate)
-				return aStart - bStart || new Date(a.endDate) - new Date(b.endDate)
-			})
-			createSubtasksGrid(sorted)
-		} else {
-			subtasksContainer?.add({ type: 'label', html: 'No subtasks', ref: 'noSubtasksLabel' })
-		}
-
-		subtasksContainer?.add({
-			type: 'button',
-			text: 'Add New Subtask',
-			cls: 'b-blue b-raised',
-			margin: '1em 0',
-			onClick: () => {
-				const sorted = [...(eventRecord?.children || [])].sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
-				const parentStart = moment(eventRecord.startDate)
-				const parentEnd = moment(eventRecord.endDate)
-
-				const cycleLength = parentEnd.diff(parentStart, 'days')
-				if (cycleLength <= 0) return
-
-				const validPairs = []
-				const temp = new Date(parentStart)
-
-				while (temp <= new Date(parentEnd)) {
-					const next = new Date(temp)
-					next.setDate(temp.getDate() + 1)
-					if (![0, 6].includes(temp.getDay()) && next <= new Date(parentEnd)) {
-						validPairs.push([new Date(temp), new Date(next)])
-					}
-					temp.setDate(temp.getDate() + 1)
-				}
-
-				const pairIndex = sorted.length % validPairs.length
-				const [startDateObj, endDateObj] = validPairs[pairIndex]
-
-				const newSubtaskData = {
-					id: Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 1000),
-					name: ' ',
-					startDate: startDateObj,
-					endDate: endDateObj,
-					duration: 1,
-					...eventRecord.data,
-					parent_task: eventRecord.id,
-					isSaved: false,
-					resourceId: sorted[sorted.length - 1]?.data?.resourceId,
-				}
-
-				const EventModel = scheduler.eventStore.modelClass
-				const newTaskModel = new EventModel(newSubtaskData)
-				eventRecord.appendChild(newTaskModel)
-
-				const grid = subtasksContainer?.widgetMap?.subtasksGridWidget
-				grid?.store?.add(newSubtaskData)
-
-				const newRecord = grid?.store?.last
-				const editingFeature = grid?.features?.cellEdit
-				if (editingFeature) {
-					setTimeout(() => {
-						requestAnimationFrame(() => {
-							editingFeature.startEditing({
-								record: newRecord,
-								field: 'name',
-							})
-						})
-					}, 10)
-				}
-			},
-		})
-		return true
 	}
 
 	useEffect(() => {
@@ -1939,13 +1707,19 @@ const Calender2 = ({
 
 					await scheduler.project.commitAsync()
 
+					if (eventRecord.children || eventRecord.data.children) {
+						eventRecord.children.forEach((child) => {
+							child.resourceId = `${newResourceID}-${team}`
+						})
+					}
+
 					const matchingTasks = scheduler.eventStore.query(
 						(event) => event.resourceId === targetResourceId && event.task_group_id === targetTaskGroupId
 					)
 
 					if (matchingTasks.length === 0) {
 						const resourceRow = scheduler.resourceStore.getById(targetResourceId)
-						console.log('Task updated successfully 123', resourceRow)
+						console.log('Task updated successfully 123', eventRecord)
 						if (resourceRow) {
 							scheduler.resourceStore.remove(resourceRow)
 							console.log(`Removed resource row with ID: ${targetResourceId}`)
@@ -2389,7 +2163,7 @@ const Calender2 = ({
 		return () => scheduler.destroy()
 	}, [events, resources])
 
-	// console.log('SchedulerRed', teamsInfo, teamsDetails)
+	console.log('SchedulerRed', teamsDetails)
 
 	if (isLoading) return <div>Loading...</div>
 	if (error) return <div>Error loading tasks</div>

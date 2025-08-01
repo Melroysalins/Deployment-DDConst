@@ -1,4 +1,5 @@
 import { supabase } from 'lib/api'
+import { values } from 'lodash'
 
 export const createNewProject = async (data) => {
 	const res = await supabase.from('projects').insert(data).select()
@@ -57,4 +58,9 @@ export const getSelectedWorkTypes = async (projectId) => {
 
 	if (error) throw error // Handle Supabase errors
 	return data // ✅ Return only the data, not the whole response
+}
+
+export const listParicularProjects = async (value) => {
+	const res = await supabase.from('projects').select('*').eq('id', value)
+	return res
 }

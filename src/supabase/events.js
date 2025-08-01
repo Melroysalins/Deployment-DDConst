@@ -5,14 +5,23 @@ import { supabase } from 'lib/api'
 //   return res;
 // };
 export const listAllEvents = async (filters) => {
-  let filter = Object.keys(filters).map((itm) => `type.eq.${itm}`);
-  filter = filter.join(',');
-  const { data: events, error } = await supabase.from('events').select('*').or(filter);
-  if (error) {
-    return [];
-  }
-  return events;
-};
+	let filter = Object.keys(filters).map((itm) => `type.eq.${itm}`)
+	filter = filter.join(',')
+	const { data: events, error } = await supabase.from('events').select('*').or(filter)
+	if (error) {
+		return []
+	}
+	return events
+}
+export const listSelectedEvents = async (filters, project) => {
+	let filter = Object.keys(filters).map((itm) => `type.eq.${itm}`)
+	filter = filter.join(',')
+	const { data: events, error } = await supabase.from('events').select('*').or(filter).eq('project', project)
+	if (error) {
+		return []
+	}
+	return events
+}
 export const createNewEvent = async (data) => {
 	const res = await supabase.from('events').insert([data])
 	return res

@@ -51,3 +51,13 @@
 		align-items: center;
 	}
 }
+
+
+.b-grid-row .b-tree-icon.b-icon.b-icon-tree-leaf {
+  display: none;
+}
+
+.b-grid-header-text:contains("Employee") {
+    font-weight: bold;
+	
+}

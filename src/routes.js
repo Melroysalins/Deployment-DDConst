@@ -25,6 +25,7 @@ import Register from './pages/Register'
 import User from './pages/User'
 import WeeklyPlan from './pages/WeeklyPlan/WeeklyPlan'
 import WorkforcePlanning from './pages/WorkforcePlanning/WorkforcePlanning'
+import NewWorkfocePlanning from 'pages/WorkforcePlanning/newWorkfocePlanning'
 // ----------------------------------------------------------------------
 
 export default function Router() {
@@ -46,7 +47,7 @@ export default function Router() {
 						{ path: ':id', element: <ProjectDetails /> },
 
 						{ path: ':id/weekly-plan', element: <WeeklyPlan /> },
-						{ path: ':project/workforce-planning', element: <WorkforcePlanning /> },
+						{ path: ':projectid/workforce-planning', element: <NewWorkfocePlanning /> },
 						{ path: ':id/project-schedule', element: <ProjectImplementationSchedule /> },
 					],
 				},

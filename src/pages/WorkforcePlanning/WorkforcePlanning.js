@@ -19,9 +19,9 @@ import './calendar.scss'
 
 import { Loader, getHolidays } from 'reusables'
 import BasicTabs from 'components/Drawer/BasicTabs'
-import { listAllEvents, createNewEvent, deleteEvent } from 'supabase/events'
-import { listAllEmployees } from 'supabase/employees'
-import { getProjectDetails, listAllProjects } from 'supabase/projects'
+import { listAllEvents, createNewEvent, deleteEvent, listSelectedEvents } from 'supabase/events'
+import { listAllEmployees, listEmployeesByProject } from 'supabase/employees'
+import { getProjectDetails, listAllProjects, listParicularProjects } from 'supabase/projects'
 
 import Page from '../../components/Page'
 import EventHeader from 'components/EventHeader'
@@ -29,6 +29,7 @@ import { Stack, Typography, Button as MuiButton, styled, Avatar, Box } from '@mu
 import { useParams } from 'react-router-dom'
 import Iconify from 'components/Iconify'
 import useMain from 'pages/context/context'
+import { id } from 'date-fns/locale'
 
 setOptions({
 	theme: 'ios',
@@ -123,6 +124,10 @@ function App() {
 	const [projectError, setProjectError] = React.useState(false)
 	const [holidays, setHolidays] = React.useState(defaultHolidays)
 	const { setisDrawerOpen, isDrawerOpen, setapprovalIdDrawerRight } = useMain()
+
+	const { projectid } = useParams()
+	console.log('use params', projectid)
+
 	const handleSetEvent = (data) => {
 		console.log('handleEventCalled', data)
 		setMyEvents(data.map((e) => ({ ...e, resource: e.employee })))
@@ -143,13 +148,18 @@ function App() {
 			//   ]);
 			//   setMyResources(data);
 			// });
+			listAllEvents(filters).then((data) => console.log('listall events', data))
+			listSelectedEvents(filters, projectid).then((data) => console.log('listall events', data))
 
 			listAllEvents(filters).then((data) => handleSetEvent(data))
 
-			listAllProjects().then((data) => {
+			// listEmployeesByProject(projectid).then((data) => console.log('list all projects 1', data))
+
+			listParicularProjects(projectid).then((data) => {
+				// console.log('list all projects 1', data)
 				data = data?.data.map((item) => ({ text: item.title, value: item.id }))
 
-				listAllEmployees().then((dataEmp) => {
+				listEmployeesByProject(projectid).then((dataEmp) => {
 					const groupedEmployees = {}
 					dataEmp.data.forEach((employee) => {
 						const projectId = employee.project || 'No Project'
@@ -165,7 +175,10 @@ function App() {
 						groupedEmployees[projectId].children.push(employee)
 					})
 					setMyResources(Object.values(groupedEmployees))
+
+					console.log('list all projects 2', data, groupedEmployees)
 				})
+
 				setLoader(false)
 				setProjectSites(data)
 			})
@@ -178,6 +191,7 @@ function App() {
 	const { project } = useParams()
 	const fetchData = async (id) => {
 		const res = await getProjectDetails(id)
+		console.log('project Details', res)
 		if (res.status === 404) return
 		setData(res.data)
 	}
@@ -402,7 +416,7 @@ function App() {
 		</Stack>
 	)
 
-	console.log('myevents', myResources, projectSites)
+	console.log('myevents', myResources)
 
 	return (
 		<>
