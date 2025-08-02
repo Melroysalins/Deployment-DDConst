@@ -155,11 +155,11 @@ function App() {
 
 			// listEmployeesByProject(projectid).then((data) => console.log('list all projects 1', data))
 
-			listParicularProjects(projectid).then((data) => {
+			listAllProjects().then((data) => {
 				// console.log('list all projects 1', data)
 				data = data?.data.map((item) => ({ text: item.title, value: item.id }))
 
-				listEmployeesByProject(projectid).then((dataEmp) => {
+				listAllEmployees().then((dataEmp) => {
 					const groupedEmployees = {}
 					dataEmp.data.forEach((employee) => {
 						const projectId = employee.project || 'No Project'
@@ -222,6 +222,7 @@ function App() {
 				type: 'dw',
 			}
 			createNewEvent(newEvent).then((res) => {
+				console.log('afterSave', res, newEvent)
 				listAllEvents(filters).then((data) => {
 					setLoader(false)
 					handleSetEvent(data)
@@ -528,3 +529,9 @@ function App() {
 }
 
 export default App
+
+export function sanitizeForDataId(str) {
+	return str
+		.replace(/[^a-zA-Z0-9-_ ]/g, '') // Remove or replace problematic characters
+		.replace(/\s+/g, '_') // Replace spaces with underscores
+}

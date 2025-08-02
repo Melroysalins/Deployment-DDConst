@@ -48,6 +48,7 @@ import { listAllEvents, createNewEvent, deleteEvent, listSelectedEvents } from '
 import { listAllEmployees, listEmployeesByProject } from 'supabase/employees'
 import { getProjectDetails, listAllProjects, listParicularProjects } from 'supabase/projects'
 import { Field } from 'formik'
+import { sanitizeForDataId } from './WorkforcePlanning'
 
 const filters = { dw: true }
 
@@ -70,6 +71,12 @@ const NewWorkfocePlanning = () => {
 	const myQueryClient = useQueryClient()
 
 	const { projectid } = useParams()
+
+	const {
+		data: allProjectSites = [],
+		isLoading,
+		isError,
+	} = useQuery(['allProjectSites'], () => listAllProjects().then((res) => res.data))
 
 	function generateUniqueId({ name, email_address, project, phone_number }) {
 		const base = `${name}-${email_address}-${project}-${phone_number}`
@@ -108,10 +115,10 @@ const NewWorkfocePlanning = () => {
 		;(async function () {
 			setLoader(true)
 
-			listParicularProjects(projectid).then((data) => {
+			listAllProjects().then((data) => {
 				const mappedProjects = data?.data.map((item) => ({ text: item.title, value: item.id }))
 
-				listEmployeesByProject(projectid).then((dataEmp) => {
+				listAllEmployees().then((dataEmp) => {
 					const groupedEmployees = {}
 
 					dataEmp.data.forEach((employee) => {
@@ -149,28 +156,55 @@ const NewWorkfocePlanning = () => {
 
 	useEffect(() => {
 		if (!myResources?.length) return
-		listSelectedEvents(filters, projectid).then((eventData) => {
+
+		// listAllProjects().then((data) => SetAllProjectSites(data?.data))
+
+		listAllEvents(filters).then((eventData) => {
 			const eventsArray = []
+
+			// myResources?.forEach((group) => {
+			// 	group?.children?.forEach((item) => {
+			// 		const matchingEvent = eventData?.map((ev) => ev.employee === item.id)
+
+			// 		console.log('events', matchingEvent)
+
+			// 		if (matchingEvent) {
+			// 			eventsArray.push({
+			// 				id: matchingEvent.employee,
+			// 				resourceId: item.id,
+			// 				startDate: matchingEvent.start,
+			// 				endDate: matchingEvent.end,
+			// 				employee: matchingEvent.employee,
+			// 				project: matchingEvent.project,
+			// 				stat: matchingEvent.stat,
+			// 				status: matchingEvent.status,
+			// 				sub_type: matchingEvent.sub_type,
+			// 				name: matchingEvent.title,
+			// 				type: matchingEvent.type,
+			// 			})
+			// 		}
+			// 	})
+			// })
 
 			myResources?.forEach((group) => {
 				group?.children?.forEach((item) => {
-					const matchingEvent = eventData?.find((ev) => ev.employee === item.id)
+					const matchingEvents = eventData?.filter((ev) => ev.employee === item.id)
 
-					if (matchingEvent) {
+					matchingEvents.forEach((event) => {
 						eventsArray.push({
-							id: matchingEvent.employee,
-							resourceId: item.newid,
-							startDate: matchingEvent.start,
-							endDate: matchingEvent.end,
-							employee: matchingEvent.employee,
-							project: matchingEvent.project,
-							stat: matchingEvent.stat,
-							status: matchingEvent.status,
-							sub_type: matchingEvent.sub_type,
-							title: matchingEvent.title,
-							type: matchingEvent.type,
+							id: event.id, // Use actual event.id, not employee ID
+							resourceId: item.id,
+							startDate: event.start,
+							endDate: event.end,
+							employee: event.employee,
+							project: event.project,
+							stat: event.stat,
+							status: event.status,
+							sub_type: event.sub_type,
+							name: event.title,
+							type: event.type,
 						})
-					}
+					})
 				})
 			})
 
@@ -192,7 +226,7 @@ const NewWorkfocePlanning = () => {
 	const project = React.useMemo(() => {
 		if (!events?.length || !myResources?.length)
 			return new ProjectModel({
-				eventsData: [],
+				eventsData: [...events],
 				resourcesData: myResources,
 				dependencyStore: new DependencyStore({ data: [], autoLoad: true }),
 			})
@@ -206,8 +240,6 @@ const NewWorkfocePlanning = () => {
 			// }),
 		})
 	}, [myResources, events])
-
-	console.log('events', project)
 
 	useEffect(() => {
 		if (!schedulerRef.current) return
@@ -230,7 +262,6 @@ const NewWorkfocePlanning = () => {
 			viewPreset: customMonthViewPreset,
 			tickSize: 100,
 			rowHeight: 100,
-			// endDateIsInclusive: true,
 			eventLayout: 'stack',
 			dependenciesFeature: true,
 			dependencyEditFeature: true,
@@ -243,6 +274,52 @@ const NewWorkfocePlanning = () => {
 			},
 			snapToIncrement: true,
 			features: {
+				taskEdit: {
+					editorConfig: {
+						title: 'Task Info ',
+					},
+					items: {
+						generalTab: {
+							title: 'General',
+							items: {
+								nameField: {
+									type: 'combo',
+									name: 'name',
+									label: 'Project Sites',
+									required: true,
+									value: null,
+									weight: 100,
+									items:
+										allProjectSites?.map((item) => ({
+											value: sanitizeForDataId(item?.title),
+											text: item?.title,
+										})) || [],
+								},
+								startDateField: {
+									type: 'datefield',
+									name: 'startDate',
+									label: 'Start Date',
+									format: 'YYYY-MM-DD',
+									weight: 200,
+								},
+								endDateField: {
+									type: 'datefield',
+									name: 'endDate',
+									label: 'End Date',
+									format: 'YYYY-MM-DD',
+									weight: 300,
+								},
+								effortField: false,
+								resourcesField: false,
+								completedField: false,
+							},
+						},
+						notesTab: true,
+						predecessorsTab: true,
+						successorsTab: true,
+						resourcesTab: false,
+					},
+				},
 				tree: true,
 				dependencyEdit: true,
 				nestedEvents: true,
@@ -295,7 +372,7 @@ const NewWorkfocePlanning = () => {
 				{
 					type: 'tree',
 					text: 'Employee',
-					field: 'name', // Use the correct field in your resource data
+					field: 'name',
 					width: 250,
 					headerRenderer: () => '<b style="font-weight: 800; font-size: 18px;">Employee</b>',
 					htmlEncode: false,
@@ -309,7 +386,7 @@ const NewWorkfocePlanning = () => {
 						}
 
 						const rating = record.rating || ''
-						const badge = rating === 'A' ? '🟠' : rating === 'B' ? '🟡' : '👤'
+						const badge = '👤'
 
 						const teamLeadTag = record.data.team_lead
 							? `<span style="background-color: #ff7b00; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 13px;">TEAM LEAD</span>`
@@ -325,16 +402,12 @@ const NewWorkfocePlanning = () => {
 			],
 
 			project,
-			eventRenderer: ({ eventRecord }) => {
-				const originalName = eventRecord.name
-
-				const startDate = new Date(eventRecord.startDate)
-				const endDate = new Date(eventRecord.endDate)
-
-				const durationDays = DateHelper.diff(startDate, endDate, 'day')
-			},
 
 			listeners: {
+				beforeEventAdd: ({ eventRecord }) => {
+					// Clear name so combo box starts blank
+					eventRecord.set('name', null)
+				},
 				beforeDependencySave: (data) => {
 					console.log('before Dependency save:', data)
 				},
@@ -478,6 +551,39 @@ const NewWorkfocePlanning = () => {
 				},
 			},
 		})
+		scheduler.on('afterEventSave', async ({ eventRecord }) => {
+			const startDate = eventRecord.startDate
+			const endDate = eventRecord.endDate
+			const resourceID = eventRecord.resourceId
+			const name = eventRecord.name
+
+			const backendStartDate = DateHelper.format(startDate, 'YYYY-MM-DD')
+			const backendEndDate = DateHelper.format(endDate, 'YYYY-MM-DD')
+
+			const newEvent = {
+				title: name,
+				start: backendStartDate,
+				end: backendEndDate,
+				project: projectid,
+				employee: resourceID,
+				type: 'dw',
+			}
+
+			createNewEvent(newEvent).then((res) => {
+				if (res?.error === null) {
+					// eventRecord.set({ id: resourceID })
+				}
+				console.log('afterSave', res, newEvent)
+			})
+		})
+
+		scheduler.on('eventMenuItem', async ({ item, eventRecord }) => {
+			if (item.text === 'Delete') {
+				deleteEvent(eventRecord.id).then((res) => {
+					console.log('delete clicked', res)
+				})
+			}
+		})
 
 		scheduler.displayDateFormat = 'll'
 
@@ -488,6 +594,8 @@ const NewWorkfocePlanning = () => {
 
 		return () => scheduler.destroy()
 	}, [myResources, events])
+
+	console.log('events', events, myResources)
 
 	return <div ref={schedulerRef} style={{ height: '900px', width: '100%', marginTop: '15px' }} />
 }
