@@ -3,37 +3,35 @@ import moment from 'moment'
 import { dummyArrayEmpty } from 'utils/helper'
 
 export const getTeResources = async (id) => {
-	const { data: projects, error } = await supabase
-		.from('projects_teams_employees')
-		.select('*')
-		.not('teams', 'is', null)
-		.eq('id', id)
-	const { data: teamEmployees, error: error2 } = await supabase
-		.from('teams_employees')
-		.select('*')
-		.not('employees', 'is', null)
-	if (error || error2) {
-		console.log('in error')
-		return error
+	// Since we only have teams_employees table, we'll fetch teams and create a mock project structure
+	const { data: teamEmployees, error } = await supabase.from('teams_employees').select('*').not('employees', 'is', null)
+
+	if (error) {
+		console.log('Error fetching teams_employees:', error)
+		return { error }
 	}
-	const returnData = projects.map((project) => ({
-		id: `project_|${project.id}`,
-		projectTitle: project.title,
-		branchTitle: project.title,
-		children: project.teams.map((team) => {
-			const { employees } = teamEmployees.find((e) => e.id === team.id) || {}
-			return {
-				id: `team_ |${team.id}`,
-				// "created_at": "2022-10-07T04:37:36.062981+00:00",
+
+	console.log('Supabse getTeRespurces', teamEmployees)
+
+	// Create a mock project structure using the project id
+	const returnData = [
+		{
+			id: `project_|${id}`,
+			projectTitle: `Project ${id}`,
+			branchTitle: `Project ${id}`,
+			children: teamEmployees.map((team) => ({
+				id: `team_|${team.name}`,
 				name: team.name,
-				team_type: team.type,
-				start: team.start,
-				end: team.end,
-				children: employees,
-			}
-		}),
-	}))
-	// console.log(inspect(returnData, true, 5));
+				team_type: 'default',
+				start: null,
+				end: null,
+				children: team.employees || [],
+			})),
+		},
+	]
+
+	console.log('Supabse getTeRespurces', returnData)
+
 	return returnData
 }
 
@@ -152,10 +150,12 @@ export const getTeamTitleEvents = async (projectId) => {
 	const { data: teamEmployees } = await supabase.from('teams_employees').select('*').not('employees', 'is', null)
 
 	project_tasks.map(async ({ team, start, end }) => {
-		const { employees } = teamEmployees.find((e) => e.id === team)
+		console.log('teamEmployee', teamEmployees)
+		const teamData = teamEmployees?.find((e) => e.id === team)
+		const employees = teamData?.employees || []
 
 		events.push({
-			title: `EMPLOYEES: ${employees.map((x) => x.name).join(', ')}`,
+			title: `EMPLOYEES: ${employees?.map((x) => x.name).join(', ')}`,
 			resource: `team_ |${team}`,
 			start,
 			end,
