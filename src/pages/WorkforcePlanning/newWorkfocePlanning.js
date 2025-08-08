@@ -20,6 +20,8 @@ import {
 } from '../../lib/bryntum/schedulerpro.module'
 import '../../lib/bryntum/schedulerpro.stockholm.css'
 
+import './customstyle.css'
+
 import {
 	createNewTasks,
 	listAllTasksByProject2,
@@ -162,30 +164,6 @@ const NewWorkfocePlanning = () => {
 		listAllEvents(filters).then((eventData) => {
 			const eventsArray = []
 
-			// myResources?.forEach((group) => {
-			// 	group?.children?.forEach((item) => {
-			// 		const matchingEvent = eventData?.map((ev) => ev.employee === item.id)
-
-			// 		console.log('events', matchingEvent)
-
-			// 		if (matchingEvent) {
-			// 			eventsArray.push({
-			// 				id: matchingEvent.employee,
-			// 				resourceId: item.id,
-			// 				startDate: matchingEvent.start,
-			// 				endDate: matchingEvent.end,
-			// 				employee: matchingEvent.employee,
-			// 				project: matchingEvent.project,
-			// 				stat: matchingEvent.stat,
-			// 				status: matchingEvent.status,
-			// 				sub_type: matchingEvent.sub_type,
-			// 				name: matchingEvent.title,
-			// 				type: matchingEvent.type,
-			// 			})
-			// 		}
-			// 	})
-			// })
-
 			myResources?.forEach((group) => {
 				group?.children?.forEach((item) => {
 					const matchingEvents = eventData?.filter((ev) => ev.employee === item.id)
@@ -203,6 +181,7 @@ const NewWorkfocePlanning = () => {
 							sub_type: event.sub_type,
 							name: event.title,
 							type: event.type,
+							cls: `custom-colored-event`,
 						})
 					})
 				})
@@ -212,16 +191,6 @@ const NewWorkfocePlanning = () => {
 			SetSelectedEvents(eventData)
 		})
 	}, [myResources])
-
-	// const weekendTimeRanges = resources.map((resource, index) => ({
-	// 	id: `weekend-${resource.id || index}`, // give each a unique id
-	// 	resourceId: resource.id, // dynamic resourceId from your resources array
-	// 	cls: 'light-red-time-range', // your custom class
-	// 	name: '',
-	// 	startDate: '2025-01-05T00:00:00', // starting from a Saturday
-	// 	duration: 1,
-	// 	recurrenceRule: 'FREQ=WEEKLY;BYDAY=SA,SU',
-	// }))
 
 	const project = React.useMemo(() => {
 		if (!events?.length || !myResources?.length)
@@ -376,27 +345,70 @@ const NewWorkfocePlanning = () => {
 					width: 250,
 					headerRenderer: () => '<b style="font-weight: 800; font-size: 18px;">Employee</b>',
 					htmlEncode: false,
+					// 		renderer: ({ record }) => {
+					// 			console.log('record', record, record.name, record.data.team_lead)
+					// 			const isGroup = record.children?.length > 0
+					// 			const name = record.name || ' '
+
+					// 			if (isGroup) {
+					// 				return `<b style="margin-left:5px">${name}</b>`
+					// 			}
+
+					// 			const rating = record.rating || ''
+					// 			const badge = '👤'
+
+					// 			const teamLeadTag = record.data.team_lead
+					// 				? `<span style="background-color: #ff7b00; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 13px;">TEAM LEAD</span>`
+					// 				: ''
+
+					// 			return `
+					// <span style="margin-right: 8px; font-weight:600">${badge}</span>
+					// <span>${name}</span>
+					// ${teamLeadTag}
+					// `
+					// 		},
+
 					renderer: ({ record }) => {
 						console.log('record', record, record.name, record.data.team_lead)
+
 						const isGroup = record.children?.length > 0
-						const name = record.name
+						const name = record.name || ' '
 
 						if (isGroup) {
-							return `<b style="margin-left:5px">${name}</b>`
+							return `<b style="margin-left:5px;font-weight:800;font-size:19px">${name}</b>`
 						}
 
-						const rating = record.rating || ''
-						const badge = '👤'
+						// Rating circle logic
+						const rating = record.data?.rating || '👤'
+						let bgColor = '#eee' // default color
+						if (rating === 'A') bgColor = 'orange'
+						else if (rating === 'B') bgColor = 'red'
 
+						const ratingIcon = `
+        <span style="
+            background-color: ${bgColor}; 
+            color: white; 
+            border-radius: 50%; 
+            height: 25px; 
+            width: 25px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            font-size: 12px;
+            font-weight: 700;
+        ">${rating}</span>
+    `
+
+						// TEAM LEAD badge
 						const teamLeadTag = record.data.team_lead
 							? `<span style="background-color: #ff7b00; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 13px;">TEAM LEAD</span>`
 							: ''
 
 						return `
-            <span style="margin-right: 8px; font-weight:600">${badge}</span>
-            <span>${name}</span>
-            ${teamLeadTag}
-            `
+        ${ratingIcon}
+        <span style="margin-left: 8px ; font-weight:600;">${name}</span>
+        ${teamLeadTag}
+    `
 					},
 				},
 			],

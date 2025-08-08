@@ -1,0 +1,14 @@
+.b-sch-event.custom-colored-event  {
+	background-color: #5ac8fa !important;
+	border-width: 2px;
+	border-style: solid;
+    color: black !important;
+    border-radius: 30px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+    height: 33px !important;
+    border-color:  none !important;
+}
+
+.b-sch-event-wrap.b-sch-style-plain.b-sch-color-green {
+    background-color: transparent !important;
+}
