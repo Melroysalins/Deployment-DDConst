@@ -51,8 +51,36 @@ import { listAllEmployees, listEmployeesByProject } from 'supabase/employees'
 import { getProjectDetails, listAllProjects, listParicularProjects } from 'supabase/projects'
 import { Field } from 'formik'
 import { sanitizeForDataId } from './WorkforcePlanning'
+import { Button, Stack, Button as MuiButton, Box } from '@mui/material'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
+import MenuIcon from '@mui/icons-material/Menu'
+import RightDrawer from 'components/RightDrawer'
+import BasicTabs from 'components/Drawer/BasicTabs'
+import useMain from 'pages/context/context'
+import Iconify from 'components/Iconify'
+import { useTranslation } from 'react-i18next'
+import dayjs from 'dayjs'
 
 const filters = { dw: true }
+
+const twoMonthViewPreset = {
+	base: 'monthAndYear', // Base on month/year preset
+	tickWidth: 100, // Width of each day/week tick
+	headers: [
+		{
+			unit: 'month',
+			dateFormat: 'MMMM YYYY',
+		},
+		{
+			unit: 'day',
+			dateFormat: 'D',
+		},
+	],
+	// Show 2 months
+	tickSize: 50,
+	timeResolution: { unit: 'day', increment: 1 },
+}
 
 const NewWorkfocePlanning = () => {
 	const [teamsDetails, SetTeamDetails] = useState([])
@@ -61,6 +89,33 @@ const NewWorkfocePlanning = () => {
 	const [projectSites, setProjectSites] = useState([])
 	const [selectedEvents, SetSelectedEvents] = useState([])
 	const [events, SetEvents] = useState([])
+
+	const [isRightDrawerOpen, SetIsRightDrawerOPen] = useState(false)
+
+	const [showNavigationButton, SetShowNavigationButton] = useState(true)
+
+	const [dataConfig, SetDataConfig] = useState({
+		startDate: null,
+		endDate: null,
+		quickNav: null,
+		Special: '0',
+		Tier1: '0',
+		Tier2: '0',
+		Tier3: '0',
+		projectLeadCertificate: [],
+		availability: '',
+		allowSplitAssignment: false,
+		allowHigherTier: false,
+		allowLowerTier: false,
+		allowOtherCompaniesStaff: false,
+		allowSelectSingleRecommendation: false,
+	})
+
+	const [schdulerStartDate, SetSchedulerStartDate] = useState('')
+	const [SchedulerEndDate, SetSchedulerEndDate] = useState('')
+
+	// Request approval and drawer functionality from original WorkforcePlanning
+	const { setisDrawerOpen, isDrawerOpen, setapprovalIdDrawerRight } = useMain()
 
 	const schedulerRef = useRef(null)
 
@@ -73,6 +128,10 @@ const NewWorkfocePlanning = () => {
 	const myQueryClient = useQueryClient()
 
 	const { projectid } = useParams()
+
+	const schedulerInstance = useRef(null)
+
+	const { i18n, t } = useTranslation(['workforce'])
 
 	const {
 		data: allProjectSites = [],
@@ -135,6 +194,8 @@ const NewWorkfocePlanning = () => {
 								children: [],
 							}
 						}
+
+						console.log('events200', employee)
 
 						const uniqueId = generateUniqueId(employee)
 
@@ -210,11 +271,91 @@ const NewWorkfocePlanning = () => {
 		})
 	}, [myResources, events])
 
+	function shiftMonths(months, scheduler) {
+		const currentStart = scheduler.startDate
+		const newStart = new Date(currentStart)
+		newStart.setMonth(newStart.getMonth() + months)
+
+		const newEnd = new Date(newStart)
+		newEnd.setMonth(newEnd.getMonth() + 3)
+
+		scheduler.setTimeSpan(newStart, newEnd)
+	}
+
+	function getDateRange(events) {
+		if (!events.length) return { minStart: null, maxEnd: null }
+
+		const minStart = events.reduce(
+			(min, ev) => (dayjs(ev.startDate).isBefore(min) ? dayjs(ev.startDate) : min),
+			dayjs(events[0].startDate)
+		)
+
+		const maxEnd = events.reduce(
+			(max, ev) => (dayjs(ev.endDate).isAfter(max) ? dayjs(ev.endDate) : max),
+			dayjs(events[0].endDate)
+		)
+
+		return {
+			minStart: minStart.format('YYYY-MM-DD'),
+			maxEnd: maxEnd.format('YYYY-MM-DD'),
+		}
+	}
+
+	const handleConfirmFilter = async () => {
+		SetIsRightDrawerOPen(false)
+
+		const { startDate, endDate, quickNav } = dataConfig
+
+		const { minStart, maxEnd } = getDateRange(events)
+
+		if (startDate && endDate === null) {
+			const newEndDate = dayjs(startDate).add(3, 'month').format('YYYY-MM-DD')
+			SetSchedulerStartDate(startDate)
+			SetSchedulerEndDate(newEndDate)
+		} else {
+			SetSchedulerStartDate(startDate)
+			SetSchedulerEndDate(endDate)
+		}
+
+		await project.commitAsync()
+
+		if (quickNav) {
+			let start = dayjs(schedulerInstance.current.startDate || startDate)
+
+			let end = null
+			SetShowNavigationButton(true)
+			switch (quickNav) {
+				case '1 Month':
+					end = start.add(1, 'month')
+					break
+				case '2 Months':
+					end = start.add(2, 'month')
+					break
+				case 'This Year':
+					end = start.endOf('year')
+					SetShowNavigationButton(false)
+					break
+				case 'All Project':
+					start = dayjs(minStart)
+					end = dayjs(maxEnd)
+					SetShowNavigationButton(false)
+					break
+				default:
+					return
+			}
+
+			SetSchedulerStartDate(start)
+			SetSchedulerEndDate(end)
+
+			console.log('Confirm FIlter called 2', start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD'))
+		}
+	}
+
 	useEffect(() => {
 		if (!schedulerRef.current) return
 
-		PresetManager.add(CustomViewDay)
-		PresetManager.add(customMonthViewPreset)
+		// PresetManager.add(CustomViewDay)
+		// PresetManager.add(customMonthViewPreset)
 
 		const ganttProps = {
 			stripeFeature: true,
@@ -224,13 +365,15 @@ const NewWorkfocePlanning = () => {
 		const currentZoomIndex = 1
 
 		const scheduler = new SchedulerPro({
+			startDate: schdulerStartDate ? new Date(schdulerStartDate) : new Date(2025, 0, 1),
+			endDate: SchedulerEndDate ? new Date(SchedulerEndDate) : new Date(2025, 2, 28),
 			appendTo: schedulerRef.current,
 			autoHeight: true,
 			width: '100%',
-			infiniteScroll: true,
-			viewPreset: customMonthViewPreset,
-			tickSize: 100,
-			rowHeight: 100,
+			infiniteScroll: false,
+			viewPreset: twoMonthViewPreset,
+			tickSize: 50,
+			rowHeight: 60,
 			eventLayout: 'stack',
 			dependenciesFeature: true,
 			dependencyEditFeature: true,
@@ -345,28 +488,6 @@ const NewWorkfocePlanning = () => {
 					width: 250,
 					headerRenderer: () => '<b style="font-weight: 800; font-size: 18px;">Employee</b>',
 					htmlEncode: false,
-					// 		renderer: ({ record }) => {
-					// 			console.log('record', record, record.name, record.data.team_lead)
-					// 			const isGroup = record.children?.length > 0
-					// 			const name = record.name || ' '
-
-					// 			if (isGroup) {
-					// 				return `<b style="margin-left:5px">${name}</b>`
-					// 			}
-
-					// 			const rating = record.rating || ''
-					// 			const badge = '👤'
-
-					// 			const teamLeadTag = record.data.team_lead
-					// 				? `<span style="background-color: #ff7b00; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 13px;">TEAM LEAD</span>`
-					// 				: ''
-
-					// 			return `
-					// <span style="margin-right: 8px; font-weight:600">${badge}</span>
-					// <span>${name}</span>
-					// ${teamLeadTag}
-					// `
-					// 		},
 
 					renderer: ({ record }) => {
 						console.log('record', record, record.name, record.data.team_lead)
@@ -385,19 +506,19 @@ const NewWorkfocePlanning = () => {
 						else if (rating === 'B') bgColor = 'red'
 
 						const ratingIcon = `
-        <span style="
-            background-color: ${bgColor}; 
-            color: white; 
-            border-radius: 50%; 
-            height: 25px; 
-            width: 25px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            font-size: 12px;
-            font-weight: 700;
-        ">${rating}</span>
-    `
+								<span style="
+									background-color: ${bgColor}; 
+									color: white; 
+									border-radius: 50%; 
+									height: 25px; 
+									width: 25px; 
+									display: flex; 
+									justify-content: center; 
+									align-items: center;
+									font-size: 12px;
+									font-weight: 700;
+								">${rating}</span>
+							`
 
 						// TEAM LEAD badge
 						const teamLeadTag = record.data.team_lead
@@ -599,17 +720,85 @@ const NewWorkfocePlanning = () => {
 
 		scheduler.displayDateFormat = 'll'
 
+		schedulerInstance.current = scheduler
+
 		// // ✅ Proper async commit block
 		;(async () => {
 			await scheduler.project.commitAsync()
 		})()
 
 		return () => scheduler.destroy()
-	}, [myResources, events])
+	}, [myResources, events, schdulerStartDate, SchedulerEndDate])
 
-	console.log('events', events, myResources)
+	return (
+		<>
+			{/* Request Approval and Drawer Controls */}
+			<Box sx={{ display: 'flex', gap: '10px', position: 'absolute', top: 28, right: 44, zIndex: 1000 }}>
+				<MuiButton size="small" variant="contained" color="inherit" sx={{ padding: 1, minWidth: 0 }}>
+					<Iconify icon="material-symbols:download-rounded" width={20} height={20} />
+				</MuiButton>
+				<MuiButton
+					onClick={() => {
+						setapprovalIdDrawerRight(null)
+						setisDrawerOpen(true)
+					}}
+					variant="contained"
+					size="medium"
+					color="inherit"
+					sx={{ background: '#8D99FF', marginLeft: 1, minWidth: 40, width: 40, padding: '5px 0', height: 37 }}
+				>
+					<Iconify icon="uil:bars" width={25} height={25} color="white" />
+				</MuiButton>
+			</Box>
 
-	return <div ref={schedulerRef} style={{ height: '900px', width: '100%', marginTop: '15px' }} />
+			<Stack direction={'row'} gap={2} alignItems={'flex-end'} justifyContent={'flex-end'} mt={4}>
+				<Button
+					onClick={() => {
+						SetIsRightDrawerOPen(true)
+					}}
+					variant="outlined"
+					display={'flex'}
+					alignItems={'center'}
+					gap={'10px'}
+					background={'red'}
+				>
+					{t('Find Employees')}
+				</Button>
+			</Stack>
+			{showNavigationButton && (
+				<Stack direction={'row'} gap={2} alignItems={'center'} justifyContent={'space-between'} marginTop={'18px'}>
+					<Button
+						variant="contained"
+						style={{ background: '#eeee', boxShadow: 'none' }}
+						onClick={() => shiftMonths(-3, schedulerInstance.current)}
+					>
+						<NavigateBeforeIcon style={{ color: 'black' }} />
+					</Button>
+					<Button
+						variant="contained"
+						style={{ background: '#eeee', boxShadow: 'none' }}
+						onClick={() => shiftMonths(3, schedulerInstance.current)}
+					>
+						<NavigateNextIcon style={{ color: 'black' }} />
+					</Button>
+				</Stack>
+			)}
+			<div ref={schedulerRef} style={{ height: '900px', width: '100%', marginTop: '15px' }} />
+
+			{isRightDrawerOpen && (
+				<RightDrawer
+					isRightDrawerOpen={isRightDrawerOpen}
+					SetIsRightDrawerOPen={SetIsRightDrawerOPen}
+					dataConfig={dataConfig}
+					SetDataConfig={SetDataConfig}
+					handleConfirmFilter={handleConfirmFilter}
+				/>
+			)}
+
+			{/* Request Approval Drawer from original WorkforcePlanning */}
+			{isDrawerOpen && <BasicTabs open={isDrawerOpen} setopen={setisDrawerOpen} />}
+		</>
+	)
 }
 
 export default NewWorkfocePlanning
