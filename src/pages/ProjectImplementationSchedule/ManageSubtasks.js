@@ -229,7 +229,7 @@ export default function ManageSubtasksDialog({ open, onClose, eventRecord, sched
 						scheduler.eventStore.remove(tempSubtask)
 					}
 
-					const newTaskRecord = scheduler.eventStore.add(bryntumReadySubtask)[0]
+					// const newTaskRecord = scheduler.eventStore.add(bryntumReadySubtask)[0]
 
 					if (!eventRecord.data.children) {
 						eventRecord.data.children = []
@@ -240,6 +240,11 @@ export default function ManageSubtasksDialog({ open, onClose, eventRecord, sched
 					// 	startDate: backendNewSubtask.start_date,
 					// 	endDate: backendNewSubtask.end_date,
 					// })
+
+					let newTaskRecord = scheduler.eventStore.getById(backendNewSubtask.id)
+					if (!newTaskRecord) {
+						newTaskRecord = scheduler.eventStore.add(bryntumReadySubtask)[0]
+					}
 
 					scheduler.assignmentStore.add({
 						id: Date.now(),
@@ -269,7 +274,7 @@ export default function ManageSubtasksDialog({ open, onClose, eventRecord, sched
 			if (existing) {
 				existing.set(model.data)
 			} else {
-				eventRecord.appendChild(model)
+				// eventRecord.appendChild(model)
 			}
 
 			const existsInData = eventRecord.data.children.find((c) => c.id === model.id)

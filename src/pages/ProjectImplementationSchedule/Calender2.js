@@ -1887,6 +1887,7 @@ const Calender2 = ({
 			})
 
 			if (isNewEvent) {
+				console.log('isNew Event 1')
 				formattedData.project = id // Assuming 'id' is defined in your scope
 				createNewTasks(formattedData).then((res) => {
 					console.log('Yes its new Event')
@@ -1906,6 +1907,7 @@ const Calender2 = ({
 					}
 				})
 			} else {
+				console.log('isNew Event 2', eventRecord)
 				const task_group_id = eventRecord?.data?.task_group_id
 				const team = eventRecord.data?.team
 
@@ -1923,6 +1925,8 @@ const Calender2 = ({
 				const targetResourceId = eventRecord.data?.resourceId
 				const targetTaskGroupId = eventRecord.data.task_group_id
 
+				const newResourceKey = `${newResourceID}-${team}`
+
 				if (!isCurrentResourceIDPresent || isCurrentResourceIDPresent === undefined) {
 					console.log('Task updated successfully 123', targetResourceId, targetTaskGroupId)
 
@@ -1939,6 +1943,14 @@ const Calender2 = ({
 
 					await scheduler.project.commitAsync()
 
+					if (eventRecord.children?.length) {
+						eventRecord.children.forEach((child) => {
+							child.resourceId = newResourceKey
+						})
+					}
+
+					console.log('isNew Event 3', eventRecord)
+
 					const matchingTasks = scheduler.eventStore.query(
 						(event) => event.resourceId === targetResourceId && event.task_group_id === targetTaskGroupId
 					)
@@ -1954,14 +1966,28 @@ const Calender2 = ({
 				}
 
 				updateTask(formattedData, eventRecord.id).then(async (res) => {
+					console.log('isNew Event 4', eventRecord)
 					console.log('Backend updated:', res)
+
+					const newResource = `${newResourceID}-${team}`
+
 					if (res.error === null) {
+						console.log('isNew Event 43')
 						eventRecord.resourceId = currentResourceID?.name || eventRecord?.resourceId
 						await scheduler.project.commitAsync()
-						saveSubtasks(eventRecord, createNewTasks, updateTask)
+						saveSubtasks(eventRecord, createNewTasks, updateTask, newResource)
+
 						const matchingTasks = scheduler.eventStore.query(
 							(event) => event.resourceId === targetResourceId && event.task_group_id === targetTaskGroupId
 						)
+
+						if (eventRecord.children?.length) {
+							eventRecord.children.forEach((child) => {
+								child.resourceId = newResourceKey
+							})
+						}
+
+						console.log('isNew Event 44', eventRecord)
 
 						if (matchingTasks.length === 0) {
 							const resourceRow = scheduler.resourceStore.getById(targetResourceId)
@@ -1978,7 +2004,7 @@ const Calender2 = ({
 			}
 		})
 
-		async function saveSubtasks(parentEventRecord, createFn, updateFn) {
+		async function saveSubtasks(parentEventRecord, createFn, updateFn, newResource) {
 			console.log('save function called savesubtasks', parentEventRecord)
 			const promises = parentEventRecord?.children?.map(async (subtask) => {
 				if (subtask.get('isSaved') === undefined) {
@@ -1998,6 +2024,7 @@ const Calender2 = ({
 
 				if (subtask.get('yesModified') && subtask.get('isSaved')) {
 					console.log('Task updated successfully 123')
+					console.log('isNew Event 5', parentEventRecord)
 					try {
 						const res = await updateFn(formattedSubtaskData, subtask?.id)
 						if (res.error === null && res.data?.[0]?.id) {
@@ -2008,14 +2035,20 @@ const Calender2 = ({
 								(child) => child.id !== res.data[0].id
 							)
 
-							// Add the updated subtask
+							if (!parentEventRecord.data.children) {
+								parentEventRecord.data.children = []
+							}
+
 							parentEventRecord.data.children.push({
 								id: res.data[0].id,
 								name: res.data[0].title,
 								startDate: res.data[0].start_date,
 								endDate: res.data[0].end_date,
 								team: res.data[0].team,
+								resourceId: parentEventRecord?.data?.resourceId,
 							})
+
+							// Add the updated subtask
 
 							await scheduler.project.commitAsync()
 
@@ -2029,6 +2062,8 @@ const Calender2 = ({
 					}
 				} else if (!subtask.get('isSaved')) {
 					console.log('Task updated successfully 123')
+					console.log('isNew Event 6', parentEventRecord)
+
 					try {
 						const res = await createFn(formattedSubtaskData)
 						const backendNewSubtask = res?.data?.[0]
@@ -2054,6 +2089,7 @@ const Calender2 = ({
 						if (!parentEventRecord.data.children) {
 							parentEventRecord.data.children = []
 						}
+
 						parentEventRecord.data.children.push({
 							name: backendNewSubtask.title,
 							startDate: backendNewSubtask.start_date,
@@ -2069,6 +2105,8 @@ const Calender2 = ({
 						})
 
 						subtask.set('isSaved', true)
+
+						console.log('isNew Event 7', parentEventRecord, parentEventRecord?.data?.resourceId, newResource)
 
 						await scheduler.project.commitAsync()
 					} catch (err) {
