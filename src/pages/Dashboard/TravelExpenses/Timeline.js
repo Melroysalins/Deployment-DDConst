@@ -195,6 +195,14 @@ export default function Timeline() {
 	const updateCalendarData = React.useCallback((resources, events) => {
 		let employees = []
 
+		// Ensure resources is an array before mapping
+		if (!Array.isArray(resources)) {
+			console.warn('Resources is not an array:', resources)
+			return { resources: [], events: events || [] }
+		}
+
+		console.log('resources error', resources)
+
 		const updatedResources = resources.map((project) => ({
 			...project,
 			id: String(project.id),
@@ -239,6 +247,7 @@ export default function Timeline() {
 		// setLoading(true);
 		// const res = await getProjectDetails(id);
 		const resources = await getTeResources(id)
+		console.log('getTeResources', resources, id)
 		const events = await listAllEvents(filters)
 		const teamEvents = await getTeamTitleEvents(id)
 		const res = updateCalendarData(resources, events)
