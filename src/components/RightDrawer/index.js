@@ -31,196 +31,186 @@ const RightDrawer = ({ isRightDrawerOpen, SetIsRightDrawerOPen, dataConfig, SetD
 	}
 	return (
 		<>
-			<Drawer open={isRightDrawerOpen} onClose={() => SetIsRightDrawerOPen(!isRightDrawerOpen)} anchor="right">
-				<Box display={'flex'} flexDirection={'column'}>
-					<Stack direction={'row'} justifyContent={'space-between'} p={2} alignItems={'center'} cursor={'pointer'}>
-						<h3>{t('Find Employees')}</h3>
-						<CloseIcon style={{ cursor: 'pointer' }} onClick={() => SetIsRightDrawerOPen(!isRightDrawerOpen)} />
-					</Stack>
+			{/* <Drawer open={isRightDrawerOpen} onClose={() => SetIsRightDrawerOPen(!isRightDrawerOpen)} anchor="right"> */}
+			<Box display={'flex'} flexDirection={'column'} style={{ width: '450px' }}>
+				{/* <Stack direction={'row'} justifyContent={'space-between'} p={2} alignItems={'center'} cursor={'pointer'}>
+					<h3>{t('Find Employees')}</h3>
+					<CloseIcon style={{ cursor: 'pointer' }} onClick={() => SetIsRightDrawerOPen(!isRightDrawerOpen)} />
+				</Stack> */}
+				{/* <Divider /> */}
+
+				<Box marginTop={1}>
+					<Accordion expanded={true}>
+						<AccordionSummary
+							expandIcon={
+								isDateRangeOpen ? (
+									<KeyboardArrowDownIcon onClick={() => SetIsDateRangeOpen(!isDateRangeOpen)} />
+								) : (
+									<KeyboardArrowUpIcon onClick={() => SetIsDateRangeOpen(!isDateRangeOpen)} />
+								)
+							}
+							aria-controls="panel1-content"
+							id="panel1-header"
+						>
+							<Typography style={{ color: 'black', fontWeight: '600', fontSize: '19px' }}>{t('Date Range')}</Typography>
+						</AccordionSummary>
+
+						{isDateRangeOpen && (
+							<AccordionDetails style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+								<DateRange dataConfig={dataConfig} SetDataConfig={SetDataConfig} />
+								<QuickNavigation isProjectLeadComponent={false} dataConfig={dataConfig} SetDataConfig={SetDataConfig} />
+								<CertificateLevel dataConfig={dataConfig} SetDataConfig={SetDataConfig} />
+								<QuickNavigation isProjectLeadComponent={true} dataConfig={dataConfig} SetDataConfig={SetDataConfig} />
+							</AccordionDetails>
+						)}
+					</Accordion>
+
+					<Divider style={{ marginTop: '10px' }} />
+
+					{/* setting tab  */}
+
+					<Accordion expanded={true}>
+						<AccordionSummary
+							expandIcon={
+								isSettingsTabOpen ? (
+									<KeyboardArrowDownIcon onClick={() => SetIsSettingsTabOpen(!isSettingsTabOpen)} />
+								) : (
+									<KeyboardArrowUpIcon onClick={() => SetIsSettingsTabOpen(!isSettingsTabOpen)} />
+								)
+							}
+							aria-controls="panel1-content"
+							id="panel1-header"
+						>
+							<Typography style={{ color: 'black', fontWeight: '600', fontSize: '19px' }}>{t('Settings')}</Typography>
+						</AccordionSummary>
+						{isSettingsTabOpen && (
+							<AccordionDetails style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+								<SettingsTab dataConfig={dataConfig} SetDataConfig={SetDataConfig} />
+							</AccordionDetails>
+						)}
+					</Accordion>
 					<Divider />
 
-					<Box marginTop={3}>
-						<Accordion expanded={true}>
-							<AccordionSummary
-								expandIcon={
-									isDateRangeOpen ? (
-										<KeyboardArrowDownIcon onClick={() => SetIsDateRangeOpen(!isDateRangeOpen)} />
-									) : (
-										<KeyboardArrowUpIcon onClick={() => SetIsDateRangeOpen(!isDateRangeOpen)} />
-									)
-								}
-								aria-controls="panel1-content"
-								id="panel1-header"
-							>
-								<Typography style={{ color: 'black', fontWeight: '600', fontSize: '19px' }}>
-									{t('Date Range')}
-								</Typography>
-							</AccordionSummary>
-
-							{isDateRangeOpen && (
-								<AccordionDetails style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-									<DateRange dataConfig={dataConfig} SetDataConfig={SetDataConfig} />
-									<QuickNavigation
-										isProjectLeadComponent={false}
-										dataConfig={dataConfig}
-										SetDataConfig={SetDataConfig}
-									/>
-									<CertificateLevel dataConfig={dataConfig} SetDataConfig={SetDataConfig} />
-									<QuickNavigation
-										isProjectLeadComponent={true}
-										dataConfig={dataConfig}
-										SetDataConfig={SetDataConfig}
-									/>
-								</AccordionDetails>
-							)}
-						</Accordion>
-
-						<Divider style={{ marginTop: '10px' }} />
-
-						{/* setting tab  */}
-
-						<Accordion expanded={true}>
-							<AccordionSummary
-								expandIcon={
-									isSettingsTabOpen ? (
-										<KeyboardArrowDownIcon onClick={() => SetIsSettingsTabOpen(!isSettingsTabOpen)} />
-									) : (
-										<KeyboardArrowUpIcon onClick={() => SetIsSettingsTabOpen(!isSettingsTabOpen)} />
-									)
-								}
-								aria-controls="panel1-content"
-								id="panel1-header"
-							>
-								<Typography style={{ color: 'black', fontWeight: '600', fontSize: '19px' }}>{t('Settings')}</Typography>
-							</AccordionSummary>
-							{isSettingsTabOpen && (
-								<AccordionDetails style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-									<SettingsTab dataConfig={dataConfig} SetDataConfig={SetDataConfig} />
-								</AccordionDetails>
-							)}
-						</Accordion>
-						<Divider />
-
-						{/* Confirmed staff  */}
-						<Accordion expanded={true}>
-							<AccordionSummary
-								expandIcon={
-									isConfirmedStaffTabOpen ? (
-										<KeyboardArrowDownIcon onClick={() => setIsConfirmedTabOpen(!isConfirmedStaffTabOpen)} />
-									) : (
-										<KeyboardArrowUpIcon onClick={() => setIsConfirmedTabOpen(!isConfirmedStaffTabOpen)} />
-									)
-								}
-								aria-controls="panel1-content"
-								id="panel1-header"
-							>
-								<Typography style={{ color: 'black', fontWeight: '600', fontSize: '19px' }}>
-									{t('Confirmed Staff')}
-								</Typography>
-							</AccordionSummary>
-							{isConfirmedStaffTabOpen && (
-								<AccordionDetails style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-									<ConfirmedStaff />
-								</AccordionDetails>
-							)}
-						</Accordion>
-
-						<Divider />
-
-						{/*  Recommended Staff */}
-
-						<Accordion expanded={true}>
-							<AccordionSummary
-								expandIcon={
-									isRecommendedStaff ? (
-										<KeyboardArrowDownIcon onClick={() => SetIsRecommendedStaff(!isRecommendedStaff)} />
-									) : (
-										<KeyboardArrowUpIcon onClick={() => SetIsRecommendedStaff(!isRecommendedStaff)} />
-									)
-								}
-								aria-controls="panel1-content"
-								id="panel1-header"
-							>
-								<Typography style={{ color: 'black', fontWeight: '600', fontSize: '19px' }}>
-									{t('Recommended Staff')}
-								</Typography>
-							</AccordionSummary>
-							{isRecommendedStaff && (
-								<AccordionDetails>
-									<RecommendedStaff />
-								</AccordionDetails>
-							)}
-						</Accordion>
-
-						<Divider />
-					</Box>
-
-					<Box sx={{ display: 'flex', gap: 2, p: 2 }}>
-						{/* Blue primary button */}
-						<Button
-							variant="contained"
-							startIcon={<AutorenewRoundedIcon sx={{ fontSize: 18 }} />}
-							sx={{
-								backgroundColor: '#2563EB', // Blue
-								'&:hover': { backgroundColor: '#1D4ED8' },
-								textTransform: 'none',
-								fontSize: '1rem',
-								fontWeight: 500,
-								borderRadius: '10px',
-								minWidth: '180px',
-								padding: '8px 16px',
-								lineHeight: 1.5, // closer spacing
-								justifyContent: 'flex-start', // align text+icon to left if needed
-							}}
+					{/* Confirmed staff  */}
+					<Accordion expanded={true}>
+						<AccordionSummary
+							expandIcon={
+								isConfirmedStaffTabOpen ? (
+									<KeyboardArrowDownIcon onClick={() => setIsConfirmedTabOpen(!isConfirmedStaffTabOpen)} />
+								) : (
+									<KeyboardArrowUpIcon onClick={() => setIsConfirmedTabOpen(!isConfirmedStaffTabOpen)} />
+								)
+							}
+							aria-controls="panel1-content"
+							id="panel1-header"
 						>
-							{t('Find Available Staff')}
-						</Button>
+							<Typography style={{ color: 'black', fontWeight: '600', fontSize: '19px' }}>
+								{t('Confirmed Staff')}
+							</Typography>
+						</AccordionSummary>
+						{isConfirmedStaffTabOpen && (
+							<AccordionDetails style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+								<ConfirmedStaff />
+							</AccordionDetails>
+						)}
+					</Accordion>
 
-						{/* Grey button */}
-						<Button
-							variant="contained"
-							sx={{
-								backgroundColor: '#E5E7EB', // Light grey
-								color: '#2F3845', // Dark text
-								'&:hover': { backgroundColor: '#D1D5DB' },
-								textTransform: 'none',
-								fontSize: '1rem',
-								fontWeight: 600,
-								borderRadius: '10px',
-								boxShadow: 'none',
-								padding: '0px',
-								width: '97px',
-							}}
-							onClick={() => handleConfirm()}
-						>
-							{t('Confirm')}
-						</Button>
+					<Divider />
 
-						{/* White outlined button */}
-						<Button
-							variant="outlined"
-							sx={{
-								backgroundColor: '#fff',
-								color: '#2F3845',
-								borderColor: '#CBD5E1',
-								'&:hover': {
-									backgroundColor: '#F8FAFC',
-									borderColor: '#CBD5E1',
-								},
-								textTransform: 'none',
-								fontSize: '16px',
-								fontWeight: 500,
-								borderRadius: '10px',
-								padding: '3px',
-								paddingY: '5px',
-								width: '130px',
-							}}
+					{/*  Recommended Staff */}
+
+					<Accordion expanded={true}>
+						<AccordionSummary
+							expandIcon={
+								isRecommendedStaff ? (
+									<KeyboardArrowDownIcon onClick={() => SetIsRecommendedStaff(!isRecommendedStaff)} />
+								) : (
+									<KeyboardArrowUpIcon onClick={() => SetIsRecommendedStaff(!isRecommendedStaff)} />
+								)
+							}
+							aria-controls="panel1-content"
+							id="panel1-header"
 						>
-							{t('Save Search')}
-						</Button>
-					</Box>
+							<Typography style={{ color: 'black', fontWeight: '600', fontSize: '19px' }}>
+								{t('Recommended Staff')}
+							</Typography>
+						</AccordionSummary>
+						{isRecommendedStaff && (
+							<AccordionDetails>
+								<RecommendedStaff />
+							</AccordionDetails>
+						)}
+					</Accordion>
+
+					<Divider />
 				</Box>
-			</Drawer>
+
+				<Box sx={{ display: 'flex', gap: 2 }}>
+					{/* Blue primary button */}
+					<Button
+						variant="contained"
+						startIcon={<AutorenewRoundedIcon sx={{ fontSize: 18 }} />}
+						sx={{
+							backgroundColor: '#2563EB', // Blue
+							'&:hover': { backgroundColor: '#1D4ED8' },
+							textTransform: 'none',
+							fontSize: '1rem',
+							fontWeight: 500,
+							borderRadius: '10px',
+							minWidth: '180px',
+							padding: '8px 16px',
+							lineHeight: 1.5, // closer spacing
+							justifyContent: 'flex-start', // align text+icon to left if needed
+						}}
+					>
+						{t('Find Available Staff')}
+					</Button>
+
+					{/* Grey button */}
+					<Button
+						variant="contained"
+						sx={{
+							backgroundColor: '#E5E7EB', // Light grey
+							color: '#2F3845', // Dark text
+							'&:hover': { backgroundColor: '#D1D5DB' },
+							textTransform: 'none',
+							fontSize: '1rem',
+							fontWeight: 600,
+							borderRadius: '10px',
+							boxShadow: 'none',
+							padding: '0px',
+							width: '97px',
+						}}
+						onClick={() => handleConfirm()}
+					>
+						{t('Confirm')}
+					</Button>
+
+					{/* White outlined button */}
+					<Button
+						variant="outlined"
+						sx={{
+							backgroundColor: '#fff',
+							color: '#2F3845',
+							borderColor: '#CBD5E1',
+							'&:hover': {
+								backgroundColor: '#F8FAFC',
+								borderColor: '#CBD5E1',
+							},
+							textTransform: 'none',
+							fontSize: '16px',
+							fontWeight: 500,
+							borderRadius: '10px',
+							padding: '3px',
+							paddingY: '5px',
+							width: '130px',
+						}}
+					>
+						{t('Save Search')}
+					</Button>
+				</Box>
+			</Box>
+			{/* </Drawer> */}
 		</>
 	)
 }

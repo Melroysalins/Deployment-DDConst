@@ -33,6 +33,8 @@ const QuickNavigation = ({ isProjectLeadComponent, dataConfig, SetDataConfig }) 
 				? [item, ...prev.projectLeadCertificate]
 				: prev?.projectLeadCertificate.filter((ele) => ele !== item),
 		}))
+
+		SetSelectedProjectLead((prev) => (prev?.includes(item) ? prev?.filter((ele) => ele !== item) : item))
 	}
 
 	if (startDate && endDate) {
@@ -89,6 +91,8 @@ const QuickNavigation = ({ isProjectLeadComponent, dataConfig, SetDataConfig }) 
 		)
 	}
 
+	console.log('Quick Navigation', dataConfig, selectedProjectLead)
+
 	return (
 		<Box display={'flex'} flexDirection={'column'} marginTop={'15px'}>
 			<Box style={{ display: 'flex' }}>
@@ -119,8 +123,8 @@ const QuickNavigation = ({ isProjectLeadComponent, dataConfig, SetDataConfig }) 
 							borderRadius={'20px'}
 							style={{
 								cursor: 'pointer',
-								background: selectedProjectLead?.includes(item) ? '#3B82F6' : '',
-								color: selectedProjectLead?.includes(item) ? 'white' : '',
+								background: projectLeadCertificate?.includes(item) ? '#3B82F6' : '',
+								color: projectLeadCertificate?.includes(item) ? 'white' : '',
 							}}
 							onClick={() => {
 								handleLeadCertificate(item)

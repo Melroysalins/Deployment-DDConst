@@ -41,7 +41,7 @@ const validationSchema = Yup.object().shape({
 	phone_number: Yup.number().min(6, 'Too Short!').min(18, 'Too long!').required('Required').nullable(),
 	team: Yup.string().required('Required').nullable(),
 	branch: Yup.string().required('Required').nullable(),
-	rating: Yup.string().required('Required').nullable(),
+	certificate: Yup.string().required('Required').nullable(),
 })
 
 const initialValues = {
@@ -50,7 +50,7 @@ const initialValues = {
 	phone_number: '',
 	team: '',
 	branch: '',
-	rating: '',
+	certificate: '',
 }
 
 export default function CreateNewEmployee() {
@@ -79,10 +79,17 @@ export default function CreateNewEmployee() {
 		setToast(null)
 	}
 
+	const certificateLevels = {
+		S: { label: 'Special', color: certificateColors.S, value: 'Special' },
+		A: { label: 'Level 1', color: certificateColors.A, value: 'Level 1' },
+		B: { label: 'Level 2', color: certificateColors.B, value: 'Level 2' },
+		C: { label: 'Level 3', color: certificateColors.C, value: 'Level 3' },
+	}
+
 	const AvatarRating = (value) => (
 		<div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-			<Avatar sx={{ width: 20, height: 20, fontSize: 12, background: certificateColors[value] }}>{value}</Avatar>{' '}
-			<span style={{ color: '#596570' }}>Level of certfication</span>
+			<Avatar sx={{ width: 20, height: 20, fontSize: 12, background: certificateLevels[value].color }}>{value}</Avatar>
+			<span style={{ color: '#596570' }}>{certificateLevels[value].label}</span>
 		</div>
 	)
 
@@ -109,7 +116,7 @@ export default function CreateNewEmployee() {
 									phone_number: employee?.phone_number,
 									team: employee?.team || '',
 									branch: employee?.branch || '',
-									rating: employee?.rating,
+									certificate: employee?.certificate,
 							  }
 							: initialValues
 					}
@@ -223,33 +230,36 @@ export default function CreateNewEmployee() {
 										<h4>Professional details</h4>
 										<Grid container spacing={3}>
 											<Grid item xs={12}>
-												<FormControl fullWidth style={{ marginTop: 16 }} error={errors.rating && touched.rating}>
+												<FormControl fullWidth style={{ marginTop: 16 }} error={errors.certificate && touched.certificate}>
 													<InputLabel id="demo-simple-select-label">Level of certification</InputLabel>
 													<Select
 														labelId="demo-simple-select-label"
 														id="demo-simple-select"
-														value={values.rating}
+														value={values.certificate}
 														label="Level of certification"
 														onChange={handleChange}
 														onBlur={handleBlur}
-														name="rating"
+														name="certificate"
 													>
-														{Object.keys(certificateColors)?.map((name) => (
-															<MenuItem key={name} value={name}>
-																{AvatarRating(name)}
+														{Object.entries(certificateLevels)?.map(([key, { label, color, value }]) => (
+															<MenuItem key={key} value={value}>
+																<div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+																	<Avatar sx={{ width: 20, height: 20, fontSize: 12, background: color }}>{key}</Avatar>
+																	<span style={{ color: '#596570' }}>{value}</span>
+																</div>
 															</MenuItem>
 														))}
 													</Select>
-													<FormHelperText error={errors.rating && touched.rating}>
-														{touched.rating ? errors.rating : null}
+													<FormHelperText error={errors.certificate && touched.certificate}>
+														{touched.certificate ? errors.certificate : null}
 													</FormHelperText>
 												</FormControl>
 
 												<FormControl fullWidth style={{ marginTop: 16 }} error={errors.branch && touched.branch}>
-													<InputLabel id="demo-simple-select-label">Branch and/or Supplier</InputLabel>
+													<InputLabel id="branch-select-label">Branch and/or Supplier</InputLabel>
 													<Select
-														labelId="demo-simple-select-label"
-														id="demo-simple-select"
+														labelId="branch-select-label"
+														id="branch-select"
 														value={values.branch}
 														label="Branch and/or Supplier"
 														onChange={handleChange}

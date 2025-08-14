@@ -47,7 +47,12 @@ import {
 } from '../ProjectImplementationSchedule/SchedulerConfig'
 
 import { listAllEvents, createNewEvent, deleteEvent, listSelectedEvents } from 'supabase/events'
-import { listAllEmployees, listEmployeesByProject } from 'supabase/employees'
+import {
+	filterEmployees,
+	getEmployeeBasedOnCertificate,
+	listAllEmployees,
+	listEmployeesByProject,
+} from 'supabase/employees'
 import { getProjectDetails, listAllProjects, listParicularProjects } from 'supabase/projects'
 import { Field } from 'formik'
 import { sanitizeForDataId } from './WorkforcePlanning'
@@ -98,10 +103,10 @@ const NewWorkfocePlanning = () => {
 		startDate: null,
 		endDate: null,
 		quickNav: null,
-		Special: '0',
-		Tier1: '0',
-		Tier2: '0',
-		Tier3: '0',
+		Special: 0,
+		Level1: 0,
+		Level2: 0,
+		Level3: 0,
 		projectLeadCertificate: [],
 		availability: '',
 		allowSplitAssignment: false,
@@ -113,6 +118,7 @@ const NewWorkfocePlanning = () => {
 
 	const [schdulerStartDate, SetSchedulerStartDate] = useState('')
 	const [SchedulerEndDate, SetSchedulerEndDate] = useState('')
+	const [MappedProjects, SetMappedProjects] = useState([])
 
 	// Request approval and drawer functionality from original WorkforcePlanning
 	const { setisDrawerOpen, isDrawerOpen, setapprovalIdDrawerRight } = useMain()
@@ -155,20 +161,54 @@ const NewWorkfocePlanning = () => {
 		return `id-${hash.toString(36)}` // Base36 for compactness
 	}
 
-	function transformResourceData(original) {
-		return original.map((group) => ({
-			collapsed: false,
-			eventCreation: false,
-			id: group.id,
-			name: group.name,
-			children: group.children.map((member) => ({
-				id: member.id,
-				newid: generateUniqueId(member),
-				name: member.name,
-				team: member.team,
-				team_lead: member.team_lead,
-				rating: member.rating,
-			})),
+	function transFormResourcesData(dataEmp, mappedProjects, thevalue) {
+		const groupedEmployees = {}
+
+		console.log(`Mapped Projects  2 ${thevalue}`, dataEmp)
+
+		dataEmp.data.forEach((employee) => {
+			const projectId = employee.project || 'No Project'
+
+			if (!groupedEmployees[projectId]) {
+				groupedEmployees[projectId] = {
+					id: projectId,
+					name: mappedProjects.find((project) => project.value === projectId)?.text || 'Unknown Project',
+					collapsed: false,
+					eventCreation: false,
+					children: [],
+				}
+			}
+
+			console.log('events200', employee)
+
+			const uniqueId = generateUniqueId(employee)
+
+			groupedEmployees[projectId].children.push({
+				newid: uniqueId,
+				id: employee.id,
+				name: employee.name,
+				team: employee.team,
+				team_lead: employee.team_lead,
+				certificate: employee.certificate,
+			})
+		})
+
+		const resourceArray = Object.values(groupedEmployees)
+
+		console.log(`MYRESOURCES The response`, resourceArray)
+		setMyResources(resourceArray)
+	}
+
+	function filterTeamLeadsNotInProjectLeadCert(myResources, projectLeadCertificate) {
+		return myResources.map((resource) => ({
+			...resource,
+			children: resource.children.filter((employee) => {
+				// Keep if NOT a team lead OR their certificate is in projectLeadCertificate
+				if (employee.team_lead) {
+					return projectLeadCertificate.includes(employee.certificate)
+				}
+				return true
+			}),
 		}))
 	}
 
@@ -179,38 +219,10 @@ const NewWorkfocePlanning = () => {
 			listAllProjects().then((data) => {
 				const mappedProjects = data?.data.map((item) => ({ text: item.title, value: item.id }))
 
+				SetMappedProjects(mappedProjects)
+
 				listAllEmployees().then((dataEmp) => {
-					const groupedEmployees = {}
-
-					dataEmp.data.forEach((employee) => {
-						const projectId = employee.project || 'No Project'
-
-						if (!groupedEmployees[projectId]) {
-							groupedEmployees[projectId] = {
-								id: projectId,
-								name: mappedProjects.find((project) => project.value === projectId)?.text || 'Unknown Project',
-								collapsed: false,
-								eventCreation: false,
-								children: [],
-							}
-						}
-
-						console.log('events200', employee)
-
-						const uniqueId = generateUniqueId(employee)
-
-						groupedEmployees[projectId].children.push({
-							newid: uniqueId,
-							id: employee.id,
-							name: employee.name,
-							team: employee.team,
-							team_lead: employee.team_lead,
-							rating: employee.rating,
-						})
-					})
-
-					const resourceArray = Object.values(groupedEmployees)
-					setMyResources(resourceArray)
+					transFormResourcesData(dataEmp, mappedProjects)
 				})
 			})
 		})()
@@ -277,7 +289,7 @@ const NewWorkfocePlanning = () => {
 		newStart.setMonth(newStart.getMonth() + months)
 
 		const newEnd = new Date(newStart)
-		newEnd.setMonth(newEnd.getMonth() + 3)
+		newEnd.setMonth(newEnd.getMonth() + 2)
 
 		scheduler.setTimeSpan(newStart, newEnd)
 	}
@@ -304,7 +316,14 @@ const NewWorkfocePlanning = () => {
 	const handleConfirmFilter = async () => {
 		SetIsRightDrawerOPen(false)
 
-		const { startDate, endDate, quickNav } = dataConfig
+		const { startDate, endDate, quickNav, Special, Level1, Level2, Level3, projectLeadCertificate } = dataConfig
+
+		const certificateMap = {
+			Special: 'Special',
+			Level1: 'Level 1',
+			Level2: 'Level 2',
+			Level3: 'Level 3',
+		}
 
 		const { minStart, maxEnd } = getDateRange(events)
 
@@ -346,9 +365,46 @@ const NewWorkfocePlanning = () => {
 
 			SetSchedulerStartDate(start)
 			SetSchedulerEndDate(end)
-
-			console.log('Confirm FIlter called 2', start.format('YYYY-MM-DD'), end.format('YYYY-MM-DD'))
 		}
+
+		const allResult = (
+			await Promise.all(
+				Object.entries(certificateMap)
+					.filter(([key]) => dataConfig[key]) // only keep certificates with counts
+					.map(async ([key, certName]) => {
+						const count = dataConfig[key]
+						const res = await getEmployeeBasedOnCertificate(certName, count)
+						return res?.data || []
+					})
+			)
+		).flat()
+
+		if (allResult?.length) {
+			transFormResourcesData({ data: allResult }, MappedProjects, true)
+		}
+
+		if (projectLeadCertificate?.length && !Special && !Level1 && !Level2 && !Level3) {
+			filterEmployees(projectLeadCertificate).then((data) => transFormResourcesData(data, MappedProjects))
+			// setMyResources(filteredResources)
+		} else {
+			const allResult = (
+				await Promise.all(
+					Object.entries(certificateMap)
+						.filter(([key]) => dataConfig[key]) // only keep certificates with counts
+						.map(async ([key, certName]) => {
+							const count = dataConfig[key]
+							const res = await getEmployeeBasedOnCertificate(certName, count, true, projectLeadCertificate)
+							return res?.data || []
+						})
+				)
+			).flat()
+
+			if (allResult?.length) {
+				transFormResourcesData({ data: allResult }, MappedProjects, true)
+			}
+		}
+
+		setisDrawerOpen(!isDrawerOpen)
 	}
 
 	useEffect(() => {
@@ -366,7 +422,7 @@ const NewWorkfocePlanning = () => {
 
 		const scheduler = new SchedulerPro({
 			startDate: schdulerStartDate ? new Date(schdulerStartDate) : new Date(2025, 0, 1),
-			endDate: SchedulerEndDate ? new Date(SchedulerEndDate) : new Date(2025, 2, 28),
+			endDate: SchedulerEndDate ? new Date(SchedulerEndDate) : new Date(2025, 1, 31),
 			appendTo: schedulerRef.current,
 			autoHeight: true,
 			width: '100%',
@@ -510,8 +566,8 @@ const NewWorkfocePlanning = () => {
 									background-color: ${bgColor}; 
 									color: white; 
 									border-radius: 50%; 
-									height: 25px; 
-									width: 25px; 
+									height: 55px; 
+									width: 55px; 
 									display: flex; 
 									justify-content: center; 
 									align-items: center;
@@ -751,33 +807,19 @@ const NewWorkfocePlanning = () => {
 				</MuiButton>
 			</Box>
 
-			<Stack direction={'row'} gap={2} alignItems={'flex-end'} justifyContent={'flex-end'} mt={4}>
-				<Button
-					onClick={() => {
-						SetIsRightDrawerOPen(true)
-					}}
-					variant="outlined"
-					display={'flex'}
-					alignItems={'center'}
-					gap={'10px'}
-					background={'red'}
-				>
-					{t('Find Employees')}
-				</Button>
-			</Stack>
 			{showNavigationButton && (
 				<Stack direction={'row'} gap={2} alignItems={'center'} justifyContent={'space-between'} marginTop={'18px'}>
 					<Button
 						variant="contained"
 						style={{ background: '#eeee', boxShadow: 'none' }}
-						onClick={() => shiftMonths(-3, schedulerInstance.current)}
+						onClick={() => shiftMonths(-2, schedulerInstance.current)}
 					>
 						<NavigateBeforeIcon style={{ color: 'black' }} />
 					</Button>
 					<Button
 						variant="contained"
 						style={{ background: '#eeee', boxShadow: 'none' }}
-						onClick={() => shiftMonths(3, schedulerInstance.current)}
+						onClick={() => shiftMonths(2, schedulerInstance.current)}
 					>
 						<NavigateNextIcon style={{ color: 'black' }} />
 					</Button>
@@ -785,7 +827,7 @@ const NewWorkfocePlanning = () => {
 			)}
 			<div ref={schedulerRef} style={{ height: '900px', width: '100%', marginTop: '15px' }} />
 
-			{isRightDrawerOpen && (
+			{/* {isRightDrawerOpen && (
 				<RightDrawer
 					isRightDrawerOpen={isRightDrawerOpen}
 					SetIsRightDrawerOPen={SetIsRightDrawerOPen}
@@ -793,10 +835,21 @@ const NewWorkfocePlanning = () => {
 					SetDataConfig={SetDataConfig}
 					handleConfirmFilter={handleConfirmFilter}
 				/>
-			)}
+			)} */}
 
 			{/* Request Approval Drawer from original WorkforcePlanning */}
-			{isDrawerOpen && <BasicTabs open={isDrawerOpen} setopen={setisDrawerOpen} />}
+			{isDrawerOpen && (
+				<BasicTabs
+					open={isDrawerOpen}
+					setopen={setisDrawerOpen}
+					isRightDrawerOpen={isRightDrawerOpen}
+					SetIsRightDrawerOPen={SetIsRightDrawerOPen}
+					dataConfig={dataConfig}
+					SetDataConfig={SetDataConfig}
+					handleConfirmFilter={handleConfirmFilter}
+					isWorkForcePage={true}
+				/>
+			)}
 		</>
 	)
 }

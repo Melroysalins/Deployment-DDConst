@@ -56,3 +56,37 @@ export const getEmployeeByUser = async (user) => {
 	const res = await supabase.from('employees').select('*').eq('user', user).single()
 	return res
 }
+
+export const getEmployeeBasedOnCertificate = async (
+	certificate,
+	limit,
+	filterProjectLeads = false,
+	projectLeadCertificate = []
+) => {
+	// Base query
+	const res = await supabase.from('employees').select('*').eq('certificate', certificate).limit(limit)
+
+	if (filterProjectLeads && res.data) {
+		res.data = res.data.filter((emp) => {
+			if (emp.team_lead) {
+				return projectLeadCertificate.includes(emp.certificate)
+			}
+			return true
+		})
+	}
+
+	return res
+}
+
+export const filterEmployees = async (projectLeadCertificate) => {
+	const res = await supabase.from('employees').select('*')
+
+	res.data = res.data.filter((emp) => {
+		if (emp.team_lead) {
+			return projectLeadCertificate.includes(emp.certificate)
+		}
+		return true
+	})
+
+	return res
+}

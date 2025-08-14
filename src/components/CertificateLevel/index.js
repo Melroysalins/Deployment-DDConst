@@ -7,29 +7,33 @@ const CertificateLevel = ({ dataConfig, SetDataConfig }) => {
 		{
 			value: 'Special',
 			key: 'Special',
+			label: 'Special',
 		},
 		{
-			value: 'Tier 1',
-			key: 'Tier1',
+			value: 'Level1',
+			key: 'Level1',
+			label: 'Level 1',
 		},
 		{
-			value: 'Tier 2',
-			key: 'Tier2',
+			value: 'Level2',
+			key: 'Level2',
+			label: 'Level 2',
 		},
 		{
-			value: 'Tier 3',
-			key: 'Tier3',
+			value: 'Level3',
+			key: 'Level3',
+			label: 'Level 3',
 		},
 	]
 
-	const { Special, Tier1, Tier2, Tier3 } = dataConfig
+	const { Special, Level1, Level2, Level3 } = dataConfig
 
 	const { t } = useTranslation(['workforce'])
 
 	const handleInputChange = (key, value) => {
 		SetDataConfig((prev) => ({
 			...prev,
-			[key]: value,
+			[key]: Number(value),
 		}))
 	}
 
@@ -60,7 +64,7 @@ const CertificateLevel = ({ dataConfig, SetDataConfig }) => {
 							}}
 						>
 							<Typography variant="subtitle1" sx={{ fontWeight: '500', fontSize: '16px', mb: 1 }}>
-								{t(level?.value)}
+								{t(level?.label)}
 							</Typography>
 
 							<TextField
