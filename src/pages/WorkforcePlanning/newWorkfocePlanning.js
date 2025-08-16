@@ -46,10 +46,20 @@ import {
 	CustomViewDay,
 } from '../ProjectImplementationSchedule/SchedulerConfig'
 
-import { listAllEvents, createNewEvent, deleteEvent, listSelectedEvents } from 'supabase/events'
+import {
+	listAllEvents,
+	createNewEvent,
+	deleteEvent,
+	listSelectedEvents,
+	listEventsToCheckAvailability,
+	fetchEmployeeBasedOnId,
+} from 'supabase/events'
 import {
 	filterEmployees,
+	filterEmployeesWithAvailabilityAndCertificates,
 	getEmployeeBasedOnCertificate,
+	getEmployeeOnlyWithHigherTier,
+	getEmployeeOnlyWithLowerTier,
 	listAllEmployees,
 	listEmployeesByProject,
 } from 'supabase/employees'
@@ -91,6 +101,11 @@ const NewWorkfocePlanning = () => {
 	const [teamsDetails, SetTeamDetails] = useState([])
 	const [loader, setLoader] = useState(false)
 	const [myResources, setMyResources] = useState([])
+	const [previousResources, setPreviousResources] = useState([])
+	const [previousFilterState, setPreviousFilterState] = useState({
+		allowHigherTier: false,
+		allowLowerTier: false,
+	})
 	const [projectSites, setProjectSites] = useState([])
 	const [selectedEvents, SetSelectedEvents] = useState([])
 	const [events, SetEvents] = useState([])
@@ -161,10 +176,12 @@ const NewWorkfocePlanning = () => {
 		return `id-${hash.toString(36)}` // Base36 for compactness
 	}
 
-	function transFormResourcesData(dataEmp, mappedProjects, thevalue) {
+	function transFormResourcesData(dataEmp, mappedProjects, thevalue, message, isTierFilter = false) {
 		const groupedEmployees = {}
 
 		console.log(`Mapped Projects  2 ${thevalue}`, dataEmp)
+
+		console.log(`MYRESOURCES The response  100 ${message}`, dataEmp)
 
 		dataEmp.data.forEach((employee) => {
 			const projectId = employee.project || 'No Project'
@@ -179,9 +196,9 @@ const NewWorkfocePlanning = () => {
 				}
 			}
 
-			console.log('events200', employee)
-
 			const uniqueId = generateUniqueId(employee)
+
+			console.log(`MYRESOURCES The response  200 ${message}`, groupedEmployees)
 
 			groupedEmployees[projectId].children.push({
 				newid: uniqueId,
@@ -195,8 +212,13 @@ const NewWorkfocePlanning = () => {
 
 		const resourceArray = Object.values(groupedEmployees)
 
-		console.log(`MYRESOURCES The response`, resourceArray)
+		console.log(`MYRESOURCES The response  final ${message}`, resourceArray)
 		setMyResources(resourceArray)
+
+		// Only update previous resources if not in the middle of a tier filter operation
+		if (!isTierFilter) {
+			setPreviousResources(resourceArray)
+		}
 	}
 
 	function filterTeamLeadsNotInProjectLeadCert(myResources, projectLeadCertificate) {
@@ -222,7 +244,9 @@ const NewWorkfocePlanning = () => {
 				SetMappedProjects(mappedProjects)
 
 				listAllEmployees().then((dataEmp) => {
-					transFormResourcesData(dataEmp, mappedProjects)
+					console.log('All Employee', dataEmp)
+					transFormResourcesData(dataEmp, mappedProjects, false, 'Initial load')
+					setPreviousResources(dataEmp.data)
 				})
 			})
 		})()
@@ -236,6 +260,8 @@ const NewWorkfocePlanning = () => {
 
 		listAllEvents(filters).then((eventData) => {
 			const eventsArray = []
+
+			console.log('List All Events', eventData)
 
 			myResources?.forEach((group) => {
 				group?.children?.forEach((item) => {
@@ -314,97 +340,286 @@ const NewWorkfocePlanning = () => {
 	}
 
 	const handleConfirmFilter = async () => {
-		SetIsRightDrawerOPen(false)
+		try {
+			SetIsRightDrawerOPen(false)
 
-		const { startDate, endDate, quickNav, Special, Level1, Level2, Level3, projectLeadCertificate } = dataConfig
-
-		const certificateMap = {
-			Special: 'Special',
-			Level1: 'Level 1',
-			Level2: 'Level 2',
-			Level3: 'Level 3',
-		}
-
-		const { minStart, maxEnd } = getDateRange(events)
-
-		if (startDate && endDate === null) {
-			const newEndDate = dayjs(startDate).add(3, 'month').format('YYYY-MM-DD')
-			SetSchedulerStartDate(startDate)
-			SetSchedulerEndDate(newEndDate)
-		} else {
-			SetSchedulerStartDate(startDate)
-			SetSchedulerEndDate(endDate)
-		}
-
-		await project.commitAsync()
-
-		if (quickNav) {
-			let start = dayjs(schedulerInstance.current.startDate || startDate)
-
-			let end = null
-			SetShowNavigationButton(true)
-			switch (quickNav) {
-				case '1 Month':
-					end = start.add(1, 'month')
-					break
-				case '2 Months':
-					end = start.add(2, 'month')
-					break
-				case 'This Year':
-					end = start.endOf('year')
-					SetShowNavigationButton(false)
-					break
-				case 'All Project':
-					start = dayjs(minStart)
-					end = dayjs(maxEnd)
-					SetShowNavigationButton(false)
-					break
-				default:
-					return
+			const currentFilterState = {
+				allowHigherTier: dataConfig.allowHigherTier,
+				allowLowerTier: dataConfig.allowLowerTier,
 			}
 
-			SetSchedulerStartDate(start)
-			SetSchedulerEndDate(end)
-		}
+			// Check if we're removing tier filters
+			const wasHigherTierActive = previousFilterState.allowHigherTier
+			const wasLowerTierActive = previousFilterState.allowLowerTier
+			const isTierFilterBeingRemoved =
+				(wasHigherTierActive && !currentFilterState.allowHigherTier) ||
+				(wasLowerTierActive && !currentFilterState.allowLowerTier)
 
-		const allResult = (
-			await Promise.all(
-				Object.entries(certificateMap)
-					.filter(([key]) => dataConfig[key]) // only keep certificates with counts
-					.map(async ([key, certName]) => {
-						const count = dataConfig[key]
-						const res = await getEmployeeBasedOnCertificate(certName, count)
-						return res?.data || []
-					})
-			)
-		).flat()
+			// If tier filter is being removed, restore previous state
+			if (isTierFilterBeingRemoved && previousResources.length > 0) {
+				setMyResources([...previousResources])
+				setPreviousFilterState(currentFilterState)
+				setisDrawerOpen(!isDrawerOpen)
+				return
+			}
 
-		if (allResult?.length) {
-			transFormResourcesData({ data: allResult }, MappedProjects, true)
-		}
+			const {
+				startDate,
+				endDate,
+				quickNav,
+				Special,
+				Level1,
+				Level2,
+				Level3,
+				projectLeadCertificate,
+				availability,
+				allowSplitAssignment,
+				allowHigherTier,
+				allowLowerTier,
+				allowOtherCompaniesStaff,
+				allowSelectSingleRecommendation,
+			} = dataConfig
 
-		if (projectLeadCertificate?.length && !Special && !Level1 && !Level2 && !Level3) {
-			filterEmployees(projectLeadCertificate).then((data) => transFormResourcesData(data, MappedProjects))
-			// setMyResources(filteredResources)
-		} else {
-			const allResult = (
-				await Promise.all(
-					Object.entries(certificateMap)
-						.filter(([key]) => dataConfig[key]) // only keep certificates with counts
-						.map(async ([key, certName]) => {
-							const count = dataConfig[key]
-							const res = await getEmployeeBasedOnCertificate(certName, count, true, projectLeadCertificate)
-							return res?.data || []
-						})
+			const certificateMap = {
+				Special: 'Special',
+				Level1: 'Level 1',
+				Level2: 'Level 2',
+				Level3: 'Level 3',
+			}
+
+			const limits = {
+				Special: dataConfig.Special,
+				Level1: dataConfig.Level1,
+				Level2: dataConfig.Level2,
+				Level3: dataConfig.Level3,
+			}
+
+			const { minStart, maxEnd } = getDateRange(events)
+
+			if (startDate && endDate === null) {
+				const newEndDate = dayjs(startDate).add(3, 'month').format('YYYY-MM-DD')
+				SetSchedulerStartDate(startDate)
+				SetSchedulerEndDate(newEndDate)
+			} else {
+				SetSchedulerStartDate(startDate)
+				SetSchedulerEndDate(endDate)
+			}
+
+			await project.commitAsync()
+
+			if (quickNav) {
+				let start = dayjs(schedulerInstance.current.startDate || startDate)
+
+				let end = null
+				SetShowNavigationButton(true)
+				switch (quickNav) {
+					case '1 Month':
+						end = start.add(1, 'month')
+						break
+					case '2 Months':
+						end = start.add(2, 'month')
+						break
+					case 'This Year':
+						end = start.endOf('year')
+						SetShowNavigationButton(false)
+						break
+					case 'All Project':
+						start = dayjs(minStart)
+						end = dayjs(maxEnd)
+						SetShowNavigationButton(false)
+						break
+					default:
+						return
+				}
+
+				SetSchedulerStartDate(start)
+				SetSchedulerEndDate(end)
+			}
+
+			if (Special || Level1 || Level2 || Level3) {
+				const allResult = (
+					await Promise.all(
+						Object.entries(certificateMap)
+							.filter(([key]) => dataConfig[key]) // only keep certificates with counts
+							.map(async ([key, certName]) => {
+								const count = dataConfig[key]
+								const res = await getEmployeeBasedOnCertificate(certName, count)
+								return res?.data || []
+							})
+					)
+				).flat()
+
+				console.log('SpecialLevel1', allResult)
+
+				if (allResult?.length) {
+					transFormResourcesData({ data: allResult }, MappedProjects, true, 'For Sepcial Level Count')
+				}
+			}
+
+			if (projectLeadCertificate?.length && !Special && !Level1 && !Level2 && !Level3) {
+				filterEmployees(projectLeadCertificate).then((data) =>
+					transFormResourcesData(data, MappedProjects, true, 'projectLeadCertificate?.length && !Special && !Level1')
 				)
-			).flat()
-
-			if (allResult?.length) {
-				transFormResourcesData({ data: allResult }, MappedProjects, true)
+				// setMyResources(filteredResources)
 			}
-		}
+			if (projectLeadCertificate?.length > 0 && (Special === 1 || Level1 === 1 || Level2 === 1 || Level3 === 1)) {
+				const allResult = (
+					await Promise.all(
+						Object.entries(certificateMap)
+							.filter(([key]) => dataConfig[key]) // only keep certificates with counts
+							.map(async ([key, certName]) => {
+								const count = dataConfig[key]
+								const res = await getEmployeeBasedOnCertificate(certName, count, true, projectLeadCertificate)
+								return res?.data || []
+							})
+					)
+				).flat()
 
-		setisDrawerOpen(!isDrawerOpen)
+				if (allResult?.length) {
+					transFormResourcesData(
+						{ data: allResult },
+						MappedProjects,
+						true,
+						'projectLeadCertificate?.length && !Special && !Level1 ELSE'
+					)
+				}
+			}
+
+			// First handle availability filter if enabled
+			if (startDate && endDate && availability && !Special && !Level1 && !Level2 && !Level3) {
+				await listEventsToCheckAvailability(startDate, endDate, availability)
+					.then(async (data) => {
+						console.log('Availability Test 1', data)
+						console.log('Yes StartDate EndDate Special Level 1 Level 2  Level 3 First COndition', data)
+
+						const allEmployeeData = (
+							await Promise.all(
+								data.map(async (item) => {
+									const res = await fetchEmployeeBasedOnId(item?.employee)
+									return res?.data || []
+								})
+							)
+						).flat()
+
+						// Store the availability filtered data
+						const availabilityFilteredData = allEmployeeData
+
+						// Apply certificate limits if any
+						const filteredEmployees = Object.keys(limits).reduce((acc, certType) => {
+							if (limits[certType] > 0) {
+								const matching = availabilityFilteredData
+									.filter((emp) => emp?.certificate === certType)
+									.slice(0, limits[certType])
+								acc.push(...matching)
+							}
+							return acc
+						}, [])
+
+						// If no tier filters are active, apply the availability filter
+						if (!allowHigherTier && !allowLowerTier) {
+							const dataToShow = Special || Level1 || Level2 || Level3 ? filteredEmployees : availabilityFilteredData
+							transFormResourcesData(
+								{ data: dataToShow },
+								MappedProjects,
+								true,
+								`${availability} available employees`,
+								true // Pass true to indicate we're in a filter operation
+							)
+
+							console.log('Yes StartDate EndDate Special Level 1 Level 2  Level 3 First COndition', dataToShow)
+						}
+
+						// If tier filters are also active, we'll handle them after this
+					})
+					.catch((error) => {
+						console.error('Error in availability filter:', error)
+					})
+			}
+
+			if (startDate && endDate && availability && (Special === 1 || Level1 === 1 || Level2 === 1 || Level3 === 1)) {
+				const result = await filterEmployeesWithAvailabilityAndCertificates(startDate, endDate, availability, {
+					Special,
+					'Level 1': Level1,
+					'Level 2': Level2,
+					'Level 3': Level3,
+				})
+
+				// Store the availability filtered data
+
+				if (result?.length) {
+					transFormResourcesData(
+						{ data: result },
+						MappedProjects,
+						true,
+						true // Pass true to indicate we're in a filter operation
+					)
+				}
+
+				console.log('Yes StartDate EndDate Special Level 1 Level 2  Level 3', result)
+			}
+
+			// Store current resources before applying tier filters
+			if (
+				(allowHigherTier || allowLowerTier) &&
+				!(previousFilterState.allowHigherTier || previousFilterState.allowLowerTier)
+			) {
+				setPreviousResources([...myResources])
+			}
+
+			// Handle tier filters if any are active
+			if (allowHigherTier || allowLowerTier) {
+				try {
+					let filteredData = []
+
+					if (allowHigherTier && allowLowerTier) {
+						// If both toggles are on, show all employees (no tier filtering)
+						const res = await listAllEmployees()
+						filteredData = res?.data || []
+					} else if (allowHigherTier) {
+						// Get only higher tier employees
+						const res = await getEmployeeOnlyWithHigherTier()
+						filteredData = res || []
+					} else if (allowLowerTier) {
+						// Get only lower tier employees
+						const res = await getEmployeeOnlyWithLowerTier()
+						filteredData = res || []
+					}
+
+					// If we have availability filtered data, intersect it with tier filtered data
+					if (startDate && endDate && availability) {
+						// Get the current resources which already have availability filter applied
+						const currentResources = [...myResources]
+
+						// Extract employee IDs from current resources
+						const availabilityFilteredIds = new Set(
+							currentResources.flatMap((resource) => resource.children?.map((child) => child.id) || [])
+						)
+
+						// Filter tier filtered data to only include employees that are in availability filtered data
+						filteredData = filteredData.filter((emp) => availabilityFilteredIds.has(emp.id))
+					}
+
+					if (filteredData.length) {
+						transFormResourcesData(
+							{ data: filteredData },
+							MappedProjects,
+							true,
+							`${allowHigherTier ? 'Higher' : 'Lower'} Tier Employees`,
+							true
+						)
+					}
+				} catch (error) {
+					console.error('Error in tier filtering:', error)
+				}
+			}
+
+			// Update the previous filter state
+			setPreviousFilterState(currentFilterState)
+
+			setisDrawerOpen(!isDrawerOpen)
+		} catch (error) {
+			console.log('Error ', error)
+		}
 	}
 
 	useEffect(() => {

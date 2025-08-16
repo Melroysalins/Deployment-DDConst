@@ -32,14 +32,20 @@ const RightDrawer = ({ isRightDrawerOpen, SetIsRightDrawerOPen, dataConfig, SetD
 	return (
 		<>
 			{/* <Drawer open={isRightDrawerOpen} onClose={() => SetIsRightDrawerOPen(!isRightDrawerOpen)} anchor="right"> */}
-			<Box display={'flex'} flexDirection={'column'} style={{ width: '450px' }}>
+			<Box
+				display={'flex'}
+				flexDirection={'column'}
+				style={{ width: '450px', height: '100vh' }}
+				overflow={'scroll'}
+				sx={{ scrollBehavior: 'smooth' }}
+			>
 				{/* <Stack direction={'row'} justifyContent={'space-between'} p={2} alignItems={'center'} cursor={'pointer'}>
 					<h3>{t('Find Employees')}</h3>
 					<CloseIcon style={{ cursor: 'pointer' }} onClick={() => SetIsRightDrawerOPen(!isRightDrawerOpen)} />
 				</Stack> */}
 				{/* <Divider /> */}
 
-				<Box marginTop={1}>
+				<Box marginTop={1} flex={1} marginBottom={'38px'}>
 					<Accordion expanded={true}>
 						<AccordionSummary
 							expandIcon={
@@ -144,8 +150,17 @@ const RightDrawer = ({ isRightDrawerOpen, SetIsRightDrawerOPen, dataConfig, SetD
 
 					<Divider />
 				</Box>
+			</Box>
 
-				<Box sx={{ display: 'flex', gap: 2 }}>
+			<Box
+				sx={{ padding: '0px' }}
+				position={'fixed'}
+				bottom={'14px'}
+				right={'0'}
+				zIndex={'100'}
+				backgroundColor={'white'}
+			>
+				<Box sx={{ display: 'flex', gap: '12px' }} p={0}>
 					{/* Blue primary button */}
 					<Button
 						variant="contained"
@@ -180,6 +195,7 @@ const RightDrawer = ({ isRightDrawerOpen, SetIsRightDrawerOPen, dataConfig, SetD
 							boxShadow: 'none',
 							padding: '0px',
 							width: '97px',
+							height: '61px',
 						}}
 						onClick={() => handleConfirm()}
 					>
@@ -210,6 +226,7 @@ const RightDrawer = ({ isRightDrawerOpen, SetIsRightDrawerOPen, dataConfig, SetD
 					</Button>
 				</Box>
 			</Box>
+
 			{/* </Drawer> */}
 		</>
 	)

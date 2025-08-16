@@ -13,15 +13,18 @@ const RadioButtonsInfo = [
 	{
 		title: 'Allow Higher Tier',
 		subtitle: 'Use higher tier staff when no match found',
+		key: 'allowHigherTier',
 	},
 	{
 		title: 'Allow Lower Tier',
 		subtitle: 'Use lower tier staff when no match found',
+		key: 'allowLowerTier',
 	},
-	// {
-	// 	title: 'Allow Other Companies Staff',
-	// 	subtitle: 'Permit assignment of staff from other companies',
-	// },
+	{
+		title: 'Allow Other Companies Staff',
+		subtitle: 'Permit assignment of staff from other companies',
+		key: 'allowOtherCompaniesStaff',
+	},
 	// {
 	// 	title: 'Allow-select Single Recommendation',
 	// 	subtitle: 'Select & show only one recommendation',
@@ -65,13 +68,18 @@ const SettingsTab = ({ dataConfig, SetDataConfig }) => {
 	const [availabilityInfo, SetAvailabilityInfo] = useState('')
 	const { t } = useTranslation(['workforce'])
 
-	const { availability } = dataConfig
-	const handleToggle = (index) => {
+	const { availability, allowHigherTier, allowLowerTier } = dataConfig
+	const handleToggle = (index, event, key) => {
 		setSwitches((prev) => {
 			const newState = [...prev]
 			newState[index] = !newState[index]
 			return newState
 		})
+
+		SetDataConfig((prev) => ({
+			...prev,
+			[key]: event.target.checked,
+		}))
 	}
 
 	const handleAvailability = (key, value) => {
@@ -110,8 +118,8 @@ const SettingsTab = ({ dataConfig, SetDataConfig }) => {
 							borderRadius={'10px'}
 							style={{
 								cursor: 'pointer',
-								background: availabilityInfo === item ? '#3B82F6' : '',
-								color: availabilityInfo === item ? 'white' : '',
+								background: availability === item ? '#3B82F6' : '',
+								color: availability === item ? 'white' : '',
 							}}
 							fontSize={'15px'}
 							onClick={() => {
@@ -139,7 +147,7 @@ const SettingsTab = ({ dataConfig, SetDataConfig }) => {
 									{t(item.subtitle)}
 								</Typography>
 							</Box>
-							<CustomSwitch checked={switches[index]} onChange={() => handleToggle(index)} />
+							<CustomSwitch checked={dataConfig[item?.key]} onChange={(e) => handleToggle(index, e, item?.key)} />
 						</Stack>
 						{index < RadioButtonsInfo.length - 1 && <Divider sx={{ borderColor: '#E2E8F0' }} />}
 					</React.Fragment>

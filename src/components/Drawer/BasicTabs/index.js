@@ -68,7 +68,7 @@ export default function BasicTabs({
 
 	return (
 		<Drawer open={open} setopen={setopen} headerIcon={'material-symbols:close'}>
-			<Box sx={{ width: 450, maxWidth: 450, padding: '0px' }}>
+			<Box sx={{ width: 450, maxWidth: 450, padding: '8px' }}>
 				<Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
 					<Tabs
 						sx={{
