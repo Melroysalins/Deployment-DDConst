@@ -2,6 +2,7 @@ import { Box, Stack, TextField, Typography } from '@mui/material'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
+/* eslint-disable react/prop-types */
 const CertificateLevel = ({ dataConfig, SetDataConfig }) => {
 	const cetficiationLevel = [
 		{
@@ -103,14 +104,6 @@ const CertificateLevel = ({ dataConfig, SetDataConfig }) => {
 	)
 }
 
-CertificateLevel.propTypes = {
-	dataConfig: PropTypes.shape({
-		Special: PropTypes.number,
-		Level1: PropTypes.number,
-		Level2: PropTypes.number,
-		Level3: PropTypes.number,
-	}),
-	SetDataConfig: PropTypes.func.isRequired,
-}
-
 export default CertificateLevel
+
+/* eslint-disable react/prop-types */
