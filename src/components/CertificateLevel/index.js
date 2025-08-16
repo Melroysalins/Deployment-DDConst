@@ -103,4 +103,14 @@ const CertificateLevel = ({ dataConfig, SetDataConfig }) => {
 	)
 }
 
+CertificateLevel.propTypes = {
+	dataConfig: PropTypes.shape({
+		Special: PropTypes.number,
+		Level1: PropTypes.number,
+		Level2: PropTypes.number,
+		Level3: PropTypes.number,
+	}),
+	SetDataConfig: PropTypes.func.isRequired,
+}
+
 export default CertificateLevel
