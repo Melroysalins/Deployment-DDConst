@@ -34,6 +34,8 @@ import {
 	getTeamDetails,
 	updateTaskDependency,
 	listAllTeams,
+	getBranchDetails,
+	getAllBranchesDetails,
 } from 'supabase'
 
 import {
@@ -135,6 +137,17 @@ const NewWorkfocePlanning = () => {
 	const [SchedulerEndDate, SetSchedulerEndDate] = useState('')
 	const [MappedProjects, SetMappedProjects] = useState([])
 
+	const [recommendedStaff, SetRecommendedStaff] = useState([
+		{
+			Special: [],
+			Level1: [],
+			Level2: [],
+			Level3: [],
+		},
+	])
+
+	const [branchesInfo, SetBranchesInfo] = useState([])
+
 	// Request approval and drawer functionality from original WorkforcePlanning
 	const { setisDrawerOpen, isDrawerOpen, setapprovalIdDrawerRight } = useMain()
 
@@ -198,7 +211,7 @@ const NewWorkfocePlanning = () => {
 
 			const uniqueId = generateUniqueId(employee)
 
-			console.log(`MYRESOURCES The response  200 ${message}`, groupedEmployees)
+			// console.log(`MYRESOURCES The response  200 ${message}`, groupedEmployees)
 
 			groupedEmployees[projectId].children.push({
 				newid: uniqueId,
@@ -212,7 +225,7 @@ const NewWorkfocePlanning = () => {
 
 		const resourceArray = Object.values(groupedEmployees)
 
-		console.log(`MYRESOURCES The response  final ${message}`, resourceArray)
+		console.log(`MYRESOURCES The response  final${message}`, resourceArray)
 		setMyResources(resourceArray)
 
 		// Only update previous resources if not in the middle of a tier filter operation
@@ -248,6 +261,10 @@ const NewWorkfocePlanning = () => {
 					transFormResourcesData(dataEmp, mappedProjects, false, 'Initial load')
 					setPreviousResources(dataEmp.data)
 				})
+			})
+
+			getAllBranchesDetails().then((data) => {
+				SetBranchesInfo(data)
 			})
 		})()
 		return () => {}
@@ -287,6 +304,7 @@ const NewWorkfocePlanning = () => {
 			})
 
 			SetEvents(eventsArray)
+			console.log(`MYRESOURCES The response  final Events`, eventsArray)
 			SetSelectedEvents(eventData)
 		})
 	}, [myResources])
@@ -486,10 +504,11 @@ const NewWorkfocePlanning = () => {
 			}
 
 			// First handle availability filter if enabled
+			// Also works for Recommended Staff Section
 			if (startDate && endDate && availability && !Special && !Level1 && !Level2 && !Level3) {
 				await listEventsToCheckAvailability(startDate, endDate, availability)
 					.then(async (data) => {
-						console.log('Availability Test 1', data)
+						console.log('Availability Test 1', data, branchesInfo)
 						console.log('Yes StartDate EndDate Special Level 1 Level 2  Level 3 First COndition', data)
 
 						const allEmployeeData = (
@@ -504,6 +523,8 @@ const NewWorkfocePlanning = () => {
 						// Store the availability filtered data
 						const availabilityFilteredData = allEmployeeData
 
+						// console.log('Availability Test 2', availabilityFilteredData)
+
 						// Apply certificate limits if any
 						const filteredEmployees = Object.keys(limits).reduce((acc, certType) => {
 							if (limits[certType] > 0) {
@@ -514,6 +535,8 @@ const NewWorkfocePlanning = () => {
 							}
 							return acc
 						}, [])
+
+						// console.log('Availability Test 3', filteredEmployees)
 
 						// If no tier filters are active, apply the availability filter
 						if (!allowHigherTier && !allowLowerTier) {
@@ -617,6 +640,8 @@ const NewWorkfocePlanning = () => {
 			setPreviousFilterState(currentFilterState)
 
 			setisDrawerOpen(!isDrawerOpen)
+
+			// Recommended Staff  logic
 		} catch (error) {
 			console.log('Error ', error)
 		}

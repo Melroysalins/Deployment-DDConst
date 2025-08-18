@@ -48,7 +48,9 @@ export const subscribeEvent = async (handleUpdate) => {
 }
 
 export const listEventsToCheckAvailability = async (startDate, endDate, availability) => {
-	const { data: employees, error: empError } = await supabase.from('employees').select('id, name , certificate')
+	const { data: employees, error: empError } = await supabase
+		.from('employees')
+		.select('id, name , certificate , branch')
 
 	if (empError) {
 		console.error(empError)
@@ -100,6 +102,7 @@ export const listEventsToCheckAvailability = async (startDate, endDate, availabi
 			partiallyavailable: partiallyavailable || undefined,
 			events: empEvents, // keep as-is, even if empty
 			certificate: emp?.certificate,
+			branch: emp?.branch,
 		}
 	})
 
