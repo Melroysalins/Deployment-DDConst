@@ -140,9 +140,9 @@ const NewWorkfocePlanning = () => {
 	const [recommendedStaff, SetRecommendedStaff] = useState([
 		{
 			Special: [],
-			Level1: [],
+			'Level 1': [],
 			Level2: [],
-			Level3: [],
+			'Level 3': [],
 		},
 	])
 
@@ -519,6 +519,8 @@ const NewWorkfocePlanning = () => {
 								})
 							)
 						).flat()
+
+						// data?.map((item) => {})
 
 						// Store the availability filtered data
 						const availabilityFilteredData = allEmployeeData
