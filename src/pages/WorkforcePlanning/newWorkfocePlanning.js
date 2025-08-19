@@ -141,7 +141,7 @@ const NewWorkfocePlanning = () => {
 		{
 			Special: [],
 			'Level 1': [],
-			Level2: [],
+			'Level 2': [],
 			'Level 3': [],
 		},
 	])
@@ -360,8 +360,6 @@ const NewWorkfocePlanning = () => {
 
 	const handleConfirmFilter = async () => {
 		try {
-			SetIsRightDrawerOPen(false)
-
 			const currentFilterState = {
 				allowHigherTier: dataConfig.allowHigherTier,
 				allowLowerTier: dataConfig.allowLowerTier,
@@ -521,7 +519,32 @@ const NewWorkfocePlanning = () => {
 							)
 						).flat()
 
-						// data?.map((item) => {})
+						// data?.forEach((item) => {
+						// 	if (item?.certificate === 'Special') {
+						// 		SetRecommendedStaff((prev) => ({
+						// 			...prev,
+						// 			[item?.certificate]: [...prev[item?.certificate], item],
+						// 		}))
+						// 	}
+						// 	if (item?.certificate === 'Level 1') {
+						// 		SetRecommendedStaff((prev) => ({
+						// 			...prev,
+						// 			[item?.certificate]: [...prev[item?.certificate], item],
+						// 		}))
+						// 	}
+						// 	if (item?.certificate === 'Level 2') {
+						// 		SetRecommendedStaff((prev) => ({
+						// 			...prev,
+						// 			[item?.certificate]: [...prev[item?.certificate], item],
+						// 		}))
+						// 	}
+						// 	if (item?.certificate === 'Level 3') {
+						// 		SetRecommendedStaff((prev) => ({
+						// 			...prev,
+						// 			[item?.certificate]: [...prev[item?.certificate], item],
+						// 		}))
+						// 	}
+						// })
 
 						// Store the availability filtered data
 						const availabilityFilteredData = allEmployeeData
@@ -539,7 +562,7 @@ const NewWorkfocePlanning = () => {
 							return acc
 						}, [])
 
-						// console.log('Availability Test 3', filteredEmployees)
+						console.log('Availability Test 3', recommendedStaff)
 
 						// If no tier filters are active, apply the availability filter
 						if (!allowHigherTier && !allowLowerTier) {
@@ -641,8 +664,6 @@ const NewWorkfocePlanning = () => {
 
 			// Update the previous filter state
 			setPreviousFilterState(currentFilterState)
-
-			setisDrawerOpen(!isDrawerOpen)
 
 			// Recommended Staff  logic
 		} catch (error) {
@@ -793,7 +814,7 @@ const NewWorkfocePlanning = () => {
 					htmlEncode: false,
 
 					renderer: ({ record }) => {
-						console.log('record', record, record.name, record.data.team_lead)
+						console.log('Currentrecord', record.data)
 
 						const isGroup = record.children?.length > 0
 						const name = record.name || ' '
@@ -827,11 +848,14 @@ const NewWorkfocePlanning = () => {
 						const teamLeadTag = record.data.team_lead
 							? `<span style="background-color: #ff7b00; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 13px;">TEAM LEAD</span>`
 							: ''
+						const certificate = record.data.certificate
+							? `<span style="background-color: #e4f1fe; color: black; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 13px; font-weight:bold;">${record.data.certificate}</span>`
+							: ''
 
 						return `
         ${ratingIcon}
         <span style="margin-left: 8px ; font-weight:600;">${name}</span>
-        ${teamLeadTag}
+        ${teamLeadTag} ${certificate}
     `
 					},
 				},
@@ -1042,8 +1066,7 @@ const NewWorkfocePlanning = () => {
 				</MuiButton>
 				<MuiButton
 					onClick={() => {
-						setapprovalIdDrawerRight(null)
-						setisDrawerOpen(true)
+						SetIsRightDrawerOPen(!isRightDrawerOpen)
 					}}
 					variant="contained"
 					size="medium"
@@ -1072,17 +1095,123 @@ const NewWorkfocePlanning = () => {
 					</Button>
 				</Stack>
 			)}
-			<div ref={schedulerRef} style={{ height: '900px', width: '100%', marginTop: '15px' }} />
 
-			{/* {isRightDrawerOpen && (
-				<RightDrawer
-					isRightDrawerOpen={isRightDrawerOpen}
-					SetIsRightDrawerOPen={SetIsRightDrawerOPen}
-					dataConfig={dataConfig}
-					SetDataConfig={SetDataConfig}
-					handleConfirmFilter={handleConfirmFilter}
-				/>
-			)} */}
+			{/* <Box
+				sx={{
+					display: 'flex',
+					alignItems: 'center',
+					width: '100%',
+					height: '100%',
+					overflowY: 'scroll',
+					scrollBehavior: 'smooth',
+					gap: '10px',
+					border: '1px solid red',
+				}}
+			>
+				<Box
+					sx={{
+						display: 'flex',
+						width: isRightDrawerOpen ? '73%' : '100%',
+						overflowY: 'scroll',
+						scrollbarWidth: 'none',
+						scrollBehavior: 'smooth',
+						border: '1px solid blue',
+						'&::-webkit-scrollbar': {
+							display: 'none',
+						},
+					}}
+				>
+					<div ref={schedulerRef} style={{ height: '900px', width: '100%', marginTop: '15px' }} />
+				</Box>
+
+				{isRightDrawerOpen && (
+					<Box
+						sx={{
+							display: 'flex',
+							width: '27%',
+							overflowY: 'scroll',
+							scrollbarWidth: 'none',
+							border: '1px solid orange',
+							scrollBehavior: 'smooth',
+							'&::-webkit-scrollbar': {
+								display: 'none',
+							},
+						}}
+					>
+						<RightDrawer
+							isRightDrawerOpen={isRightDrawerOpen}
+							SetIsRightDrawerOPen={SetIsRightDrawerOPen}
+							dataConfig={dataConfig}
+							SetDataConfig={SetDataConfig}
+							handleConfirmFilter={handleConfirmFilter}
+							isWorkForcePage={true}
+						/>
+					</Box>
+				)}
+			</Box> */}
+			<Box
+				sx={{
+					display: 'flex',
+					width: '100%',
+					height: 'calc(100vh - 180px)', // Adjust 180px based on your header and other elements
+					overflow: 'hidden',
+					position: 'relative',
+					border: '1px solid #e0e0e0',
+					borderRadius: '4px',
+					backgroundColor: '#fff',
+					mt: 2, // Add some top margin if needed
+				}}
+			>
+				{/* Scheduler Container */}
+				<Box
+					sx={{
+						flex: 1,
+						overflow: 'hidden',
+						display: 'flex',
+						flexDirection: 'column',
+						overflowY: 'scroll',
+						position: 'relative',
+						transition: 'width 0.3s ease',
+						width: isRightDrawerOpen ? 'calc(100% - 320px)' : '100%',
+					}}
+				>
+					<div
+						ref={schedulerRef}
+						style={{
+							flex: 1,
+							minHeight: 0,
+							width: '100%',
+						}}
+					/>
+				</Box>
+
+				{/* Right Drawer */}
+				{isRightDrawerOpen && (
+					<Box
+						sx={{
+							width: '380px',
+							height: '100%',
+							overflowY: 'auto', // allow vertical scroll
+							overflowX: 'hidden', // prevent horizontal scroll
+							borderLeft: '1px solid #e0e0e0',
+							backgroundColor: 'white',
+							boxShadow: '-2px 0 4px rgba(0,0,0,0.05)',
+							'&::-webkit-scrollbar': {
+								display: 'none',
+							},
+						}}
+					>
+						<RightDrawer
+							isRightDrawerOpen={isRightDrawerOpen}
+							SetIsRightDrawerOPen={SetIsRightDrawerOPen}
+							dataConfig={dataConfig}
+							SetDataConfig={SetDataConfig}
+							handleConfirmFilter={handleConfirmFilter}
+							isWorkForcePage={true}
+						/>
+					</Box>
+				)}
+			</Box>
 
 			{/* Request Approval Drawer from original WorkforcePlanning */}
 			{isDrawerOpen && (

@@ -35,7 +35,7 @@ export default function DateRangePickerCustom({ dataConfig, SetDataConfig }) {
 
 	return (
 		<LocalizationProvider dateAdapter={AdapterDayjs}>
-			<Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+			<Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, pb: 2 }}>
 				<Box sx={{ display: 'flex', gap: 2 }}>
 					{/* Start Date */}
 					<DatePicker
@@ -47,6 +47,7 @@ export default function DateRangePickerCustom({ dataConfig, SetDataConfig }) {
 						renderInput={(params) => (
 							<TextField
 								{...params}
+								size="small"
 								placeholder={t('Start Date')}
 								variant="outlined"
 								InputProps={{
@@ -54,7 +55,8 @@ export default function DateRangePickerCustom({ dataConfig, SetDataConfig }) {
 									readOnly: true,
 									sx: {
 										borderRadius: '12px',
-										height: '51px',
+										// height: '39px',
+										fontSize: '13px',
 									},
 									endAdornment: (
 										<InputAdornment position="end">
@@ -89,12 +91,13 @@ export default function DateRangePickerCustom({ dataConfig, SetDataConfig }) {
 								{...params}
 								placeholder={t('End Date')}
 								variant="outlined"
+								size="small"
 								InputProps={{
 									...params.InputProps,
 									readOnly: true,
 									sx: {
 										borderRadius: '12px',
-										height: '51px',
+										fontSize: '13px',
 									},
 									endAdornment: (
 										<InputAdornment position="end">
@@ -119,7 +122,7 @@ export default function DateRangePickerCustom({ dataConfig, SetDataConfig }) {
 				</Box>
 
 				{warning && (
-					<Typography variant="caption" sx={{ color: 'red', mt: 1 }}>
+					<Typography variant="caption" sx={{ color: 'red', mt: 1, fontSize: '15px' }}>
 						{t('End date cannot be earlier than start date')}
 					</Typography>
 				)}

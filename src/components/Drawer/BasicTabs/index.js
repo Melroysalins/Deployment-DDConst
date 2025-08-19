@@ -100,18 +100,6 @@ export default function BasicTabs({
 					</TabPanel>
 				)}
 
-				{isWorkForcePage && (
-					<TabPanel value={value} index={3}>
-						<RightDrawer
-							isRightDrawerOpen={isRightDrawerOpen}
-							SetIsRightDrawerOPen={SetIsRightDrawerOPen}
-							dataConfig={dataConfig}
-							SetDataConfig={SetDataConfig}
-							handleConfirmFilter={handleConfirmFilter}
-						/>
-					</TabPanel>
-				)}
-
 				<TabPanel value={value} index={2}>
 					{/* <Approval setopen={setopen} /> */}
 					<Approvals setopen={setopen} />

@@ -35,17 +35,23 @@ const RightDrawer = ({ isRightDrawerOpen, SetIsRightDrawerOPen, dataConfig, SetD
 			<Box
 				display={'flex'}
 				flexDirection={'column'}
-				style={{ width: '450px', height: '100vh' }}
-				overflow={'scroll'}
-				sx={{ scrollBehavior: 'smooth' }}
+				style={{ width: '100%', height: '100%' }}
+				// overflow={'scroll'}
+				// overflowY={'none'}
+				sx={{
+					scrollBehavior: 'smooth',
+					boxShadow: 'rgba(100, 100, 111, 0.2) 0px 7px 29px 0px',
+				}}
 			>
-				{/* <Stack direction={'row'} justifyContent={'space-between'} p={2} alignItems={'center'} cursor={'pointer'}>
-					<h3>{t('Find Employees')}</h3>
-					<CloseIcon style={{ cursor: 'pointer' }} onClick={() => SetIsRightDrawerOPen(!isRightDrawerOpen)} />
-				</Stack> */}
-				{/* <Divider /> */}
-
-				<Box marginTop={1} flex={1} marginBottom={'38px'}>
+				<Stack direction={'row'} justifyContent={'space-between'} p={2} alignItems={'center'} cursor={'pointer'}>
+					<h3 style={{ fontSize: '15px' }}>{t('Find Employees')}</h3>
+					<CloseIcon
+						style={{ cursor: 'pointer', fontSize: '15px' }}
+						onClick={() => SetIsRightDrawerOPen(!isRightDrawerOpen)}
+					/>
+				</Stack>
+				<Divider />
+				<Box marginTop={0} flex={1} marginBottom={'30px'}>
 					<Accordion expanded={true}>
 						<AccordionSummary
 							expandIcon={
@@ -58,11 +64,11 @@ const RightDrawer = ({ isRightDrawerOpen, SetIsRightDrawerOPen, dataConfig, SetD
 							aria-controls="panel1-content"
 							id="panel1-header"
 						>
-							<Typography style={{ color: 'black', fontWeight: '600', fontSize: '19px' }}>{t('Date Range')}</Typography>
+							<Typography style={{ color: 'black', fontWeight: '600', fontSize: '16px' }}>{t('Date Range')}</Typography>
 						</AccordionSummary>
 
 						{isDateRangeOpen && (
-							<AccordionDetails style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+							<AccordionDetails style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
 								<DateRange dataConfig={dataConfig} SetDataConfig={SetDataConfig} />
 								<QuickNavigation isProjectLeadComponent={false} dataConfig={dataConfig} SetDataConfig={SetDataConfig} />
 								<CertificateLevel dataConfig={dataConfig} SetDataConfig={SetDataConfig} />
@@ -71,11 +77,12 @@ const RightDrawer = ({ isRightDrawerOpen, SetIsRightDrawerOPen, dataConfig, SetD
 						)}
 					</Accordion>
 
-					<Divider style={{ marginTop: '10px' }} />
+					<Divider style={{ marginTop: '0px' }} />
 
 					{/* setting tab  */}
 
-					<Accordion expanded={true}>
+					<Accordion expanded={true} style={{ marginTop: '-3px' }}>
+						<Divider />
 						<AccordionSummary
 							expandIcon={
 								isSettingsTabOpen ? (
@@ -87,10 +94,10 @@ const RightDrawer = ({ isRightDrawerOpen, SetIsRightDrawerOPen, dataConfig, SetD
 							aria-controls="panel1-content"
 							id="panel1-header"
 						>
-							<Typography style={{ color: 'black', fontWeight: '600', fontSize: '19px' }}>{t('Settings')}</Typography>
+							<Typography style={{ color: 'black', fontWeight: '600', fontSize: '15px' }}>{t('Settings')}</Typography>
 						</AccordionSummary>
 						{isSettingsTabOpen && (
-							<AccordionDetails style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+							<AccordionDetails style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
 								<SettingsTab dataConfig={dataConfig} SetDataConfig={SetDataConfig} />
 							</AccordionDetails>
 						)}
@@ -98,7 +105,8 @@ const RightDrawer = ({ isRightDrawerOpen, SetIsRightDrawerOPen, dataConfig, SetD
 					<Divider />
 
 					{/* Confirmed staff  */}
-					<Accordion expanded={true}>
+					<Accordion expanded={true} style={{ marginTop: '-3px' }}>
+						<Divider />
 						<AccordionSummary
 							expandIcon={
 								isConfirmedStaffTabOpen ? (
@@ -110,7 +118,7 @@ const RightDrawer = ({ isRightDrawerOpen, SetIsRightDrawerOPen, dataConfig, SetD
 							aria-controls="panel1-content"
 							id="panel1-header"
 						>
-							<Typography style={{ color: 'black', fontWeight: '600', fontSize: '19px' }}>
+							<Typography style={{ color: 'black', fontWeight: '600', fontSize: '15px' }}>
 								{t('Confirmed Staff')}
 							</Typography>
 						</AccordionSummary>
@@ -121,11 +129,10 @@ const RightDrawer = ({ isRightDrawerOpen, SetIsRightDrawerOPen, dataConfig, SetD
 						)}
 					</Accordion>
 
-					<Divider />
-
 					{/*  Recommended Staff */}
 
 					<Accordion expanded={true}>
+						<Divider />
 						<AccordionSummary
 							expandIcon={
 								isRecommendedStaff ? (
@@ -137,7 +144,7 @@ const RightDrawer = ({ isRightDrawerOpen, SetIsRightDrawerOPen, dataConfig, SetD
 							aria-controls="panel1-content"
 							id="panel1-header"
 						>
-							<Typography style={{ color: 'black', fontWeight: '600', fontSize: '19px' }}>
+							<Typography style={{ color: 'black', fontWeight: '600', fontSize: '15px' }}>
 								{t('Recommended Staff')}
 							</Typography>
 						</AccordionSummary>
@@ -150,80 +157,80 @@ const RightDrawer = ({ isRightDrawerOpen, SetIsRightDrawerOPen, dataConfig, SetD
 
 					<Divider />
 				</Box>
-			</Box>
 
-			<Box
-				sx={{ padding: '0px' }}
-				position={'fixed'}
-				bottom={'14px'}
-				right={'0'}
-				zIndex={'100'}
-				backgroundColor={'white'}
-			>
-				<Box sx={{ display: 'flex', gap: '12px' }} p={0}>
-					{/* Blue primary button */}
-					<Button
-						variant="contained"
-						startIcon={<AutorenewRoundedIcon sx={{ fontSize: 18 }} />}
-						sx={{
-							backgroundColor: '#2563EB', // Blue
-							'&:hover': { backgroundColor: '#1D4ED8' },
-							textTransform: 'none',
-							fontSize: '1rem',
-							fontWeight: 500,
-							borderRadius: '10px',
-							minWidth: '180px',
-							padding: '8px 16px',
-							lineHeight: 1.5, // closer spacing
-							justifyContent: 'flex-start', // align text+icon to left if needed
-						}}
-					>
-						{t('Find Available Staff')}
-					</Button>
+				<Box
+					sx={{ padding: '0px' }}
+					position={'fixed'}
+					bottom={'14px'}
+					right={'35px'}
+					zIndex={'100'}
+					backgroundColor={'white'}
+				>
+					<Box sx={{ display: 'flex', gap: '20px' }} p={0}>
+						{/* Blue primary button */}
+						<Button
+							variant="contained"
+							startIcon={<AutorenewRoundedIcon sx={{ fontSize: 18 }} />}
+							sx={{
+								backgroundColor: '#2563EB', // Blue
+								'&:hover': { backgroundColor: '#1D4ED8' },
+								textTransform: 'none',
+								fontSize: '13px',
+								fontWeight: 500,
+								borderRadius: '10px',
+								minWidth: '150px',
+								padding: '2px 5px',
+								lineHeight: 1.5, // closer spacing
+								justifyContent: 'flex-start', // align text+icon to left if needed
+							}}
+						>
+							{t('Find Available Staff')}
+						</Button>
 
-					{/* Grey button */}
-					<Button
-						variant="contained"
-						sx={{
-							backgroundColor: '#E5E7EB', // Light grey
-							color: '#2F3845', // Dark text
-							'&:hover': { backgroundColor: '#D1D5DB' },
-							textTransform: 'none',
-							fontSize: '1rem',
-							fontWeight: 600,
-							borderRadius: '10px',
-							boxShadow: 'none',
-							padding: '0px',
-							width: '97px',
-							height: '61px',
-						}}
-						onClick={() => handleConfirm()}
-					>
-						{t('Confirm')}
-					</Button>
+						{/* Grey button */}
+						<Button
+							variant="contained"
+							sx={{
+								backgroundColor: '#E5E7EB', // Light grey
+								color: '#2F3845', // Dark text
+								'&:hover': { backgroundColor: '#D1D5DB' },
+								textTransform: 'none',
+								fontSize: '13px',
+								fontWeight: 600,
+								borderRadius: '10px',
+								boxShadow: 'none',
+								padding: '0px',
+								width: '85px',
+								height: '50px',
+							}}
+							onClick={() => handleConfirm()}
+						>
+							{t('Confirm')}
+						</Button>
 
-					{/* White outlined button */}
-					<Button
-						variant="outlined"
-						sx={{
-							backgroundColor: '#fff',
-							color: '#2F3845',
-							borderColor: '#CBD5E1',
-							'&:hover': {
-								backgroundColor: '#F8FAFC',
+						{/* White outlined button */}
+						<Button
+							variant="outlined"
+							sx={{
+								backgroundColor: '#fff',
+								color: '#2F3845',
 								borderColor: '#CBD5E1',
-							},
-							textTransform: 'none',
-							fontSize: '16px',
-							fontWeight: 500,
-							borderRadius: '10px',
-							padding: '3px',
-							paddingY: '5px',
-							width: '130px',
-						}}
-					>
-						{t('Save Search')}
-					</Button>
+								'&:hover': {
+									backgroundColor: '#F8FAFC',
+									borderColor: '#CBD5E1',
+								},
+								textTransform: 'none',
+								fontSize: '13px',
+								fontWeight: 500,
+								borderRadius: '10px',
+								padding: '3px',
+								paddingY: '4px',
+								width: '90px',
+							}}
+						>
+							{t('Save Search')}
+						</Button>
+					</Box>
 				</Box>
 			</Box>
 

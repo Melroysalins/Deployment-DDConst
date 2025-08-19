@@ -125,9 +125,10 @@ const RecommendedStaff = () => {
 						}
 						aria-controls="panel1-content"
 						id="panel1-header"
-						style={{ fontWeight: '590', alignItems: 'center', gap: '10px', display: 'flex' }}
+						style={{ fontWeight: '590', alignItems: 'center', gap: '10px', display: 'flex', fontSize: '13px' }}
 					>
-						{t(item?.level)} {item?.isSpecial && <CheckOutlinedIcon style={{ color: 'green', marginLeft: '4px' }} />}
+						{t(item?.level)}{' '}
+						{item?.isSpecial && <CheckOutlinedIcon style={{ color: 'green', marginLeft: '4px', fontSize: '13px' }} />}
 					</AccordionSummary>
 					<AccordionDetails>
 						<Box sx={{ backgroundColor: '#fff', cursor: 'pointer' }}>
@@ -139,17 +140,18 @@ const RecommendedStaff = () => {
 										display: 'flex',
 										justifyContent: 'space-between',
 										alignItems: 'center',
-										p: 2,
+										p: '12px',
 										mb: 1.5,
 										borderRadius: 2,
 										flexWrap: 'wrap',
 										width: '100%',
 										cursor: 'pointer',
+										height: '100%',
 									}}
 								>
 									<Box style={{ width: '100%' }}>
 										<Stack direction={'row'} justifyContent={'space-between'}>
-											<Typography variant="subtitle1" fontWeight="bold">
+											<Typography variant="subtitle1" fontWeight="bold" style={{ fontSize: '14px' }}>
 												{t(person.employeename)}
 											</Typography>
 											<Checkbox
@@ -190,8 +192,9 @@ const RecommendedStaff = () => {
 												color: '#2563EB',
 												fontWeight: 500,
 												mt: 1,
-												fontSize: '0.9rem',
+												fontSize: '12px',
 												borderRadius: 1,
+												height: '25px',
 												cursor: 'pointer',
 											}}
 										/>
@@ -203,8 +206,8 @@ const RecommendedStaff = () => {
 													color: '#2F3845',
 													fontWeight: 500,
 													mt: 1,
-													fontSize: '0.9rem',
 													borderRadius: 1,
+													height: '25px',
 													cursor: 'pointer',
 												}}
 											/>
@@ -217,8 +220,8 @@ const RecommendedStaff = () => {
 													color: '#2F3845',
 													fontWeight: 500,
 													mt: 1,
-													fontSize: '0.9rem',
 													borderRadius: 1,
+													height: '25px',
 													cursor: 'pointer',
 												}}
 											/>
@@ -226,7 +229,7 @@ const RecommendedStaff = () => {
 									</Box>
 
 									<Box sx={{ display: 'flex', alignItems: 'center', gap: 1, marginTop: '6px' }}>
-										<Typography variant="body2" sx={{ color: '#6B7280' }}>
+										<Typography variant="body2" sx={{ color: '#6B7280', fontSize: '13px' }}>
 											{t(person.date)}
 										</Typography>
 									</Box>

@@ -46,9 +46,9 @@ const QuickNavigation = ({ isProjectLeadComponent, dataConfig, SetDataConfig }) 
 
 	if (!isProjectLeadComponent) {
 		return (
-			<Stack direction={'row'} width={'100%'} marginTop={3} alignItems={'center'} alignContent={'center'}>
+			<Stack direction={'row'} width={'100%'} marginTop={0.5} alignItems={'center'} alignContent={'center'}>
 				<Box style={{ display: 'flex', width: '25%' }}>
-					<span style={{ fontFamily: 'sans-serif', fontSize: '17px' }}>Quick Nav :</span>
+					<span style={{ fontFamily: 'sans-serif', fontSize: '15px' }}>Quick Nav :</span>
 				</Box>
 				<Stack
 					width={'75%'}
@@ -62,16 +62,17 @@ const QuickNavigation = ({ isProjectLeadComponent, dataConfig, SetDataConfig }) 
 						scrollbarWidth: 'none', // Firefox
 					}}
 				>
-					<Stack direction={'row'} gap={2} style={{ cursor: 'pointer' }}>
+					<Stack direction={'row'} gap={1} style={{ cursor: 'pointer' }}>
 						{NavigationInfo?.map((item, index) => (
 							<Typography
 								key={index}
-								height={'40px'}
+								height={'30px'}
 								border={'1px solid #CBD5E1'}
-								width={'105px'}
+								width={'80px'}
 								textAlign={'center'}
 								alignContent={'center'}
 								borderRadius={'20px'}
+								fontSize={'13px'}
 								style={{
 									cursor: 'pointer',
 									background: selectedQuickNavigation === item || quickNav === item ? '#3B82F6' : '',
@@ -94,9 +95,9 @@ const QuickNavigation = ({ isProjectLeadComponent, dataConfig, SetDataConfig }) 
 	console.log('Quick Navigation', dataConfig, selectedProjectLead)
 
 	return (
-		<Box display={'flex'} flexDirection={'column'} marginTop={'15px'}>
+		<Box display={'flex'} flexDirection={'column'} marginTop={'11px'}>
 			<Box style={{ display: 'flex' }}>
-				<h4 style={{ color: 'black', fontWeight: '600', fontSize: '19px' }}>Possible Project Lead Certificate Tier</h4>
+				<h4 style={{ color: 'black', fontWeight: '600', fontSize: '15px' }}>Possible Project Lead Certificate Tier</h4>
 			</Box>
 			<Stack
 				width={'100%'}
@@ -111,18 +112,19 @@ const QuickNavigation = ({ isProjectLeadComponent, dataConfig, SetDataConfig }) 
 				}}
 				marginTop={'15px'}
 			>
-				<Stack direction={'row'} gap={2} style={{ cursor: 'pointer' }}>
+				<Stack direction={'row'} gap={1} style={{ cursor: 'pointer' }}>
 					{ProjectLeadCertificateInfo?.map((item, index) => (
 						<Typography
 							key={index}
-							height={'40px'}
+							height={'30px'}
 							border={'1px solid #CBD5E1'}
-							width={'85px'}
+							width={'75px'}
 							textAlign={'center'}
 							alignContent={'center'}
 							borderRadius={'20px'}
 							style={{
 								cursor: 'pointer',
+								fontSize: '14px',
 								background: projectLeadCertificate?.includes(item) ? '#3B82F6' : '',
 								color: projectLeadCertificate?.includes(item) ? 'white' : '',
 							}}

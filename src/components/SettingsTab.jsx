@@ -35,7 +35,7 @@ const CustomSwitch = styled(Switch)(({ theme }) => ({
 	padding: 8,
 	'& .MuiSwitch-track': {
 		borderRadius: 20,
-		height: '19px',
+		height: '16px',
 		backgroundColor: '#CBD5E1', // off state track color
 		opacity: 1,
 		transition: theme.transitions.create(['background-color'], {
@@ -58,8 +58,8 @@ const CustomSwitch = styled(Switch)(({ theme }) => ({
 	},
 	'& .MuiSwitch-thumb': {
 		boxShadow: 'none',
-		width: 21,
-		height: 21,
+		width: 19,
+		height: 19,
 	},
 }))
 
@@ -90,9 +90,9 @@ const SettingsTab = ({ dataConfig, SetDataConfig }) => {
 	}
 
 	return (
-		<Box display={'flex'} flexDirection={'column'} marginTop={'7px'}>
+		<Box display={'flex'} flexDirection={'column'} marginTop={'0px'}>
 			<Box style={{ display: 'flex' }}>
-				<h4 style={{ color: 'black', fontWeight: '500', fontSize: '16px' }}>{t('Availability')}</h4>
+				<h4 style={{ color: 'black', fontWeight: '500', fontSize: '15px' }}>{t('Availability')}</h4>
 			</Box>
 			<Stack
 				width={'auto'}
@@ -104,20 +104,34 @@ const SettingsTab = ({ dataConfig, SetDataConfig }) => {
 					msOverflowStyle: 'none', // IE and Edge
 					scrollbarWidth: 'none', // Firefox
 				}}
-				marginTop={'15px'}
+				marginTop={'8px'}
 			>
-				<Stack direction={'row'} gap={2} style={{ cursor: 'pointer' }}>
+				<Stack
+					direction={'row'}
+					gap={2}
+					style={{
+						'&::-webkit-scrollbar': {
+							display: 'none',
+						},
+						msOverflowStyle: 'none', // IE and Edge
+						scrollbarWidth: 'none', // Firefox
+						cursor: 'pointer',
+						overflowX: 'scroll',
+						overflowY: 'none',
+					}}
+				>
 					{AvailabilityInfo?.map((item, index) => (
 						<Typography
 							key={index}
-							height={'40px'}
+							height={'30px'}
 							border={'1px solid #CBD5E1'}
 							textAlign={'center'}
-							width={'130px'}
+							width={'120px'}
 							alignContent={'center'}
 							borderRadius={'10px'}
 							style={{
 								cursor: 'pointer',
+								fontSize: '12px',
 								background: availability === item ? '#3B82F6' : '',
 								color: availability === item ? 'white' : '',
 							}}
@@ -139,11 +153,11 @@ const SettingsTab = ({ dataConfig, SetDataConfig }) => {
 							<Box>
 								<Typography
 									variant="body1"
-									sx={{ fontWeight: 590, fontSize: '15px', alignContent: 'center', fontFamily: 'sans-serif' }}
+									sx={{ fontWeight: 550, fontSize: '14px', alignContent: 'center', fontFamily: 'sans-serif' }}
 								>
 									{t(item.title)} <InfoOutlinedIcon fontSize="14px" style={{ color: '#94A3B8' }} />
 								</Typography>
-								<Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '13px' }}>
+								<Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '11px' }}>
 									{t(item.subtitle)}
 								</Typography>
 							</Box>

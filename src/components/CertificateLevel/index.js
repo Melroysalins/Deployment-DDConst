@@ -39,9 +39,9 @@ const CertificateLevel = ({ dataConfig, SetDataConfig }) => {
 	}
 
 	return (
-		<Box display={'flex'} flexDirection={'column'} marginTop={'15px'}>
+		<Box display={'flex'} flexDirection={'column'} marginTop={'12px'}>
 			<Box style={{ display: 'flex' }}>
-				<h4 style={{ color: 'black', fontWeight: '600', fontSize: '19px' }}>{t('Certification Level Requirements')}</h4>
+				<h4 style={{ color: 'black', fontWeight: '600', fontSize: '15px' }}>{t('Certification Level Requirements')}</h4>
 			</Box>
 			<Box mt={2} display={'flex'} flexDirection={'row'} gap={'12px'}>
 				<Stack
@@ -50,7 +50,7 @@ const CertificateLevel = ({ dataConfig, SetDataConfig }) => {
 					alignContent={'center'}
 					alignItems={'center'}
 					width={'100%'}
-					mt={3}
+					mt={1}
 					gap={2}
 				>
 					{cetficiationLevel?.map((level, index) => (
@@ -61,10 +61,11 @@ const CertificateLevel = ({ dataConfig, SetDataConfig }) => {
 								borderRadius: '12px',
 								padding: '16px',
 								textAlign: 'center',
-								width: '100px',
+								width: '90px',
+								height: '92px',
 							}}
 						>
-							<Typography variant="subtitle1" sx={{ fontWeight: '500', fontSize: '16px', mb: 1 }}>
+							<Typography variant="subtitle1" sx={{ fontWeight: '500', fontSize: '11px', mb: 1 }}>
 								{t(level?.label)}
 							</Typography>
 
@@ -73,7 +74,7 @@ const CertificateLevel = ({ dataConfig, SetDataConfig }) => {
 								inputProps={{
 									style: {
 										textAlign: 'center',
-										fontSize: '16px',
+										fontSize: '14px',
 										fontWeight: 500,
 										padding: '6px 0',
 									},
