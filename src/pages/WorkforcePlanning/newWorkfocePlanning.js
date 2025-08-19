@@ -206,6 +206,7 @@ const NewWorkfocePlanning = () => {
 					collapsed: false,
 					eventCreation: false,
 					children: [],
+					expanded: true,
 				}
 			}
 
@@ -664,7 +665,7 @@ const NewWorkfocePlanning = () => {
 
 		const scheduler = new SchedulerPro({
 			startDate: schdulerStartDate ? new Date(schdulerStartDate) : new Date(2025, 0, 1),
-			endDate: SchedulerEndDate ? new Date(SchedulerEndDate) : new Date(2025, 1, 31),
+			endDate: SchedulerEndDate ? new Date(SchedulerEndDate) : new Date(2025, 2, 31),
 			appendTo: schedulerRef.current,
 			autoHeight: true,
 			width: '100%',
@@ -672,12 +673,15 @@ const NewWorkfocePlanning = () => {
 			viewPreset: twoMonthViewPreset,
 			tickSize: 50,
 			rowHeight: 60,
+			stateful: false,
+			stateId: 'mySchedulerState',
 			eventLayout: 'stack',
 			dependenciesFeature: true,
 			dependencyEditFeature: true,
 			ganttProps,
 			autoAdjustTimeAxis: false,
 			maxZoomLevel: 12,
+			autoLoad: true,
 			timeResolution: {
 				unit: 'day',
 				increment: 1,
@@ -783,6 +787,7 @@ const NewWorkfocePlanning = () => {
 					type: 'tree',
 					text: 'Employee',
 					field: 'name',
+					expanded: true,
 					width: 250,
 					headerRenderer: () => '<b style="font-weight: 800; font-size: 18px;">Employee</b>',
 					htmlEncode: false,
