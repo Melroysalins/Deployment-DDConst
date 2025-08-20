@@ -16,5 +16,5 @@ export const listAllBranches = async () => {
 export const getAllBranchesDetails = async () => {
 	const res = await supabase.from('branches').select('*')
 
-	return res?.data || []
+	return res
 }

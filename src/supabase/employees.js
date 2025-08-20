@@ -185,3 +185,30 @@ export const filterEmployeesWithAvailabilityAndCertificates = async (
 
 	return finalResult
 }
+
+export const getBranchDetailsAlongWithEmployeesUnderThatBranch = async () => {
+	const result = []
+
+	const branchResponse = await supabase.from('branches').select('*')
+
+	const employeeResponse = await supabase.from('employees').select('*')
+
+	branchResponse?.data?.forEach((item) => {
+		employeeResponse?.data?.forEach((ele) => {
+			if (item?.id === ele?.branch) {
+				const existingBranch = result?.find((branch) => branch?.id === item?.id)
+				if (existingBranch) {
+					existingBranch.employees?.push(ele)
+				} else {
+					result.push({
+						id: item?.id,
+						branchName: item?.name,
+						employees: [ele],
+					})
+				}
+			}
+		})
+	})
+
+	return result
+}

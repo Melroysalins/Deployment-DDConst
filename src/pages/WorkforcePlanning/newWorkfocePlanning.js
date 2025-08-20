@@ -59,6 +59,7 @@ import {
 import {
 	filterEmployees,
 	filterEmployeesWithAvailabilityAndCertificates,
+	getBranchDetailsAlongWithEmployeesUnderThatBranch,
 	getEmployeeBasedOnCertificate,
 	getEmployeeOnlyWithHigherTier,
 	getEmployeeOnlyWithLowerTier,
@@ -197,7 +198,7 @@ const NewWorkfocePlanning = () => {
 		console.log(`MYRESOURCES The response  100 ${message}`, dataEmp)
 
 		dataEmp.data.forEach((employee) => {
-			const projectId = employee.project || 'No Project'
+			const projectId = employee?.branch || 'No Project'
 
 			if (!groupedEmployees[projectId]) {
 				groupedEmployees[projectId] = {
@@ -226,7 +227,8 @@ const NewWorkfocePlanning = () => {
 
 		const resourceArray = Object.values(groupedEmployees)
 
-		console.log(`MYRESOURCES The response  final${message}`, resourceArray)
+		console.log('All Branch Details Resources 200', mappedProjects, dataEmp, resourceArray, branchesInfo)
+
 		setMyResources(resourceArray)
 
 		// Only update previous resources if not in the middle of a tier filter operation
@@ -235,25 +237,12 @@ const NewWorkfocePlanning = () => {
 		}
 	}
 
-	function filterTeamLeadsNotInProjectLeadCert(myResources, projectLeadCertificate) {
-		return myResources.map((resource) => ({
-			...resource,
-			children: resource.children.filter((employee) => {
-				// Keep if NOT a team lead OR their certificate is in projectLeadCertificate
-				if (employee.team_lead) {
-					return projectLeadCertificate.includes(employee.certificate)
-				}
-				return true
-			}),
-		}))
-	}
-
 	React.useEffect(() => {
 		;(async function () {
 			setLoader(true)
 
-			listAllProjects().then((data) => {
-				const mappedProjects = data?.data.map((item) => ({ text: item.title, value: item.id }))
+			getAllBranchesDetails().then((data) => {
+				const mappedProjects = data?.data.map((item) => ({ text: item?.name, value: item.id }))
 
 				SetMappedProjects(mappedProjects)
 
@@ -263,11 +252,8 @@ const NewWorkfocePlanning = () => {
 					setPreviousResources(dataEmp.data)
 				})
 			})
-
-			getAllBranchesDetails().then((data) => {
-				SetBranchesInfo(data)
-			})
 		})()
+
 		return () => {}
 	}, [projectid])
 
@@ -662,6 +648,14 @@ const NewWorkfocePlanning = () => {
 				}
 			}
 
+			if (allowHigherTier && allowLowerTier) {
+				listAllEmployees().then((dataEmp) => {
+					console.log('All Employee', dataEmp)
+					transFormResourcesData(dataEmp, MappedProjects, false, 'Initial load')
+					setPreviousResources(dataEmp.data)
+				})
+			}
+
 			// Update the previous filter state
 			setPreviousFilterState(currentFilterState)
 
@@ -834,12 +828,12 @@ const NewWorkfocePlanning = () => {
 									background-color: ${bgColor}; 
 									color: white; 
 									border-radius: 50%; 
-									height: 55px; 
-									width: 55px; 
+									height: 20px; 
+									width: 20px; 
 									display: flex; 
 									justify-content: center; 
 									align-items: center;
-									font-size: 12px;
+									font-size: 10px;
 									font-weight: 700;
 								">${rating}</span>
 							`
@@ -1096,59 +1090,6 @@ const NewWorkfocePlanning = () => {
 				</Stack>
 			)}
 
-			{/* <Box
-				sx={{
-					display: 'flex',
-					alignItems: 'center',
-					width: '100%',
-					height: '100%',
-					overflowY: 'scroll',
-					scrollBehavior: 'smooth',
-					gap: '10px',
-					border: '1px solid red',
-				}}
-			>
-				<Box
-					sx={{
-						display: 'flex',
-						width: isRightDrawerOpen ? '73%' : '100%',
-						overflowY: 'scroll',
-						scrollbarWidth: 'none',
-						scrollBehavior: 'smooth',
-						border: '1px solid blue',
-						'&::-webkit-scrollbar': {
-							display: 'none',
-						},
-					}}
-				>
-					<div ref={schedulerRef} style={{ height: '900px', width: '100%', marginTop: '15px' }} />
-				</Box>
-
-				{isRightDrawerOpen && (
-					<Box
-						sx={{
-							display: 'flex',
-							width: '27%',
-							overflowY: 'scroll',
-							scrollbarWidth: 'none',
-							border: '1px solid orange',
-							scrollBehavior: 'smooth',
-							'&::-webkit-scrollbar': {
-								display: 'none',
-							},
-						}}
-					>
-						<RightDrawer
-							isRightDrawerOpen={isRightDrawerOpen}
-							SetIsRightDrawerOPen={SetIsRightDrawerOPen}
-							dataConfig={dataConfig}
-							SetDataConfig={SetDataConfig}
-							handleConfirmFilter={handleConfirmFilter}
-							isWorkForcePage={true}
-						/>
-					</Box>
-				)}
-			</Box> */}
 			<Box
 				sx={{
 					display: 'flex',
