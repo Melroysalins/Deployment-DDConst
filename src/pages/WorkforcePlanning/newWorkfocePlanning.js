@@ -1,84 +1,44 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from 'react-query'
-import {
-	// Scheduler,
-	SchedulerPro,
-	// ResourceStore,
-	DependencyStore,
-	DateHelper,
-	ProjectModel,
-	Grid,
-	PresetManager,
-	// DependencyTab,
-	// PredecessorsTab,
-	// SuccessorsTab,
-	// DependencyEdit,
-	// DependencyMenu,
-	WidgetHelper,
-	CalendarModel,
-} from '../../lib/bryntum/schedulerpro.module'
+import { SchedulerPro, DependencyStore, DateHelper, ProjectModel } from '../../lib/bryntum/schedulerpro.module'
 import '../../lib/bryntum/schedulerpro.stockholm.css'
 
 import './customstyle.css'
 
-import {
-	createNewTasks,
-	listAllTasksByProject2,
-	updateTask,
-	deleteTasks,
-	createTaskDependency,
-	deleteTaskDependency,
-	getAllTaskDependencyByProject,
-	getSelectedWorkTypes,
-	getTeamDetails,
-	updateTaskDependency,
-	listAllTeams,
-	getBranchDetails,
-	getAllBranchesDetails,
-} from 'supabase'
+import { updateTask, getAllBranchesDetails } from 'supabase'
 
-import {
-	customMonthViewPreset,
-	features,
-	getTimelineRange,
-	dependencyTypeMap,
-	getISODateString,
-	zoomPresets,
-	CustomViewDay,
-} from '../ProjectImplementationSchedule/SchedulerConfig'
+import { features } from '../ProjectImplementationSchedule/SchedulerConfig'
 
 import {
 	listAllEvents,
 	createNewEvent,
 	deleteEvent,
-	listSelectedEvents,
 	listEventsToCheckAvailability,
 	fetchEmployeeBasedOnId,
 } from 'supabase/events'
 import {
 	filterEmployees,
 	filterEmployeesWithAvailabilityAndCertificates,
-	getBranchDetailsAlongWithEmployeesUnderThatBranch,
 	getEmployeeBasedOnCertificate,
 	getEmployeeOnlyWithHigherTier,
 	getEmployeeOnlyWithLowerTier,
 	listAllEmployees,
 	listEmployeesByProject,
 } from 'supabase/employees'
-import { getProjectDetails, listAllProjects, listParicularProjects } from 'supabase/projects'
-import { Field } from 'formik'
+import { listAllProjects } from 'supabase/projects'
 import { sanitizeForDataId } from './WorkforcePlanning'
 import { Button, Stack, Button as MuiButton, Box } from '@mui/material'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
-import MenuIcon from '@mui/icons-material/Menu'
 import RightDrawer from 'components/RightDrawer'
 import BasicTabs from 'components/Drawer/BasicTabs'
 import useMain from 'pages/context/context'
 import Iconify from 'components/Iconify'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
+import { generateUniqueId, transFormFilteredResourcesData, hashString } from 'utils'
+import { defaultConfig } from 'constant'
 
 const filters = { dw: true }
 
@@ -130,8 +90,6 @@ const NewWorkfocePlanning = () => {
 		allowSplitAssignment: false,
 		allowHigherTier: false,
 		allowLowerTier: false,
-		allowOtherCompaniesStaff: false,
-		allowSelectSingleRecommendation: false,
 	})
 
 	const [schdulerStartDate, SetSchedulerStartDate] = useState('')
@@ -174,21 +132,7 @@ const NewWorkfocePlanning = () => {
 		isError,
 	} = useQuery(['allProjectSites'], () => listAllProjects().then((res) => res.data))
 
-	function generateUniqueId({ name, email_address, project, phone_number }) {
-		const base = `${name}-${email_address}-${project}-${phone_number}`
-		const hash = hashString(base)
-		return `member-${hash}` // You can prefix for clarity
-	}
-
 	// Simple hash function (djb2 algorithm)
-	function hashString(str) {
-		const utf8 = new TextEncoder().encode(str)
-		let hash = 0
-		for (let i = 0; i < utf8.length; i += 1) {
-			hash = (hash + utf8[i] * (i + 1)) % 1000000007
-		}
-		return `id-${hash.toString(36)}` // Base36 for compactness
-	}
 
 	function transFormResourcesData(dataEmp, mappedProjects, thevalue, message, isTierFilter = false) {
 		const groupedEmployees = {}
@@ -208,6 +152,7 @@ const NewWorkfocePlanning = () => {
 					eventCreation: false,
 					children: [],
 					expanded: true,
+					SatisfyCondition: false,
 				}
 			}
 
@@ -222,18 +167,49 @@ const NewWorkfocePlanning = () => {
 				team: employee.team,
 				team_lead: employee.team_lead,
 				certificate: employee.certificate,
+				SatisfyCondition: employee?.SatisfyCondition || false,
 			})
 		})
 
 		const resourceArray = Object.values(groupedEmployees)
 
-		console.log('All Branch Details Resources 200', mappedProjects, dataEmp, resourceArray, branchesInfo)
+		// console.log('All Branch Details Resources 200 ', dataEmp)
 
 		setMyResources(resourceArray)
 
 		// Only update previous resources if not in the middle of a tier filter operation
 		if (!isTierFilter) {
 			setPreviousResources(resourceArray)
+		}
+	}
+
+	function calculateEmployeeWhoSatisfyTheCondition(dataEmp, allResult, isTrue) {
+		const filteredResult = []
+		dataEmp?.data?.forEach((item) => {
+			allResult?.forEach((ele) => {
+				const isPresent = allResult?.find((element) => element?.id === item?.id)
+				const isPresentInFIlteresResult = filteredResult?.find((element) => element?.id === item?.id)
+				if (isPresent && !isPresentInFIlteresResult) {
+					const modifiedResponse = { ...item, SatisfyCondition: isTrue || true }
+					filteredResult.push(modifiedResponse)
+				} else {
+					const isPresent = filteredResult?.find((element) => element?.id === item?.id)
+					const modifiedResponse = [{ ...item, SatisfyCondition: isTrue || false }]
+					if (!isPresent) filteredResult.push(...modifiedResponse)
+				}
+			})
+		})
+
+		if (filteredResult?.length) {
+			transFormFilteredResourcesData(
+				{ data: filteredResult },
+				MappedProjects,
+				true,
+				'For Sepcial Level Count',
+				generateUniqueId,
+				setMyResources,
+				setPreviousResources
+			)
 		}
 	}
 
@@ -307,10 +283,6 @@ const NewWorkfocePlanning = () => {
 		return new ProjectModel({
 			eventsData: [...events],
 			resourcesData: myResources,
-			// dependencyStore: new DependencyStore({
-			// 	data: dependencies,
-			// 	autoLoad: true,
-			// }),
 		})
 	}, [myResources, events])
 
@@ -439,7 +411,7 @@ const NewWorkfocePlanning = () => {
 				SetSchedulerEndDate(end)
 			}
 
-			if (Special || Level1 || Level2 || Level3) {
+			if ((Special || Level1 || Level2 || Level3) && !startDate && !endDate && !availability) {
 				const allResult = (
 					await Promise.all(
 						Object.entries(certificateMap)
@@ -452,20 +424,22 @@ const NewWorkfocePlanning = () => {
 					)
 				).flat()
 
-				console.log('SpecialLevel1', allResult)
+				const dataEmp = await listAllEmployees()
 
-				if (allResult?.length) {
-					transFormResourcesData({ data: allResult }, MappedProjects, true, 'For Sepcial Level Count')
-				}
+				calculateEmployeeWhoSatisfyTheCondition(dataEmp, allResult)
 			}
 
-			if (projectLeadCertificate?.length && !Special && !Level1 && !Level2 && !Level3) {
-				filterEmployees(projectLeadCertificate).then((data) =>
-					transFormResourcesData(data, MappedProjects, true, 'projectLeadCertificate?.length && !Special && !Level1')
-				)
-				// setMyResources(filteredResources)
+			if (projectLeadCertificate?.length > 0 && !Special && !Level1 && !Level2 && !Level3) {
+				const allResult = await filterEmployees(projectLeadCertificate)
+
+				const dataEmp = await listAllEmployees()
+
+				console.log('checking only project lead selected', allResult?.data)
+
+				calculateEmployeeWhoSatisfyTheCondition(dataEmp, allResult?.data)
 			}
 			if (projectLeadCertificate?.length > 0 && (Special === 1 || Level1 === 1 || Level2 === 1 || Level3 === 1)) {
+				console.log('Yes StartDate EndDate Special Level 1 Level 2  Level 3')
 				const allResult = (
 					await Promise.all(
 						Object.entries(certificateMap)
@@ -478,14 +452,9 @@ const NewWorkfocePlanning = () => {
 					)
 				).flat()
 
-				if (allResult?.length) {
-					transFormResourcesData(
-						{ data: allResult },
-						MappedProjects,
-						true,
-						'projectLeadCertificate?.length && !Special && !Level1 ELSE'
-					)
-				}
+				const dataEmp = await listAllEmployees()
+
+				calculateEmployeeWhoSatisfyTheCondition(dataEmp, allResult)
 			}
 
 			// First handle availability filter if enabled
@@ -493,8 +462,8 @@ const NewWorkfocePlanning = () => {
 			if (startDate && endDate && availability && !Special && !Level1 && !Level2 && !Level3) {
 				await listEventsToCheckAvailability(startDate, endDate, availability)
 					.then(async (data) => {
-						console.log('Availability Test 1', data, branchesInfo)
-						console.log('Yes StartDate EndDate Special Level 1 Level 2  Level 3 First COndition', data)
+						// console.log('Availability Test 1', data, branchesInfo)
+						console.log('Yes StartDate EndDate Special Level 1 Level 2  Level 3', data)
 
 						const allEmployeeData = (
 							await Promise.all(
@@ -505,37 +474,8 @@ const NewWorkfocePlanning = () => {
 							)
 						).flat()
 
-						// data?.forEach((item) => {
-						// 	if (item?.certificate === 'Special') {
-						// 		SetRecommendedStaff((prev) => ({
-						// 			...prev,
-						// 			[item?.certificate]: [...prev[item?.certificate], item],
-						// 		}))
-						// 	}
-						// 	if (item?.certificate === 'Level 1') {
-						// 		SetRecommendedStaff((prev) => ({
-						// 			...prev,
-						// 			[item?.certificate]: [...prev[item?.certificate], item],
-						// 		}))
-						// 	}
-						// 	if (item?.certificate === 'Level 2') {
-						// 		SetRecommendedStaff((prev) => ({
-						// 			...prev,
-						// 			[item?.certificate]: [...prev[item?.certificate], item],
-						// 		}))
-						// 	}
-						// 	if (item?.certificate === 'Level 3') {
-						// 		SetRecommendedStaff((prev) => ({
-						// 			...prev,
-						// 			[item?.certificate]: [...prev[item?.certificate], item],
-						// 		}))
-						// 	}
-						// })
-
 						// Store the availability filtered data
 						const availabilityFilteredData = allEmployeeData
-
-						// console.log('Availability Test 2', availabilityFilteredData)
 
 						// Apply certificate limits if any
 						const filteredEmployees = Object.keys(limits).reduce((acc, certType) => {
@@ -548,23 +488,16 @@ const NewWorkfocePlanning = () => {
 							return acc
 						}, [])
 
-						console.log('Availability Test 3', recommendedStaff)
+						console.log('Availability Test 3', filteredEmployees, availabilityFilteredData)
 
 						// If no tier filters are active, apply the availability filter
 						if (!allowHigherTier && !allowLowerTier) {
 							const dataToShow = Special || Level1 || Level2 || Level3 ? filteredEmployees : availabilityFilteredData
-							transFormResourcesData(
-								{ data: dataToShow },
-								MappedProjects,
-								true,
-								`${availability} available employees`,
-								true // Pass true to indicate we're in a filter operation
-							)
 
-							console.log('Yes StartDate EndDate Special Level 1 Level 2  Level 3 First COndition', dataToShow)
+							const dataEmp = await listAllEmployees()
+
+							calculateEmployeeWhoSatisfyTheCondition(dataEmp, dataToShow)
 						}
-
-						// If tier filters are also active, we'll handle them after this
 					})
 					.catch((error) => {
 						console.error('Error in availability filter:', error)
@@ -581,16 +514,9 @@ const NewWorkfocePlanning = () => {
 
 				// Store the availability filtered data
 
-				if (result?.length) {
-					transFormResourcesData(
-						{ data: result },
-						MappedProjects,
-						true,
-						true // Pass true to indicate we're in a filter operation
-					)
-				}
+				const dataEmp = await listAllEmployees()
 
-				console.log('Yes StartDate EndDate Special Level 1 Level 2  Level 3', result)
+				calculateEmployeeWhoSatisfyTheCondition(dataEmp, result)
 			}
 
 			// Store current resources before applying tier filters
@@ -635,24 +561,26 @@ const NewWorkfocePlanning = () => {
 					}
 
 					if (filteredData.length) {
-						transFormResourcesData(
-							{ data: filteredData },
-							MappedProjects,
-							true,
-							`${allowHigherTier ? 'Higher' : 'Lower'} Tier Employees`,
-							true
-						)
+						const dataEmp = await listAllEmployees()
+
+						calculateEmployeeWhoSatisfyTheCondition(dataEmp, filteredData)
 					}
 				} catch (error) {
 					console.error('Error in tier filtering:', error)
 				}
 			}
 
-			if (allowHigherTier && allowLowerTier) {
-				listAllEmployees().then((dataEmp) => {
-					console.log('All Employee', dataEmp)
-					transFormResourcesData(dataEmp, MappedProjects, false, 'Initial load')
-					setPreviousResources(dataEmp.data)
+			if (JSON.stringify(dataConfig) === JSON.stringify(defaultConfig) || (allowHigherTier && allowLowerTier)) {
+				getAllBranchesDetails().then((data) => {
+					const mappedProjects = data?.data.map((item) => ({ text: item?.name, value: item.id }))
+
+					SetMappedProjects(mappedProjects)
+
+					listAllEmployees().then((dataEmp) => {
+						console.log('All Employee', dataEmp)
+						transFormResourcesData(dataEmp, mappedProjects, false, 'Initial load')
+						setPreviousResources(dataEmp.data)
+					})
 				})
 			}
 
@@ -667,10 +595,6 @@ const NewWorkfocePlanning = () => {
 
 	useEffect(() => {
 		if (!schedulerRef.current) return
-
-		// PresetManager.add(CustomViewDay)
-		// PresetManager.add(customMonthViewPreset)
-
 		const ganttProps = {
 			stripeFeature: true,
 			dependenciesFeature: true,
@@ -814,14 +738,14 @@ const NewWorkfocePlanning = () => {
 						const name = record.name || ' '
 
 						if (isGroup) {
-							return `<b style="margin-left:5px;font-weight:800;font-size:19px">${name}</b>`
+							return `<b style="margin-left:5px;font-weight:${
+								record?.data?.SatisfyCondition ? 800 : 600
+							};font-size:19px; color:${record?.data?.SatisfyCondition ? 'black' : 'grey'}">${name}</b>`
 						}
 
 						// Rating circle logic
 						const rating = record.data?.rating || '👤'
-						let bgColor = '#eee' // default color
-						if (rating === 'A') bgColor = 'orange'
-						else if (rating === 'B') bgColor = 'red'
+						const bgColor = '#eee' // default color
 
 						const ratingIcon = `
 								<span style="
@@ -848,7 +772,9 @@ const NewWorkfocePlanning = () => {
 
 						return `
         ${ratingIcon}
-        <span style="margin-left: 8px ; font-weight:600;">${name}</span>
+        <span style="margin-left: 8px ; font-weight:${record?.data?.SatisfyCondition ? 700 : 600}; color:${
+							record?.data?.SatisfyCondition ? 'black' : 'grey'
+						};">${name}</span>
         ${teamLeadTag} ${certificate}
     `
 					},
@@ -1103,7 +1029,6 @@ const NewWorkfocePlanning = () => {
 					mt: 2, // Add some top margin if needed
 				}}
 			>
-				{/* Scheduler Container */}
 				<Box
 					sx={{
 						flex: 1,

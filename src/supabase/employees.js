@@ -64,6 +64,7 @@ export const getEmployeeBasedOnCertificate = async (
 	projectLeadCertificate = []
 ) => {
 	// Base query
+
 	const res = await supabase.from('employees').select('*').eq('certificate', certificate).limit(limit)
 
 	if (filterProjectLeads && res.data) {
@@ -71,6 +72,7 @@ export const getEmployeeBasedOnCertificate = async (
 			if (emp.team_lead) {
 				return projectLeadCertificate.includes(emp.certificate)
 			}
+
 			return true
 		})
 	}

@@ -18,7 +18,7 @@ export const certificateColors = {
 export const approvalStatus = [
 	{ id: 'weekly_plan', name: 'Weekly Process Planning' },
 	{ id: 'travel_expenses', name: 'Travel Expenses' },
-	{ id: 'project_schedule', name: 'Implementation Schedule'},
+	{ id: 'project_schedule', name: 'Implementation Schedule' },
 	{ id: 'project', name: 'Project' },
 ]
 
@@ -52,4 +52,19 @@ export const BucketName = {
 	Profile_Images: 'profile_images',
 	Avatars: 'avatars',
 	Files: 'files',
+}
+
+export const defaultConfig = {
+	startDate: null,
+	endDate: null,
+	quickNav: null,
+	Special: 0,
+	Level1: 0,
+	Level2: 0,
+	Level3: 0,
+	projectLeadCertificate: [],
+	availability: '',
+	allowSplitAssignment: false,
+	allowHigherTier: false,
+	allowLowerTier: false,
 }
