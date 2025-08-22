@@ -15,6 +15,3 @@
 - added bryntum for gantt chart
 - support for impl schedule
 - upgraded to nodjs 22
-
-
-
